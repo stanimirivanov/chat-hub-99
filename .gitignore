@@ -26,3 +26,4 @@ testem.log
 .claude/settings.local.json
 
 vitest.config.*.timestamp*
+.angular
