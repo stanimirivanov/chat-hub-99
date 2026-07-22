@@ -1,1 +1,1 @@
-export * from './lib/shared-schema';
+export * from './lib/chat.schema';
