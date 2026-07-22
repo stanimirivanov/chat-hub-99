@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeAll } from 'vitest';
 import { Test } from '@nestjs/testing';
 import { AppService } from './app.service';
 
