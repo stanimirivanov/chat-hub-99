@@ -4,9 +4,6 @@
     "rootDir": ".",
     "strict": true,
     "paths": {
-      "@chat-hub-99/shared-schema": [
-        "./libs/shared-schema/src/index.ts"
-      ]
     },
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
