@@ -2,8 +2,6 @@
   "recommendations": [
     "nrwl.angular-console",
     "esbenp.prettier-vscode",
-    "codista.vscode-autosave",
-    "firsttris.vscode-jest-runner",
-    "ms-playwright.playwright"
+    "codista.vscode-autosave"
   ]
 }

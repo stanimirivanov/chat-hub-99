@@ -3,38 +3,18 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "libs/shared-schema/src",
   "projectType": "library",
-  "release": {
-    "version": {
-      "manifestRootsToUpdate": [
-        "dist/{projectRoot}"
-      ],
-      "currentVersionResolver": "git-tag",
-      "fallbackCurrentVersionResolver": "disk"
-    }
-  },
-  "tags": [],
+  "tags": ["scope:shared", "type:model"],
   "targets": {
     "build": {
       "executor": "@nx/esbuild:esbuild",
-      "outputs": [
-        "{options.outputPath}"
-      ],
+      "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "dist/libs/shared-schema",
         "main": "libs/shared-schema/src/index.ts",
         "tsConfig": "libs/shared-schema/tsconfig.lib.json",
-        "assets": [
-          "libs/shared-schema/*.md"
-        ],
-        "format": [
-          "cjs"
-        ],
+        "assets": ["libs/shared-schema/*.md"],
+        "format": ["cjs"],
         "generatePackageJson": true
-      }
-    },
-    "nx-release-publish": {
-      "options": {
-        "packageRoot": "dist/{projectRoot}"
       }
     }
   }

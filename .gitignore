@@ -27,3 +27,7 @@ testem.log
 
 vitest.config.*.timestamp*
 .angular
+
+.env
+.env.local
+.env.*.local

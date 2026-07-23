@@ -2,26 +2,33 @@
   "compileOnSave": false,
   "compilerOptions": {
     "rootDir": ".",
-    "sourceMap": true,
-    "declaration": false,
-    "moduleResolution": "bundler",
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "importHelpers": true,
-    "target": "es2015",
-    "module": "esnext",
-    "lib": [
-      "es2020",
-      "dom"
-    ],
-    "skipLibCheck": true,
-    "skipDefaultLibCheck": true,
-    "strict": false,
+    "strict": true,
     "paths": {
       "@chat-hub-99/shared-schema": [
         "./libs/shared-schema/src/index.ts"
       ]
-    }
+    },
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "declaration": false,
+    "experimentalDecorators": true,
+    "moduleResolution": "bundler",
+    "importHelpers": true,
+    "target": "ES2022",
+    "module": "ES2022",
+    "lib": ["ES2022", "dom"]
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true
   },
   "exclude": [
     "node_modules",
