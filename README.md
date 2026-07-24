@@ -30,7 +30,6 @@ pnpm test
 
 pnpm build
 
-
 ## Local Supabase
 
 This project uses the Supabase CLI for local development.
@@ -59,9 +58,32 @@ pnpm supabase stop
 pnpm supabase status
 ```
 
-The first startup downloads the required Docker images and may take several minutes.
+The first startup downloads the required Docker images and may take several
+minutes.
+
+### Database workflow
+
+Create a migration:
+
+```bash
+pnpm db:migration:new <migration-name>
+```
+
+Rebuild the local database from migrations and seed data:
+
+```bash
+pnpm db:reset
+```
+
+Regenerate TypeScript database types:
+
+```bash
+pnpm db:types
+```
+
+Database schema changes must be committed as files under `supabase/migrations`.
+Do not make untracked schema changes directly in the local database.
 
 ## Documentation
 
 See the project wiki.
-
