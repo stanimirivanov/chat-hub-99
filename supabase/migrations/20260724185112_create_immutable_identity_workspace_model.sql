@@ -175,7 +175,7 @@ ON DELETE RESTRICT;
 -- There is exactly one head per user. The head points to one immutable profile
 -- version belonging to that same user.
 --
--- current_username and membership_status intentionally duplicate values from the
+-- current_username and profile_status intentionally duplicate values from the
 -- immutable version. They allow current-state uniqueness and authorization
 -- checks without scanning or joining the entire history.
 CREATE TABLE public.profile_heads (
@@ -186,7 +186,7 @@ CREATE TABLE public.profile_heads (
     profile_version_id UUID NOT NULL,
 
     current_username TEXT,
-    membership_status TEXT NOT NULL,
+    profile_status TEXT NOT NULL,
 
     CONSTRAINT profile_heads_profile_version_unique
         UNIQUE (profile_version_id),
@@ -197,9 +197,9 @@ CREATE TABLE public.profile_heads (
             OR length(trim(current_username)) > 0
         ),
 
-    CONSTRAINT profile_heads_membership_status_valid
+    CONSTRAINT profile_heads_profile_status_valid
         CHECK (
-            membership_status IN (
+            profile_status IN (
                 'active',
                 'deactivated',
                 'banned'
@@ -372,7 +372,7 @@ CREATE TABLE public.workspace_heads (
 
     current_name TEXT NOT NULL,
     current_slug TEXT NOT NULL,
-    membership_status TEXT NOT NULL,
+    workspace_status TEXT NOT NULL,
 
     CONSTRAINT workspace_heads_workspace_version_unique
         UNIQUE (workspace_version_id),
@@ -389,9 +389,9 @@ CREATE TABLE public.workspace_heads (
             AND current_slug ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'
         ),
 
-    CONSTRAINT workspace_heads_membership_status_valid
+    CONSTRAINT workspace_heads_workspace_status_valid
         CHECK (
-            membership_status IN (
+            workspace_status IN (
                 'active',
                 'archived'
             )

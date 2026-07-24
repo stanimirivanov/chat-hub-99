@@ -166,7 +166,7 @@ BEGIN
         user_id,
         profile_version_id,
         current_username,
-        membership_status
+        profile_status
     )
     VALUES (
         NEW.id,
@@ -233,7 +233,7 @@ DECLARE
 
     current_profile_version_id UUID;
     current_version_number INTEGER;
-    membership_status TEXT;
+    profile_status TEXT;
 
     new_profile_version public.profile_versions;
 BEGIN
@@ -273,11 +273,11 @@ BEGIN
     SELECT
         profile_heads.profile_version_id,
         profile_versions.version_number,
-        profile_heads.membership_status
+        profile_heads.profile_status
     INTO
         current_profile_version_id,
         current_version_number,
-        membership_status
+        profile_status
     FROM public.profile_heads
     INNER JOIN public.profile_versions
         ON profile_versions.profile_version_id =
@@ -312,7 +312,7 @@ BEGIN
         normalized_username,
         normalized_display_name,
         normalized_avatar_url,
-        membership_status,
+        profile_status,
         current_profile_version_id
     )
     RETURNING *
@@ -320,7 +320,7 @@ BEGIN
 
     -- Move the mutable projection to the newly inserted immutable version.
     --
-    -- current_username and membership_status are copied from the same values used
+    -- current_username and profile_status are copied from the same values used
     -- for the immutable row so that the projection cannot diverge from it.
     UPDATE public.profile_heads
     SET
@@ -328,7 +328,7 @@ BEGIN
             new_profile_version.profile_version_id,
         current_username =
             new_profile_version.username,
-        membership_status =
+        profile_status =
             new_profile_version.status
     WHERE user_id = authenticated_user_id;
 

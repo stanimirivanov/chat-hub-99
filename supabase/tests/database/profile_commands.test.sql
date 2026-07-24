@@ -235,7 +235,7 @@ SELECT results_eq(
         SELECT
             profile_versions.version_number,
             profile_heads.current_username,
-            profile_heads.membership_status
+            profile_heads.profile_status
         FROM public.profile_heads
         INNER JOIN public.profile_versions
             ON profile_versions.profile_version_id =
