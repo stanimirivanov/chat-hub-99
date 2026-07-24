@@ -1,0 +1,1 @@
+-- Initial migration establishing the local database migration workflow.

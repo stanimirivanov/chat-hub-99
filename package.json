@@ -15,7 +15,13 @@
     "graph": "nx graph",
     "affected:build": "nx affected -t build",
     "affected:test": "nx affected -t test",
-    "affected:lint": "nx affected -t lint"
+    "affected:lint": "nx affected -t lint",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:status": "supabase status",
+    "db:reset": "supabase db reset",
+    "db:migration:new": "supabase migration new",
+    "db:types": "supabase gen types typescript --local > supabase/types/database.types.ts"
   },
   "private": true,
   "dependencies": {
