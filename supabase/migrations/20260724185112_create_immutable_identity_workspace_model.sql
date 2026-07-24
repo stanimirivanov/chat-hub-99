@@ -175,7 +175,7 @@ ON DELETE RESTRICT;
 -- There is exactly one head per user. The head points to one immutable profile
 -- version belonging to that same user.
 --
--- current_username and current_status intentionally duplicate values from the
+-- current_username and membership_status intentionally duplicate values from the
 -- immutable version. They allow current-state uniqueness and authorization
 -- checks without scanning or joining the entire history.
 CREATE TABLE public.profile_heads (
@@ -186,7 +186,7 @@ CREATE TABLE public.profile_heads (
     profile_version_id UUID NOT NULL,
 
     current_username TEXT,
-    current_status TEXT NOT NULL,
+    membership_status TEXT NOT NULL,
 
     CONSTRAINT profile_heads_profile_version_unique
         UNIQUE (profile_version_id),
@@ -197,9 +197,9 @@ CREATE TABLE public.profile_heads (
             OR length(trim(current_username)) > 0
         ),
 
-    CONSTRAINT profile_heads_current_status_valid
+    CONSTRAINT profile_heads_membership_status_valid
         CHECK (
-            current_status IN (
+            membership_status IN (
                 'active',
                 'deactivated',
                 'banned'
@@ -372,7 +372,7 @@ CREATE TABLE public.workspace_heads (
 
     current_name TEXT NOT NULL,
     current_slug TEXT NOT NULL,
-    current_status TEXT NOT NULL,
+    membership_status TEXT NOT NULL,
 
     CONSTRAINT workspace_heads_workspace_version_unique
         UNIQUE (workspace_version_id),
@@ -389,9 +389,9 @@ CREATE TABLE public.workspace_heads (
             AND current_slug ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'
         ),
 
-    CONSTRAINT workspace_heads_current_status_valid
+    CONSTRAINT workspace_heads_membership_status_valid
         CHECK (
-            current_status IN (
+            membership_status IN (
                 'active',
                 'archived'
             )
@@ -595,8 +595,8 @@ CREATE TABLE public.workspace_membership_heads (
 
     latest_event_id UUID NOT NULL,
 
-    current_role TEXT NOT NULL,
-    current_status TEXT NOT NULL,
+    membership_role TEXT NOT NULL,
+    membership_status TEXT NOT NULL,
 
     CONSTRAINT workspace_membership_heads_workspace_user_unique
         UNIQUE (
@@ -609,7 +609,7 @@ CREATE TABLE public.workspace_membership_heads (
 
     CONSTRAINT workspace_membership_heads_role_valid
         CHECK (
-            current_role IN (
+            membership_role IN (
                 'owner',
                 'member'
             )
@@ -617,7 +617,7 @@ CREATE TABLE public.workspace_membership_heads (
 
     CONSTRAINT workspace_membership_heads_status_valid
         CHECK (
-            current_status IN (
+            membership_status IN (
                 'active',
                 'suspended',
                 'left',
@@ -654,15 +654,15 @@ CREATE TABLE public.workspace_membership_heads (
 CREATE INDEX workspace_membership_heads_user_idx
 ON public.workspace_membership_heads (
     user_id,
-    current_status
+    membership_status
 );
 
 
 CREATE INDEX workspace_membership_heads_workspace_idx
 ON public.workspace_membership_heads (
     workspace_id,
-    current_status,
-    current_role
+    membership_status,
+    membership_role
 );
 
 
@@ -790,7 +790,6 @@ COMMENT ON TABLE public.workspace_membership_events IS
 
 COMMENT ON TABLE public.workspace_membership_heads IS
     'Mutable projection of the current state produced by the latest immutable membership event.';
-
 
 COMMENT ON COLUMN public.profile_versions.supersedes_profile_version_id IS
     'The immediately preceding immutable profile version. NULL only for the first version.';
