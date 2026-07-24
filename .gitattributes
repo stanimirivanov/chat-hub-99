@@ -1,3 +1,2 @@
 * text=auto eol=lf
-*.sql linguist-generated=true
-*.sql linguist-binary=true
+supabase/migrations/*.sql linguist-generated=true
