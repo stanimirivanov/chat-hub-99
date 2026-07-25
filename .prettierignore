@@ -7,3 +7,5 @@ node_modules/**
 .vscode/**
 .idea/**
 .angular
+
+libs/shared/database/src/generated/database.types.ts
