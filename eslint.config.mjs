@@ -13,6 +13,7 @@ export default [
       '.vscode/**',
       '.idea/**',
       '**/package-lock.json',
+      'libs/shared/database/src/generated/database.types.ts',
     ],
   },
   {
