@@ -6,7 +6,12 @@ import {
 } from '@chat-hub/domain/message';
 import type { CurrentMessage } from '@chat-hub/shared/database';
 import type { ChatHubSupabaseClient } from './supabase-message-client';
-import { createMessage, findMessageById } from './supabase-message-repository';
+import {
+  createMessage,
+  editMessage,
+  findMessageById,
+} from './supabase-message-repository';
+import { EditMessageCommandSchema } from '@chat-hub/domain/message';
 
 const messageId = Schema.decodeUnknownSync(MessageIdSchema)(
   '00000000-0000-4000-8000-000000000030'
@@ -336,3 +341,163 @@ const makeThrowingRpcClientStub = (cause: unknown): ChatHubSupabaseClient => {
     rpc,
   } as unknown as ChatHubSupabaseClient;
 };
+
+const editCommand = Schema.decodeUnknownSync(EditMessageCommandSchema)({
+  messageId,
+  content: 'Edited message content',
+});
+
+const messageVersionId = '00000000-0000-4000-8000-000000000040';
+
+describe('editMessage', () => {
+  it('calls edit_message and returns void', async () => {
+    const { client, rpc } = makeRpcClientStub({
+      data: messageVersionId,
+      error: null,
+    });
+
+    const result = await Effect.runPromise(editMessage(client, editCommand));
+
+    expect(result).toBeUndefined();
+
+    expect(rpc).toHaveBeenCalledOnce();
+
+    expect(rpc).toHaveBeenCalledWith('edit_message', {
+      p_message_id: editCommand.messageId,
+      p_content: editCommand.content,
+    });
+  });
+
+  it('maps a missing message to MessageNotFoundError', async () => {
+    const { client } = makeRpcClientStub({
+      data: null,
+      error: {
+        code: 'P0002',
+        message: `Message ${messageId} does not exist`,
+        details: '',
+        hint: '',
+      },
+    });
+
+    const result = await Effect.runPromise(
+      Effect.either(editMessage(client, editCommand))
+    );
+
+    expect(result._tag).toBe('Left');
+
+    if (result._tag === 'Left') {
+      expect(result.left._tag).toBe('MessageNotFoundError');
+
+      if (result.left._tag === 'MessageNotFoundError') {
+        expect(result.left.messageId).toBe(messageId);
+      }
+    }
+  });
+
+  it('maps author permission failures to MessageAccessDeniedError', async () => {
+    const { client } = makeRpcClientStub({
+      data: null,
+      error: {
+        code: '42501',
+        message: 'Only the original message author may edit this message',
+        details: '',
+        hint: '',
+      },
+    });
+
+    const result = await Effect.runPromise(
+      Effect.either(editMessage(client, editCommand))
+    );
+
+    expect(result._tag).toBe('Left');
+
+    if (result._tag === 'Left') {
+      expect(result.left._tag).toBe('MessageAccessDeniedError');
+
+      if (result.left._tag === 'MessageAccessDeniedError') {
+        expect(result.left.operation).toBe('edit');
+      }
+    }
+  });
+
+  it('rejects an invalid message-version ID returned by the RPC', async () => {
+    const { client } = makeRpcClientStub({
+      data: 'not-a-uuid',
+      error: null,
+    });
+
+    const result = await Effect.runPromise(
+      Effect.either(editMessage(client, editCommand))
+    );
+
+    expect(result._tag).toBe('Left');
+
+    if (result._tag === 'Left') {
+      expect(result.left._tag).toBe('InvalidMessageDataError');
+    }
+  });
+
+  it('rejects a null message-version ID returned by the RPC', async () => {
+    const { client } = makeRpcClientStub({
+      data: null,
+      error: null,
+    });
+
+    const result = await Effect.runPromise(
+      Effect.either(editMessage(client, editCommand))
+    );
+
+    expect(result._tag).toBe('Left');
+
+    if (result._tag === 'Left') {
+      expect(result.left._tag).toBe('InvalidMessageDataError');
+    }
+  });
+
+  it('maps thrown edit failures to MessageRepositoryUnavailableError', async () => {
+    const client = makeThrowingRpcClientStub(new TypeError('Failed to fetch'));
+
+    const result = await Effect.runPromise(
+      Effect.either(editMessage(client, editCommand))
+    );
+
+    expect(result._tag).toBe('Left');
+
+    if (result._tag === 'Left') {
+      expect(result.left._tag).toBe('MessageRepositoryUnavailableError');
+
+      if (result.left._tag === 'MessageRepositoryUnavailableError') {
+        expect(result.left.operation).toBe('edit');
+      }
+    }
+  });
+
+  it('maps an unchanged-content rejection to the current fallback error', async () => {
+    const error = {
+      code: '22023',
+      message: 'Edited message content must differ from the current content',
+      details: '',
+      hint: '',
+    };
+
+    const { client } = makeRpcClientStub({
+      data: null,
+      error,
+    });
+
+    const result = await Effect.runPromise(
+      Effect.either(editMessage(client, editCommand))
+    );
+
+    expect(result._tag).toBe('Left');
+
+    if (
+      result._tag === 'Left' &&
+      result.left._tag === 'MessageRepositoryUnavailableError'
+    ) {
+      expect(result.left.operation).toBe('edit');
+
+      expect(result.left.cause).toBe(error);
+    }
+  });
+});
