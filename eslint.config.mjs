@@ -26,8 +26,48 @@ export default [
           allow: ['^.*/eslint(\\.base)?\\.config\\.[cm]?[jt]s$'],
           depConstraints: [
             {
-              sourceTag: '*',
-              onlyDependOnLibsWithTags: ['*'],
+              sourceTag: 'type:domain',
+              onlyDependOnLibsWithTags: ['type:domain', 'type:util'],
+            },
+            {
+              sourceTag: 'type:application',
+              onlyDependOnLibsWithTags: [
+                'type:application',
+                'type:domain',
+                'type:util',
+              ],
+            },
+            {
+              sourceTag: 'type:database',
+              onlyDependOnLibsWithTags: ['type:util'],
+            },
+            {
+              sourceTag: 'type:infrastructure',
+              onlyDependOnLibsWithTags: [
+                'type:infrastructure',
+                'type:application',
+                'type:domain',
+                'type:database',
+                'type:util',
+              ],
+            },
+            {
+              sourceTag: 'type:feature',
+              onlyDependOnLibsWithTags: [
+                'type:feature',
+                'type:application',
+                'type:domain',
+                'type:ui',
+                'type:util',
+              ],
+            },
+            {
+              sourceTag: 'type:ui',
+              onlyDependOnLibsWithTags: ['type:ui', 'type:domain', 'type:util'],
+            },
+            {
+              sourceTag: 'type:util',
+              onlyDependOnLibsWithTags: ['type:util'],
             },
           ],
         },

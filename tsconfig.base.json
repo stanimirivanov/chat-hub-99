@@ -4,8 +4,11 @@
     "rootDir": ".",
     "strict": true,
     "paths": {
-      "@chat-hub/database": ["./libs/shared/database/src/index.ts"],
-      "@chat-hub/message": ["./libs/domain/message/src/index.ts"]
+      "@chat-hub/shared/database": ["./libs/shared/database/src/index.ts"],
+      "@chat-hub/domain/message": ["./libs/domain/message/src/index.ts"],
+      "@chat-hub/application/message": [
+        "./libs/application/message/src/index.ts"
+      ]
     },
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
