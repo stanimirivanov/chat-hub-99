@@ -8,6 +8,9 @@
       "@chat-hub/domain/message": ["./libs/domain/message/src/index.ts"],
       "@chat-hub/application/message": [
         "./libs/application/message/src/index.ts"
+      ],
+      "@chat-hub/infrastructure/message": [
+        "./libs/infrastructure/message/src/index.ts"
       ]
     },
     "noImplicitOverride": true,

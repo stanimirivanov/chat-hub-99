@@ -1,0 +1,15 @@
+{
+  "name": "message-infrastructure",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/infrastructure/message/src",
+  "projectType": "library",
+  "tags": ["scope:infrastructure", "type:infrastructure"],
+  "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p libs/infrastructure/message/tsconfig.lib.json"
+      }
+    }
+  }
+}
