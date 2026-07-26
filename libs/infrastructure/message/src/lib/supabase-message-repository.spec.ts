@@ -1,9 +1,12 @@
 import { Effect, Schema } from 'effect';
 import { describe, expect, it, vi } from 'vitest';
-import { MessageIdSchema } from '@chat-hub/domain/message';
+import {
+  CreateMessageCommandSchema,
+  MessageIdSchema,
+} from '@chat-hub/domain/message';
 import type { CurrentMessage } from '@chat-hub/shared/database';
 import type { ChatHubSupabaseClient } from './supabase-message-client';
-import { findMessageById } from './supabase-message-repository';
+import { createMessage, findMessageById } from './supabase-message-repository';
 
 const messageId = Schema.decodeUnknownSync(MessageIdSchema)(
   '00000000-0000-4000-8000-000000000030'
@@ -190,5 +193,146 @@ const makeThrowingClientStub = (cause: unknown): ChatHubSupabaseClient => {
 
   return {
     from,
+  } as unknown as ChatHubSupabaseClient;
+};
+
+const createCommand = Schema.decodeUnknownSync(CreateMessageCommandSchema)({
+  channelId: '00000000-0000-4000-8000-000000000020',
+  content: 'Hello from the repository',
+});
+
+const createdMessageId = Schema.decodeUnknownSync(MessageIdSchema)(
+  '00000000-0000-4000-8000-000000000030'
+);
+
+describe('createMessage', () => {
+  it('calls create_message and returns the validated message ID', async () => {
+    const { client, rpc } = makeRpcClientStub({
+      data: createdMessageId,
+      error: null,
+    });
+
+    const result = await Effect.runPromise(
+      createMessage(client, createCommand)
+    );
+
+    expect(result).toBe(createdMessageId);
+
+    expect(rpc).toHaveBeenCalledOnce();
+
+    expect(rpc).toHaveBeenCalledWith('create_message', {
+      p_channel_id: createCommand.channelId,
+      p_content: createCommand.content,
+    });
+  });
+
+  it('maps permission errors to MessageAccessDeniedError', async () => {
+    const { client } = makeRpcClientStub({
+      data: null,
+      error: {
+        code: '42501',
+        message: 'Only active workspace members may create messages',
+        details: '',
+        hint: '',
+      },
+    });
+
+    const result = await Effect.runPromise(
+      Effect.either(createMessage(client, createCommand))
+    );
+
+    expect(result._tag).toBe('Left');
+
+    if (result._tag === 'Left') {
+      expect(result.left._tag).toBe('MessageAccessDeniedError');
+
+      if (result.left._tag === 'MessageAccessDeniedError') {
+        expect(result.left.operation).toBe('create');
+      }
+    }
+  });
+
+  it('rejects an invalid message ID returned by the RPC', async () => {
+    const { client } = makeRpcClientStub({
+      data: 'not-a-message-id',
+      error: null,
+    });
+
+    const result = await Effect.runPromise(
+      Effect.either(createMessage(client, createCommand))
+    );
+
+    expect(result._tag).toBe('Left');
+
+    if (result._tag === 'Left') {
+      expect(result.left._tag).toBe('InvalidMessageDataError');
+    }
+  });
+
+  it('rejects a null message ID returned by the RPC', async () => {
+    const { client } = makeRpcClientStub({
+      data: null,
+      error: null,
+    });
+
+    const result = await Effect.runPromise(
+      Effect.either(createMessage(client, createCommand))
+    );
+
+    expect(result._tag).toBe('Left');
+
+    if (result._tag === 'Left') {
+      expect(result.left._tag).toBe('InvalidMessageDataError');
+    }
+  });
+
+  it('maps thrown request failures to MessageRepositoryUnavailableError', async () => {
+    const client = makeThrowingRpcClientStub(new TypeError('Failed to fetch'));
+
+    const result = await Effect.runPromise(
+      Effect.either(createMessage(client, createCommand))
+    );
+
+    expect(result._tag).toBe('Left');
+
+    if (result._tag === 'Left') {
+      expect(result.left._tag).toBe('MessageRepositoryUnavailableError');
+
+      if (result.left._tag === 'MessageRepositoryUnavailableError') {
+        expect(result.left.operation).toBe('create');
+      }
+    }
+  });
+});
+
+interface RpcStubResponse {
+  readonly data: string | null;
+
+  readonly error: {
+    readonly code: string;
+    readonly message: string;
+    readonly details: string;
+    readonly hint: string;
+  } | null;
+}
+
+const makeRpcClientStub = (response: RpcStubResponse) => {
+  const rpc = vi.fn().mockResolvedValue(response);
+
+  const client = {
+    rpc,
+  } as unknown as ChatHubSupabaseClient;
+
+  return {
+    client,
+    rpc,
+  };
+};
+
+const makeThrowingRpcClientStub = (cause: unknown): ChatHubSupabaseClient => {
+  const rpc = vi.fn().mockRejectedValue(cause);
+
+  return {
+    rpc,
   } as unknown as ChatHubSupabaseClient;
 };
