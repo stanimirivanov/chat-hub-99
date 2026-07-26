@@ -15,12 +15,16 @@ import type {
   CurrentMessage,
 } from '@chat-hub/shared/database';
 import {
+  mapMessageCommandPostgrestError,
   mapPostgrestError,
   mapThrownRepositoryError,
 } from './message-repository-error-mapper';
 import { toMessage } from './message-row-mapper';
 import type { ChatHubSupabaseClient } from './supabase-message-client';
 import { toCreateMessageArgs } from './message-rpc-mapper';
+import type { EditMessageCommand } from '@chat-hub/domain/message';
+import type { EditMessageResult } from '@chat-hub/shared/database';
+import { toEditMessageArgs } from './message-rpc-mapper';
 
 /**
  * Finds the current projection of a message and converts it into the
@@ -89,4 +93,41 @@ const decodeCreatedMessageId = (
 ): Effect.Effect<MessageId, InvalidMessageDataError> =>
   decodeMessageId(result).pipe(
     Effect.mapError((cause) => new InvalidMessageDataError(cause))
+  );
+
+const decodeMessageVersionId = Schema.decodeUnknown(Schema.UUID);
+
+/**
+ * Appends a new immutable version to an existing message.
+ *
+ * The database returns the newly created message-version UUID. That identifier
+ * is validated at the infrastructure boundary but intentionally not exposed by
+ * the application repository.
+ */
+export const editMessage = (
+  client: ChatHubSupabaseClient,
+  command: EditMessageCommand
+): Effect.Effect<void, MessageRepositoryError> =>
+  Effect.tryPromise({
+    try: async () => client.rpc('edit_message', toEditMessageArgs(command)),
+
+    catch: (cause) => mapThrownRepositoryError('edit', cause),
+  }).pipe(
+    Effect.flatMap(({ data, error }) => {
+      if (error !== null) {
+        return Effect.fail(
+          mapMessageCommandPostgrestError('edit', command.messageId, error)
+        );
+      }
+
+      return validateEditResult(data);
+    })
+  );
+
+const validateEditResult = (
+  result: EditMessageResult | null
+): Effect.Effect<void, InvalidMessageDataError> =>
+  decodeMessageVersionId(result).pipe(
+    Effect.mapError((cause) => new InvalidMessageDataError(cause)),
+    Effect.asVoid
   );

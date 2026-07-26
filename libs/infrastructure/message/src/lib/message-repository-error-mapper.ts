@@ -1,12 +1,15 @@
 import {
   MessageAccessDeniedError,
+  MessageNotFoundError,
   MessageRepositoryUnavailableError,
   type MessageRepositoryError,
 } from '@chat-hub/application/message';
 
+import type { MessageId } from '@chat-hub/domain/message';
+
 export type MessageRepositoryOperation = 'create' | 'edit' | 'delete' | 'read';
 
-interface PostgrestErrorLike {
+export interface PostgrestErrorLike {
   readonly code: string;
   readonly message: string;
   readonly details?: string;
@@ -14,9 +17,25 @@ interface PostgrestErrorLike {
 }
 
 /**
- * Maps a structured error returned by PostgREST or PostgreSQL into the
- * infrastructure-neutral error model exposed by MessageRepository.
+ * Maps errors for operations that target a specific existing message.
  */
+export const mapMessageCommandPostgrestError = (
+  operation: 'edit' | 'delete',
+  messageId: MessageId,
+  error: PostgrestErrorLike
+): MessageRepositoryError => {
+  switch (error.code) {
+    case '42501':
+      return new MessageAccessDeniedError(operation);
+
+    case 'P0002':
+      return new MessageNotFoundError(messageId);
+
+    default:
+      return new MessageRepositoryUnavailableError(operation, error);
+  }
+};
+
 export const mapPostgrestError = (
   operation: MessageRepositoryOperation,
   error: PostgrestErrorLike
@@ -30,13 +49,6 @@ export const mapPostgrestError = (
   }
 };
 
-/**
- * Maps a value thrown while attempting to execute a Supabase request.
- *
- * Supabase normally returns PostgREST failures in the response's `error`
- * property. Thrown values usually indicate transport, abort, or client-level
- * failures.
- */
 export const mapThrownRepositoryError = (
   operation: MessageRepositoryOperation,
   cause: unknown
