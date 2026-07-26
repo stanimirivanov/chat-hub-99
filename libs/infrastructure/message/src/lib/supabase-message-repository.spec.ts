@@ -8,10 +8,12 @@ import type { CurrentMessage } from '@chat-hub/shared/database';
 import type { ChatHubSupabaseClient } from './supabase-message-client';
 import {
   createMessage,
+  deleteMessage,
   editMessage,
   findMessageById,
 } from './supabase-message-repository';
 import { EditMessageCommandSchema } from '@chat-hub/domain/message';
+import { DeleteMessageCommandSchema } from '@chat-hub/domain/message';
 
 const messageId = Schema.decodeUnknownSync(MessageIdSchema)(
   '00000000-0000-4000-8000-000000000030'
@@ -310,8 +312,8 @@ describe('createMessage', () => {
   });
 });
 
-interface RpcStubResponse {
-  readonly data: string | null;
+interface RpcStubResponse<TData> {
+  readonly data: TData;
 
   readonly error: {
     readonly code: string;
@@ -321,7 +323,7 @@ interface RpcStubResponse {
   } | null;
 }
 
-const makeRpcClientStub = (response: RpcStubResponse) => {
+const makeRpcClientStub = <TData>(response: RpcStubResponse<TData>) => {
   const rpc = vi.fn().mockResolvedValue(response);
 
   const client = {
@@ -498,6 +500,136 @@ describe('editMessage', () => {
       expect(result.left.operation).toBe('edit');
 
       expect(result.left.cause).toBe(error);
+    }
+  });
+});
+
+const deleteCommand = Schema.decodeUnknownSync(DeleteMessageCommandSchema)({
+  messageId,
+});
+
+describe('deleteMessage', () => {
+  it('calls delete_message and returns void', async () => {
+    const { client, rpc } = makeRpcClientStub({
+      data: null,
+      error: null,
+    });
+
+    const result = await Effect.runPromise(
+      deleteMessage(client, deleteCommand)
+    );
+
+    expect(result).toBeUndefined();
+
+    expect(rpc).toHaveBeenCalledOnce();
+
+    expect(rpc).toHaveBeenCalledWith('delete_message', {
+      p_message_id: deleteCommand.messageId,
+    });
+  });
+
+  it('maps a missing message to MessageNotFoundError', async () => {
+    const { client } = makeRpcClientStub({
+      data: null,
+      error: {
+        code: 'P0002',
+        message: `Message ${messageId} does not exist`,
+        details: '',
+        hint: '',
+      },
+    });
+
+    const result = await Effect.runPromise(
+      Effect.either(deleteMessage(client, deleteCommand))
+    );
+
+    expect(result._tag).toBe('Left');
+
+    if (result._tag === 'Left') {
+      expect(result.left._tag).toBe('MessageNotFoundError');
+
+      if (result.left._tag === 'MessageNotFoundError') {
+        expect(result.left.messageId).toBe(messageId);
+      }
+    }
+  });
+
+  it('maps delete permission failures to MessageAccessDeniedError', async () => {
+    const { client } = makeRpcClientStub({
+      data: null,
+      error: {
+        code: '42501',
+        message:
+          'Only the original author or an active workspace owner may delete this message',
+        details: '',
+        hint: '',
+      },
+    });
+
+    const result = await Effect.runPromise(
+      Effect.either(deleteMessage(client, deleteCommand))
+    );
+
+    expect(result._tag).toBe('Left');
+
+    if (result._tag === 'Left') {
+      expect(result.left._tag).toBe('MessageAccessDeniedError');
+
+      if (result.left._tag === 'MessageAccessDeniedError') {
+        expect(result.left.operation).toBe('delete');
+      }
+    }
+  });
+
+  it('maps an already-deleted message to the current fallback error', async () => {
+    const error = {
+      code: '55000',
+      message: `Message ${messageId} is already deleted`,
+      details: '',
+      hint: '',
+    };
+
+    const { client } = makeRpcClientStub({
+      data: null,
+      error,
+    });
+
+    const result = await Effect.runPromise(
+      Effect.either(deleteMessage(client, deleteCommand))
+    );
+
+    expect(result._tag).toBe('Left');
+
+    if (result._tag === 'Left') {
+      expect(result.left._tag).toBe('MessageRepositoryUnavailableError');
+
+      if (result.left._tag === 'MessageRepositoryUnavailableError') {
+        expect(result.left.operation).toBe('delete');
+
+        expect(result.left.cause).toBe(error);
+      }
+    }
+  });
+
+  it('maps thrown delete failures to MessageRepositoryUnavailableError', async () => {
+    const cause = new TypeError('Failed to fetch');
+
+    const client = makeThrowingRpcClientStub(cause);
+
+    const result = await Effect.runPromise(
+      Effect.either(deleteMessage(client, deleteCommand))
+    );
+
+    expect(result._tag).toBe('Left');
+
+    if (result._tag === 'Left') {
+      expect(result.left._tag).toBe('MessageRepositoryUnavailableError');
+
+      if (result.left._tag === 'MessageRepositoryUnavailableError') {
+        expect(result.left.operation).toBe('delete');
+
+        expect(result.left.cause).toBe(cause);
+      }
     }
   });
 });

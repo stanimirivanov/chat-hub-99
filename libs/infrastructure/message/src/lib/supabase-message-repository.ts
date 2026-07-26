@@ -25,6 +25,8 @@ import { toCreateMessageArgs } from './message-rpc-mapper';
 import type { EditMessageCommand } from '@chat-hub/domain/message';
 import type { EditMessageResult } from '@chat-hub/shared/database';
 import { toEditMessageArgs } from './message-rpc-mapper';
+import type { DeleteMessageCommand } from '@chat-hub/domain/message';
+import { toDeleteMessageArgs } from './message-rpc-mapper';
 
 /**
  * Finds the current projection of a message and converts it into the
@@ -130,4 +132,31 @@ const validateEditResult = (
   decodeMessageVersionId(result).pipe(
     Effect.mapError((cause) => new InvalidMessageDataError(cause)),
     Effect.asVoid
+  );
+
+/**
+ * Soft-deletes an active message through the `delete_message` database
+ * command.
+ *
+ * The database retains the stable message identity and immutable version
+ * history. Only the current message head transitions to the deleted state.
+ */
+export const deleteMessage = (
+  client: ChatHubSupabaseClient,
+  command: DeleteMessageCommand
+): Effect.Effect<void, MessageRepositoryError> =>
+  Effect.tryPromise({
+    try: async () => client.rpc('delete_message', toDeleteMessageArgs(command)),
+
+    catch: (cause) => mapThrownRepositoryError('delete', cause),
+  }).pipe(
+    Effect.flatMap(({ error }) => {
+      if (error !== null) {
+        return Effect.fail(
+          mapMessageCommandPostgrestError('delete', command.messageId, error)
+        );
+      }
+
+      return Effect.void;
+    })
   );
