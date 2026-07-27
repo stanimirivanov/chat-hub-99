@@ -4,7 +4,7 @@
   "projectType": "application",
   "prefix": "app",
   "sourceRoot": "apps/client/src",
-  "tags": ["scope:client", "type:app"],
+  "tags": ["scope:client", "project:app"],
   "targets": {
     "build": {
       "executor": "@angular/build:application",
@@ -58,9 +58,6 @@
         }
       }
     },
-    "lint": {
-      "executor": "@nx/eslint:lint"
-    },
     "serve-static": {
       "continuous": true,
       "executor": "@nx/web:file-server",
@@ -69,6 +66,15 @@
         "port": 4200,
         "staticFilePath": "dist/apps/client/browser",
         "spa": true
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p apps/client/tsconfig.app.json"
       }
     }
   }

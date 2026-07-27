@@ -3,7 +3,7 @@
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "libs/application/message/src",
   "projectType": "library",
-  "tags": ["scope:application", "type:application"],
+  "tags": ["scope:message", "layer:application"],
   "targets": {
     "typecheck": {
       "executor": "nx:run-commands",
