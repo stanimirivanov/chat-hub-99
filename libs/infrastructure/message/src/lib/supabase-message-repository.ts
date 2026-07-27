@@ -1,4 +1,4 @@
-import { Effect, Schema } from 'effect';
+import { Effect, Layer, Schema } from 'effect';
 import {
   InvalidMessageDataError,
   ListChannelMessagesQuery,
@@ -23,13 +23,20 @@ import {
   mapThrownRepositoryError,
 } from './message-repository-error-mapper';
 import { toMessage } from './message-row-mapper';
-import type { ChatHubSupabaseClient } from './supabase-message-client';
+import {
+  SupabaseMessageClientTag,
+  type ChatHubSupabaseClient,
+} from './supabase-message-client';
 import { toCreateMessageArgs } from './message-rpc-mapper';
 import type { EditMessageCommand } from '@chat-hub/domain/message';
 import type { EditMessageResult } from '@chat-hub/shared/database';
 import { toEditMessageArgs } from './message-rpc-mapper';
 import type { DeleteMessageCommand } from '@chat-hub/domain/message';
 import { toDeleteMessageArgs } from './message-rpc-mapper';
+import {
+  MessageRepositoryTag,
+  type MessageRepository,
+} from '@chat-hub/application/message';
 
 /**
  * Finds the current projection of a message and converts it into the
@@ -256,3 +263,43 @@ const buildMessagePage = (
         : null,
   };
 };
+
+/**
+ * Creates the Supabase-backed implementation of the application message
+ * repository.
+ *
+ * The Supabase client is captured once when the repository is constructed.
+ * Repository consumers therefore depend only on MessageRepository and do not
+ * need access to the infrastructure client.
+ */
+export const makeSupabaseMessageRepository = (client: ChatHubSupabaseClient) =>
+  ({
+    create: (command) => createMessage(client, command),
+
+    edit: (command) => editMessage(client, command),
+
+    delete: (command) => deleteMessage(client, command),
+
+    findById: (messageId) => findMessageById(client, messageId),
+
+    listByChannel: (query) => listMessagesByChannel(client, query),
+  }) satisfies MessageRepository;
+
+/**
+ * Provides MessageRepository using the Supabase client available in the
+ * environment.
+ *
+ * Requirements:
+ *   SupabaseMessageClientTag
+ *
+ * Provides:
+ *   MessageRepositoryTag
+ */
+export const SupabaseMessageRepositoryLayer = Layer.effect(
+  MessageRepositoryTag,
+  Effect.gen(function* () {
+    const client = yield* SupabaseMessageClientTag;
+
+    return makeSupabaseMessageRepository(client);
+  })
+);
