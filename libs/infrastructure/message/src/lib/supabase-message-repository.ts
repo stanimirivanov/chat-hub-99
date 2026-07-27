@@ -1,8 +1,11 @@
 import { Effect, Schema } from 'effect';
 import {
   InvalidMessageDataError,
+  ListChannelMessagesQuery,
+  MessageCursor,
+  MessagePage,
+  MessageRepositoryError,
   MessageNotFoundError,
-  type MessageRepositoryError,
 } from '@chat-hub/application/message';
 import {
   CreateMessageCommand,
@@ -160,3 +163,96 @@ export const deleteMessage = (
       return Effect.void;
     })
   );
+
+/**
+ * Lists the current message projections for a channel using stable keyset
+ * pagination.
+ *
+ * Results are ordered newest first by `(created_at, message_id)`.
+ */
+export const listMessagesByChannel = (
+  client: ChatHubSupabaseClient,
+  query: ListChannelMessagesQuery
+): Effect.Effect<MessagePage, MessageRepositoryError> =>
+  executeListMessagesQuery(client, query).pipe(
+    Effect.flatMap(({ data, error }) => {
+      if (error !== null) {
+        return Effect.fail(mapPostgrestError('read', error));
+      }
+
+      return mapMessagePage(data ?? [], Number(query.limit));
+    })
+  );
+
+const executeListMessagesQuery = (
+  client: ChatHubSupabaseClient,
+  query: ListChannelMessagesQuery
+) =>
+  Effect.tryPromise({
+    try: async () => {
+      const requestedRowCount = Number(query.limit) + 1;
+
+      let databaseQuery = client
+        .from('current_messages')
+        .select('*')
+        .eq('channel_id', query.channelId)
+        .order('created_at', {
+          ascending: false,
+        })
+        .order('message_id', {
+          ascending: false,
+        })
+        .limit(requestedRowCount);
+
+      if (query.before !== undefined) {
+        databaseQuery = databaseQuery.or(toBeforeCursorFilter(query.before));
+      }
+
+      return databaseQuery;
+    },
+
+    catch: (cause) => mapThrownRepositoryError('read', cause),
+  });
+
+const toBeforeCursorFilter = (cursor: MessageCursor): string => {
+  const createdAt = cursor.createdAt.toISOString();
+
+  return (
+    `created_at.lt.${createdAt},` +
+    `and(` +
+    `created_at.eq.${createdAt},` +
+    `message_id.lt.${cursor.messageId}` +
+    `)`
+  );
+};
+
+const mapMessagePage = (
+  rows: readonly CurrentMessage[],
+  requestedLimit: number
+): Effect.Effect<MessagePage, InvalidMessageDataError> =>
+  Effect.forEach(rows, mapCurrentMessage).pipe(
+    Effect.map((messages) => buildMessagePage(messages, requestedLimit))
+  );
+
+const buildMessagePage = (
+  mappedMessages: readonly Message[],
+  requestedLimit: number
+): MessagePage => {
+  const hasNextPage = mappedMessages.length > requestedLimit;
+
+  const messages = mappedMessages.slice(0, requestedLimit);
+
+  const lastMessage = messages[messages.length - 1];
+
+  return {
+    messages,
+
+    nextCursor:
+      hasNextPage && lastMessage !== undefined
+        ? {
+            createdAt: lastMessage.createdAt,
+            messageId: lastMessage.id,
+          }
+        : null,
+  };
+};
