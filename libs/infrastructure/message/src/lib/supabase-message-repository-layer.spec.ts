@@ -7,7 +7,7 @@ import {
 import { makeSupabaseMessageRepository } from './supabase-message-repository';
 import { MessageRepositoryTag } from '@chat-hub/application/message';
 import { DeleteMessageCommandSchema } from '@chat-hub/domain/message';
-import { SupabaseMessageRepositoryLayer } from './supabase-message-repository';
+import { SupabaseMessageRepositoryLayer } from './supabase-message-repository.layer';
 
 describe('makeSupabaseMessageRepository', () => {
   it('constructs the complete repository contract', () => {

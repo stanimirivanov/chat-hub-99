@@ -1,12 +1,10 @@
-import { Schema } from 'effect';
 import { describe, expect, it } from 'vitest';
-
+import { Schema } from 'effect';
 import {
   CreateMessageCommandSchema,
   DeleteMessageCommandSchema,
   EditMessageCommandSchema,
 } from '@chat-hub/domain/message';
-
 import {
   toCreateMessageArgs,
   toDeleteMessageArgs,

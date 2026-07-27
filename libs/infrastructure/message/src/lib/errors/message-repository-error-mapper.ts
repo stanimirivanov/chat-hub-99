@@ -4,7 +4,6 @@ import {
   MessageRepositoryUnavailableError,
   type MessageRepositoryError,
 } from '@chat-hub/application/message';
-
 import type { MessageId } from '@chat-hub/domain/message';
 
 export type MessageRepositoryOperation = 'create' | 'edit' | 'delete' | 'read';

@@ -3,7 +3,6 @@ import type {
   DeleteMessageArgs,
   EditMessageArgs,
 } from '@chat-hub/shared/database';
-
 import type {
   CreateMessageCommand,
   DeleteMessageCommand,

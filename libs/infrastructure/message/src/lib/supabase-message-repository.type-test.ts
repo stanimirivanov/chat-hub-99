@@ -1,9 +1,10 @@
-import type { Layer } from 'effect';
 import type { MessageRepository } from '@chat-hub/application/message';
+
+import { makeSupabaseMessageRepository } from './supabase-message-repository';
 import type { ChatHubSupabaseClient } from './supabase-message-client';
-import { SupabaseMessageRepositoryLayer } from './supabase-message-repository';
 
-const layer: Layer.Layer<MessageRepository, never, ChatHubSupabaseClient> =
-  SupabaseMessageRepositoryLayer;
+declare const client: ChatHubSupabaseClient;
 
-void layer;
+const repository: MessageRepository = makeSupabaseMessageRepository(client);
+
+void repository;
