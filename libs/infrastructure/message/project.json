@@ -3,7 +3,7 @@
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "libs/infrastructure/message/src",
   "projectType": "library",
-  "tags": ["scope:infrastructure", "type:infrastructure"],
+  "tags": ["scope:message", "layer:infrastructure"],
   "targets": {
     "typecheck": {
       "executor": "nx:run-commands",

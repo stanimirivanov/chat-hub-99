@@ -1,9 +1,9 @@
 {
-  "name": "message",
+  "name": "message-domain",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "libs/domain/message/src",
   "projectType": "library",
-  "tags": ["scope:domain", "type:domain"],
+  "tags": ["scope:message", "layer:domain"],
   "targets": {
     "typecheck": {
       "executor": "nx:run-commands",
