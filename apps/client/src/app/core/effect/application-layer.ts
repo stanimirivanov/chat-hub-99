@@ -1,10 +1,9 @@
-import { environment } from '../../../environments/environment';
+import { makeSupabaseClientConfig } from '../supabase/supabase-client-config';
 import { makeApplicationInfrastructureLayer } from './application-infrastructure.layer';
 
 /**
- * Root Effect Layer for the Angular application.
+ * Fully configured application infrastructure Layer.
  */
-export const ApplicationLayer = makeApplicationInfrastructureLayer({
-  url: environment.supabase.url,
-  publishableKey: environment.supabase.publishableKey,
-});
+export const ApplicationLayer = makeApplicationInfrastructureLayer(
+  makeSupabaseClientConfig()
+);

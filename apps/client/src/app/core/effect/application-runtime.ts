@@ -2,6 +2,7 @@ import { ManagedRuntime } from 'effect';
 import { ApplicationLayer } from './application-layer';
 
 /**
- * Shared runtime for application Effects.
+ * Long-lived Effect runtime containing the application's infrastructure
+ * services.
  */
-export const ApplicationRuntime = ManagedRuntime.make(ApplicationLayer);
+export const applicationRuntime = ManagedRuntime.make(ApplicationLayer);

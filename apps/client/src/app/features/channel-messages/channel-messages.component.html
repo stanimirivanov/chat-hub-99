@@ -1,0 +1,33 @@
+<section>
+  @if (store.isLoading()) {
+    <p>Loading messages…</p>
+  } @else if (store.error(); as error) {
+    <p role="alert">{{ error.message }}</p>
+
+    <button type="button" (click)="store.refresh()">Retry</button>
+  } @else if (!store.hasMessages()) {
+    <p>No messages yet.</p>
+  } @else {
+    <ul>
+      @for (message of store.messages(); track message.id) {
+        <li>
+          {{ message.body }}
+        </li>
+      }
+    </ul>
+
+    @if (store.canLoadOlder()) {
+      <button
+        type="button"
+        [disabled]="store.isLoadingOlder()"
+        (click)="store.loadOlder()"
+      >
+        @if (store.isLoadingOlder()) {
+          Loading…
+        } @else {
+          Load older messages
+        }
+      </button>
+    }
+  }
+</section>
