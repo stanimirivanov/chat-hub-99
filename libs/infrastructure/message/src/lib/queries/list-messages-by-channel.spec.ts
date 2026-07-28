@@ -1,20 +1,21 @@
 import { Effect, Schema } from 'effect';
 import { describe, expect, it } from 'vitest';
+
 import {
   ListChannelMessagesQuery,
   MessagePageSizeSchema,
 } from '@chat-hub/application/message';
 import type { CurrentMessage } from '@chat-hub/shared/database';
 import {
-  activeMessageRow,
-  channelId,
-  messageId,
-} from '../testing/message-fixtures';
-import {
   listMessagesByChannel,
   toBeforeCursorFilter,
 } from './list-messages-by-channel';
-import { makeListMessageClientStub } from '../testing/supabase-message-list-query.stub';
+import {
+  activeMessageRow,
+  channelId,
+  makeListMessageClientStub,
+  messageId,
+} from '../testing';
 
 const makeQuery = (
   overrides: Partial<ListChannelMessagesQuery> = {}

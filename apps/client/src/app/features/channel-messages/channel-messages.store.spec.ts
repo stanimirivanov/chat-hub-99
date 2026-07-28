@@ -167,3 +167,92 @@ describe('ChannelMessagesStore', () => {
     });
   });
 });
+
+describe('ChannelMessagesStore message editing', () => {
+  it('replaces the edited message projection in place', async () => {
+    const message: Message = {
+      id: '00000000-0000-4000-8000-000000000002' as MessageId,
+      channelId,
+      status: 'active',
+      content: 'Before' as MessageContent,
+      createdAt: new Date('2026-07-27T08:00:00.000Z'),
+      editedAt: null,
+    };
+    const editedMessage: Message = {
+      ...message,
+      content: 'After' as MessageContent,
+      editedAt: new Date('2026-07-28T08:00:00.000Z'),
+    };
+    const listChannelMessages = vi.fn().mockResolvedValue({
+      messages: [message],
+      nextCursor: null,
+    });
+    const editMessage = vi.fn().mockResolvedValue(editedMessage);
+
+    TestBed.configureTestingModule({
+      providers: [
+        ChannelMessagesStore,
+        {
+          provide: MessageApplicationService,
+          useValue: { listChannelMessages, editMessage },
+        },
+      ],
+    });
+
+    const store = TestBed.inject(ChannelMessagesStore);
+    await store.selectChannel(channelId);
+
+    await expect(store.edit(message.id, 'After')).resolves.toBe(true);
+
+    expect(editMessage).toHaveBeenCalledWith({
+      messageId: message.id,
+      content: 'After',
+    });
+    expect(store.messages()).toEqual([editedMessage]);
+    expect(store.editMessageStatus()).toBe('idle');
+    expect(store.editError()).toBeNull();
+  });
+
+  it('keeps edit failure separate from loading and sending state', async () => {
+    const message: Message = {
+      id: '00000000-0000-4000-8000-000000000002' as MessageId,
+      channelId,
+      status: 'active',
+      content: 'Before' as MessageContent,
+      createdAt: new Date('2026-07-27T08:00:00.000Z'),
+      editedAt: null,
+    };
+    const listChannelMessages = vi.fn().mockResolvedValue({
+      messages: [message],
+      nextCursor: null,
+    });
+    const editMessage = vi.fn().mockRejectedValue({
+      _tag: 'InvalidEditedMessageContentError',
+      message: 'The edited message content is invalid.',
+    });
+
+    TestBed.configureTestingModule({
+      providers: [
+        ChannelMessagesStore,
+        {
+          provide: MessageApplicationService,
+          useValue: { listChannelMessages, editMessage },
+        },
+      ],
+    });
+
+    const store = TestBed.inject(ChannelMessagesStore);
+    await store.selectChannel(channelId);
+
+    await expect(store.edit(message.id, '   ')).resolves.toBe(false);
+
+    expect(store.loadStatus()).toBe('loaded');
+    expect(store.sendMessageStatus()).toBe('idle');
+    expect(store.editMessageStatus()).toBe('failed');
+    expect(store.editError()).toEqual({
+      tag: 'InvalidEditedMessageContentError',
+      message: 'The edited message content is invalid.',
+    });
+    expect(store.messages()).toEqual([message]);
+  });
+});

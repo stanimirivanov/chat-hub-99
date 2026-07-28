@@ -6,6 +6,13 @@ export {
 } from './lib/create-message';
 
 export {
+  editMessage,
+  InvalidEditedMessageContentError,
+  type EditMessageError,
+  type EditMessageInput,
+} from './lib/edit-message';
+
+export {
   listChannelMessages,
   InvalidMessagePageLimitError,
   type ListChannelMessagesError,

@@ -6,10 +6,11 @@ import {
   withMethods,
   withState,
 } from '@ngrx/signals';
-import type { ChannelId } from '@chat-hub/domain/message';
+import type { ChannelId, MessageId } from '@chat-hub/domain/message';
 import { MessageApplicationService } from '../../core/message/message-application.service';
 import { appendUniqueMessages } from './append-unique-messages';
 import { prependUniqueMessage } from './prepend-unique-message';
+import { replaceMessage } from './replace-message';
 import { initialChannelMessagesState } from './channel-messages.state';
 import { toChannelMessagesError } from './to-channel-messages-error';
 
@@ -29,6 +30,8 @@ export const ChannelMessagesStore = signalStore(
     hasMessages: computed(() => store.messages().length > 0),
 
     isSending: computed(() => store.sendMessageStatus() === 'sending'),
+
+    isEditing: computed(() => store.editMessageStatus() === 'editing'),
 
     canLoadOlder: computed(
       () =>
@@ -101,8 +104,10 @@ export const ChannelMessagesStore = signalStore(
             loadStatus: 'loading',
             olderMessagesStatus: 'idle',
             sendMessageStatus: 'idle',
+            editMessageStatus: 'idle',
             error: null,
             sendError: null,
+            editError: null,
             requestGeneration: generation,
           });
 
@@ -125,8 +130,10 @@ export const ChannelMessagesStore = signalStore(
             loadStatus: 'loading',
             olderMessagesStatus: 'idle',
             sendMessageStatus: 'idle',
+            editMessageStatus: 'idle',
             error: null,
             sendError: null,
+            editError: null,
             requestGeneration: generation,
           });
 
@@ -235,6 +242,53 @@ export const ChannelMessagesStore = signalStore(
         },
 
         /**
+         * Edits a message and replaces its current projection in the page.
+         */
+        async edit(messageId: MessageId, content: string): Promise<boolean> {
+          const channelId = store.channelId();
+
+          if (channelId === null || store.editMessageStatus() === 'editing') {
+            return false;
+          }
+
+          const generation = store.requestGeneration();
+
+          patchState(store, {
+            editMessageStatus: 'editing',
+            editError: null,
+          });
+
+          try {
+            const message = await messageApplication.editMessage({
+              messageId,
+              content,
+            });
+
+            if (!isCurrentRequest(channelId, generation)) {
+              return false;
+            }
+
+            patchState(store, {
+              messages: replaceMessage(store.messages(), message),
+              editMessageStatus: 'idle',
+            });
+
+            return true;
+          } catch (error: unknown) {
+            if (!isCurrentRequest(channelId, generation)) {
+              return false;
+            }
+
+            patchState(store, {
+              editMessageStatus: 'failed',
+              editError: toChannelMessagesError(error),
+            });
+
+            return false;
+          }
+        },
+
+        /**
          * Clears the selected channel and invalidates outstanding requests.
          */
         clear(): void {
@@ -256,6 +310,13 @@ export const ChannelMessagesStore = signalStore(
           patchState(store, {
             sendError: null,
             sendMessageStatus: 'idle',
+          });
+        },
+
+        clearEditError(): void {
+          patchState(store, {
+            editError: null,
+            editMessageStatus: 'idle',
           });
         },
       };

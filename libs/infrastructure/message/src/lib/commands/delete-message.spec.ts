@@ -1,11 +1,12 @@
 import { Effect } from 'effect';
 import { describe, expect, it } from 'vitest';
 import { deleteMessage } from './delete-message';
-import { deleteMessageCommand, messageId } from '../testing/message-fixtures';
 import {
+  deleteMessageCommand,
+  messageId,
   makeRpcClientStub,
   makeThrowingRpcClientStub,
-} from '../testing/supabase-message-client.stub';
+} from '../testing';
 
 describe('deleteMessage', () => {
   it('calls delete_message and returns void', async () => {

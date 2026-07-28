@@ -1,7 +1,12 @@
 import { Injectable } from '@angular/core';
-import { createMessage, listChannelMessages } from '@chat-hub/application/message';
+import {
+  createMessage,
+  editMessage,
+  listChannelMessages,
+} from '@chat-hub/application/message';
 import type {
   CreateMessageInput,
+  EditMessageInput,
   ListChannelMessagesInput,
 } from '@chat-hub/application/message';
 import { applicationRuntime } from '../effect/application-runtime';
@@ -22,5 +27,9 @@ export class MessageApplicationService {
 
   createMessage(input: CreateMessageInput) {
     return applicationRuntime.runPromise(createMessage(input));
+  }
+
+  editMessage(input: EditMessageInput) {
+    return applicationRuntime.runPromise(editMessage(input));
   }
 }
