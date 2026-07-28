@@ -1,6 +1,6 @@
 import { Effect } from 'effect';
 import type { MessageRepositoryError } from '@chat-hub/application/message';
-import type { DeleteMessageCommand } from '@chat-hub/domain/message';
+import type { DeleteMessageCommand } from '@chat-hub/application/message';
 import {
   mapMessageCommandPostgrestError,
   mapThrownRepositoryError,

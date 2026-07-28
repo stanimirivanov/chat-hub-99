@@ -9,3 +9,6 @@ node_modules/**
 .angular
 
 libs/shared/database/src/generated/database.types.ts
+
+// ignore for preserving emty lines
+package.json

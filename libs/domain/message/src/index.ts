@@ -1,6 +1,18 @@
-export * from './lib/channel-id';
-export * from './lib/message-id';
-export * from './lib/message-content';
-export * from './lib/message';
-export * from './lib/message-command';
-export * from './lib/message-error';
+export { ChannelIdSchema, type ChannelId } from './lib/channel-id';
+
+export { MessageIdSchema, type MessageId } from './lib/message-id';
+
+export {
+  MESSAGE_CONTENT_MAX_LENGTH,
+  MessageContentSchema,
+  type MessageContent,
+} from './lib/message-content';
+
+export {
+  ActiveMessageSchema,
+  DeletedMessageSchema,
+  MessageSchema,
+  type ActiveMessage,
+  type DeletedMessage,
+  type Message,
+} from './lib/message';

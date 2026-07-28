@@ -1,19 +1,19 @@
 import { Schema } from 'effect';
 
+import type { CurrentMessage } from '@chat-hub/shared/database';
 import {
   ActiveMessageSchema,
-  type ActiveMessage,
   ChannelIdSchema,
-  CreateMessageCommandSchema,
-  DeleteMessageCommandSchema,
-  EditMessageCommandSchema,
+  MessageContentSchema,
   MessageIdSchema,
-  type CreateMessageCommand,
-  type DeleteMessageCommand,
-  type EditMessageCommand,
+  type ActiveMessage,
   type MessageId,
 } from '@chat-hub/domain/message';
-import type { CurrentMessage } from '@chat-hub/shared/database';
+import type {
+  CreateMessageCommand,
+  DeleteMessageCommand,
+  EditMessageCommand,
+} from '@chat-hub/application/message';
 
 /**
  * Stable identifiers used by infrastructure unit tests.
@@ -47,36 +47,42 @@ export const activeMessageRow: CurrentMessage = {
   workspace_id: '00000000-0000-4000-8000-000000000050',
 };
 
-export const createMessageCommand: CreateMessageCommand =
-  Schema.decodeUnknownSync(CreateMessageCommandSchema)({
-    channelId,
-    content: 'Hello from the repository',
-  });
+const createMessageContent = Schema.decodeUnknownSync(MessageContentSchema)(
+  'Hello from the repository'
+);
 
-export const editMessageCommand: EditMessageCommand = Schema.decodeUnknownSync(
-  EditMessageCommandSchema
-)({
+const editedMessageContent = Schema.decodeUnknownSync(MessageContentSchema)(
+  'Edited message content'
+);
+
+export const createMessageCommand: CreateMessageCommand = {
+  channelId,
+  content: createMessageContent,
+};
+
+export const editMessageCommand: EditMessageCommand = {
   messageId,
-  content: 'Edited message content',
-});
+  content: editedMessageContent,
+};
 
-export const deleteMessageCommand: DeleteMessageCommand =
-  Schema.decodeUnknownSync(DeleteMessageCommandSchema)({
-    messageId,
-  });
+export const deleteMessageCommand: DeleteMessageCommand = {
+  messageId,
+};
+
+interface ActiveMessageFixtureOverrides {
+  readonly id?: string;
+  readonly channelId?: string;
+  readonly content?: string;
+  readonly createdAt?: Date;
+  readonly editedAt?: Date | null;
+}
 
 export const makeActiveMessage = (
-  overrides: Partial<{
-    readonly id: string;
-    readonly channelId: string;
-    readonly content: string;
-    readonly createdAt: Date;
-    readonly editedAt: Date | null;
-  }> = {}
+  overrides: ActiveMessageFixtureOverrides = {}
 ): ActiveMessage =>
   Schema.decodeUnknownSync(ActiveMessageSchema)({
-    id: overrides.id ?? '00000000-0000-4000-8000-000000000030',
-    channelId: overrides.channelId ?? '00000000-0000-4000-8000-000000000020',
+    id: overrides.id ?? messageId,
+    channelId: overrides.channelId ?? channelId,
     status: 'active',
     content: overrides.content ?? 'Hello',
     createdAt: overrides.createdAt ?? new Date('2026-07-26T18:00:00.000Z'),

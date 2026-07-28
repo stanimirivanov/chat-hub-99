@@ -1,13 +1,10 @@
 import { Effect, Schema } from 'effect';
 import {
+  CreateMessageCommand,
   InvalidMessageDataError,
   type MessageRepositoryError,
 } from '@chat-hub/application/message';
-import {
-  MessageIdSchema,
-  type CreateMessageCommand,
-  type MessageId,
-} from '@chat-hub/domain/message';
+import { MessageIdSchema, type MessageId } from '@chat-hub/domain/message';
 import type { CreateMessageResult } from '@chat-hub/shared/database';
 import {
   mapPostgrestError,

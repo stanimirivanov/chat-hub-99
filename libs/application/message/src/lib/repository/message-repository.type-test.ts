@@ -1,11 +1,10 @@
 import type { Effect } from 'effect';
-import type {
+import type { Message, MessageId } from '@chat-hub/domain/message';
+import {
   CreateMessageCommand,
   DeleteMessageCommand,
   EditMessageCommand,
-  Message,
-  MessageId,
-} from '@chat-hub/domain/message';
+} from './message-repository-command';
 import { MessagePage } from '../pagination/message-page';
 import {
   ListChannelMessagesQuery,

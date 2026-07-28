@@ -1,13 +1,10 @@
 import { Context, type Effect } from 'effect';
-import type {
-  ChannelId,
+import type { ChannelId, Message, MessageId } from '@chat-hub/domain/message';
+import {
   CreateMessageCommand,
   DeleteMessageCommand,
   EditMessageCommand,
-  Message,
-  MessageId,
-} from '@chat-hub/domain/message';
-
+} from './message-repository-command';
 import type { MessageCursor } from '../pagination/message-cursor';
 import type { MessagePage } from '../pagination/message-page';
 import type { MessagePageSize } from '../pagination/message-page-size';

@@ -6,7 +6,10 @@
   "prettier.configPath": "",
   "prettier.ignorePath": ".gitignore",
   "editor.rulers": [80],
-  "workbench.tree.indent": 16,
+  "workbench.tree.indent": 8,
   "explorer.compactFolders": false,
-  "vsicons.presets.angular": true
+  "vsicons.presets.angular": true,
+  "[json]": {
+    "editor.formatOnSave": false
+  }
 }

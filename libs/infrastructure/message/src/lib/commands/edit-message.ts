@@ -3,8 +3,8 @@ import {
   InvalidMessageDataError,
   type MessageRepositoryError,
 } from '@chat-hub/application/message';
-import type { EditMessageCommand } from '@chat-hub/domain/message';
 import type { EditMessageResult } from '@chat-hub/shared/database';
+import type { EditMessageCommand } from '@chat-hub/application/message';
 import {
   mapMessageCommandPostgrestError,
   mapThrownRepositoryError,

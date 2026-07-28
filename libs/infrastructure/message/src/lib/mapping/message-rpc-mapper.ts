@@ -7,7 +7,7 @@ import type {
   CreateMessageCommand,
   DeleteMessageCommand,
   EditMessageCommand,
-} from '@chat-hub/domain/message';
+} from '@chat-hub/application/message';
 
 /**
  * Maps a domain create-message command to the arguments expected by the
