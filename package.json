@@ -5,27 +5,48 @@
   "packageManager": "pnpm@11.16.0",
   "scripts": {
     "preinstall": "npx only-allow pnpm",
+
     "start": "nx serve client",
+
     "build": "nx run-many -t build",
     "test": "nx run-many -t test",
     "test:watch": "nx test client --watch",
+    "typecheck": "nx run-many -t typecheck",
+    "typecheck:test": "nx run-many -t typecheck:test",
     "lint": "nx run-many -t lint",
+
     "format": "nx format:write",
     "format:check": "nx format:check",
+    "sync": "nx sync",
+    "sync:check": "nx sync:check",
+
+    "check": "pnpm format:check && pnpm sync:check && pnpm lint && pnpm typecheck && pnpm typecheck:test",
+    "verify": "pnpm check && pnpm test && pnpm build",
+
     "graph": "nx graph",
+
     "affected:build": "nx affected -t build",
     "affected:test": "nx affected -t test",
+    "affected:typecheck": "nx affected -t typecheck",
+    "affected:typecheck:test": "nx affected -t typecheck:test",
     "affected:lint": "nx affected -t lint",
+    "affected:check": "pnpm format:check && pnpm sync:check && nx affected -t lint typecheck typecheck:test",
+    "affected:verify": "pnpm format:check && pnpm sync:check && nx affected -t lint typecheck typecheck:test test build",
+
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",
     "supabase:status": "supabase status",
+
     "db:reset": "supabase db reset",
     "db:migration:new": "supabase migration new",
-    "db:types": "node tools/database/generate-types.mjs",
-    "db:types:check": "pnpm db:types && git diff --exit-code -- libs/shared/database/src/generated/database.types.ts",
+    "db:types": "pnpm db:types:generate",
+    "db:types:generate": "node tools/database/generate-types.mjs",
+    "db:types:check": "pnpm db:types:generate && git diff --exit-code -- libs/shared/database/src/generated/database.types.ts",
     "db:test": "supabase test db",
     "db:lint": "supabase db lint --level error",
-    "db:verify": "pnpm db:reset && pnpm db:lint && pnpm db:test && pnpm db:types:check"
+    "db:verify": "pnpm db:reset && pnpm db:lint && pnpm db:test && pnpm db:types:check",
+
+    "verify:all": "pnpm verify && pnpm db:verify"
   },
   "private": true,
   "dependencies": {

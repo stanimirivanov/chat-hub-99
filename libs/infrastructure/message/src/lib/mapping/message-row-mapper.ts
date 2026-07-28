@@ -1,9 +1,7 @@
 import { Effect, Schema } from 'effect';
 
 import type { CurrentMessage } from '@chat-hub/shared/database';
-
 import { MessageSchema, type Message } from '@chat-hub/domain/message';
-
 import { MessageRowMappingError } from './message-row-mapping-error';
 
 const decodeMessage = Schema.decodeUnknown(MessageSchema);

@@ -1,13 +1,17 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Effect, Layer, Schema } from 'effect';
+
+import {
+  MessageRepositoryTag,
+  type DeleteMessageCommand,
+} from '@chat-hub/application/message';
+import { MessageIdSchema } from '@chat-hub/domain/message';
 import {
   SupabaseMessageClientTag,
   type ChatHubSupabaseClient,
 } from './supabase-message-client';
+import { SupabaseMessageRepositoryLayer } from './supabase-message-repository.layer';
 import { makeSupabaseMessageRepository } from './supabase-message-repository';
-import { MessageRepositoryTag } from '@chat-hub/application/message';
-import { DeleteMessageCommandSchema } from '@chat-hub/domain/message';
-import { SupabaseMessageRepositoryLayer } from './supabase-message-repository';
 
 describe('makeSupabaseMessageRepository', () => {
   it('constructs the complete repository contract', () => {
@@ -47,9 +51,11 @@ describe('SupabaseMessageRepositoryLayer', () => {
       Layer.provide(clientLayer)
     );
 
-    const command = Schema.decodeUnknownSync(DeleteMessageCommandSchema)({
-      messageId: '00000000-0000-4000-8000-000000000030',
-    });
+    const command = {
+      messageId: Schema.decodeUnknownSync(MessageIdSchema)(
+        '00000000-0000-4000-8000-000000000030'
+      ),
+    } satisfies DeleteMessageCommand;
 
     const program = Effect.gen(function* () {
       const repository = yield* MessageRepositoryTag;

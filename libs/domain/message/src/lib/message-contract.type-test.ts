@@ -1,30 +1,26 @@
-import type {
-  ChannelId,
-  CreateMessageCommand,
-  Message,
-  MessageContent,
-  MessageId,
-} from '../index';
+import type { ChannelId, MessageContent, MessageId } from '../index';
 
-declare const channelId: ChannelId;
-declare const messageId: MessageId;
-declare const content: MessageContent;
-declare const message: Message;
+type Equal<Left, Right> =
+  (<Type>() => Type extends Left ? 1 : 2) extends <Type>() => Type extends Right
+    ? 1
+    : 2
+    ? true
+    : false;
 
-const command: CreateMessageCommand = {
-  channelId,
-  content,
-};
+type Expect<Value extends true> = Value;
 
-void command;
-void messageId;
-void message;
+type MessageIdIsNotChannelId = Expect<
+  Equal<MessageId extends ChannelId ? true : false, false>
+>;
 
-// These should fail when uncommented:
-//
-// const invalidMessageId: MessageId = channelId;
-//
-// const invalidCommand: CreateMessageCommand = {
-//   channelId: messageId,
-//   content,
-// };
+type ChannelIdIsNotMessageId = Expect<
+  Equal<ChannelId extends MessageId ? true : false, false>
+>;
+
+type MessageContentIsNotStringAssignableFromUnknown = Expect<
+  Equal<unknown extends MessageContent ? true : false, false>
+>;
+
+void (0 as unknown as MessageIdIsNotChannelId);
+void (0 as unknown as ChannelIdIsNotMessageId);
+void (0 as unknown as MessageContentIsNotStringAssignableFromUnknown);

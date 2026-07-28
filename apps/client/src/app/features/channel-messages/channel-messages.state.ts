@@ -1,14 +1,20 @@
 import type { MessagePage } from '@chat-hub/application/message';
 import type { ChannelId } from '@chat-hub/domain/message';
 
+/** Lifecycle of the newest-page request for the selected channel. */
 export type ChannelMessagesLoadStatus =
   | 'idle'
   | 'loading'
   | 'loaded'
   | 'failed';
 
+/** Lifecycle of an optional request for the next older page. */
 export type OlderMessagesLoadStatus = 'idle' | 'loading' | 'failed';
 
+/** Lifecycle of the single in-flight send operation. */
+export type SendMessageStatus = 'idle' | 'sending' | 'failed';
+
+/** Presentation-safe failure information retained by the feature store. */
 export interface ChannelMessagesError {
   readonly tag: string;
   readonly message: string;
@@ -28,7 +34,11 @@ export interface ChannelMessagesState {
 
   readonly olderMessagesStatus: OlderMessagesLoadStatus;
 
+  readonly sendMessageStatus: SendMessageStatus;
+
   readonly error: ChannelMessagesError | null;
+
+  readonly sendError: ChannelMessagesError | null;
 
   /**
    * Identifies the currently active request generation.
@@ -39,12 +49,15 @@ export interface ChannelMessagesState {
   readonly requestGeneration: number;
 }
 
+/** Fresh state used at store creation and when the selected channel is cleared. */
 export const initialChannelMessagesState: ChannelMessagesState = {
   channelId: null,
   messages: [],
   nextCursor: null,
   loadStatus: 'idle',
   olderMessagesStatus: 'idle',
+  sendMessageStatus: 'idle',
   error: null,
+  sendError: null,
   requestGeneration: 0,
 };

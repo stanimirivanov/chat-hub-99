@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { Schema } from 'effect';
+
 import { MessageIdSchema } from '@chat-hub/domain/message';
-import { mapMessageCommandPostgrestError } from './message-repository-error-mapper';
 import {
+  mapMessageCommandPostgrestError,
   mapPostgrestError,
   mapThrownRepositoryError,
 } from './message-repository-error-mapper';

@@ -1,11 +1,34 @@
-export * from './lib/message-query';
-export * from './lib/message-repository';
-export * from './lib/message-repository-error';
+export {
+  createMessage,
+  InvalidMessageContentError,
+  type CreateMessageError,
+  type CreateMessageInput,
+} from './lib/create-message';
 
-export { listChannelMessages } from './lib/list-channel-messages/list-channel-messages';
-export type {
-  ListChannelMessagesInput,
-  ListChannelMessagesCursorInput,
-} from './lib/list-channel-messages/list-channel-messages-input';
-export type { ListChannelMessagesError } from './lib/list-channel-messages/list-channel-messages-error';
-export { InvalidMessagePageLimitError } from './lib/list-channel-messages/invalid-message-page-limit-error';
+export {
+  listChannelMessages,
+  InvalidMessagePageLimitError,
+  type ListChannelMessagesError,
+  type ListChannelMessagesInput,
+} from './lib/list-channel-messages';
+
+export {
+  MessagePageSizeSchema,
+  type MessageCursor,
+  type MessagePage,
+  type MessagePageSize,
+} from './lib/pagination';
+
+export {
+  MessageRepositoryTag,
+  MessageNotFoundError,
+  MessageAccessDeniedError,
+  MessageRepositoryUnavailableError,
+  InvalidMessageDataError,
+  type ListChannelMessagesQuery,
+  type CreateMessageCommand,
+  type DeleteMessageCommand,
+  type EditMessageCommand,
+  type MessageRepository,
+  type MessageRepositoryError,
+} from './lib/repository';

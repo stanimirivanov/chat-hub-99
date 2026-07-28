@@ -9,6 +9,7 @@ import {
 import type { ChannelId } from '@chat-hub/domain/message';
 import { MessageApplicationService } from '../../core/message/message-application.service';
 import { appendUniqueMessages } from './append-unique-messages';
+import { prependUniqueMessage } from './prepend-unique-message';
 import { initialChannelMessagesState } from './channel-messages.state';
 import { toChannelMessagesError } from './to-channel-messages-error';
 
@@ -26,6 +27,8 @@ export const ChannelMessagesStore = signalStore(
     isLoadingOlder: computed(() => store.olderMessagesStatus() === 'loading'),
 
     hasMessages: computed(() => store.messages().length > 0),
+
+    isSending: computed(() => store.sendMessageStatus() === 'sending'),
 
     canLoadOlder: computed(
       () =>
@@ -97,7 +100,9 @@ export const ChannelMessagesStore = signalStore(
             nextCursor: null,
             loadStatus: 'loading',
             olderMessagesStatus: 'idle',
+            sendMessageStatus: 'idle',
             error: null,
+            sendError: null,
             requestGeneration: generation,
           });
 
@@ -119,7 +124,9 @@ export const ChannelMessagesStore = signalStore(
           patchState(store, {
             loadStatus: 'loading',
             olderMessagesStatus: 'idle',
+            sendMessageStatus: 'idle',
             error: null,
+            sendError: null,
             requestGeneration: generation,
           });
 
@@ -178,6 +185,55 @@ export const ChannelMessagesStore = signalStore(
           }
         },
 
+
+        /**
+         * Creates a message in the selected channel and prepends it to the
+         * current page.
+         */
+        async send(content: string): Promise<boolean> {
+          const channelId = store.channelId();
+
+          if (channelId === null || store.sendMessageStatus() === 'sending') {
+            return false;
+          }
+
+          const generation = store.requestGeneration();
+
+          patchState(store, {
+            sendMessageStatus: 'sending',
+            sendError: null,
+          });
+
+          try {
+            const message = await messageApplication.createMessage({
+              channelId,
+              content,
+            });
+
+            if (!isCurrentRequest(channelId, generation)) {
+              return false;
+            }
+
+            patchState(store, {
+              messages: prependUniqueMessage(store.messages(), message),
+              sendMessageStatus: 'idle',
+            });
+
+            return true;
+          } catch (error: unknown) {
+            if (!isCurrentRequest(channelId, generation)) {
+              return false;
+            }
+
+            patchState(store, {
+              sendMessageStatus: 'failed',
+              sendError: toChannelMessagesError(error),
+            });
+
+            return false;
+          }
+        },
+
         /**
          * Clears the selected channel and invalidates outstanding requests.
          */
@@ -193,6 +249,13 @@ export const ChannelMessagesStore = signalStore(
         clearError(): void {
           patchState(store, {
             error: null,
+          });
+        },
+
+        clearSendError(): void {
+          patchState(store, {
+            sendError: null,
+            sendMessageStatus: 'idle',
           });
         },
       };

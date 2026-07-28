@@ -10,6 +10,12 @@
       "options": {
         "command": "tsc --noEmit -p libs/infrastructure/message/tsconfig.lib.json"
       }
+    },
+    "typecheck:test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p libs/infrastructure/message/tsconfig.spec.json"
+      }
     }
   }
 }
