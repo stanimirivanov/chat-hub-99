@@ -58,8 +58,7 @@ application's MessageRepository interface (often called a port in Ports and
 Adapters Architecture). It assembles focused command and query functions into
 one repository object but does not re-export those internal functions.
 
-`src/index.ts` is the only package barrel. It exposes only the repository
-factory and Effect layer.
+`src/index.ts` is the only public entry point, while internal capability barrels are private implementation conveniences.
 
 ## Testing strategy
 

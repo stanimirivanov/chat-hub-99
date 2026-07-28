@@ -1,24 +1,15 @@
-import { Schema } from 'effect';
-import {
-  ChannelIdSchema,
-  MessageContentSchema,
-  MessageIdSchema,
-} from '@chat-hub/domain/message';
+import { ChannelId, MessageContent, MessageId } from '@chat-hub/domain/message';
 
-const CreateMessageCommandSchema = Schema.Struct({
-  channelId: ChannelIdSchema,
-  content: MessageContentSchema,
-});
+export interface CreateMessageCommand {
+  readonly channelId: ChannelId;
+  readonly content: MessageContent;
+}
 
-const EditMessageCommandSchema = Schema.Struct({
-  messageId: MessageIdSchema,
-  content: MessageContentSchema,
-});
+export interface EditMessageCommandSchema {
+  readonly messageId: MessageId;
+  readonly content: MessageContent;
+}
 
-const DeleteMessageCommandSchema = Schema.Struct({
-  messageId: MessageIdSchema,
-});
-
-export type CreateMessageCommand = typeof CreateMessageCommandSchema.Type;
-export type EditMessageCommand = typeof EditMessageCommandSchema.Type;
-export type DeleteMessageCommand = typeof DeleteMessageCommandSchema.Type;
+export interface DeleteMessageCommand {
+  readonly messageId: MessageId;
+}

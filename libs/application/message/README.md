@@ -55,13 +55,14 @@ Cross-use-case contracts remain near the package root:
 
 Imports communicate architectural boundaries:
 
-- Same-folder modules use relative imports.
-- Cross-folder imports inside this library use `#message-application/*`.
+- Same-folder and cross-folder internal modules use explicit relative imports.
+- External packages use the library public entry point.
+- Internal modules must not self-import through @chat-hub/application/message.
 - Domain contracts use `@chat-hub/domain/message`.
 - External consumers use only `@chat-hub/application/message`.
 - Internal code must not import the library through its own public entry point.
 - Infrastructure, database, Angular, NgRx, Node, and browser APIs are forbidden
-  in production application sourc
+  in production application source code.
 
 ## Effect boundary
 

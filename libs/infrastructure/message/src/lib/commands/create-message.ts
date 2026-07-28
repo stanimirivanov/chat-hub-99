@@ -37,5 +37,5 @@ const decodeCreatedMessageId = (
   result: CreateMessageResult | null
 ): Effect.Effect<MessageId, InvalidMessageDataError> =>
   decodeMessageId(result).pipe(
-    Effect.mapError((cause) => new InvalidMessageDataError(cause))
+    Effect.mapError((cause) => new InvalidMessageDataError({ cause }))
   );

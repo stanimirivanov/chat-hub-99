@@ -8,13 +8,13 @@
     "typecheck": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "tsc --noEmit -p libs/application/message/tsconfig.lib.json"
+        "command": "tsc --noEmit -p libs/infrastructure/message/tsconfig.lib.json"
       }
     },
     "typecheck:test": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "tsc --noEmit -p libs/application/message/tsconfig.spec.json"
+        "command": "tsc --noEmit -p libs/infrastructure/message/tsconfig.spec.json"
       }
     }
   }

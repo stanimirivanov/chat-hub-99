@@ -1,15 +1,20 @@
 import { Effect, Schema } from 'effect';
 
-import { MessagePageSizeSchema } from '../pagination';
-import { MessageRepositoryTag } from '../repository';
+import { MessagePage, MessagePageSizeSchema } from '../pagination';
+import { MessageRepository, MessageRepositoryTag } from '../repository';
 import type { ListChannelMessagesInput } from './list-channel-messages-input';
-import { InvalidMessagePageLimitError } from './list-channel-messages-error';
+import {
+  InvalidMessagePageLimitError,
+  ListChannelMessagesError,
+} from './list-channel-messages-error';
 
 const DEFAULT_PAGE_LIMIT = 50;
 
 const decodeMessagePageSize = Schema.decodeUnknown(MessagePageSizeSchema);
 
-export const listChannelMessages = (input: ListChannelMessagesInput) =>
+export const listChannelMessages = (
+  input: ListChannelMessagesInput
+): Effect.Effect<MessagePage, ListChannelMessagesError, MessageRepository> =>
   Effect.gen(function* () {
     const rawLimit = input.limit ?? DEFAULT_PAGE_LIMIT;
 

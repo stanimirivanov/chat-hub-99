@@ -10,7 +10,7 @@ import type {
 } from '@chat-hub/application/message';
 
 /**
- * Maps a domain create-message command to the arguments expected by the
+ * Maps an application create-message command to the arguments expected by the
  * `create_message` PostgreSQL function.
  */
 export const toCreateMessageArgs = (
@@ -21,7 +21,7 @@ export const toCreateMessageArgs = (
 });
 
 /**
- * Maps a domain edit-message command to the arguments expected by the
+ * Maps an application edit-message command to the arguments expected by the
  * `edit_message` PostgreSQL function.
  */
 export const toEditMessageArgs = (
@@ -32,7 +32,7 @@ export const toEditMessageArgs = (
 });
 
 /**
- * Maps a domain delete-message command to the arguments expected by the
+ * Maps an application delete-message command to the arguments expected by the
  * `delete_message` PostgreSQL function.
  */
 export const toDeleteMessageArgs = (

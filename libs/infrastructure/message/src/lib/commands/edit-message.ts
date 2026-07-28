@@ -36,6 +36,6 @@ const validateEditResult = (
   result: EditMessageResult | null
 ): Effect.Effect<void, InvalidMessageDataError> =>
   decodeMessageVersionId(result).pipe(
-    Effect.mapError((cause) => new InvalidMessageDataError(cause)),
+    Effect.mapError((cause) => new InvalidMessageDataError({ cause })),
     Effect.asVoid
   );
