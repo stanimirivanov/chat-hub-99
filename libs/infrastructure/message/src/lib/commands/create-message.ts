@@ -15,7 +15,9 @@ import type { ChatHubSupabaseClient } from '../supabase-message-client';
 
 const decodeMessageId = Schema.decodeUnknown(MessageIdSchema);
 
-/** Executes the immutable `create_message` database command. */
+/**
+ * Executes the immutable `create_message` database command.
+ */
 export const createMessage = (
   client: ChatHubSupabaseClient,
   command: CreateMessageCommand

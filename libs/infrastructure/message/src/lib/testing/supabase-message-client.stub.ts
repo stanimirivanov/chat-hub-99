@@ -1,7 +1,7 @@
 import { vi, type Mock } from 'vitest';
 import type { ChatHubSupabaseClient } from '../supabase-message-client';
 
-export interface RpcStubResponse<TData> {
+interface RpcStubResponse<TData> {
   readonly data: TData;
   readonly error: {
     readonly code: string;

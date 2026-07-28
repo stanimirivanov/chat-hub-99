@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Effect } from 'effect';
+
 import type { CurrentMessage } from '@chat-hub/shared/database';
 import { toMessage } from './message-row-mapper';
 

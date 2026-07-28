@@ -1,10 +1,10 @@
+import type { MessageId } from '@chat-hub/domain/message';
 import {
   MessageAccessDeniedError,
   MessageNotFoundError,
   MessageRepositoryUnavailableError,
   type MessageRepositoryError,
 } from '@chat-hub/application/message';
-import type { MessageId } from '@chat-hub/domain/message';
 
 export type MessageRepositoryOperation = 'create' | 'edit' | 'delete' | 'read';
 
@@ -25,13 +25,13 @@ export const mapMessageCommandPostgrestError = (
 ): MessageRepositoryError => {
   switch (error.code) {
     case '42501':
-      return new MessageAccessDeniedError(operation);
+      return new MessageAccessDeniedError({ operation });
 
     case 'P0002':
-      return new MessageNotFoundError(messageId);
+      return new MessageNotFoundError({ messageId });
 
     default:
-      return new MessageRepositoryUnavailableError(operation, error);
+      return mapThrownRepositoryError(operation, error);
   }
 };
 
@@ -41,10 +41,10 @@ export const mapPostgrestError = (
 ): MessageRepositoryError => {
   switch (error.code) {
     case '42501':
-      return new MessageAccessDeniedError(operation);
+      return new MessageAccessDeniedError({ operation });
 
     default:
-      return new MessageRepositoryUnavailableError(operation, error);
+      return mapThrownRepositoryError(operation, error);
   }
 };
 
@@ -52,4 +52,7 @@ export const mapThrownRepositoryError = (
   operation: MessageRepositoryOperation,
   cause: unknown
 ): MessageRepositoryError =>
-  new MessageRepositoryUnavailableError(operation, cause);
+  new MessageRepositoryUnavailableError({
+    operation,
+    cause,
+  });

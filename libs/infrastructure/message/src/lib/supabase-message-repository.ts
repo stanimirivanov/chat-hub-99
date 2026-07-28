@@ -1,8 +1,6 @@
 import type { MessageRepository } from '@chat-hub/application/message';
 
-import { createMessage } from './commands/create-message';
-import { deleteMessage } from './commands/delete-message';
-import { editMessage } from './commands/edit-message';
+import { createMessage, deleteMessage, editMessage } from './commands';
 import { findMessageById } from './queries/find-message-by-id';
 import { listMessagesByChannel } from './queries/list-messages-by-channel';
 import type { ChatHubSupabaseClient } from './supabase-message-client';

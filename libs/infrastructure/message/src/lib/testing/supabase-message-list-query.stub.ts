@@ -19,7 +19,7 @@ interface ListQueryStubError {
 /**
  * Result produced when the list query double is awaited.
  */
-export interface ListQueryStubResponse {
+interface ListQueryStubResponse {
   readonly data: readonly CurrentMessage[] | null;
   readonly error: ListQueryStubError | null;
 }
@@ -92,7 +92,7 @@ type FromMock = Mock<
  * Each stage of the fluent Supabase query is exposed so a specification can
  * verify both the executed query and the resulting repository behavior.
  */
-export interface ListMessageClientStub {
+interface ListMessageClientStub {
   readonly client: ChatHubSupabaseClient;
   readonly from: FromMock;
   readonly select: SelectMock;

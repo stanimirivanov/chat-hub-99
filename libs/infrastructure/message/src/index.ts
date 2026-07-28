@@ -1,8 +1,7 @@
-export { makeSupabaseMessageRepository } from './lib/supabase-message-repository';
-
 export {
-  type ChatHubSupabaseClient,
+  makeSupabaseMessageRepository,
+  SupabaseMessageRepositoryLayer,
   SupabaseMessageClientTag,
-} from './lib/supabase-message-client';
+} from './lib';
 
-export { SupabaseMessageRepositoryLayer } from './lib/supabase-message-repository.layer';
+export { type ChatHubSupabaseClient } from './lib/supabase-message-client';

@@ -1,4 +1,5 @@
 import { Effect } from 'effect';
+
 import type {
   InvalidMessageDataError,
   ListChannelMessagesQuery,
@@ -15,7 +16,9 @@ import {
 import type { ChatHubSupabaseClient } from '../supabase-message-client';
 import { mapCurrentMessage } from '../mapping/map-current-message';
 
-/** Lists current messages using stable `(created_at, message_id)` keyset pagination. */
+/**
+ * Lists current messages using stable `(created_at, message_id)` keyset pagination.
+ */
 export const listMessagesByChannel = (
   client: ChatHubSupabaseClient,
   query: ListChannelMessagesQuery
@@ -51,7 +54,9 @@ const executeListMessagesQuery = (
     catch: (cause) => mapThrownRepositoryError('read', cause),
   });
 
-/** Builds the PostgREST filter for rows strictly before a compound cursor. */
+/**
+ *  Builds the PostgREST filter for rows strictly before a compound cursor.
+ */
 export const toBeforeCursorFilter = (cursor: MessageCursor): string => {
   const createdAt = cursor.createdAt.toISOString();
   return `created_at.lt.${createdAt},and(created_at.eq.${createdAt},message_id.lt.${cursor.messageId})`;

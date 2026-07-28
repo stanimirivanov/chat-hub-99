@@ -1,10 +1,14 @@
 import { Effect } from 'effect';
 import { describe, expect, it } from 'vitest';
+
 import { CurrentMessage } from '@chat-hub/shared/database';
 import { findMessageById } from './find-message-by-id';
-import { activeMessageRow, messageId } from '../testing/message-fixtures';
-import { makeFindMessageClientStub } from '../testing/supabase-message-single-query.stub';
-import { makeThrowingRpcClientStub } from '../testing/supabase-message-client.stub';
+import {
+  activeMessageRow,
+  messageId,
+  makeFindMessageClientStub,
+  makeThrowingRpcClientStub,
+} from '../testing';
 
 describe('findMessageById', () => {
   it('returns a mapped domain message', async () => {

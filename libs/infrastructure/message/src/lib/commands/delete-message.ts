@@ -8,7 +8,9 @@ import {
 import { toDeleteMessageArgs } from '../mapping/message-rpc-mapper';
 import type { ChatHubSupabaseClient } from '../supabase-message-client';
 
-/** Soft-deletes a message while retaining its identity and version history. */
+/**
+ * Soft-deletes a message while retaining its identity and version history.
+ */
 export const deleteMessage = (
   client: ChatHubSupabaseClient,
   command: DeleteMessageCommand
