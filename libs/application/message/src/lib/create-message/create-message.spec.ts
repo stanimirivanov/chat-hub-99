@@ -1,14 +1,14 @@
 import { Effect } from 'effect';
 import { describe, expect, it, vi } from 'vitest';
 
-import type { MessageRepository } from '../repository/message-repository';
+import { createMessage } from './create-message';
+import type { MessageRepository } from '../repository';
 import {
   activeMessage,
   channelId,
   messageId,
-} from '../testing/message-application-fixtures';
-import { makeMessageRepositoryLayer } from '../testing/message-repository.stub';
-import { createMessage } from './create-message';
+  makeMessageRepositoryLayer,
+} from '../testing';
 
 describe('createMessage', () => {
   it('normalizes content, creates the message, and returns its projection', async () => {

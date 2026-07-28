@@ -1,16 +1,17 @@
 import type { Effect } from 'effect';
 import type { Message, MessageId } from '@chat-hub/domain/message';
+
 import {
   CreateMessageCommand,
   DeleteMessageCommand,
   EditMessageCommand,
 } from './message-repository-command';
-import { MessagePage } from '../pagination/message-page';
 import {
   ListChannelMessagesQuery,
   MessageRepository,
 } from './message-repository';
 import { MessageRepositoryError } from './message-repository-error';
+import type { MessagePage } from '../pagination';
 
 declare const repository: MessageRepository;
 declare const createCommand: CreateMessageCommand;

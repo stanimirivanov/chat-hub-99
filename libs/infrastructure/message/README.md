@@ -53,9 +53,9 @@ Supporting mappers remain small and focused:
 - `message-repository-error-mapper.ts` translates Supabase failures.
 - `supabase-message-client.ts` declares the infrastructure client dependency.
 
-`supabase-message-repository.ts` assembles the Supabase implementation of the 
-application's MessageRepository interface (often called a port in Ports and 
-Adapters Architecture). It assembles focused command and query functions into 
+`supabase-message-repository.ts` assembles the Supabase implementation of the
+application's MessageRepository interface (often called a port in Ports and
+Adapters Architecture). It assembles focused command and query functions into
 one repository object but does not re-export those internal functions.
 
 `src/index.ts` is the only package barrel. It exposes only the repository
@@ -66,12 +66,14 @@ factory and Effect layer.
 - Operation tests verify Supabase query/RPC interaction and error translation.
 - Mapper tests verify validation at the infrastructure boundary.
 - Layer tests verify dependency composition.
-- Type tests verify that the Supabase repository satisfies the MessageRepository 
+- Type tests verify that the Supabase repository satisfies the MessageRepository
   port defined by the application layer.
 
 ## Verification
 
 ```bash
-pnpm nx test message-infrastructure
+pnpm nx lint message-infrastructure
 pnpm nx run message-infrastructure:typecheck
+pnpm nx run message-infrastructure:typecheck:test
+pnpm nx test message-infrastructure
 ```

@@ -16,5 +16,10 @@ export const mapCurrentMessage = (
   row: CurrentMessage
 ): Effect.Effect<Message, InvalidMessageDataError> =>
   toMessage(row).pipe(
-    Effect.mapError((cause) => new InvalidMessageDataError(cause))
+    Effect.mapError(
+      (cause) =>
+        new InvalidMessageDataError({
+          cause,
+        })
+    )
   );

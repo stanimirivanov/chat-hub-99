@@ -5,22 +5,20 @@ import {
   MessageIdSchema,
 } from '@chat-hub/domain/message';
 
-export const CreateMessageCommandSchema = Schema.Struct({
+const CreateMessageCommandSchema = Schema.Struct({
   channelId: ChannelIdSchema,
   content: MessageContentSchema,
 });
 
-export type CreateMessageCommand = typeof CreateMessageCommandSchema.Type;
-
-export const EditMessageCommandSchema = Schema.Struct({
+const EditMessageCommandSchema = Schema.Struct({
   messageId: MessageIdSchema,
   content: MessageContentSchema,
 });
 
-export type EditMessageCommand = typeof EditMessageCommandSchema.Type;
-
-export const DeleteMessageCommandSchema = Schema.Struct({
+const DeleteMessageCommandSchema = Schema.Struct({
   messageId: MessageIdSchema,
 });
 
+export type CreateMessageCommand = typeof CreateMessageCommandSchema.Type;
+export type EditMessageCommand = typeof EditMessageCommandSchema.Type;
 export type DeleteMessageCommand = typeof DeleteMessageCommandSchema.Type;

@@ -1,6 +1,8 @@
 # Message Application
 
-`@chat-hub/application/message` coordinates message use cases and defines the ports required to execute them. It is the policy layer between the domain and external systems.
+`@chat-hub/application/message` coordinates message use cases and defines the
+ports required to execute them. It is the policy layer between the domain and
+external systems.
 
 ## Responsibilities
 
@@ -12,7 +14,8 @@
 
 ## Dependency rule
 
-The application library depends on the message domain and Effect. It does not import Supabase, generated database types, Angular, or NgRx.
+The application library depends on the message domain and Effect. It does not
+import Supabase, generated database types, Angular, or NgRx.
 
 ```text
 domain/message
@@ -28,26 +31,44 @@ Use cases are grouped by capability:
 
 ```text
 src/lib/
-├── create-message/          Create-message use case and boundary errors
-├── list-channel-messages/   Channel-message query use case
-├── pagination/              Shared keyset-pagination contracts
-├── repository/              Outbound repository port and failures
-└── testing/                 Internal test fixtures and repository doubles
+├── create-message/
+├── list-channel-messages/
+├── pagination/
+├── repository/
+└── testing/
 ```
 
 Cross-use-case contracts remain near the package root:
 
-- `message-repository.ts`: outbound port
-- `message-repository-error.ts`: failures exposed by that port
-- `message-query.ts`: pagination contracts shared by callers and the port
+- `create-message/` contains the create-message use case, input contract,
+  validation failure, and type tests.
+- `list-channel-messages/` contains the paginated channel query and its
+  boundary-specific input and error types.
+- `pagination/` contains pagination value types shared by callers and the
+  repository port.
+- `repository/` defines the outbound repository port, validated command
+  contracts, and technology-independent repository failures.
+- `testing/` contains private fixtures and repository doubles used only by this
+  library's tests.
 
-Use cases are grouped by capability, while contracts shared across use cases remain in focused `pagination` and `repository` modules. The repository remains a single port until separate read and write dependencies become independently useful.
+## Import policy
 
-`MessageRepository` is an outbound application port: it describes the persistence and retrieval capabilities required by the application without selecting a concrete technology.
+Imports communicate architectural boundaries:
+
+- Same-folder modules use relative imports.
+- Cross-folder imports inside this library use `#message-application/*`.
+- Domain contracts use `@chat-hub/domain/message`.
+- External consumers use only `@chat-hub/application/message`.
+- Internal code must not import the library through its own public entry point.
+- Infrastructure, database, Angular, NgRx, Node, and browser APIs are forbidden
+  in production application sourc
 
 ## Effect boundary
 
-Use cases return `Effect` values rather than starting asynchronous work themselves. This keeps dependencies and failure types visible. The Angular boundary runs those Effects and converts them to Promises for Signal Store methods.
+Use cases return `Effect` values rather than starting asynchronous work
+themselves. This keeps dependencies and failure types visible. The Angular
+boundary runs those Effects and converts them to Promises for Signal Store
+methods.
 
 ## Adding a use case
 
@@ -61,6 +82,8 @@ Use cases return `Effect` values rather than starting asynchronous work themselv
 ## Verification
 
 ```bash
-pnpm nx test message-application
+pnpm nx lint message-application
 pnpm nx run message-application:typecheck
+pnpm nx run message-application:typecheck:test
+pnpm nx test message-application
 ```

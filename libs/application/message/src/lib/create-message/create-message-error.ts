@@ -1,9 +1,14 @@
-import type { MessageRepositoryError } from '../repository/message-repository-error';
-import type { InvalidMessageContentError } from './invalid-message-content-error';
+import { Data } from 'effect';
+import type { MessageRepositoryError } from '../repository';
 
-/**
- * Errors that can be produced while creating a message.
- */
+export class InvalidMessageContentError extends Data.TaggedError(
+  'InvalidMessageContentError'
+)<{
+  readonly cause: unknown;
+}> {
+  override readonly message = 'The message content is invalid.';
+}
+
 export type CreateMessageError =
   | InvalidMessageContentError
   | MessageRepositoryError;

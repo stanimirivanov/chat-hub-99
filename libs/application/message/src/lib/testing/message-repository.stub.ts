@@ -1,4 +1,6 @@
 import { Effect, Layer } from 'effect';
+import { vi } from 'vitest';
+
 import type { MessageRepository } from '../repository/message-repository';
 import { MessageRepositoryTag } from '../repository/message-repository';
 
@@ -24,3 +26,16 @@ export const makeMessageRepositoryLayer = (
   overrides: Partial<MessageRepository> = {}
 ): Layer.Layer<MessageRepository> =>
   Layer.succeed(MessageRepositoryTag, makeMessageRepositoryStub(overrides));
+
+export const makeListByChannelRepository = (
+  implementation: MessageRepository['listByChannel']
+) => {
+  const listByChannel = vi.fn(implementation);
+
+  return {
+    listByChannel,
+    repositoryLayer: makeMessageRepositoryLayer({
+      listByChannel,
+    }),
+  };
+};

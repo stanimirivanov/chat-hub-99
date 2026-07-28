@@ -1,11 +1,5 @@
 {
   "extends": "../../../tsconfig.base.json",
-  "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "#message-domain/*": ["src/lib/*"]
-    }
-  },
   "files": [],
   "include": [],
   "references": [

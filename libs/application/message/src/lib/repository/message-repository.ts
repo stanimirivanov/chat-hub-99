@@ -1,14 +1,16 @@
 import { Context, type Effect } from 'effect';
 import type { ChannelId, Message, MessageId } from '@chat-hub/domain/message';
-import {
+import type {
   CreateMessageCommand,
   DeleteMessageCommand,
   EditMessageCommand,
 } from './message-repository-command';
-import type { MessageCursor } from '../pagination/message-cursor';
-import type { MessagePage } from '../pagination/message-page';
-import type { MessagePageSize } from '../pagination/message-page-size';
 import type { MessageRepositoryError } from './message-repository-error';
+import type {
+  MessageCursor,
+  MessagePage,
+  MessagePageSize,
+} from '../pagination';
 
 /**
  * Query used by the repository to retrieve one channel-message page.

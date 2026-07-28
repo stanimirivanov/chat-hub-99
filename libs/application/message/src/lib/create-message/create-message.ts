@@ -1,19 +1,26 @@
 import { Effect, Schema } from 'effect';
-import { MessageContentSchema } from '@chat-hub/domain/message';
-import { MessageRepositoryTag } from '../repository/message-repository';
+
+import { MessageContentSchema, type Message } from '@chat-hub/domain/message';
+import { MessageRepositoryTag, type MessageRepository } from '../repository';
+import {
+  InvalidMessageContentError,
+  type CreateMessageError,
+} from './create-message-error';
 import type { CreateMessageInput } from './create-message-input';
-import { InvalidMessageContentError } from './invalid-message-content-error';
 
 const decodeMessageContent = Schema.decodeUnknown(MessageContentSchema);
 
-/** Creates a message and returns its current validated projection. */
-export const createMessage = (input: CreateMessageInput) =>
+/**
+ * Creates a message and returns its current validated projection.
+ */
+export const createMessage = (
+  input: CreateMessageInput
+): Effect.Effect<Message, CreateMessageError, MessageRepository> =>
   Effect.gen(function* () {
     const content = yield* decodeMessageContent(input.content).pipe(
       Effect.mapError(
         (cause) =>
           new InvalidMessageContentError({
-            content: input.content,
             cause,
           })
       )

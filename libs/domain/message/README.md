@@ -39,6 +39,8 @@ Add a domain abstraction only when it captures a business invariant or vocabular
 ## Verification
 
 ```bash
-pnpm nx test message-domain
+pnpm nx lint message-domain
 pnpm nx run message-domain:typecheck
+pnpm nx run message-domain:typecheck:test
+pnpm nx test message-domain
 ```

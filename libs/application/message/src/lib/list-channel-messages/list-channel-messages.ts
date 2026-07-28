@@ -1,8 +1,9 @@
 import { Effect, Schema } from 'effect';
-import { MessagePageSizeSchema } from '../pagination/message-page-size';
-import { MessageRepositoryTag } from '../repository/message-repository';
+
+import { MessagePageSizeSchema } from '../pagination';
+import { MessageRepositoryTag } from '../repository';
 import type { ListChannelMessagesInput } from './list-channel-messages-input';
-import { InvalidMessagePageLimitError } from './invalid-message-page-limit-error';
+import { InvalidMessagePageLimitError } from './list-channel-messages-error';
 
 const DEFAULT_PAGE_LIMIT = 50;
 

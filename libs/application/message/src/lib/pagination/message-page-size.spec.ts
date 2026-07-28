@@ -1,5 +1,6 @@
 import { Effect, Schema } from 'effect';
 import { describe, expect, it } from 'vitest';
+
 import { MessagePageSizeSchema } from './message-page-size';
 
 const decodePageSize = Schema.decodeUnknown(MessagePageSizeSchema);

@@ -11,7 +11,9 @@ import {
 import type { ChatHubSupabaseClient } from '../supabase-message-client';
 import { mapCurrentMessage } from '../mapping/map-current-message';
 
-/** Reads one current message projection by its stable identity. */
+/**
+ * Reads one current message projection by its stable identity.
+ */
 export const findMessageById = (
   client: ChatHubSupabaseClient,
   messageId: MessageId
@@ -26,9 +28,18 @@ export const findMessageById = (
     catch: (cause) => mapThrownRepositoryError('read', cause),
   }).pipe(
     Effect.flatMap(({ data, error }) => {
-      if (error !== null) return Effect.fail(mapPostgrestError('read', error));
-      if (data === null)
-        return Effect.fail(new MessageNotFoundError(messageId));
+      if (error !== null) {
+        return Effect.fail(mapPostgrestError('read', error));
+      }
+
+      if (data === null) {
+        return Effect.fail(
+          new MessageNotFoundError({
+            messageId,
+          })
+        );
+      }
+
       return mapCurrentMessage(data);
     })
   );
