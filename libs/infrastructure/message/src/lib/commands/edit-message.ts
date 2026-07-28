@@ -8,8 +8,8 @@ import type { EditMessageCommand } from '@chat-hub/application/message';
 import {
   mapMessageCommandPostgrestError,
   mapThrownRepositoryError,
-} from '../errors/message-repository-error-mapper';
-import { toEditMessageArgs } from '../mapping/message-rpc-mapper';
+} from '../errors';
+import { toEditMessageArgs } from '../mapping';
 import type { ChatHubSupabaseClient } from '../supabase-message-client';
 
 const decodeMessageVersionId = Schema.decodeUnknown(Schema.UUID);

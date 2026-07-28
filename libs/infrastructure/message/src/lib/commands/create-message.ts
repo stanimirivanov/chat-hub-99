@@ -9,8 +9,8 @@ import type { CreateMessageResult } from '@chat-hub/shared/database';
 import {
   mapPostgrestError,
   mapThrownRepositoryError,
-} from '../errors/message-repository-error-mapper';
-import { toCreateMessageArgs } from '../mapping/message-rpc-mapper';
+} from '../errors';
+import { toCreateMessageArgs } from '../mapping';
 import type { ChatHubSupabaseClient } from '../supabase-message-client';
 
 const decodeMessageId = Schema.decodeUnknown(MessageIdSchema);
