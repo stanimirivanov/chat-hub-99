@@ -11,7 +11,11 @@
     <ul>
       @for (message of store.messages(); track message.id) {
         <li>
-          {{ message.body }}
+          @if (message.status === 'active') {
+            {{ message.content }}
+          } @else {
+            <em>Message deleted</em>
+          }
         </li>
       }
     </ul>
@@ -29,5 +33,29 @@
         }
       </button>
     }
+  }
+
+  <form (submit)="$event.preventDefault(); sendMessage(messageInput)">
+    <label for="message-content">Message</label>
+    <input
+      #messageInput
+      id="message-content"
+      name="message-content"
+      type="text"
+      maxlength="4000"
+      [disabled]="store.isSending()"
+    />
+    <button type="submit" [disabled]="store.isSending()">
+      @if (store.isSending()) {
+        Sending…
+      } @else {
+        Send
+      }
+    </button>
+  </form>
+
+  @if (store.sendError(); as error) {
+    <p role="alert">{{ error.message }}</p>
+    <button type="button" (click)="store.clearSendError()">Dismiss</button>
   }
 </section>
