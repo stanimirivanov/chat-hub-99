@@ -1,6 +1,6 @@
 import { Effect, Schema } from 'effect';
-import { MessagePageSizeSchema } from '../message-query';
-import { MessageRepositoryTag } from '../message-repository';
+import { MessagePageSizeSchema } from '../pagination/message-page-size';
+import { MessageRepositoryTag } from '../repository/message-repository';
 import type { ListChannelMessagesInput } from './list-channel-messages-input';
 import { InvalidMessagePageLimitError } from './invalid-message-page-limit-error';
 

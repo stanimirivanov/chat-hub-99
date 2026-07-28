@@ -1,10 +1,12 @@
 import { Effect, Layer } from 'effect';
 import { describe, expect, it, vi } from 'vitest';
 import type { ChannelId } from '@chat-hub/domain/message';
-import type { MessagePage } from '../message-query';
-import type { MessageRepository } from '../message-repository';
-import { MessageRepositoryTag } from '../message-repository';
+import type { MessagePage } from '../pagination/message-page';
+import type { MessageRepository } from '../repository/message-repository';
+import { MessageRepositoryTag } from '../repository/message-repository';
 import { listChannelMessages } from './list-channel-messages';
+import { messageId } from '../testing/message-application-fixtures';
+import { makeMessageRepositoryLayer } from '../testing/message-repository.stub';
 
 const channelId = '00000000-0000-4000-8000-000000000001' as ChannelId;
 
@@ -97,5 +99,36 @@ describe('listChannelMessages', () => {
     });
 
     expect(listByChannel).not.toHaveBeenCalled();
+  });
+
+  it('passes the pagination cursor to the repository', async () => {
+    const before = {
+      createdAt: new Date('2026-07-26T08:00:00.000Z'),
+      messageId,
+    };
+
+    const listByChannel = vi.fn<MessageRepository['listByChannel']>(() =>
+      Effect.succeed(emptyPage)
+    );
+
+    await Effect.runPromise(
+      listChannelMessages({
+        channelId,
+        limit: 25,
+        before,
+      }).pipe(
+        Effect.provide(
+          makeMessageRepositoryLayer({
+            listByChannel,
+          })
+        )
+      )
+    );
+
+    expect(listByChannel).toHaveBeenCalledExactlyOnceWith({
+      channelId,
+      limit: 25,
+      before,
+    });
   });
 });

@@ -6,8 +6,12 @@ import type {
   Message,
   MessageId,
 } from '@chat-hub/domain/message';
-import type { ListChannelMessagesQuery, MessagePage } from './message-query';
-import type { MessageRepository, MessageRepositoryError } from '../index';
+import { MessagePage } from '../pagination/message-page';
+import {
+  ListChannelMessagesQuery,
+  MessageRepository,
+} from './message-repository';
+import { MessageRepositoryError } from './message-repository-error';
 
 declare const repository: MessageRepository;
 declare const createCommand: CreateMessageCommand;

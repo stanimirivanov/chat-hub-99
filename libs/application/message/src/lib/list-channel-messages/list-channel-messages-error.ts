@@ -1,4 +1,4 @@
-import type { MessageRepositoryError } from '../message-repository-error';
+import type { MessageRepositoryError } from '../repository/message-repository-error';
 import type { InvalidMessagePageLimitError } from './invalid-message-page-limit-error';
 
 /**
