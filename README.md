@@ -1,13 +1,18 @@
 # Chat Hub
 
-Chat Hub is an educational, portfolio-oriented collaboration application inspired by Slack. Its purpose is not only to deliver features, but also to demonstrate how an Angular application can use domain boundaries, Effect, NgRx Signal Store, and Supabase without turning those technologies into unnecessary framework layers.
+Chat Hub is an educational, portfolio-oriented collaboration application
+inspired by Slack. Its purpose is not only to deliver features, but also to
+demonstrate how an Angular application can use domain boundaries, Effect, NgRx
+Signal Store, and Supabase without turning those technologies into unnecessary
+framework layers.
 
 ## Technology
 
 - Angular 22 for the browser application and dependency-injection boundary
 - NgRx Signal Store for feature-local presentation state
 - Effect for typed application workflows, dependency injection, and failures
-- Supabase for authentication, PostgreSQL, row-level security, realtime, and storage
+- Supabase for authentication, PostgreSQL, row-level security, realtime, and
+  storage
 - Nx for project boundaries, task orchestration, and dependency visualization
 - Vitest for TypeScript unit tests and pgTAP for database tests
 
@@ -28,13 +33,20 @@ Shared database types ───────> Infrastructure only
 
 Dependencies point toward policy:
 
-- **Domain** defines validated business values and entities. It has no Angular, Supabase, or database dependency.
-- **Application** coordinates use cases and declares ports such as `MessageRepository`. It depends on the domain, not on Supabase.
-- **Infrastructure** implements application ports with Supabase and maps database data into domain values.
-- **Presentation** adapts Angular events to application calls and stores UI state in feature-local Signal Stores.
-- **Shared database** contains generated Supabase types and database-specific aliases. It is not a domain model.
+- **Domain** defines validated business values and entities. It has no Angular,
+  Supabase, or database dependency.
+- **Application** coordinates use cases and declares ports such as
+  `MessageRepository`. It depends on the domain, not on Supabase.
+- **Infrastructure** implements application ports with Supabase and maps
+  database data into domain values.
+- **Presentation** adapts Angular events to application calls and stores UI
+  state in feature-local Signal Stores.
+- **Shared database** contains generated Supabase types and database-specific
+  aliases. It is not a domain model.
 
-The project is developed as small vertical slices. New abstractions are introduced only after concrete duplication or coupling appears in implemented features.
+The project is developed as small vertical slices. New abstractions are
+introduced only after concrete duplication or coupling appears in implemented
+features.
 
 ## Repository layout
 
@@ -48,19 +60,27 @@ supabase/                       Migrations, seed data, configuration, and pgTAP 
 tools/database/                 Database type-generation tooling
 ```
 
-Each library README documents its responsibilities, dependency rules, internal package structure, and extension guidelines.
+Each library README documents its responsibilities, dependency rules, internal
+package structure, and extension guidelines.
 
 ## SOLID in this codebase
 
 SOLID is applied pragmatically rather than mechanically:
 
-- **Single responsibility:** database operations, mapping, composition, use cases, and presentation state are separate modules.
-- **Open/closed:** application code depends on repository ports, allowing another adapter without modifying use cases.
-- **Liskov substitution:** repository implementations must preserve the port’s success and failure semantics.
-- **Interface segregation:** ports expose operations required by the message application; UI components do not depend on Supabase APIs.
-- **Dependency inversion:** Effect service tags connect application policy to infrastructure implementations at the runtime composition root.
+- **Single responsibility:** database operations, mapping, composition, use
+  cases, and presentation state are separate modules.
+- **Open/closed:** application code depends on repository ports, allowing
+  another adapter without modifying use cases.
+- **Liskov substitution:** repository implementations must preserve the port’s
+  success and failure semantics.
+- **Interface segregation:** ports expose operations required by the message
+  application; UI components do not depend on Supabase APIs.
+- **Dependency inversion:** Effect service tags connect application policy to
+  infrastructure implementations at the runtime composition root.
 
-A separate Nx library is not created for every class or function. A package boundary is justified only when it provides an independently enforceable dependency rule or reusable capability.
+A separate Nx library is not created for every class or function. A package
+boundary is justified only when it provides an independently enforceable
+dependency rule or reusable capability.
 
 ## Getting started
 
@@ -139,7 +159,8 @@ pnpm verify:all
 
 Runs both source verification and database verification.
 
-This is the recommended command before opening a pull request or merging a major refactoring.
+This is the recommended command before opening a pull request or merging a major
+refactoring.
 
 Checks are intentionally ordered from cheapest to most expensive:
 
@@ -181,14 +202,49 @@ Run the complete database verification pipeline:
 pnpm db:verify
 ```
 
-`db:verify` resets the database, lints SQL, runs pgTAP tests, regenerates database types, and checks that generated types are committed.
+`db:verify` resets the database, lints SQL, runs pgTAP tests, regenerates
+database types, and checks that generated types are committed.
 
-Database schema changes must be represented by files in `supabase/migrations`. Avoid manual schema changes that cannot be reproduced from a clean reset.
+Database schema changes must be represented by files in `supabase/migrations`.
+Avoid manual schema changes that cannot be reproduced from a clean reset.
+
+## Local development data
+
+Prepare a clean local database and start the Angular application:
+
+```bash
+pnpm dev
+```
+
+This command starts Supabase, resets the local database, applies all migrations,
+loads supabase/seed.sql, and starts the Angular development server.
+
+The reset is destructive to local database data.
+
+Seeded users
+
+| Role               | Email                     | Password       |
+| :----------------- | :------------------------ | :------------- |
+| Workspace owner    | `owner@chat-hub.local`    | `Password123!` |
+| Workspace member   | `member@chat-hub.local`   | `Password123!` |
+| Workspace outsider | `outsider@chat-hub.local` | `Password123!` |
+
+The owner and member belong to the seeded Chat Hub Development workspace. The
+outsider has an active profile but no workspace membership.
+
+These credentials are explicitly local development credentials. Do not place
+equivalent fixed passwords in production seed or migration files.
 
 ## Documentation standard
 
-Public types, use cases, ports, adapters, and non-obvious algorithms should have TSDoc that explains intent and architectural role—not merely restates syntax. README files explain package boundaries and extension rules. Generated files are excluded from this requirement.
+Public types, use cases, ports, adapters, and non-obvious algorithms should have
+TSDoc that explains intent and architectural role—not merely restates syntax.
+README files explain package boundaries and extension rules. Generated files are
+excluded from this requirement.
 
 ## Quality benchmark
 
-Future slices should follow [`docs/architecture/code-quality-benchmark.md`](docs/architecture/code-quality-benchmark.md), which defines responsibility placement, package-boundary criteria, TSDoc/README standards, and the review checklist.
+Future slices should follow [
+`docs/architecture/code-quality-benchmark.md`](docs/architecture/code-quality-benchmark.md),
+which defines responsibility placement, package-boundary criteria, TSDoc/README
+standards, and the review checklist.
