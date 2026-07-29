@@ -2,7 +2,9 @@ import type { MessagePage } from '@chat-hub/application/message';
 
 type Message = MessagePage['messages'][number];
 
-/** Prepends a message unless its stable identifier is already present. */
+/**
+ * Prepends a message unless its stable identifier is already present.
+ */
 export const prependUniqueMessage = (
   current: readonly Message[],
   incoming: Message

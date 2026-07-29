@@ -1,0 +1,119 @@
+@if (store.isLoading()) {
+  <p>Loading messages…</p>
+} @else if (store.error(); as error) {
+  <p role="alert">{{ error.message }}</p>
+  <button type="button" (click)="store.refresh()">Retry</button>
+} @else if (!store.hasMessages()) {
+  <p>No messages yet.</p>
+} @else {
+  <ul>
+    @for (message of store.messages(); track message.id) {
+      <li>
+        @if (message.status === 'active') {
+          @if (editingMessageId() === message.id) {
+            <form
+              (submit)="
+                $event.preventDefault(); saveEdit(message.id, editInput)
+              "
+            >
+              <label [for]="'edit-message-' + message.id"> Edit message </label>
+
+              <input
+                #editInput
+                [id]="'edit-message-' + message.id"
+                type="text"
+                maxlength="4000"
+                [value]="message.content"
+                [disabled]="store.isEditing()"
+              />
+
+              <button type="submit" [disabled]="store.isEditing()">
+                @if (store.isEditing()) {
+                  Saving…
+                } @else {
+                  Save
+                }
+              </button>
+
+              <button
+                type="button"
+                [disabled]="store.isEditing()"
+                (click)="cancelEdit()"
+              >
+                Cancel
+              </button>
+            </form>
+          } @else {
+            <span>{{ message.content }}</span>
+
+            @if (deletingMessageId() === message.id) {
+              <span>Delete this message?</span>
+
+              <button
+                type="button"
+                [disabled]="store.isDeleting()"
+                (click)="confirmDelete(message.id)"
+              >
+                @if (store.isDeleting()) {
+                  Deleting…
+                } @else {
+                  Confirm
+                }
+              </button>
+
+              <button
+                type="button"
+                [disabled]="store.isDeleting()"
+                (click)="cancelDelete()"
+              >
+                Cancel
+              </button>
+            } @else {
+              <button
+                type="button"
+                [disabled]="store.isDeleting()"
+                (click)="beginEdit(message.id)"
+              >
+                Edit
+              </button>
+
+              <button
+                type="button"
+                [disabled]="store.isEditing() || store.isDeleting()"
+                (click)="beginDelete(message.id)"
+              >
+                Delete
+              </button>
+            }
+          }
+        } @else {
+          <em>Message deleted</em>
+        }
+      </li>
+    }
+  </ul>
+
+  @if (store.canLoadOlder()) {
+    <button
+      type="button"
+      [disabled]="store.isLoadingOlder()"
+      (click)="store.loadOlder()"
+    >
+      @if (store.isLoadingOlder()) {
+        Loading…
+      } @else {
+        Load older messages
+      }
+    </button>
+  }
+}
+
+@if (store.editError(); as error) {
+  <p role="alert">{{ error.message }}</p>
+  <button type="button" (click)="store.clearEditError()">Dismiss</button>
+}
+
+@if (store.deleteError(); as error) {
+  <p role="alert">{{ error.message }}</p>
+  <button type="button" (click)="store.clearDeleteError()">Dismiss</button>
+}

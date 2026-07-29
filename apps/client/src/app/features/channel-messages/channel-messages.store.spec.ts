@@ -11,6 +11,22 @@ import { ChannelMessagesStore } from './channel-messages.store';
 
 const channelId = '00000000-0000-4000-8000-000000000001' as ChannelId;
 
+const makeDeferredPromise = <Value>() => {
+  let resolve!: (value: Value | PromiseLike<Value>) => void;
+  let reject!: (reason?: unknown) => void;
+
+  const promise = new Promise<Value>((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
+  });
+
+  return {
+    promise,
+    resolve,
+    reject,
+  };
+};
+
 describe('ChannelMessagesStore', () => {
   it('loads messages for the selected channel', async () => {
     const listChannelMessages = vi.fn().mockResolvedValue({
@@ -130,6 +146,86 @@ describe('ChannelMessagesStore', () => {
     expect(store.sendError()).toBeNull();
   });
 
+  it('ignores a created message after another channel is selected', async () => {
+    const secondChannelId = '00000000-0000-4000-8000-000000000003' as ChannelId;
+
+    const createdMessage: Message = {
+      id: '00000000-0000-4000-8000-000000000004' as MessageId,
+      channelId,
+      status: 'active',
+      content: 'Created in the first channel' as MessageContent,
+      createdAt: new Date('2026-07-29T08:00:00.000Z'),
+      editedAt: null,
+    };
+
+    const secondChannelMessage: Message = {
+      id: '00000000-0000-4000-8000-000000000005' as MessageId,
+      channelId: secondChannelId,
+      status: 'active',
+      content: 'Message from the second channel' as MessageContent,
+      createdAt: new Date('2026-07-29T09:00:00.000Z'),
+      editedAt: null,
+    };
+
+    const creation = makeDeferredPromise<Message>();
+
+    const listChannelMessages = vi
+      .fn()
+      .mockResolvedValueOnce({
+        messages: [],
+        nextCursor: null,
+      })
+      .mockResolvedValueOnce({
+        messages: [secondChannelMessage],
+        nextCursor: null,
+      });
+
+    const createMessage = vi.fn().mockReturnValue(creation);
+
+    TestBed.configureTestingModule({
+      providers: [
+        ChannelMessagesStore,
+        {
+          provide: MessageApplicationService,
+          useValue: {
+            listChannelMessages,
+            createMessage,
+          },
+        },
+      ],
+    });
+
+    const store = TestBed.inject(ChannelMessagesStore);
+
+    await store.selectChannel(channelId);
+
+    const creationResult = store.send('Created in the first channel');
+
+    expect(store.sendMessageStatus()).toBe('sending');
+
+    await store.selectChannel(secondChannelId);
+
+    expect(store.channelId()).toBe(secondChannelId);
+    expect(store.messages()).toEqual([secondChannelMessage]);
+    expect(store.sendMessageStatus()).toBe('idle');
+
+    creation.resolve(createdMessage);
+
+    await expect(creationResult).resolves.toBe(false);
+
+    expect(createMessage).toHaveBeenCalledOnce();
+
+    expect(createMessage).toHaveBeenCalledWith({
+      channelId,
+      content: 'Created in the first channel',
+    });
+
+    expect(store.channelId()).toBe(secondChannelId);
+    expect(store.messages()).toEqual([secondChannelMessage]);
+    expect(store.sendMessageStatus()).toBe('idle');
+    expect(store.sendError()).toBeNull();
+  });
+
   it('keeps the composer failure separate from message loading state', async () => {
     const listChannelMessages = vi.fn().mockResolvedValue({
       messages: [],
@@ -209,6 +305,92 @@ describe('ChannelMessagesStore message editing', () => {
       content: 'After',
     });
     expect(store.messages()).toEqual([editedMessage]);
+    expect(store.editMessageStatus()).toBe('idle');
+    expect(store.editError()).toBeNull();
+  });
+
+  it('ignores an edited message after another channel is selected', async () => {
+    const secondChannelId = '00000000-0000-4000-8000-000000000003' as ChannelId;
+
+    const originalMessage: Message = {
+      id: '00000000-0000-4000-8000-000000000002' as MessageId,
+      channelId,
+      status: 'active',
+      content: 'Before' as MessageContent,
+      createdAt: new Date('2026-07-27T08:00:00.000Z'),
+      editedAt: null,
+    };
+
+    const editedMessage: Message = {
+      ...originalMessage,
+      content: 'After' as MessageContent,
+      editedAt: new Date('2026-07-29T08:00:00.000Z'),
+    };
+
+    const secondChannelMessage: Message = {
+      id: '00000000-0000-4000-8000-000000000005' as MessageId,
+      channelId: secondChannelId,
+      status: 'active',
+      content: 'Message from the second channel' as MessageContent,
+      createdAt: new Date('2026-07-29T09:00:00.000Z'),
+      editedAt: null,
+    };
+
+    const edit = makeDeferredPromise<Message>();
+
+    const listChannelMessages = vi
+      .fn()
+      .mockResolvedValueOnce({
+        messages: [originalMessage],
+        nextCursor: null,
+      })
+      .mockResolvedValueOnce({
+        messages: [secondChannelMessage],
+        nextCursor: null,
+      });
+
+    const editMessage = vi.fn().mockReturnValue(edit);
+
+    TestBed.configureTestingModule({
+      providers: [
+        ChannelMessagesStore,
+        {
+          provide: MessageApplicationService,
+          useValue: {
+            listChannelMessages,
+            editMessage,
+          },
+        },
+      ],
+    });
+
+    const store = TestBed.inject(ChannelMessagesStore);
+
+    await store.selectChannel(channelId);
+
+    const editResult = store.edit(originalMessage.id, 'After');
+
+    expect(store.editMessageStatus()).toBe('editing');
+
+    await store.selectChannel(secondChannelId);
+
+    expect(store.channelId()).toBe(secondChannelId);
+    expect(store.messages()).toEqual([secondChannelMessage]);
+    expect(store.editMessageStatus()).toBe('idle');
+
+    edit.resolve(editedMessage);
+
+    await expect(editResult).resolves.toBe(false);
+
+    expect(editMessage).toHaveBeenCalledOnce();
+
+    expect(editMessage).toHaveBeenCalledWith({
+      messageId: originalMessage.id,
+      content: 'After',
+    });
+
+    expect(store.channelId()).toBe(secondChannelId);
+    expect(store.messages()).toEqual([secondChannelMessage]);
     expect(store.editMessageStatus()).toBe('idle');
     expect(store.editError()).toBeNull();
   });
@@ -366,11 +548,7 @@ describe('ChannelMessagesStore message deletion', () => {
   });
 
   it('ignores a deletion result after another channel is selected', async () => {
-    let resolveDeletion!: (message: Message) => void;
-
-    const deletion = new Promise<Message>((resolve) => {
-      resolveDeletion = resolve;
-    });
+    const deletion = makeDeferredPromise<Message>();
 
     const secondChannelId = '00000000-0000-4000-8000-000000000003' as ChannelId;
 
@@ -393,6 +571,15 @@ describe('ChannelMessagesStore message deletion', () => {
       deletedAt: new Date('2026-07-29T08:00:00.000Z'),
     };
 
+    const secondChannelMessage: Message = {
+      id: '00000000-0000-4000-8000-000000000005' as MessageId,
+      channelId: secondChannelId,
+      status: 'active',
+      content: 'Message from the second channel' as MessageContent,
+      createdAt: new Date('2026-07-29T09:00:00.000Z'),
+      editedAt: null,
+    };
+
     const listChannelMessages = vi
       .fn()
       .mockResolvedValueOnce({
@@ -400,7 +587,7 @@ describe('ChannelMessagesStore message deletion', () => {
         nextCursor: null,
       })
       .mockResolvedValueOnce({
-        messages: [],
+        messages: [secondChannelMessage],
         nextCursor: null,
       });
 
@@ -425,13 +612,27 @@ describe('ChannelMessagesStore message deletion', () => {
 
     const deletionResult = store.delete(message.id);
 
+    expect(store.deleteMessageStatus()).toBe('deleting');
+
     await store.selectChannel(secondChannelId);
 
-    resolveDeletion(deletedMessage);
+    expect(store.channelId()).toBe(secondChannelId);
+    expect(store.messages()).toEqual([secondChannelMessage]);
+    expect(store.deleteMessageStatus()).toBe('idle');
+
+    deletion.resolve(deletedMessage);
 
     await expect(deletionResult).resolves.toBe(false);
 
+    expect(deleteMessage).toHaveBeenCalledOnce();
+
+    expect(deleteMessage).toHaveBeenCalledWith({
+      messageId: message.id,
+    });
+
     expect(store.channelId()).toBe(secondChannelId);
-    expect(store.messages()).toEqual([]);
+    expect(store.messages()).toEqual([secondChannelMessage]);
+    expect(store.deleteMessageStatus()).toBe('idle');
+    expect(store.deleteError()).toBeNull();
   });
 });

@@ -1,13 +1,4 @@
-import type { ChannelMessagesError } from './channel-messages.state';
-
-const hasStringProperty = <K extends string>(
-  value: unknown,
-  property: K
-): value is Record<K, string> =>
-  typeof value === 'object' &&
-  value !== null &&
-  property in value &&
-  typeof Reflect.get(value, property) === 'string';
+import type { ChannelMessagesError } from '../channel-messages.state';
 
 /**
  * Converts an application failure into stable presentation state.
@@ -23,3 +14,12 @@ export const toChannelMessagesError = (
     ? error.message
     : 'The channel messages could not be loaded.',
 });
+
+const hasStringProperty = <K extends string>(
+  value: unknown,
+  property: K
+): value is Record<K, string> =>
+  typeof value === 'object' &&
+  value !== null &&
+  property in value &&
+  typeof Reflect.get(value, property) === 'string';
