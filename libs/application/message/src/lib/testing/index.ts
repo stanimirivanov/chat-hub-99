@@ -3,6 +3,7 @@ export {
   messageId,
   messageContent,
   activeMessage,
+  deletedMessage,
 } from './message-application-fixtures';
 
 export {

@@ -6,6 +6,7 @@ import {
   withMethods,
   withState,
 } from '@ngrx/signals';
+
 import type { ChannelId, MessageId } from '@chat-hub/domain/message';
 import { MessageApplicationService } from '../../core/message/message-application.service';
 import { appendUniqueMessages } from './append-unique-messages';
@@ -32,6 +33,8 @@ export const ChannelMessagesStore = signalStore(
     isSending: computed(() => store.sendMessageStatus() === 'sending'),
 
     isEditing: computed(() => store.editMessageStatus() === 'editing'),
+
+    isDeleting: computed(() => store.deleteMessageStatus() === 'deleting'),
 
     canLoadOlder: computed(
       () =>
@@ -105,9 +108,11 @@ export const ChannelMessagesStore = signalStore(
             olderMessagesStatus: 'idle',
             sendMessageStatus: 'idle',
             editMessageStatus: 'idle',
+            deleteMessageStatus: 'idle',
             error: null,
             sendError: null,
             editError: null,
+            deleteError: null,
             requestGeneration: generation,
           });
 
@@ -131,9 +136,11 @@ export const ChannelMessagesStore = signalStore(
             olderMessagesStatus: 'idle',
             sendMessageStatus: 'idle',
             editMessageStatus: 'idle',
+            deleteMessageStatus: 'idle',
             error: null,
             sendError: null,
             editError: null,
+            deleteError: null,
             requestGeneration: generation,
           });
 
@@ -191,7 +198,6 @@ export const ChannelMessagesStore = signalStore(
             });
           }
         },
-
 
         /**
          * Creates a message in the selected channel and prepends it to the
@@ -289,6 +295,56 @@ export const ChannelMessagesStore = signalStore(
         },
 
         /**
+         * Soft-deletes a message and replaces its current projection in the
+         * loaded page.
+         */
+        async delete(messageId: MessageId): Promise<boolean> {
+          const channelId = store.channelId();
+
+          if (
+            channelId === null ||
+            store.deleteMessageStatus() === 'deleting'
+          ) {
+            return false;
+          }
+
+          const generation = store.requestGeneration();
+
+          patchState(store, {
+            deleteMessageStatus: 'deleting',
+            deleteError: null,
+          });
+
+          try {
+            const message = await messageApplication.deleteMessage({
+              messageId,
+            });
+
+            if (!isCurrentRequest(channelId, generation)) {
+              return false;
+            }
+
+            patchState(store, {
+              messages: replaceMessage(store.messages(), message),
+              deleteMessageStatus: 'idle',
+            });
+
+            return true;
+          } catch (error: unknown) {
+            if (!isCurrentRequest(channelId, generation)) {
+              return false;
+            }
+
+            patchState(store, {
+              deleteMessageStatus: 'failed',
+              deleteError: toChannelMessagesError(error),
+            });
+
+            return false;
+          }
+        },
+
+        /**
          * Clears the selected channel and invalidates outstanding requests.
          */
         clear(): void {
@@ -317,6 +373,13 @@ export const ChannelMessagesStore = signalStore(
           patchState(store, {
             editError: null,
             editMessageStatus: 'idle',
+          });
+        },
+
+        clearDeleteError(): void {
+          patchState(store, {
+            deleteError: null,
+            deleteMessageStatus: 'idle',
           });
         },
       };

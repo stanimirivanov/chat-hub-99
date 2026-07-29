@@ -1,11 +1,13 @@
 import { Injectable } from '@angular/core';
 import {
   createMessage,
+  deleteMessage,
   editMessage,
   listChannelMessages,
 } from '@chat-hub/application/message';
 import type {
   CreateMessageInput,
+  DeleteMessageInput,
   EditMessageInput,
   ListChannelMessagesInput,
 } from '@chat-hub/application/message';
@@ -31,5 +33,9 @@ export class MessageApplicationService {
 
   editMessage(input: EditMessageInput) {
     return applicationRuntime.runPromise(editMessage(input));
+  }
+
+  deleteMessage(input: DeleteMessageInput) {
+    return applicationRuntime.runPromise(deleteMessage(input));
   }
 }

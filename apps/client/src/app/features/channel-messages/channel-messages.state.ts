@@ -1,7 +1,9 @@
 import type { MessagePage } from '@chat-hub/application/message';
 import type { ChannelId } from '@chat-hub/domain/message';
 
-/** Lifecycle of the newest-page request for the selected channel. */
+/**
+ * Lifecycle of the newest-page request for the selected channel.
+ */
 export type ChannelMessagesLoadStatus =
   | 'idle'
   | 'loading'
@@ -22,6 +24,11 @@ export type SendMessageStatus = 'idle' | 'sending' | 'failed';
  * Lifecycle of the single in-flight edit operation.
  */
 export type EditMessageStatus = 'idle' | 'editing' | 'failed';
+
+/**
+ * Lifecycle of the single in-flight delete operation.
+ */
+export type DeleteMessageStatus = 'idle' | 'deleting' | 'failed';
 
 /**
  * Presentation-safe failure information retained by the feature store.
@@ -49,11 +56,15 @@ export interface ChannelMessagesState {
 
   readonly editMessageStatus: EditMessageStatus;
 
+  readonly deleteMessageStatus: DeleteMessageStatus;
+
   readonly error: ChannelMessagesError | null;
 
   readonly sendError: ChannelMessagesError | null;
 
   readonly editError: ChannelMessagesError | null;
+
+  readonly deleteError: ChannelMessagesError | null;
 
   /**
    * Identifies the currently active request generation.
@@ -75,8 +86,10 @@ export const initialChannelMessagesState: ChannelMessagesState = {
   olderMessagesStatus: 'idle',
   sendMessageStatus: 'idle',
   editMessageStatus: 'idle',
+  deleteMessageStatus: 'idle',
   error: null,
   sendError: null,
   editError: null,
+  deleteError: null,
   requestGeneration: 0,
 };

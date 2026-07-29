@@ -20,11 +20,15 @@ export class ChannelMessagesComponent {
   readonly channelId = input.required<ChannelId>();
 
   protected readonly store = inject(ChannelMessagesStore);
+
   protected readonly editingMessageId = signal<MessageId | null>(null);
+
+  protected readonly deletingMessageId = signal<MessageId | null>(null);
 
   constructor() {
     effect(() => {
       this.editingMessageId.set(null);
+      this.deletingMessageId.set(null);
       void this.store.selectChannel(this.channelId());
     });
   }
@@ -55,6 +59,33 @@ export class ChannelMessagesComponent {
 
     if (edited) {
       this.editingMessageId.set(null);
+    }
+  }
+
+  protected async deleteMessage(messageId: MessageId): Promise<void> {
+    this.store.clearDeleteError();
+    await this.store.delete(messageId);
+  }
+
+  protected beginDelete(messageId: MessageId): void {
+    this.store.clearDeleteError();
+    this.deletingMessageId.set(messageId);
+  }
+
+  protected cancelDelete(): void {
+    this.store.clearDeleteError();
+    this.deletingMessageId.set(null);
+  }
+
+  protected async confirmDelete(messageId: MessageId): Promise<void> {
+    const deleted = await this.store.delete(messageId);
+
+    if (deleted) {
+      this.deletingMessageId.set(null);
+
+      if (this.editingMessageId() === messageId) {
+        this.editingMessageId.set(null);
+      }
     }
   }
 }
