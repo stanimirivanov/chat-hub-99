@@ -8,16 +8,24 @@ export type ChannelMessagesLoadStatus =
   | 'loaded'
   | 'failed';
 
-/** Lifecycle of an optional request for the next older page. */
+/**
+ * Lifecycle of an optional request for the next older page.
+ */
 export type OlderMessagesLoadStatus = 'idle' | 'loading' | 'failed';
 
-/** Lifecycle of the single in-flight send operation. */
+/**
+ * Lifecycle of the single in-flight send operation.
+ */
 export type SendMessageStatus = 'idle' | 'sending' | 'failed';
 
-/** Lifecycle of the single in-flight edit operation. */
+/**
+ * Lifecycle of the single in-flight edit operation.
+ */
 export type EditMessageStatus = 'idle' | 'editing' | 'failed';
 
-/** Presentation-safe failure information retained by the feature store. */
+/**
+ * Presentation-safe failure information retained by the feature store.
+ */
 export interface ChannelMessagesError {
   readonly tag: string;
   readonly message: string;
@@ -56,7 +64,9 @@ export interface ChannelMessagesState {
   readonly requestGeneration: number;
 }
 
-/** Fresh state used at store creation and when the selected channel is cleared. */
+/**
+ * Fresh state used at store creation and when the selected channel is cleared.
+ */
 export const initialChannelMessagesState: ChannelMessagesState = {
   channelId: null,
   messages: [],

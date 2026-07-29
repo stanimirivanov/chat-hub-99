@@ -1,7 +1,9 @@
 import { Data } from 'effect';
 import type { MessageRepositoryError } from '../repository';
 
-/** Indicates that proposed message content violates the domain contract. */
+/**
+ * Indicates that proposed message content violates the domain contract.
+ */
 export class InvalidEditedMessageContentError extends Data.TaggedError(
   'InvalidEditedMessageContentError'
 )<{

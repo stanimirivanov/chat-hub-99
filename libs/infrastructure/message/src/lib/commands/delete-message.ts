@@ -5,7 +5,7 @@ import {
   mapMessageCommandPostgrestError,
   mapThrownRepositoryError,
 } from '../errors';
-import { toDeleteMessageArgs } from '../mapping/message-rpc-mapper';
+import { toDeleteMessageArgs } from '../mapping';
 import type { ChatHubSupabaseClient } from '../supabase-message-client';
 
 /**
