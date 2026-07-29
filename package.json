@@ -38,6 +38,7 @@
     "supabase:status": "supabase status",
 
     "db:reset": "supabase db reset",
+    "db:prepare": "pnpm supabase:start && pnpm db:reset",
     "db:migration:new": "supabase migration new",
     "db:types": "pnpm db:types:generate",
     "db:types:generate": "node tools/database/generate-types.mjs",
@@ -46,7 +47,9 @@
     "db:lint": "supabase db lint --level error",
     "db:verify": "pnpm db:reset && pnpm db:lint && pnpm db:test && pnpm db:types:check",
 
-    "verify:all": "pnpm verify && pnpm db:verify"
+    "verify:all": "pnpm verify && pnpm db:verify",
+
+    "dev": "pnpm db:prepare && nx serve client"
   },
   "private": true,
   "dependencies": {
