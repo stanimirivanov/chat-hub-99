@@ -256,3 +256,182 @@ describe('ChannelMessagesStore message editing', () => {
     expect(store.messages()).toEqual([message]);
   });
 });
+
+describe('ChannelMessagesStore message deletion', () => {
+  it('replaces the active message with its deleted projection', async () => {
+    const message: Message = {
+      id: '00000000-0000-4000-8000-000000000002' as MessageId,
+      channelId,
+      status: 'active',
+      content: 'Delete me' as MessageContent,
+      createdAt: new Date('2026-07-27T08:00:00.000Z'),
+      editedAt: null,
+    };
+
+    const deletedMessage: Message = {
+      id: message.id,
+      channelId,
+      status: 'deleted',
+      content: null,
+      createdAt: message.createdAt,
+      editedAt: null,
+      deletedAt: new Date('2026-07-29T08:00:00.000Z'),
+    };
+
+    const listChannelMessages = vi.fn().mockResolvedValue({
+      messages: [message],
+      nextCursor: null,
+    });
+
+    const deleteMessage = vi.fn().mockResolvedValue(deletedMessage);
+
+    TestBed.configureTestingModule({
+      providers: [
+        ChannelMessagesStore,
+        {
+          provide: MessageApplicationService,
+          useValue: {
+            listChannelMessages,
+            deleteMessage,
+          },
+        },
+      ],
+    });
+
+    const store = TestBed.inject(ChannelMessagesStore);
+
+    await store.selectChannel(channelId);
+
+    await expect(store.delete(message.id)).resolves.toBe(true);
+
+    expect(deleteMessage).toHaveBeenCalledWith({
+      messageId: message.id,
+    });
+
+    expect(store.messages()).toEqual([deletedMessage]);
+    expect(store.deleteMessageStatus()).toBe('idle');
+    expect(store.deleteError()).toBeNull();
+  });
+
+  it('keeps deletion failure separate from other feature state', async () => {
+    const message: Message = {
+      id: '00000000-0000-4000-8000-000000000002' as MessageId,
+      channelId,
+      status: 'active',
+      content: 'Delete me' as MessageContent,
+      createdAt: new Date('2026-07-27T08:00:00.000Z'),
+      editedAt: null,
+    };
+
+    const listChannelMessages = vi.fn().mockResolvedValue({
+      messages: [message],
+      nextCursor: null,
+    });
+
+    const deleteMessage = vi.fn().mockRejectedValue({
+      _tag: 'MessageAccessDeniedError',
+      message: 'Message access was denied.',
+    });
+
+    TestBed.configureTestingModule({
+      providers: [
+        ChannelMessagesStore,
+        {
+          provide: MessageApplicationService,
+          useValue: {
+            listChannelMessages,
+            deleteMessage,
+          },
+        },
+      ],
+    });
+
+    const store = TestBed.inject(ChannelMessagesStore);
+
+    await store.selectChannel(channelId);
+
+    await expect(store.delete(message.id)).resolves.toBe(false);
+
+    expect(store.loadStatus()).toBe('loaded');
+    expect(store.sendMessageStatus()).toBe('idle');
+    expect(store.editMessageStatus()).toBe('idle');
+    expect(store.deleteMessageStatus()).toBe('failed');
+
+    expect(store.deleteError()).toEqual({
+      tag: 'MessageAccessDeniedError',
+      message: 'Message access was denied.',
+    });
+
+    expect(store.messages()).toEqual([message]);
+  });
+
+  it('ignores a deletion result after another channel is selected', async () => {
+    let resolveDeletion!: (message: Message) => void;
+
+    const deletion = new Promise<Message>((resolve) => {
+      resolveDeletion = resolve;
+    });
+
+    const secondChannelId = '00000000-0000-4000-8000-000000000003' as ChannelId;
+
+    const message: Message = {
+      id: '00000000-0000-4000-8000-000000000002' as MessageId,
+      channelId,
+      status: 'active',
+      content: 'Delete me' as MessageContent,
+      createdAt: new Date('2026-07-27T08:00:00.000Z'),
+      editedAt: null,
+    };
+
+    const deletedMessage: Message = {
+      id: message.id,
+      channelId,
+      status: 'deleted',
+      content: null,
+      createdAt: message.createdAt,
+      editedAt: null,
+      deletedAt: new Date('2026-07-29T08:00:00.000Z'),
+    };
+
+    const listChannelMessages = vi
+      .fn()
+      .mockResolvedValueOnce({
+        messages: [message],
+        nextCursor: null,
+      })
+      .mockResolvedValueOnce({
+        messages: [],
+        nextCursor: null,
+      });
+
+    const deleteMessage = vi.fn().mockReturnValue(deletion);
+
+    TestBed.configureTestingModule({
+      providers: [
+        ChannelMessagesStore,
+        {
+          provide: MessageApplicationService,
+          useValue: {
+            listChannelMessages,
+            deleteMessage,
+          },
+        },
+      ],
+    });
+
+    const store = TestBed.inject(ChannelMessagesStore);
+
+    await store.selectChannel(channelId);
+
+    const deletionResult = store.delete(message.id);
+
+    await store.selectChannel(secondChannelId);
+
+    resolveDeletion(deletedMessage);
+
+    await expect(deletionResult).resolves.toBe(false);
+
+    expect(store.channelId()).toBe(secondChannelId);
+    expect(store.messages()).toEqual([]);
+  });
+});

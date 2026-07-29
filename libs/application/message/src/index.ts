@@ -13,6 +13,12 @@ export {
 } from './lib/edit-message';
 
 export {
+  deleteMessage,
+  type DeleteMessageError,
+  type DeleteMessageInput,
+} from './lib/delete-message';
+
+export {
   listChannelMessages,
   InvalidMessagePageLimitError,
   type ListChannelMessagesError,

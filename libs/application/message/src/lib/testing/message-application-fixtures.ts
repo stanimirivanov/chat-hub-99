@@ -26,3 +26,13 @@ export const activeMessage: Message = {
   createdAt: new Date('2026-07-27T08:00:00.000Z'),
   editedAt: null,
 };
+
+export const deletedMessage: Message = {
+  id: messageId,
+  channelId,
+  status: 'deleted',
+  content: null,
+  createdAt: new Date('2026-07-27T08:00:00.000Z'),
+  editedAt: null,
+  deletedAt: new Date('2026-07-29T08:00:00.000Z'),
+};

@@ -43,9 +43,46 @@
               </form>
             } @else {
               <span>{{ message.content }}</span>
-              <button type="button" (click)="beginEdit(message.id)">
-                Edit
-              </button>
+
+              @if (deletingMessageId() === message.id) {
+                <span>Delete this message?</span>
+
+                <button
+                  type="button"
+                  [disabled]="store.isDeleting()"
+                  (click)="confirmDelete(message.id)"
+                >
+                  @if (store.isDeleting()) {
+                    Deleting…
+                  } @else {
+                    Confirm
+                  }
+                </button>
+
+                <button
+                  type="button"
+                  [disabled]="store.isDeleting()"
+                  (click)="cancelDelete()"
+                >
+                  Cancel
+                </button>
+              } @else {
+                <button
+                  type="button"
+                  [disabled]="store.isDeleting()"
+                  (click)="beginEdit(message.id)"
+                >
+                  Edit
+                </button>
+
+                <button
+                  type="button"
+                  [disabled]="store.isEditing() || store.isDeleting()"
+                  (click)="beginDelete(message.id)"
+                >
+                  Delete
+                </button>
+              }
             }
           } @else {
             <em>Message deleted</em>
@@ -72,6 +109,11 @@
   @if (store.editError(); as error) {
     <p role="alert">{{ error.message }}</p>
     <button type="button" (click)="store.clearEditError()">Dismiss</button>
+  }
+
+  @if (store.deleteError(); as error) {
+    <p role="alert">{{ error.message }}</p>
+    <button type="button" (click)="store.clearDeleteError()">Dismiss</button>
   }
 
   <form (submit)="$event.preventDefault(); sendMessage(messageInput)">
