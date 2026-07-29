@@ -1,11 +1,12 @@
 import { Effect } from 'effect';
 import { describe, expect, it } from 'vitest';
 import { editMessage } from './edit-message';
-import { editMessageCommand, messageId } from '../testing/message-fixtures';
 import {
+  editMessageCommand,
+  messageId,
   makeRpcClientStub,
   makeThrowingRpcClientStub,
-} from '../testing/supabase-message-client.stub';
+} from '../testing';
 
 describe('editMessage', () => {
   it('calls edit_message and returns void', async () => {

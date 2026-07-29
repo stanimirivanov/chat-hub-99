@@ -4,8 +4,8 @@ import type { DeleteMessageCommand } from '@chat-hub/application/message';
 import {
   mapMessageCommandPostgrestError,
   mapThrownRepositoryError,
-} from '../errors/message-repository-error-mapper';
-import { toDeleteMessageArgs } from '../mapping/message-rpc-mapper';
+} from '../errors';
+import { toDeleteMessageArgs } from '../mapping';
 import type { ChatHubSupabaseClient } from '../supabase-message-client';
 
 /**

@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { makeActiveMessage, messageId } from '../testing/message-fixtures';
+
 import {
   buildMessagePage,
   toBeforeCursorFilter,
 } from './list-messages-by-channel';
+import { makeActiveMessage, messageId } from '../testing';
 
 describe('toBeforeCursorFilter', () => {
   it('builds a stable compound keyset filter', () => {

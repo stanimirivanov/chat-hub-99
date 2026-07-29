@@ -63,7 +63,8 @@ transitions and stale-result behavior. Application and infrastructure behavior
 is tested in their owning libraries.
 
 ```bash
-pnpm nx test client
 pnpm nx lint client
-pnpm nx build client
+pnpm nx run client:typecheck
+pnpm nx run client:typecheck:test
+pnpm nx test client
 ```

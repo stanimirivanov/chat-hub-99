@@ -4,9 +4,9 @@ import {
   effect,
   inject,
   input,
+  signal,
 } from '@angular/core';
-import type { ChannelId } from '@chat-hub/domain/message';
-
+import type { ChannelId, MessageId } from '@chat-hub/domain/message';
 import { ChannelMessagesStore } from './channel-messages.store';
 
 @Component({
@@ -20,20 +20,41 @@ export class ChannelMessagesComponent {
   readonly channelId = input.required<ChannelId>();
 
   protected readonly store = inject(ChannelMessagesStore);
+  protected readonly editingMessageId = signal<MessageId | null>(null);
 
   constructor() {
     effect(() => {
+      this.editingMessageId.set(null);
       void this.store.selectChannel(this.channelId());
     });
   }
 
-  protected async sendMessage(
-    inputElement: HTMLInputElement
-  ): Promise<void> {
+  protected async sendMessage(inputElement: HTMLInputElement): Promise<void> {
     const sent = await this.store.send(inputElement.value);
 
     if (sent) {
       inputElement.value = '';
+    }
+  }
+
+  protected beginEdit(messageId: MessageId): void {
+    this.store.clearEditError();
+    this.editingMessageId.set(messageId);
+  }
+
+  protected cancelEdit(): void {
+    this.store.clearEditError();
+    this.editingMessageId.set(null);
+  }
+
+  protected async saveEdit(
+    messageId: MessageId,
+    inputElement: HTMLInputElement
+  ): Promise<void> {
+    const edited = await this.store.edit(messageId, inputElement.value);
+
+    if (edited) {
+      this.editingMessageId.set(null);
     }
   }
 }

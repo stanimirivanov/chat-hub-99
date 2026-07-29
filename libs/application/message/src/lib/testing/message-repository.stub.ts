@@ -1,8 +1,7 @@
 import { Effect, Layer } from 'effect';
 import { vi } from 'vitest';
 
-import type { MessageRepository } from '../repository/message-repository';
-import { MessageRepositoryTag } from '../repository/message-repository';
+import { MessageRepositoryTag, type MessageRepository } from '../repository';
 
 const unexpectedOperation = (
   operation: keyof MessageRepository

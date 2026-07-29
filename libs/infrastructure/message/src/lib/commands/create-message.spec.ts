@@ -1,11 +1,12 @@
 import { Effect } from 'effect';
 import { describe, expect, it } from 'vitest';
 import { createMessage } from './create-message';
-import { createMessageCommand, messageId } from '../testing/message-fixtures';
 import {
+  createMessageCommand,
+  messageId,
   makeRpcClientStub,
   makeThrowingRpcClientStub,
-} from '../testing/supabase-message-client.stub';
+} from '../testing';
 
 describe('createMessage', () => {
   it('calls create_message and returns the validated message ID', async () => {
