@@ -1,5 +1,3 @@
-export { ChannelIdSchema, type ChannelId } from './lib/channel-id';
-
 export { MessageIdSchema, type MessageId } from './lib/message-id';
 
 export {

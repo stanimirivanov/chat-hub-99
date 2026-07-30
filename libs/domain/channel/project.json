@@ -1,0 +1,21 @@
+{
+  "name": "channel-domain",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/domain/channel/src",
+  "projectType": "library",
+  "tags": ["scope:channel", "layer:domain"],
+  "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p libs/domain/channel/tsconfig.lib.json"
+      }
+    },
+    "typecheck:test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p libs/domain/channel/tsconfig.spec.json"
+      }
+    }
+  }
+}

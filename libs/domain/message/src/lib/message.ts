@@ -1,5 +1,5 @@
 import { Schema } from 'effect';
-import { ChannelIdSchema } from './channel-id';
+import { ChannelIdSchema } from '@chat-hub/domain/channel';
 import { MessageContentSchema } from './message-content';
 import { MessageIdSchema } from './message-id';
 

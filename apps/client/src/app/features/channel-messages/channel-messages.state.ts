@@ -1,5 +1,5 @@
 import type { MessagePage } from '@chat-hub/application/message';
-import type { ChannelId } from '@chat-hub/domain/message';
+import type { ChannelId } from '@chat-hub/domain/channel';
 
 /**
  * Lifecycle of the newest-page request for the selected channel.

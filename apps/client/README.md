@@ -63,8 +63,14 @@ feature demonstrates the same behavior.
 The `workspace-navigation` slice owns a feature-scoped store. It loads active
 workspaces visible through database RLS and retains one explicit selection.
 Selection is presentation state; workspace discovery remains an application
-use case. Channel discovery is intentionally deferred to its own vertical
-slice.
+use case.
+
+The nested `channel-navigation` slice reacts to that selected workspace, loads
+only its active RLS-visible channels, and owns a separate feature-scoped
+selection store. Its request generation prevents a late response for a
+previous workspace from replacing the current collection. Selecting a channel
+composes the existing `channel-messages` component through its typed input;
+the two stores do not depend on each other.
 
 ## Testing
 

@@ -1,8 +1,5 @@
-import type {
-  ChannelId,
-  MessageContent,
-  MessageId,
-} from '@chat-hub/domain/message';
+import type { MessageContent, MessageId } from '@chat-hub/domain/message';
+import type { ChannelId } from '@chat-hub/domain/channel';
 
 /**
  * Validated command passed to the repository when creating a message.

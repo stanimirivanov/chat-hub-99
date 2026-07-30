@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { describe, expect, it, vi } from 'vitest';
+import type { ChannelId } from '@chat-hub/domain/channel';
 import type {
-  ChannelId,
   Message,
   MessageContent,
   MessageId,

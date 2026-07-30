@@ -1,4 +1,4 @@
-import { vi, type Mock } from 'vitest';
+import { vi } from 'vitest';
 import type { ChatHubSupabaseClient } from '../supabase-message-client';
 
 interface RpcStubResponse<TData> {

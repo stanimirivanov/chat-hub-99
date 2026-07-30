@@ -1,9 +1,9 @@
 import { Schema } from 'effect';
 
+import { ChannelIdSchema } from '@chat-hub/domain/channel';
 import type { CurrentMessage } from '@chat-hub/shared/database';
 import {
   ActiveMessageSchema,
-  ChannelIdSchema,
   MessageContentSchema,
   MessageIdSchema,
   type ActiveMessage,
@@ -88,4 +88,3 @@ export const makeActiveMessage = (
     createdAt: overrides.createdAt ?? new Date('2026-07-26T18:00:00.000Z'),
     editedAt: overrides.editedAt ?? null,
   });
-

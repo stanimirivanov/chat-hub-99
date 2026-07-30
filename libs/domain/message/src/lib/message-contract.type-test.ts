@@ -1,4 +1,5 @@
-import type { ChannelId, MessageContent, MessageId } from '../index';
+import type { ChannelId } from '@chat-hub/domain/channel';
+import type { MessageContent, MessageId } from '../index';
 
 type Equal<Left, Right> =
   (<Type>() => Type extends Left ? 1 : 2) extends <Type>() => Type extends Right

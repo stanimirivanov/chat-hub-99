@@ -1,4 +1,4 @@
-import type { ChannelId } from '@chat-hub/domain/message';
+import type { ChannelId } from '@chat-hub/domain/channel';
 
 /**
  * Input accepted by the create-message use case.

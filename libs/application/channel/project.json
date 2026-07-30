@@ -1,0 +1,21 @@
+{
+  "name": "channel-application",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/application/channel/src",
+  "projectType": "library",
+  "tags": ["scope:channel", "layer:application"],
+  "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p libs/application/channel/tsconfig.lib.json"
+      }
+    },
+    "typecheck:test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p libs/application/channel/tsconfig.spec.json"
+      }
+    }
+  }
+}
