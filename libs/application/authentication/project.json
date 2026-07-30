@@ -1,0 +1,21 @@
+{
+  "name": "authentication-application",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/application/authentication/src",
+  "projectType": "library",
+  "tags": ["scope:authentication", "layer:application"],
+  "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p libs/application/authentication/tsconfig.lib.json"
+      }
+    },
+    "typecheck:test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p libs/application/authentication/tsconfig.spec.json"
+      }
+    }
+  }
+}

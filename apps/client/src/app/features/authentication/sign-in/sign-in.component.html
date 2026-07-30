@@ -1,0 +1,51 @@
+<section aria-labelledby="sign-in-heading">
+  <h1 id="sign-in-heading">Sign in to Chat Hub 99</h1>
+
+  <form (submit)="$event.preventDefault(); submit(emailInput, passwordInput)">
+    <div>
+      <label for="sign-in-email"> Email </label>
+
+      <input
+        #emailInput
+        id="sign-in-email"
+        name="email"
+        type="email"
+        autocomplete="email"
+        required
+        value="owner@chat-hub.local"
+        [disabled]="store.isSigningIn()"
+      />
+    </div>
+
+    <div>
+      <label for="sign-in-password"> Password </label>
+
+      <input
+        #passwordInput
+        id="sign-in-password"
+        name="password"
+        type="password"
+        autocomplete="current-password"
+        required
+        value="Password123!"
+        [disabled]="store.isSigningIn()"
+      />
+    </div>
+
+    <button type="submit" [disabled]="store.isSigningIn()">
+      @if (store.isSigningIn()) {
+        Signing in…
+      } @else {
+        Sign in
+      }
+    </button>
+  </form>
+
+  @if (store.error(); as error) {
+    <p role="alert">
+      {{ error.message }}
+    </p>
+
+    <button type="button" (click)="store.clearError()">Dismiss</button>
+  }
+</section>

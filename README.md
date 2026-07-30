@@ -151,6 +151,9 @@ Runs:
 
 Run this whenever migrations or generated database types change.
 
+Database setup, migrations, seed data, pgTAP tests, and local Supabase
+troubleshooting are documented in [`supabase/README.md`](supabase/README.md).
+
 ### Complete verification
 
 ```bash
@@ -224,7 +227,7 @@ The reset is destructive to local database data.
 Seeded users
 
 | Role               | Email                     | Password       |
-| :----------------- | :------------------------ | :------------- |
+|:-------------------|:--------------------------|:---------------|
 | Workspace owner    | `owner@chat-hub.local`    | `Password123!` |
 | Workspace member   | `member@chat-hub.local`   | `Password123!` |
 | Workspace outsider | `outsider@chat-hub.local` | `Password123!` |
@@ -234,6 +237,29 @@ outsider has an active profile but no workspace membership.
 
 These credentials are explicitly local development credentials. Do not place
 equivalent fixed passwords in production seed or migration files.
+
+## Architectural note
+
+Direct insertion into `auth.users` couples your local seed to Supabase Auth's
+internal schema. Supabase describes Auth identities as separate
+authentication-method records associated with users, and that internal
+representation may evolve. :contentReference[oaicite:1]{index=1}
+
+For the current educational project, the explicit SQL seed is acceptable
+because:
+
+- it is local-only;
+- stable UUIDs are important to the deterministic workspace scenario;
+- the required Auth fields are now explicit;
+- a regression check can detect incompatibility after upgrades.
+
+Do not use the same direct insertion approach as the default production
+user-provisioning mechanism. Production users should be created through Supabase
+Auth APIs.
+
+After the seed correction and clean reset, the existing Angular and Effect
+authentication implementation should no longer return
+`AuthenticationUnavailableError` for these credentials.
 
 ## Documentation standard
 

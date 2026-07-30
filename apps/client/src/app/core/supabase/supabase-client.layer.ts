@@ -1,10 +1,34 @@
 import { Layer } from 'effect';
-import { SupabaseMessageClientTag } from '@chat-hub/infrastructure/message';
+import {
+  SupabaseAuthenticationClientTag,
+  type SupabaseAuthenticationClient,
+} from '@chat-hub/infrastructure/authentication';
+import {
+  SupabaseMessageClientTag,
+  type ChatHubSupabaseClient,
+} from '@chat-hub/infrastructure/message';
 import { makeSupabaseClient } from './make-supabase-client';
 import type { SupabaseClientConfig } from './supabase-client-config';
 
 /**
- * Creates the browser Supabase client Layer from explicit configuration.
+ * Creates the infrastructure client Layer from explicit browser configuration.
+ *
+ * One Supabase client instance is exposed through capability-specific Tags for
+ * the adapters that currently require it. This preserves focused adapter
+ * contracts without constructing multiple browser clients.
  */
-export const makeSupabaseClientLayer = (config: SupabaseClientConfig) =>
-  Layer.succeed(SupabaseMessageClientTag, makeSupabaseClient(config));
+export const makeSupabaseClientLayer = (config: SupabaseClientConfig) => {
+  const client = makeSupabaseClient(config);
+
+  const messageClientLayer = Layer.succeed(
+    SupabaseMessageClientTag,
+    client as ChatHubSupabaseClient
+  );
+
+  const authenticationClientLayer = Layer.succeed(
+    SupabaseAuthenticationClientTag,
+    client as SupabaseAuthenticationClient
+  );
+
+  return Layer.merge(messageClientLayer, authenticationClientLayer);
+};

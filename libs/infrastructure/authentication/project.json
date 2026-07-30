@@ -1,0 +1,21 @@
+{
+  "name": "authentication-infrastructure",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/infrastructure/authentication/src",
+  "projectType": "library",
+  "tags": ["scope:authentication", "layer:infrastructure"],
+  "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p libs/infrastructure/authentication/tsconfig.lib.json"
+      }
+    },
+    "typecheck:test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p libs/infrastructure/authentication/tsconfig.spec.json"
+      }
+    }
+  }
+}

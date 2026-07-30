@@ -1,13 +1,11 @@
-import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { AuthenticationShellComponent } from './features/authentication/authentication-shell.component';
 
 @Component({
-  standalone: true,
-  imports: [RouterModule],
   selector: 'app-root',
+  standalone: true,
+  imports: [AuthenticationShellComponent],
   templateUrl: './app.html',
-  styleUrl: './app.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AppComponent {
-  title = 'client';
-}
+export class AppComponent {}
