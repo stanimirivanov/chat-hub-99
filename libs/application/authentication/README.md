@@ -13,7 +13,7 @@ session, signing in, signing out, and observing session changes.
 - Define technology-independent authentication errors.
 - Define the outbound `AuthenticationService` port.
 - Orchestrate session restoration, sign-in, sign-out, and session observation.
-- Normalize use-case input where policy requires it.
+- Runtime-validate and normalize use-case input before requesting a provider.
 - Express dependencies and expected failures through Effect types.
 
 ## Dependency rule

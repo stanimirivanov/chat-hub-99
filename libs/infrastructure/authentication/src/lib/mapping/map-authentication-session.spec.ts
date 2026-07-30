@@ -1,14 +1,11 @@
 import { Either } from 'effect';
 import { describe, expect, it } from 'vitest';
-import {
-  mapAuthenticationSession,
-  type AuthenticationSessionSource,
-} from './map-authentication-session';
+import { mapAuthenticationSession } from './map-authentication-session';
 
 const makeSession = (
   email: unknown,
   userId: unknown = '00000000-0000-4000-8000-000000000001'
-): AuthenticationSessionSource => ({
+): unknown => ({
   user: {
     id: userId,
     email,
@@ -72,4 +69,20 @@ describe('mapAuthenticationSession', () => {
       });
     }
   });
+
+  it.each([undefined, null, {}, { user: null }])(
+    'rejects malformed provider session %j',
+    (session) => {
+      const result = mapAuthenticationSession(session, 'restore-session');
+
+      expect(Either.isLeft(result)).toBe(true);
+
+      if (Either.isLeft(result)) {
+        expect(result.left).toMatchObject({
+          _tag: 'AuthenticationUnavailableError',
+          operation: 'restore-session',
+        });
+      }
+    }
+  );
 });

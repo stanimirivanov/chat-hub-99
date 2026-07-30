@@ -6,16 +6,16 @@ import {
   type AuthenticationSession,
 } from '@chat-hub/application/authentication';
 
-export interface AuthenticationSessionSource {
-  readonly user: {
-    readonly id: unknown;
-    readonly email?: unknown;
-  };
-}
-
 const decodeAuthenticationSession = Schema.decodeUnknownEither(
   AuthenticationSessionSchema
 );
+
+const ProviderSessionSchema = Schema.Struct({
+  user: Schema.Struct({
+    id: Schema.Unknown,
+    email: Schema.Unknown,
+  }),
+});
 
 /**
  * Converts a Supabase session into the application-owned session projection.
@@ -25,10 +25,23 @@ const decodeAuthenticationSession = Schema.decodeUnknownEither(
  * email is treated as an unavailable authentication result.
  */
 export const mapAuthenticationSession = (
-  session: AuthenticationSessionSource,
+  session: unknown,
   operation: AuthenticationOperation
 ): Either.Either<AuthenticationSession, AuthenticationUnavailableError> => {
-  const email = session.user.email;
+  const providerSession = Schema.decodeUnknownEither(ProviderSessionSchema)(
+    session
+  );
+
+  if (Either.isLeft(providerSession)) {
+    return Either.left(
+      new AuthenticationUnavailableError({
+        operation,
+        cause: providerSession.left,
+      })
+    );
+  }
+
+  const email = providerSession.right.user.email;
 
   if (typeof email !== 'string' || email.trim().length === 0) {
     return Either.left(
@@ -40,7 +53,7 @@ export const mapAuthenticationSession = (
   }
 
   return decodeAuthenticationSession({
-    userId: session.user.id,
+    userId: providerSession.right.user.id,
     email: email.trim(),
   }).pipe(
     Either.mapLeft(

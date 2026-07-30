@@ -7,7 +7,12 @@ import {
   makeAuthenticationServiceLayer,
   makeSignInAuthenticationService,
 } from '../testing';
-import { signIn } from './sign-in';
+import { signIn, type SignInInput } from './sign-in';
+
+/**
+ * Simulates untyped JavaScript callers at the exported application boundary.
+ */
+const signInExternalInput = (input: unknown) => signIn(input as SignInInput);
 
 describe('signIn', () => {
   it('trims the email and delegates authentication', async () => {
@@ -97,6 +102,54 @@ describe('signIn', () => {
 
       const result = await Effect.runPromise(
         signIn({ email, password }).pipe(Effect.provide(layer), Effect.either)
+      );
+
+      expect(Either.isLeft(result)).toBe(true);
+
+      if (Either.isLeft(result)) {
+        expect(result.left).toMatchObject({
+          _tag: 'InvalidSignInInputError',
+          field,
+        });
+      }
+
+      expect(signInService).not.toHaveBeenCalled();
+    }
+  );
+
+  it.each([
+    { input: undefined, field: 'email' as const },
+    { input: null, field: 'email' as const },
+    { input: {}, field: 'email' as const },
+    {
+      input: { email: null, password: 'Password123!' },
+      field: 'email' as const,
+    },
+    {
+      input: { email: 42, password: 'Password123!' },
+      field: 'email' as const,
+    },
+    {
+      input: { email: 'owner@chat-hub.local', password: null },
+      field: 'password' as const,
+    },
+    {
+      input: { email: 'owner@chat-hub.local', password: 42 },
+      field: 'password' as const,
+    },
+  ])(
+    'rejects malformed external input before requesting the service',
+    async ({ input, field }) => {
+      const signInService: AuthenticationService['signIn'] = vi.fn(() =>
+        Effect.succeed(authenticationSession)
+      );
+
+      const layer = makeAuthenticationServiceLayer({
+        signIn: signInService,
+      });
+
+      const result = await Effect.runPromise(
+        signInExternalInput(input).pipe(Effect.provide(layer), Effect.either)
       );
 
       expect(Either.isLeft(result)).toBe(true);
