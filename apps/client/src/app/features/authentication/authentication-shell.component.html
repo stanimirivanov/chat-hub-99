@@ -1,0 +1,44 @@
+@if (store.isInitializing()) {
+  <main>
+    <p>Restoring session…</p>
+  </main>
+} @else if (store.isAuthenticated()) {
+  <header>
+    <strong>Chat Hub 99</strong>
+
+    @if (store.session(); as session) {
+      <span>{{ session.email }}</span>
+    }
+
+    <button
+      type="button"
+      [disabled]="store.isSigningOut()"
+      (click)="store.signOut()"
+    >
+      @if (store.isSigningOut()) {
+        Signing out…
+      } @else {
+        Sign out
+      }
+    </button>
+  </header>
+
+  <main>
+    <h1>Authenticated application</h1>
+
+    <p>
+      Authentication succeeded. Workspace and channel navigation will be added
+      in the next vertical slice.
+    </p>
+  </main>
+
+  @if (store.error(); as error) {
+    <p role="alert">
+      {{ error.message }}
+    </p>
+
+    <button type="button" (click)="store.clearError()">Dismiss</button>
+  }
+} @else {
+  <app-sign-in />
+}

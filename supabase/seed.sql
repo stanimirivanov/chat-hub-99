@@ -47,6 +47,13 @@ BEGIN
         email,
         encrypted_password,
         email_confirmed_at,
+        confirmation_token,
+        recovery_token,
+        email_change_token_new,
+        email_change,
+        phone_change,
+        phone_change_token,
+        reauthentication_token,
         raw_app_meta_data,
         raw_user_meta_data,
         created_at,
@@ -64,6 +71,13 @@ BEGIN
             gen_salt('bf')
         ),
         now(),
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
         jsonb_build_object(
             'provider', 'email',
             'providers', jsonb_build_array('email')
@@ -86,6 +100,13 @@ BEGIN
             gen_salt('bf')
         ),
         now(),
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
         jsonb_build_object(
             'provider', 'email',
             'providers', jsonb_build_array('email')
@@ -108,6 +129,13 @@ BEGIN
             gen_salt('bf')
         ),
         now(),
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
         jsonb_build_object(
             'provider', 'email',
             'providers', jsonb_build_array('email')
