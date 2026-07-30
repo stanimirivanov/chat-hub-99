@@ -7,12 +7,51 @@ import {
   type AuthenticationError,
   type AuthenticationSession,
 } from '@chat-hub/application/authentication';
-import { AuthenticationApplicationService } from '../../../core/authentication/authentication-application.service';
+import { AuthenticationApplicationService } from '@client/core/authentication/authentication-application.service';
 import { AuthenticationStore } from './authentication.store';
 
 const session: AuthenticationSession = {
   userId: '00000000-0000-4000-8000-000000000001',
   email: 'owner@chat-hub.local',
+};
+
+const makeDeferred = <T>() => {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((complete) => {
+    resolve = complete;
+  });
+
+  return { promise, resolve };
+};
+
+const makeSessionObserver = () => {
+  let onSessionChange:
+    | ((value: AuthenticationSession | null) => void)
+    | undefined;
+  let onError: ((error: AuthenticationError) => void) | undefined;
+  const stop = vi.fn();
+
+  const observeSessionChanges = vi.fn(
+    (
+      sessionHandler: (value: AuthenticationSession | null) => void,
+      errorHandler: (error: AuthenticationError) => void
+    ) => {
+      onSessionChange = sessionHandler;
+      onError = errorHandler;
+      return stop;
+    }
+  );
+
+  return {
+    observeSessionChanges,
+    stop,
+    emitSession(value: AuthenticationSession | null): void {
+      onSessionChange?.(value);
+    },
+    emitError(error: AuthenticationError): void {
+      onError?.(error);
+    },
+  };
 };
 
 const configureStore = (
@@ -133,31 +172,21 @@ describe('AuthenticationStore', () => {
   });
 
   it('applies observed session changes', async () => {
-    let onSessionChange:
-      | ((value: AuthenticationSession | null) => void)
-      | undefined;
-
-    const observeSessionChanges = vi.fn(
-      (onChange: (value: AuthenticationSession | null) => void) => {
-        onSessionChange = onChange;
-
-        return () => undefined;
-      }
-    );
+    const observer = makeSessionObserver();
 
     const { store } = configureStore({
-      observeSessionChanges,
+      observeSessionChanges: observer.observeSessionChanges,
     });
 
     await store.initialize();
 
-    onSessionChange?.(session);
+    observer.emitSession(session);
 
     expect(store.status()).toBe('authenticated');
 
     expect(store.session()).toEqual(session);
 
-    onSessionChange?.(null);
+    observer.emitSession(null);
 
     expect(store.status()).toBe('anonymous');
 
@@ -165,26 +194,15 @@ describe('AuthenticationStore', () => {
   });
 
   it('exposes session observation failures', async () => {
-    let onObservationError: ((error: AuthenticationError) => void) | undefined;
-
-    const observeSessionChanges = vi.fn(
-      (
-        _onChange: (value: AuthenticationSession | null) => void,
-        onError: (error: AuthenticationError) => void
-      ) => {
-        onObservationError = onError;
-
-        return () => undefined;
-      }
-    );
+    const observer = makeSessionObserver();
 
     const { store } = configureStore({
-      observeSessionChanges,
+      observeSessionChanges: observer.observeSessionChanges,
     });
 
     await store.initialize();
 
-    onObservationError?.(
+    observer.emitError(
       new AuthenticationUnavailableError({
         operation: 'observe-session',
         cause: new Error('Listener failed'),
@@ -278,43 +296,24 @@ describe('AuthenticationStore', () => {
   });
 
   it('does not complete sign-in solely because a session event arrived', async () => {
-    let onSessionChange:
-      | ((value: AuthenticationSession | null) => void)
-      | undefined;
-
-    let resolveSignIn:
-      | ((
-          value: Either.Either<AuthenticationSession, AuthenticationError>
-        ) => void)
-      | undefined;
-
-    const pendingSignIn = new Promise<
-      Either.Either<AuthenticationSession, AuthenticationError>
-    >((resolve) => {
-      resolveSignIn = resolve;
-    });
+    const observer = makeSessionObserver();
+    const signIn =
+      makeDeferred<Either.Either<AuthenticationSession, AuthenticationError>>();
 
     const { store } = configureStore({
-      signIn: vi.fn().mockReturnValue(pendingSignIn),
-
-      observeSessionChanges: vi.fn(
-        (onChange: (value: AuthenticationSession | null) => void) => {
-          onSessionChange = onChange;
-
-          return () => undefined;
-        }
-      ),
+      signIn: vi.fn().mockReturnValue(signIn.promise),
+      observeSessionChanges: observer.observeSessionChanges,
     });
 
     await store.initialize();
 
     const result = store.signIn('owner@chat-hub.local', 'Password123!');
 
-    onSessionChange?.(session);
+    observer.emitSession(session);
 
     expect(store.signInStatus()).toBe('pending');
 
-    resolveSignIn?.(Either.right(session));
+    signIn.resolve(Either.right(session));
 
     await expect(result).resolves.toBe(true);
 
@@ -327,41 +326,22 @@ describe('AuthenticationStore', () => {
       email: 'newer@chat-hub.local',
     };
 
-    let onSessionChange:
-      | ((value: AuthenticationSession | null) => void)
-      | undefined;
-
-    let resolveSignIn:
-      | ((
-          value: Either.Either<AuthenticationSession, AuthenticationError>
-        ) => void)
-      | undefined;
-
-    const pendingSignIn = new Promise<
-      Either.Either<AuthenticationSession, AuthenticationError>
-    >((resolve) => {
-      resolveSignIn = resolve;
-    });
+    const observer = makeSessionObserver();
+    const signIn =
+      makeDeferred<Either.Either<AuthenticationSession, AuthenticationError>>();
 
     const { store } = configureStore({
-      signIn: vi.fn().mockReturnValue(pendingSignIn),
-
-      observeSessionChanges: vi.fn(
-        (onChange: (value: AuthenticationSession | null) => void) => {
-          onSessionChange = onChange;
-
-          return () => undefined;
-        }
-      ),
+      signIn: vi.fn().mockReturnValue(signIn.promise),
+      observeSessionChanges: observer.observeSessionChanges,
     });
 
     await store.initialize();
 
     const result = store.signIn('owner@chat-hub.local', 'Password123!');
 
-    onSessionChange?.(newerSession);
+    observer.emitSession(newerSession);
 
-    resolveSignIn?.(Either.right(session));
+    signIn.resolve(Either.right(session));
 
     await expect(result).resolves.toBe(true);
 
@@ -417,41 +397,23 @@ describe('AuthenticationStore', () => {
       email: 'newer@chat-hub.local',
     };
 
-    let onSessionChange:
-      | ((value: AuthenticationSession | null) => void)
-      | undefined;
-
-    let resolveSignOut:
-      | ((value: Either.Either<void, AuthenticationError>) => void)
-      | undefined;
-
-    const pendingSignOut = new Promise<
-      Either.Either<void, AuthenticationError>
-    >((resolve) => {
-      resolveSignOut = resolve;
-    });
+    const observer = makeSessionObserver();
+    const signOut = makeDeferred<Either.Either<void, AuthenticationError>>();
 
     const { store } = configureStore({
       restoreSession: vi.fn().mockResolvedValue(Either.right(session)),
 
-      signOut: vi.fn().mockReturnValue(pendingSignOut),
-
-      observeSessionChanges: vi.fn(
-        (onChange: (value: AuthenticationSession | null) => void) => {
-          onSessionChange = onChange;
-
-          return () => undefined;
-        }
-      ),
+      signOut: vi.fn().mockReturnValue(signOut.promise),
+      observeSessionChanges: observer.observeSessionChanges,
     });
 
     await store.initialize();
 
     const result = store.signOut();
 
-    onSessionChange?.(newerSession);
+    observer.emitSession(newerSession);
 
-    resolveSignOut?.(Either.right(undefined));
+    signOut.resolve(Either.right(undefined));
 
     await expect(result).resolves.toBe(true);
 

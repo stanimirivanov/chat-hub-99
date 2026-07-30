@@ -1,5 +1,8 @@
 import { Effect } from 'effect';
-import type { AuthenticationError } from '../authentication-error';
+import {
+  InvalidSignInInputError,
+  type AuthenticationError,
+} from '../authentication-error';
 import {
   AuthenticationServiceTag,
   type AuthenticationService,
@@ -33,10 +36,24 @@ export const signIn = (
   AuthenticationService
 > =>
   Effect.gen(function* () {
+    const email = input.email.trim();
+
+    if (email.length === 0) {
+      return yield* new InvalidSignInInputError({
+        field: 'email',
+      });
+    }
+
+    if (input.password.length === 0) {
+      return yield* new InvalidSignInInputError({
+        field: 'password',
+      });
+    }
+
     const authenticationService = yield* AuthenticationServiceTag;
 
     return yield* authenticationService.signIn({
-      email: input.email.trim(),
+      email,
       password: input.password,
     });
   });

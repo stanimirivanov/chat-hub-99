@@ -11,7 +11,7 @@ import type {
   AuthenticationError,
   AuthenticationSession,
 } from '@chat-hub/application/authentication';
-import { AuthenticationApplicationService } from '../../../core/authentication/authentication-application.service';
+import { AuthenticationApplicationService } from '@client/core/authentication/authentication-application.service';
 import { initialAuthenticationState } from './authentication.state';
 import { toAuthenticationPresentationError } from './to-authentication-presentation-error';
 

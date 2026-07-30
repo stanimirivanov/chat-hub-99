@@ -6,7 +6,7 @@ import {
   withMethods,
 } from '@ngrx/signals';
 import type { ChannelId } from '@chat-hub/domain/message';
-import { MessageApplicationService } from '../../../core/message/message-application.service';
+import { MessageApplicationService } from '@client/core/message/message-application.service';
 import { appendUniqueMessages } from './append-unique-messages';
 import {
   initialChannelMessagesState,

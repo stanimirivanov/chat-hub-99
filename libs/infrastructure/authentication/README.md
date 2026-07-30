@@ -45,6 +45,12 @@ src/lib/
 └── supabase-authentication-service.layer.ts
 ```
 
+The `errors`, `mapping`, and `session` folders expose cohesive local APIs
+through `index.ts`. Modules inside those folders still import siblings
+directly. Private test support follows the message infrastructure convention:
+`authentication-fixtures.ts` owns canonical provider values and
+`supabase-authentication-client.stub.ts` owns fresh client doubles.
+
 ## Stream lifecycle
 
 `onAuthStateChange` is a push-based, long-lived provider API.

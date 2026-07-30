@@ -2,22 +2,19 @@ import { Effect, Either } from 'effect';
 import { describe, expect, it, vi } from 'vitest';
 import { AuthenticationUnavailableError } from '../authentication-error';
 import type { AuthenticationService } from '../authentication-service';
-import type { AuthenticationSession } from '../authentication-session';
-import { makeAuthenticationServiceTestLayer } from '../testing/make-authentication-service-test-layer';
+import {
+  authenticationSession,
+  makeAuthenticationServiceLayer,
+} from '../testing';
 import { restoreSession } from './restore-session';
 
 describe('restoreSession', () => {
   it('returns the current session', async () => {
-    const session: AuthenticationSession = {
-      userId: '00000000-0000-4000-8000-000000000001',
-      email: 'owner@chat-hub.local',
-    };
-
     const getCurrentSession: AuthenticationService['getCurrentSession'] = vi.fn(
-      () => Effect.succeed(session)
+      () => Effect.succeed(authenticationSession)
     );
 
-    const { layer } = makeAuthenticationServiceTestLayer({
+    const layer = makeAuthenticationServiceLayer({
       getCurrentSession,
     });
 
@@ -25,7 +22,7 @@ describe('restoreSession', () => {
       restoreSession.pipe(Effect.provide(layer))
     );
 
-    expect(result).toEqual(session);
+    expect(result).toEqual(authenticationSession);
     expect(getCurrentSession).toHaveBeenCalledOnce();
   });
 
@@ -34,7 +31,7 @@ describe('restoreSession', () => {
       () => Effect.succeed(null)
     );
 
-    const { layer } = makeAuthenticationServiceTestLayer({
+    const layer = makeAuthenticationServiceLayer({
       getCurrentSession,
     });
 
@@ -56,7 +53,7 @@ describe('restoreSession', () => {
       () => Effect.fail(failure)
     );
 
-    const { layer } = makeAuthenticationServiceTestLayer({
+    const layer = makeAuthenticationServiceLayer({
       getCurrentSession,
     });
 

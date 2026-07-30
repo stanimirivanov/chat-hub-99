@@ -1,1 +1,7 @@
-export { makeAuthenticationServiceTestLayer } from './make-authentication-service-test-layer';
+export { authenticationSession } from './authentication-application-fixtures';
+
+export {
+  makeAuthenticationServiceStub,
+  makeAuthenticationServiceLayer,
+  makeSignInAuthenticationService,
+} from './authentication-service.stub';

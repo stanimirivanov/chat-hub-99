@@ -4,6 +4,8 @@
     "rootDir": ".",
     "strict": true,
     "paths": {
+      "@client/*": ["./apps/client/src/app/*"],
+      "@client-environments/*": ["./apps/client/src/environments/*"],
       "@chat-hub/shared/database": ["./libs/shared/database/src/index.ts"],
       "@chat-hub/domain/message": ["./libs/domain/message/src/index.ts"],
       "@chat-hub/application/authentication": [

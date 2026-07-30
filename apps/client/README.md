@@ -14,6 +14,10 @@ Effect/Supabase runtime through Angular dependency injection.
 - `app.routes.ts`: route-level feature composition
 - `environments/`: build-time environment configuration
 
+Cross-boundary client imports use `@client/*` and
+`@client-environments/*`. Closely related modules within one feature or core
+folder continue to use relative imports so locality remains visible.
+
 ## Angular boundary
 
 Effect use cases remain framework-independent. Services under `core` run

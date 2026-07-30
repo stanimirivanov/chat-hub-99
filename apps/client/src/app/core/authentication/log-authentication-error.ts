@@ -2,7 +2,7 @@ import type {
   AuthenticationError,
   AuthenticationOperation,
 } from '@chat-hub/application/authentication';
-import { environment } from '../../../environments/environment';
+import { environment } from '@client-environments/environment';
 
 /**
  * Writes diagnostic authentication information in non-production builds.
@@ -18,7 +18,10 @@ export const logAuthenticationError = (
     return;
   }
 
-  if (error._tag === 'InvalidCredentialsError') {
+  if (
+    error._tag === 'InvalidCredentialsError' ||
+    error._tag === 'InvalidSignInInputError'
+  ) {
     console.warn('[authentication] Credentials rejected', {
       operation,
       errorTag: error._tag,

@@ -6,6 +6,7 @@ import type {
 import { Effect, Fiber, Stream } from 'effect';
 import { describe, expect, it, vi } from 'vitest';
 import type { SupabaseAuthenticationClient } from '../supabase-authentication-client';
+import { authenticationSession } from '../testing';
 import { makeSessionChangesStream } from './make-session-changes-stream';
 
 describe('makeSessionChangesStream', () => {
@@ -30,8 +31,10 @@ describe('makeSessionChangesStream', () => {
           return {
             data: {
               subscription: {
+                id: 'auth-subscription',
+                callback,
                 unsubscribe,
-              } as Subscription,
+              } satisfies Subscription,
             },
           };
         },
@@ -52,16 +55,7 @@ describe('makeSessionChangesStream', () => {
 
     await Effect.runPromise(Effect.yieldNow());
 
-    authCallback?.('SIGNED_IN', {
-      access_token: 'access-token',
-      refresh_token: 'refresh-token',
-      expires_in: 3600,
-      token_type: 'bearer',
-      user: {
-        id: '00000000-0000-4000-8000-000000000001',
-        email: 'owner@chat-hub.local',
-      },
-    } as Session);
+    authCallback?.('SIGNED_IN', authenticationSession);
 
     authCallback?.('SIGNED_OUT', null);
 

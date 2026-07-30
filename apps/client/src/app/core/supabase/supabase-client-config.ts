@@ -1,4 +1,4 @@
-import { environment } from '../../../environments/environment';
+import { environment } from '@client-environments/environment';
 
 export interface SupabaseClientConfig {
   readonly url: string;

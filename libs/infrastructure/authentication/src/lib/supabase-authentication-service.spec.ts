@@ -1,67 +1,15 @@
-import type { AuthError, Session } from '@supabase/supabase-js';
 import { Effect, Either } from 'effect';
 import { describe, expect, it, vi } from 'vitest';
-import type { SupabaseAuthenticationClient } from './supabase-authentication-client';
 import { makeSupabaseAuthenticationService } from './supabase-authentication-service';
-
-const session = {
-  access_token: 'access-token',
-  refresh_token: 'refresh-token',
-  expires_in: 3600,
-  token_type: 'bearer',
-  user: {
-    id: '00000000-0000-4000-8000-000000000001',
-    email: 'owner@chat-hub.local',
-  },
-} as Session;
-
-const invalidCredentials = {
-  name: 'AuthApiError',
-  message: 'Invalid credentials',
-  status: 400,
-  code: 'invalid_credentials',
-} as AuthError;
-
-const makeClient = (
-  overrides: Partial<SupabaseAuthenticationClient['auth']> = {}
-): SupabaseAuthenticationClient => ({
-  auth: {
-    getSession: vi.fn().mockResolvedValue({
-      data: {
-        session: null,
-      },
-      error: null,
-    }),
-
-    signInWithPassword: vi.fn().mockResolvedValue({
-      data: {
-        user: session.user,
-        session,
-      },
-      error: null,
-    }),
-
-    signOut: vi.fn().mockResolvedValue({
-      error: null,
-    }),
-
-    onAuthStateChange: vi.fn(() => ({
-      data: {
-        subscription: {
-          id: 'auth-subscription',
-          callback: vi.fn(),
-          unsubscribe: vi.fn(),
-        },
-      },
-    })),
-
-    ...overrides,
-  },
-});
+import {
+  authenticationSession,
+  invalidCredentialsError,
+  makeSupabaseAuthenticationClientStub,
+} from './testing';
 
 describe('makeSupabaseAuthenticationService', () => {
   it('restores no session', async () => {
-    const client = makeClient();
+    const client = makeSupabaseAuthenticationClientStub();
     const service = makeSupabaseAuthenticationService(client);
 
     const result = await Effect.runPromise(service.getCurrentSession());
@@ -71,10 +19,10 @@ describe('makeSupabaseAuthenticationService', () => {
   });
 
   it('restores an existing session', async () => {
-    const client = makeClient({
+    const client = makeSupabaseAuthenticationClientStub({
       getSession: vi.fn().mockResolvedValue({
         data: {
-          session,
+          session: authenticationSession,
         },
         error: null,
       }),
@@ -93,13 +41,13 @@ describe('makeSupabaseAuthenticationService', () => {
   it('signs in with email and password', async () => {
     const signInWithPassword = vi.fn().mockResolvedValue({
       data: {
-        user: session.user,
-        session,
+        user: authenticationSession.user,
+        session: authenticationSession,
       },
       error: null,
     });
 
-    const client = makeClient({
+    const client = makeSupabaseAuthenticationClientStub({
       signInWithPassword,
     });
 
@@ -124,13 +72,13 @@ describe('makeSupabaseAuthenticationService', () => {
   });
 
   it('maps invalid credentials', async () => {
-    const client = makeClient({
+    const client = makeSupabaseAuthenticationClientStub({
       signInWithPassword: vi.fn().mockResolvedValue({
         data: {
           user: null,
           session: null,
         },
-        error: invalidCredentials,
+        error: invalidCredentialsError,
       }),
     });
 
@@ -162,7 +110,7 @@ describe('makeSupabaseAuthenticationService', () => {
       error: null,
     });
 
-    const client = makeClient({
+    const client = makeSupabaseAuthenticationClientStub({
       signOut,
     });
 

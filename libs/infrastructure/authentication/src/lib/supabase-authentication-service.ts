@@ -6,9 +6,9 @@ import {
   type AuthenticationService,
   type AuthenticationSession,
 } from '@chat-hub/application/authentication';
-import { mapAuthenticationError } from './errors/map-authentication-error';
-import { mapAuthenticationSession } from './mapping/map-authentication-session';
-import { makeSessionChangesStream } from './session/make-session-changes-stream';
+import { mapAuthenticationError } from './errors';
+import { mapAuthenticationSession } from './mapping';
+import { makeSessionChangesStream } from './session';
 import type { SupabaseAuthenticationClient } from './supabase-authentication-client';
 
 /**

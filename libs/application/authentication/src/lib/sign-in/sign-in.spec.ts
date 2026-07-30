@@ -2,33 +2,28 @@ import { Effect, Either } from 'effect';
 import { describe, expect, it, vi } from 'vitest';
 import { InvalidCredentialsError } from '../authentication-error';
 import type { AuthenticationService } from '../authentication-service';
-import type { AuthenticationSession } from '../authentication-session';
-import { makeAuthenticationServiceTestLayer } from '../testing/make-authentication-service-test-layer';
+import {
+  authenticationSession,
+  makeAuthenticationServiceLayer,
+  makeSignInAuthenticationService,
+} from '../testing';
 import { signIn } from './sign-in';
 
 describe('signIn', () => {
   it('trims the email and delegates authentication', async () => {
-    const session: AuthenticationSession = {
-      userId: '00000000-0000-4000-8000-000000000001',
-      email: 'owner@chat-hub.local',
-    };
-
-    const signInService: AuthenticationService['signIn'] = vi.fn(() =>
-      Effect.succeed(session)
-    );
-
-    const { layer } = makeAuthenticationServiceTestLayer({
-      signIn: signInService,
-    });
+    const { signIn: signInService, serviceLayer } =
+      makeSignInAuthenticationService(() =>
+        Effect.succeed(authenticationSession)
+      );
 
     const result = await Effect.runPromise(
       signIn({
         email: '  owner@chat-hub.local  ',
         password: 'Password123!',
-      }).pipe(Effect.provide(layer))
+      }).pipe(Effect.provide(serviceLayer))
     );
 
-    expect(result).toEqual(session);
+    expect(result).toEqual(authenticationSession);
 
     expect(signInService).toHaveBeenCalledExactlyOnceWith({
       email: 'owner@chat-hub.local',
@@ -37,16 +32,11 @@ describe('signIn', () => {
   });
 
   it('passes the password unchanged', async () => {
-    const session: AuthenticationSession = {
-      userId: '00000000-0000-4000-8000-000000000001',
-      email: 'owner@chat-hub.local',
-    };
-
     const signInService: AuthenticationService['signIn'] = vi.fn(() =>
-      Effect.succeed(session)
+      Effect.succeed(authenticationSession)
     );
 
-    const { layer } = makeAuthenticationServiceTestLayer({
+    const layer = makeAuthenticationServiceLayer({
       signIn: signInService,
     });
 
@@ -70,7 +60,7 @@ describe('signIn', () => {
       Effect.fail(failure)
     );
 
-    const { layer } = makeAuthenticationServiceTestLayer({
+    const layer = makeAuthenticationServiceLayer({
       signIn: signInService,
     });
 
@@ -90,4 +80,35 @@ describe('signIn', () => {
       },
     });
   });
+
+  it.each([
+    { email: '   ', password: 'Password123!', field: 'email' as const },
+    { email: 'owner@chat-hub.local', password: '', field: 'password' as const },
+  ])(
+    'rejects an empty $field before requesting the service',
+    async ({ email, password, field }) => {
+      const signInService: AuthenticationService['signIn'] = vi.fn(() =>
+        Effect.succeed(authenticationSession)
+      );
+
+      const layer = makeAuthenticationServiceLayer({
+        signIn: signInService,
+      });
+
+      const result = await Effect.runPromise(
+        signIn({ email, password }).pipe(Effect.provide(layer), Effect.either)
+      );
+
+      expect(Either.isLeft(result)).toBe(true);
+
+      if (Either.isLeft(result)) {
+        expect(result.left).toMatchObject({
+          _tag: 'InvalidSignInInputError',
+          field,
+        });
+      }
+
+      expect(signInService).not.toHaveBeenCalled();
+    }
+  );
 });
