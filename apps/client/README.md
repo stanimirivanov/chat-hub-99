@@ -60,6 +60,12 @@ generation. Splitting these methods into independent services would obscure that
 invariant. Extract pure logic or a reusable store feature only when another
 feature demonstrates the same behavior.
 
+The `workspace-navigation` slice owns a feature-scoped store. It loads active
+workspaces visible through database RLS and retains one explicit selection.
+Selection is presentation state; workspace discovery remains an application
+use case. Channel discovery is intentionally deferred to its own vertical
+slice.
+
 ## Testing
 
 Component tests verify rendering and interaction. Store tests verify state

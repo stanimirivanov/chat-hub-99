@@ -1,0 +1,21 @@
+{
+  "name": "workspace-infrastructure",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/infrastructure/workspace/src",
+  "projectType": "library",
+  "tags": ["scope:workspace", "layer:infrastructure"],
+  "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p libs/infrastructure/workspace/tsconfig.lib.json"
+      }
+    },
+    "typecheck:test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p libs/infrastructure/workspace/tsconfig.spec.json"
+      }
+    }
+  }
+}

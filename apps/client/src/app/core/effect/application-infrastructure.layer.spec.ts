@@ -2,6 +2,7 @@ import { Effect } from 'effect';
 import { describe, expect, it } from 'vitest';
 import { AuthenticationServiceTag } from '@chat-hub/application/authentication';
 import { MessageRepositoryTag } from '@chat-hub/application/message';
+import { WorkspaceRepositoryTag } from '@chat-hub/application/workspace';
 import { makeApplicationInfrastructureLayer } from './application-infrastructure.layer';
 
 describe('makeApplicationInfrastructureLayer', () => {
@@ -14,10 +15,12 @@ describe('makeApplicationInfrastructureLayer', () => {
     const program = Effect.gen(function* () {
       const messageRepository = yield* MessageRepositoryTag;
       const authenticationService = yield* AuthenticationServiceTag;
+      const workspaceRepository = yield* WorkspaceRepositoryTag;
 
       return {
         messageRepository,
         authenticationService,
+        workspaceRepository,
       };
     });
 
@@ -38,5 +41,9 @@ describe('makeApplicationInfrastructureLayer', () => {
     expect(repository.authenticationService.signIn).toBeTypeOf('function');
 
     expect(repository.authenticationService.signOut).toBeTypeOf('function');
+
+    expect(repository.workspaceRepository.listAccessible).toBeTypeOf(
+      'function'
+    );
   });
 });

@@ -1,6 +1,7 @@
 import type { Layer } from 'effect';
 import type { AuthenticationService } from '@chat-hub/application/authentication';
 import type { MessageRepository } from '@chat-hub/application/message';
+import type { WorkspaceRepository } from '@chat-hub/application/workspace';
 import { makeApplicationInfrastructureLayer } from './application-infrastructure.layer';
 
 const layer = makeApplicationInfrastructureLayer({
@@ -9,7 +10,7 @@ const layer = makeApplicationInfrastructureLayer({
 });
 
 const completeLayer: Layer.Layer<
-  MessageRepository | AuthenticationService,
+  MessageRepository | AuthenticationService | WorkspaceRepository,
   never,
   never
 > = layer;

@@ -8,17 +8,24 @@
       "@client-environments/*": ["./apps/client/src/environments/*"],
       "@chat-hub/shared/database": ["./libs/shared/database/src/index.ts"],
       "@chat-hub/domain/message": ["./libs/domain/message/src/index.ts"],
+      "@chat-hub/domain/workspace": ["./libs/domain/workspace/src/index.ts"],
       "@chat-hub/application/authentication": [
         "./libs/application/authentication/src/index.ts"
       ],
       "@chat-hub/application/message": [
         "./libs/application/message/src/index.ts"
       ],
+      "@chat-hub/application/workspace": [
+        "./libs/application/workspace/src/index.ts"
+      ],
       "@chat-hub/infrastructure/message": [
         "./libs/infrastructure/message/src/index.ts"
       ],
       "@chat-hub/infrastructure/authentication": [
         "./libs/infrastructure/authentication/src/index.ts"
+      ],
+      "@chat-hub/infrastructure/workspace": [
+        "./libs/infrastructure/workspace/src/index.ts"
       ]
     },
     "noImplicitOverride": true,
