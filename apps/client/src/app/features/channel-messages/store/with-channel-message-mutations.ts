@@ -1,4 +1,5 @@
 import { inject } from '@angular/core';
+import { Either } from 'effect';
 import {
   patchState,
   signalStoreFeature,
@@ -50,34 +51,33 @@ export const withChannelMessageMutations = () =>
               sendError: null,
             });
 
-            try {
-              const message = await messageApplication.createMessage({
-                channelId,
-                content,
-              });
+            const result = await messageApplication.createMessage({
+              channelId,
+              content,
+            });
 
-              if (!isCurrentRequest(channelId, generation)) {
-                return false;
-              }
-
-              patchState(store, {
-                messages: prependUniqueMessage(store.messages(), message),
-                sendMessageStatus: 'idle',
-              });
-
-              return true;
-            } catch (error: unknown) {
-              if (!isCurrentRequest(channelId, generation)) {
-                return false;
-              }
-
-              patchState(store, {
-                sendMessageStatus: 'failed',
-                sendError: toChannelMessagesError(error),
-              });
-
+            if (!isCurrentRequest(channelId, generation)) {
               return false;
             }
+
+            return Either.match(result, {
+              onLeft: (error) => {
+                patchState(store, {
+                  sendMessageStatus: 'failed',
+                  sendError: toChannelMessagesError(error),
+                });
+
+                return false;
+              },
+              onRight: (message) => {
+                patchState(store, {
+                  messages: prependUniqueMessage(store.messages(), message),
+                  sendMessageStatus: 'idle',
+                });
+
+                return true;
+              },
+            });
           },
 
           /**
@@ -97,34 +97,33 @@ export const withChannelMessageMutations = () =>
               editError: null,
             });
 
-            try {
-              const message = await messageApplication.editMessage({
-                messageId,
-                content,
-              });
+            const result = await messageApplication.editMessage({
+              messageId,
+              content,
+            });
 
-              if (!isCurrentRequest(channelId, generation)) {
-                return false;
-              }
-
-              patchState(store, {
-                messages: replaceMessage(store.messages(), message),
-                editMessageStatus: 'idle',
-              });
-
-              return true;
-            } catch (error: unknown) {
-              if (!isCurrentRequest(channelId, generation)) {
-                return false;
-              }
-
-              patchState(store, {
-                editMessageStatus: 'failed',
-                editError: toChannelMessagesError(error),
-              });
-
+            if (!isCurrentRequest(channelId, generation)) {
               return false;
             }
+
+            return Either.match(result, {
+              onLeft: (error) => {
+                patchState(store, {
+                  editMessageStatus: 'failed',
+                  editError: toChannelMessagesError(error),
+                });
+
+                return false;
+              },
+              onRight: (message) => {
+                patchState(store, {
+                  messages: replaceMessage(store.messages(), message),
+                  editMessageStatus: 'idle',
+                });
+
+                return true;
+              },
+            });
           },
 
           /**
@@ -148,33 +147,32 @@ export const withChannelMessageMutations = () =>
               deleteError: null,
             });
 
-            try {
-              const message = await messageApplication.deleteMessage({
-                messageId,
-              });
+            const result = await messageApplication.deleteMessage({
+              messageId,
+            });
 
-              if (!isCurrentRequest(channelId, generation)) {
-                return false;
-              }
-
-              patchState(store, {
-                messages: replaceMessage(store.messages(), message),
-                deleteMessageStatus: 'idle',
-              });
-
-              return true;
-            } catch (error: unknown) {
-              if (!isCurrentRequest(channelId, generation)) {
-                return false;
-              }
-
-              patchState(store, {
-                deleteMessageStatus: 'failed',
-                deleteError: toChannelMessagesError(error),
-              });
-
+            if (!isCurrentRequest(channelId, generation)) {
               return false;
             }
+
+            return Either.match(result, {
+              onLeft: (error) => {
+                patchState(store, {
+                  deleteMessageStatus: 'failed',
+                  deleteError: toChannelMessagesError(error),
+                });
+
+                return false;
+              },
+              onRight: (message) => {
+                patchState(store, {
+                  messages: replaceMessage(store.messages(), message),
+                  deleteMessageStatus: 'idle',
+                });
+
+                return true;
+              },
+            });
           },
 
           clearSendError(): void {

@@ -78,6 +78,12 @@ Component tests verify rendering and interaction. Store tests verify state
 transitions and stale-result behavior. Application and infrastructure behavior
 is tested in their owning libraries.
 
+Angular application services are the Effect execution boundary. They run lazy
+application Effects through the shared managed runtime and expose expected
+failures as typed `Either` values. Signal Stores match those values into
+presentation state; they do not compose Layers, run Effects, or catch expected
+application failures as `unknown`.
+
 ```bash
 pnpm nx lint client
 pnpm nx run client:typecheck

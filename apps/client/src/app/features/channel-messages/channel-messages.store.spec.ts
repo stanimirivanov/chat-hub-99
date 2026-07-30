@@ -1,5 +1,12 @@
 import { TestBed } from '@angular/core/testing';
+import { Either } from 'effect';
 import { describe, expect, it, vi } from 'vitest';
+import {
+  InvalidEditedMessageContentError,
+  InvalidMessageContentError,
+  MessageAccessDeniedError,
+  MessageRepositoryUnavailableError,
+} from '@chat-hub/application/message';
 import type { ChannelId } from '@chat-hub/domain/channel';
 import type {
   Message,
@@ -13,26 +20,25 @@ const channelId = '00000000-0000-4000-8000-000000000001' as ChannelId;
 
 const makeDeferredPromise = <Value>() => {
   let resolve!: (value: Value | PromiseLike<Value>) => void;
-  let reject!: (reason?: unknown) => void;
 
-  const promise = new Promise<Value>((resolvePromise, rejectPromise) => {
+  const promise = new Promise<Value>((resolvePromise) => {
     resolve = resolvePromise;
-    reject = rejectPromise;
   });
 
   return {
     promise,
     resolve,
-    reject,
   };
 };
 
 describe('ChannelMessagesStore', () => {
   it('loads messages for the selected channel', async () => {
-    const listChannelMessages = vi.fn().mockResolvedValue({
-      messages: [],
-      nextCursor: null,
-    });
+    const listChannelMessages = vi.fn().mockResolvedValue(
+      Either.right({
+        messages: [],
+        nextCursor: null,
+      })
+    );
 
     TestBed.configureTestingModule({
       providers: [
@@ -69,12 +75,14 @@ describe('ChannelMessagesStore', () => {
   });
 
   it('records an initial loading failure', async () => {
-    const applicationError = {
-      _tag: 'MessageRepositoryUnavailableError',
-      message: 'Message storage is unavailable.',
-    };
+    const applicationError = new MessageRepositoryUnavailableError({
+      operation: 'read',
+      cause: new Error('Provider unavailable'),
+    });
 
-    const listChannelMessages = vi.fn().mockRejectedValue(applicationError);
+    const listChannelMessages = vi
+      .fn()
+      .mockResolvedValue(Either.left(applicationError));
 
     TestBed.configureTestingModule({
       providers: [
@@ -98,7 +106,7 @@ describe('ChannelMessagesStore', () => {
 
     expect(store.error()).toEqual({
       tag: 'MessageRepositoryUnavailableError',
-      message: 'Message storage is unavailable.',
+      message: 'Channel messages are currently unavailable. Please try again.',
     });
   });
 
@@ -112,11 +120,13 @@ describe('ChannelMessagesStore', () => {
       editedAt: null,
     };
 
-    const listChannelMessages = vi.fn().mockResolvedValue({
-      messages: [],
-      nextCursor: null,
-    });
-    const createMessage = vi.fn().mockResolvedValue(message);
+    const listChannelMessages = vi.fn().mockResolvedValue(
+      Either.right({
+        messages: [],
+        nextCursor: null,
+      })
+    );
+    const createMessage = vi.fn().mockResolvedValue(Either.right(message));
 
     TestBed.configureTestingModule({
       providers: [
@@ -167,20 +177,24 @@ describe('ChannelMessagesStore', () => {
       editedAt: null,
     };
 
-    const creation = makeDeferredPromise<Message>();
+    const creation = makeDeferredPromise<Either.Either<Message, never>>();
 
     const listChannelMessages = vi
       .fn()
-      .mockResolvedValueOnce({
-        messages: [],
-        nextCursor: null,
-      })
-      .mockResolvedValueOnce({
-        messages: [secondChannelMessage],
-        nextCursor: null,
-      });
+      .mockResolvedValueOnce(
+        Either.right({
+          messages: [],
+          nextCursor: null,
+        })
+      )
+      .mockResolvedValueOnce(
+        Either.right({
+          messages: [secondChannelMessage],
+          nextCursor: null,
+        })
+      );
 
-    const createMessage = vi.fn().mockReturnValue(creation);
+    const createMessage = vi.fn().mockReturnValue(creation.promise);
 
     TestBed.configureTestingModule({
       providers: [
@@ -209,7 +223,7 @@ describe('ChannelMessagesStore', () => {
     expect(store.messages()).toEqual([secondChannelMessage]);
     expect(store.sendMessageStatus()).toBe('idle');
 
-    creation.resolve(createdMessage);
+    creation.resolve(Either.right(createdMessage));
 
     await expect(creationResult).resolves.toBe(false);
 
@@ -227,14 +241,19 @@ describe('ChannelMessagesStore', () => {
   });
 
   it('keeps the composer failure separate from message loading state', async () => {
-    const listChannelMessages = vi.fn().mockResolvedValue({
-      messages: [],
-      nextCursor: null,
-    });
-    const createMessage = vi.fn().mockRejectedValue({
-      _tag: 'InvalidMessageContentError',
-      message: 'The message content is invalid.',
-    });
+    const listChannelMessages = vi.fn().mockResolvedValue(
+      Either.right({
+        messages: [],
+        nextCursor: null,
+      })
+    );
+    const createMessage = vi.fn().mockResolvedValue(
+      Either.left(
+        new InvalidMessageContentError({
+          cause: new Error('Blank content'),
+        })
+      )
+    );
 
     TestBed.configureTestingModule({
       providers: [
@@ -279,11 +298,13 @@ describe('ChannelMessagesStore message editing', () => {
       content: 'After' as MessageContent,
       editedAt: new Date('2026-07-28T08:00:00.000Z'),
     };
-    const listChannelMessages = vi.fn().mockResolvedValue({
-      messages: [message],
-      nextCursor: null,
-    });
-    const editMessage = vi.fn().mockResolvedValue(editedMessage);
+    const listChannelMessages = vi.fn().mockResolvedValue(
+      Either.right({
+        messages: [message],
+        nextCursor: null,
+      })
+    );
+    const editMessage = vi.fn().mockResolvedValue(Either.right(editedMessage));
 
     TestBed.configureTestingModule({
       providers: [
@@ -336,20 +357,24 @@ describe('ChannelMessagesStore message editing', () => {
       editedAt: null,
     };
 
-    const edit = makeDeferredPromise<Message>();
+    const edit = makeDeferredPromise<Either.Either<Message, never>>();
 
     const listChannelMessages = vi
       .fn()
-      .mockResolvedValueOnce({
-        messages: [originalMessage],
-        nextCursor: null,
-      })
-      .mockResolvedValueOnce({
-        messages: [secondChannelMessage],
-        nextCursor: null,
-      });
+      .mockResolvedValueOnce(
+        Either.right({
+          messages: [originalMessage],
+          nextCursor: null,
+        })
+      )
+      .mockResolvedValueOnce(
+        Either.right({
+          messages: [secondChannelMessage],
+          nextCursor: null,
+        })
+      );
 
-    const editMessage = vi.fn().mockReturnValue(edit);
+    const editMessage = vi.fn().mockReturnValue(edit.promise);
 
     TestBed.configureTestingModule({
       providers: [
@@ -378,7 +403,7 @@ describe('ChannelMessagesStore message editing', () => {
     expect(store.messages()).toEqual([secondChannelMessage]);
     expect(store.editMessageStatus()).toBe('idle');
 
-    edit.resolve(editedMessage);
+    edit.resolve(Either.right(editedMessage));
 
     await expect(editResult).resolves.toBe(false);
 
@@ -404,14 +429,19 @@ describe('ChannelMessagesStore message editing', () => {
       createdAt: new Date('2026-07-27T08:00:00.000Z'),
       editedAt: null,
     };
-    const listChannelMessages = vi.fn().mockResolvedValue({
-      messages: [message],
-      nextCursor: null,
-    });
-    const editMessage = vi.fn().mockRejectedValue({
-      _tag: 'InvalidEditedMessageContentError',
-      message: 'The edited message content is invalid.',
-    });
+    const listChannelMessages = vi.fn().mockResolvedValue(
+      Either.right({
+        messages: [message],
+        nextCursor: null,
+      })
+    );
+    const editMessage = vi.fn().mockResolvedValue(
+      Either.left(
+        new InvalidEditedMessageContentError({
+          cause: new Error('Blank content'),
+        })
+      )
+    );
 
     TestBed.configureTestingModule({
       providers: [
@@ -460,12 +490,16 @@ describe('ChannelMessagesStore message deletion', () => {
       deletedAt: new Date('2026-07-29T08:00:00.000Z'),
     };
 
-    const listChannelMessages = vi.fn().mockResolvedValue({
-      messages: [message],
-      nextCursor: null,
-    });
+    const listChannelMessages = vi.fn().mockResolvedValue(
+      Either.right({
+        messages: [message],
+        nextCursor: null,
+      })
+    );
 
-    const deleteMessage = vi.fn().mockResolvedValue(deletedMessage);
+    const deleteMessage = vi
+      .fn()
+      .mockResolvedValue(Either.right(deletedMessage));
 
     TestBed.configureTestingModule({
       providers: [
@@ -505,15 +539,20 @@ describe('ChannelMessagesStore message deletion', () => {
       editedAt: null,
     };
 
-    const listChannelMessages = vi.fn().mockResolvedValue({
-      messages: [message],
-      nextCursor: null,
-    });
+    const listChannelMessages = vi.fn().mockResolvedValue(
+      Either.right({
+        messages: [message],
+        nextCursor: null,
+      })
+    );
 
-    const deleteMessage = vi.fn().mockRejectedValue({
-      _tag: 'MessageAccessDeniedError',
-      message: 'Message access was denied.',
-    });
+    const deleteMessage = vi.fn().mockResolvedValue(
+      Either.left(
+        new MessageAccessDeniedError({
+          operation: 'delete',
+        })
+      )
+    );
 
     TestBed.configureTestingModule({
       providers: [
@@ -541,14 +580,14 @@ describe('ChannelMessagesStore message deletion', () => {
 
     expect(store.deleteError()).toEqual({
       tag: 'MessageAccessDeniedError',
-      message: 'Message access was denied.',
+      message: 'You do not have permission to perform this message action.',
     });
 
     expect(store.messages()).toEqual([message]);
   });
 
   it('ignores a deletion result after another channel is selected', async () => {
-    const deletion = makeDeferredPromise<Message>();
+    const deletion = makeDeferredPromise<Either.Either<Message, never>>();
 
     const secondChannelId = '00000000-0000-4000-8000-000000000003' as ChannelId;
 
@@ -582,16 +621,20 @@ describe('ChannelMessagesStore message deletion', () => {
 
     const listChannelMessages = vi
       .fn()
-      .mockResolvedValueOnce({
-        messages: [message],
-        nextCursor: null,
-      })
-      .mockResolvedValueOnce({
-        messages: [secondChannelMessage],
-        nextCursor: null,
-      });
+      .mockResolvedValueOnce(
+        Either.right({
+          messages: [message],
+          nextCursor: null,
+        })
+      )
+      .mockResolvedValueOnce(
+        Either.right({
+          messages: [secondChannelMessage],
+          nextCursor: null,
+        })
+      );
 
-    const deleteMessage = vi.fn().mockReturnValue(deletion);
+    const deleteMessage = vi.fn().mockReturnValue(deletion.promise);
 
     TestBed.configureTestingModule({
       providers: [
@@ -620,7 +663,7 @@ describe('ChannelMessagesStore message deletion', () => {
     expect(store.messages()).toEqual([secondChannelMessage]);
     expect(store.deleteMessageStatus()).toBe('idle');
 
-    deletion.resolve(deletedMessage);
+    deletion.resolve(Either.right(deletedMessage));
 
     await expect(deletionResult).resolves.toBe(false);
 
