@@ -1,35 +1,9 @@
-import { Layer, ManagedRuntime } from 'effect';
-import { SupabaseAuthenticationServiceLayer } from '@chat-hub/infrastructure/authentication';
-import { SupabaseMessageRepositoryLayer } from '@chat-hub/infrastructure/message';
+import { ManagedRuntime } from 'effect';
 import { makeSupabaseClientConfig } from '../supabase/supabase-client-config';
-import { makeSupabaseClientLayer } from '../supabase/supabase-client.layer';
+import { makeApplicationInfrastructureLayer } from './application-infrastructure.layer';
 
-/**
- * Infrastructure adapters required by current application use cases.
- *
- * These Layers still require their focused Supabase client services.
- */
-const applicationServicesLayer = Layer.merge(
-  SupabaseMessageRepositoryLayer,
-  SupabaseAuthenticationServiceLayer
-);
-
-/**
- * Provides one configured browser Supabase client under every focused client
- * Tag required by the infrastructure adapters.
- */
-const infrastructureClientLayer = makeSupabaseClientLayer(
+const applicationLayer = makeApplicationInfrastructureLayer(
   makeSupabaseClientConfig()
-);
-
-/**
- * Fully composed application Layer.
- *
- * Providing the client Layer removes the remaining infrastructure requirements
- * from the message and authentication service Layers.
- */
-const applicationLayer = applicationServicesLayer.pipe(
-  Layer.provide(infrastructureClientLayer)
 );
 
 /**

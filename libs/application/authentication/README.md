@@ -13,7 +13,7 @@ session, signing in, signing out, and observing session changes.
 - Define technology-independent authentication errors.
 - Define the outbound `AuthenticationService` port.
 - Orchestrate session restoration, sign-in, sign-out, and session observation.
-- Normalize use-case input where policy requires it.
+- Runtime-validate and normalize use-case input before requesting a provider.
 - Express dependencies and expected failures through Effect types.
 
 ## Dependency rule
@@ -59,14 +59,17 @@ src/lib/
 └── testing/
 ```
 
-The testing folder contains one private Layer factory used by application unit
-tests. It is not exported from the production public API.
+The testing folder follows the application test-support convention: canonical
+fixtures live in `authentication-application-fixtures.ts`, while service stubs
+and Layer factories live in `authentication-service.stub.ts`. Its `index.ts`
+defines the private test API and is not exported from the production entry
+point.
 
 ## Public API
 
 The public entry point exports:
 
-- session and credential contracts;
+- the runtime-validated session contract and credential contracts;
 - application authentication errors;
 - `AuthenticationServiceTag`;
 - the four authentication use cases.

@@ -2,7 +2,7 @@ import { Effect, Either } from 'effect';
 import { describe, expect, it, vi } from 'vitest';
 import { AuthenticationUnavailableError } from '../authentication-error';
 import type { AuthenticationService } from '../authentication-service';
-import { makeAuthenticationServiceTestLayer } from '../testing/make-authentication-service-test-layer';
+import { makeAuthenticationServiceLayer } from '../testing';
 import { signOut } from './sign-out';
 
 describe('signOut', () => {
@@ -11,7 +11,7 @@ describe('signOut', () => {
       Effect.succeed(undefined)
     );
 
-    const { layer } = makeAuthenticationServiceTestLayer({
+    const layer = makeAuthenticationServiceLayer({
       signOut: signOutService,
     });
 
@@ -30,7 +30,7 @@ describe('signOut', () => {
       Effect.fail(failure)
     );
 
-    const { layer } = makeAuthenticationServiceTestLayer({
+    const layer = makeAuthenticationServiceLayer({
       signOut: signOutService,
     });
 

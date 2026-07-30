@@ -23,7 +23,11 @@ export default [
         'error',
         {
           enforceBuildableLibDependency: true,
-          allow: ['^.*/eslint(\\.base)?\\.config\\.[cm]?[jt]s$'],
+          allow: [
+            '^.*/eslint(\\.base)?\\.config\\.[cm]?[jt]s$',
+            '^@client/',
+            '^@client-environments/',
+          ],
           depConstraints: [
             {
               sourceTag: 'project:app',

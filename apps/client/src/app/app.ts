@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { AuthenticationShellComponent } from './features/authentication/authentication-shell.component';
+import { AuthenticationShellComponent } from '@client/features/authentication/authentication-shell.component';
 
 @Component({
   selector: 'app-root',

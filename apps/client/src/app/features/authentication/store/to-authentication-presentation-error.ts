@@ -10,6 +10,14 @@ export const toAuthenticationPresentationError = (
   error: AuthenticationError
 ): AuthenticationPresentationError => {
   switch (error._tag) {
+    case 'InvalidSignInInputError':
+      return {
+        message:
+          error.field === 'email'
+            ? 'Enter your email address.'
+            : 'Enter your password.',
+      };
+
     case 'InvalidCredentialsError':
       return {
         message: 'The email or password is incorrect.',

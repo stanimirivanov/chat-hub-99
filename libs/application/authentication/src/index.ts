@@ -1,7 +1,11 @@
-export type { AuthenticationSession } from './lib/authentication-session';
+export {
+  AuthenticationSessionSchema,
+  type AuthenticationSession,
+} from './lib/authentication-session';
 
 export {
   InvalidCredentialsError,
+  InvalidSignInInputError,
   AuthenticationUnavailableError,
   type AuthenticationOperation,
   type AuthenticationError,
@@ -13,10 +17,10 @@ export {
   type SignInCredentials,
 } from './lib/authentication-service';
 
-export { observeSessionChanges } from './lib/observe-session/observe-session';
+export { observeSessionChanges } from './lib/observe-session';
 
-export { restoreSession } from './lib/restore-session/restore-session';
+export { restoreSession } from './lib/restore-session';
 
-export { signIn, type SignInInput } from './lib/sign-in/sign-in';
+export { signIn, type SignInInput } from './lib/sign-in';
 
-export { signOut } from './lib/sign-out/sign-out';
+export { signOut } from './lib/sign-out';

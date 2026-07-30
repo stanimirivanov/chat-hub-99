@@ -1,4 +1,5 @@
 import type { Layer } from 'effect';
+import type { AuthenticationService } from '@chat-hub/application/authentication';
 import type { MessageRepository } from '@chat-hub/application/message';
 import { makeApplicationInfrastructureLayer } from './application-infrastructure.layer';
 
@@ -7,6 +8,10 @@ const layer = makeApplicationInfrastructureLayer({
   publishableKey: 'test-publishable-key',
 });
 
-const completeLayer: Layer.Layer<MessageRepository, never, never> = layer;
+const completeLayer: Layer.Layer<
+  MessageRepository | AuthenticationService,
+  never,
+  never
+> = layer;
 
 void completeLayer;

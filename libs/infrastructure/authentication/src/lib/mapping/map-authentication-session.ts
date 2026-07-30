@@ -1,10 +1,21 @@
-import { Either } from 'effect';
-import type { Session } from '@supabase/supabase-js';
+import { Either, Schema } from 'effect';
 import {
+  AuthenticationSessionSchema,
   AuthenticationUnavailableError,
   type AuthenticationOperation,
   type AuthenticationSession,
 } from '@chat-hub/application/authentication';
+
+const decodeAuthenticationSession = Schema.decodeUnknownEither(
+  AuthenticationSessionSchema
+);
+
+const ProviderSessionSchema = Schema.Struct({
+  user: Schema.Struct({
+    id: Schema.Unknown,
+    email: Schema.Unknown,
+  }),
+});
 
 /**
  * Converts a Supabase session into the application-owned session projection.
@@ -14,22 +25,43 @@ import {
  * email is treated as an unavailable authentication result.
  */
 export const mapAuthenticationSession = (
-  session: Session,
+  session: unknown,
   operation: AuthenticationOperation
 ): Either.Either<AuthenticationSession, AuthenticationUnavailableError> => {
-  const email = session.user.email;
+  const providerSession = Schema.decodeUnknownEither(ProviderSessionSchema)(
+    session
+  );
 
-  if (email === undefined) {
+  if (Either.isLeft(providerSession)) {
     return Either.left(
       new AuthenticationUnavailableError({
         operation,
-        cause: new Error('The authenticated user has no email address.'),
+        cause: providerSession.left,
       })
     );
   }
 
-  return Either.right({
-    userId: session.user.id,
-    email,
-  });
+  const email = providerSession.right.user.email;
+
+  if (typeof email !== 'string' || email.trim().length === 0) {
+    return Either.left(
+      new AuthenticationUnavailableError({
+        operation,
+        cause: new Error('The authenticated user has no usable email address.'),
+      })
+    );
+  }
+
+  return decodeAuthenticationSession({
+    userId: providerSession.right.user.id,
+    email: email.trim(),
+  }).pipe(
+    Either.mapLeft(
+      (cause) =>
+        new AuthenticationUnavailableError({
+          operation,
+          cause,
+        })
+    )
+  );
 };

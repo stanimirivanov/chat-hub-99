@@ -11,7 +11,7 @@ import type {
   AuthenticationError,
   AuthenticationSession,
 } from '@chat-hub/application/authentication';
-import { AuthenticationApplicationService } from '../../../core/authentication/authentication-application.service';
+import { AuthenticationApplicationService } from '@client/core/authentication/authentication-application.service';
 import { initialAuthenticationState } from './authentication.state';
 import { toAuthenticationPresentationError } from './to-authentication-presentation-error';
 
@@ -48,20 +48,17 @@ export const AuthenticationStore = signalStore(
 
       let stopObserving: (() => void) | null = null;
 
+      let sessionRevision = 0;
+
       /**
-       * Applies the provider's current authentication session.
-       *
-       * Session state also completes pending sign-in or sign-out operations,
-       * because provider notifications are authoritative for long-lived
-       * authentication synchronization.
+       * Applies a current authentication session without completing an
+       * independently running sign-in or sign-out request.
        */
       const applySession = (session: AuthenticationSession | null): void => {
         if (session === null) {
           patchState(store, {
             status: 'anonymous',
             session: null,
-            signInStatus: 'idle',
-            signOutStatus: 'idle',
           });
 
           return;
@@ -70,10 +67,19 @@ export const AuthenticationStore = signalStore(
         patchState(store, {
           status: 'authenticated',
           session,
-          signInStatus: 'idle',
-          signOutStatus: 'idle',
           error: null,
         });
+      };
+
+      /**
+       * Applies an authoritative provider notification and invalidates
+       * command results that started against an older session.
+       */
+      const applyObservedSession = (
+        session: AuthenticationSession | null
+      ): void => {
+        sessionRevision += 1;
+        applySession(session);
       };
 
       /**
@@ -94,7 +100,7 @@ export const AuthenticationStore = signalStore(
         }
 
         stopObserving = authenticationApplication.observeSessionChanges(
-          applySession,
+          applyObservedSession,
           applyObservationError
         );
       };
@@ -156,13 +162,18 @@ export const AuthenticationStore = signalStore(
         /**
          * Attempts email/password authentication.
          *
-         * Returns `false` while another sign-in operation is already pending,
-         * avoiding duplicate provider requests from repeated submissions.
+         * Returns `false` while another authentication command is pending,
+         * avoiding overlapping provider requests.
          */
         async signIn(email: string, password: string): Promise<boolean> {
-          if (store.signInStatus() === 'pending') {
+          if (
+            store.signInStatus() === 'pending' ||
+            store.signOutStatus() === 'pending'
+          ) {
             return false;
           }
+
+          const startedAtRevision = sessionRevision;
 
           patchState(store, {
             signInStatus: 'pending',
@@ -176,6 +187,14 @@ export const AuthenticationStore = signalStore(
 
           return Either.match(result, {
             onLeft: (error) => {
+              if (sessionRevision !== startedAtRevision) {
+                patchState(store, {
+                  signInStatus: 'idle',
+                });
+
+                return false;
+              }
+
               patchState(store, {
                 signInStatus: 'failed',
                 error: toAuthenticationPresentationError(error),
@@ -185,7 +204,13 @@ export const AuthenticationStore = signalStore(
             },
 
             onRight: (session) => {
-              applySession(session);
+              if (sessionRevision === startedAtRevision) {
+                applySession(session);
+              }
+
+              patchState(store, {
+                signInStatus: 'idle',
+              });
 
               return true;
             },
@@ -195,13 +220,17 @@ export const AuthenticationStore = signalStore(
         /**
          * Attempts to end the current session.
          *
-         * Returns `false` while another sign-out operation is already
-         * pending.
+         * Returns `false` while another authentication command is pending.
          */
         async signOut(): Promise<boolean> {
-          if (store.signOutStatus() === 'pending') {
+          if (
+            store.signOutStatus() === 'pending' ||
+            store.signInStatus() === 'pending'
+          ) {
             return false;
           }
+
+          const startedAtRevision = sessionRevision;
 
           patchState(store, {
             signOutStatus: 'pending',
@@ -212,6 +241,14 @@ export const AuthenticationStore = signalStore(
 
           return Either.match(result, {
             onLeft: (error) => {
+              if (sessionRevision !== startedAtRevision) {
+                patchState(store, {
+                  signOutStatus: 'idle',
+                });
+
+                return false;
+              }
+
               patchState(store, {
                 signOutStatus: 'failed',
                 error: toAuthenticationPresentationError(error),
@@ -221,7 +258,13 @@ export const AuthenticationStore = signalStore(
             },
 
             onRight: () => {
-              applySession(null);
+              if (sessionRevision === startedAtRevision) {
+                applySession(null);
+              }
+
+              patchState(store, {
+                signOutStatus: 'idle',
+              });
 
               return true;
             },

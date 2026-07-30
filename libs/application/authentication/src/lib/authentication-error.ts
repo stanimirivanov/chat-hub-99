@@ -22,6 +22,15 @@ export class InvalidCredentialsError extends Data.TaggedError(
 ) {}
 
 /**
+ * Indicates that sign-in was attempted without usable credentials.
+ */
+export class InvalidSignInInputError extends Data.TaggedError(
+  'InvalidSignInInputError'
+)<{
+  readonly field: 'email' | 'password';
+}> {}
+
+/**
  * Indicates that authentication could not be completed for a reason other
  * than rejected credentials.
  *
@@ -39,5 +48,6 @@ export class AuthenticationUnavailableError extends Data.TaggedError(
  * Expected authentication failures exposed by the application boundary.
  */
 export type AuthenticationError =
+  | InvalidSignInInputError
   | InvalidCredentialsError
   | AuthenticationUnavailableError;

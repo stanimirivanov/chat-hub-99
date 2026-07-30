@@ -6,7 +6,7 @@ import type {
   MessageContent,
   MessageId,
 } from '@chat-hub/domain/message';
-import { MessageApplicationService } from '../../core/message/message-application.service';
+import { MessageApplicationService } from '@client/core/message/message-application.service';
 import { ChannelMessagesStore } from './channel-messages.store';
 
 const channelId = '00000000-0000-4000-8000-000000000001' as ChannelId;
