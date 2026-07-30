@@ -1,0 +1,21 @@
+{
+  "name": "profile-application",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/application/profile/src",
+  "projectType": "library",
+  "tags": ["scope:profile", "layer:application"],
+  "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p libs/application/profile/tsconfig.lib.json"
+      }
+    },
+    "typecheck:test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p libs/application/profile/tsconfig.spec.json"
+      }
+    }
+  }
+}

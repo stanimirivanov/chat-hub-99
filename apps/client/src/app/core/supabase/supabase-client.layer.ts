@@ -12,6 +12,10 @@ import {
   type ChatHubSupabaseClient,
 } from '@chat-hub/infrastructure/message';
 import {
+  SupabaseProfileClientTag,
+  type SupabaseProfileClient,
+} from '@chat-hub/infrastructure/profile';
+import {
   SupabaseWorkspaceClientTag,
   type SupabaseWorkspaceClient,
 } from '@chat-hub/infrastructure/workspace';
@@ -48,6 +52,11 @@ export const makeSupabaseClientLayer = (config: SupabaseClientConfig) => {
     client satisfies SupabaseChannelClient
   );
 
+  const profileClientLayer = Layer.succeed(
+    SupabaseProfileClientTag,
+    client satisfies SupabaseProfileClient
+  );
+
   const workspaceClientLayer = Layer.succeed(
     SupabaseWorkspaceClientTag,
     client satisfies SupabaseWorkspaceClient
@@ -57,6 +66,7 @@ export const makeSupabaseClientLayer = (config: SupabaseClientConfig) => {
     messageClientLayer,
     authenticationClientLayer,
     channelClientLayer,
+    profileClientLayer,
     workspaceClientLayer
   );
 };

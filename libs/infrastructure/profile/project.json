@@ -1,0 +1,21 @@
+{
+  "name": "profile-infrastructure",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/infrastructure/profile/src",
+  "projectType": "library",
+  "tags": ["scope:profile", "layer:infrastructure"],
+  "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p libs/infrastructure/profile/tsconfig.lib.json"
+      }
+    },
+    "typecheck:test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p libs/infrastructure/profile/tsconfig.spec.json"
+      }
+    }
+  }
+}
