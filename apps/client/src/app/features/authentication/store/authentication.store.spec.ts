@@ -138,10 +138,7 @@ describe('AuthenticationStore', () => {
       | undefined;
 
     const observeSessionChanges = vi.fn(
-      (
-        onChange: (value: AuthenticationSession | null) => void,
-        _onError: (error: AuthenticationError) => void
-      ) => {
+      (onChange: (value: AuthenticationSession | null) => void) => {
         onSessionChange = onChange;
 
         return () => undefined;
@@ -280,6 +277,97 @@ describe('AuthenticationStore', () => {
     await expect(firstResult).resolves.toBe(true);
   });
 
+  it('does not complete sign-in solely because a session event arrived', async () => {
+    let onSessionChange:
+      | ((value: AuthenticationSession | null) => void)
+      | undefined;
+
+    let resolveSignIn:
+      | ((
+          value: Either.Either<AuthenticationSession, AuthenticationError>
+        ) => void)
+      | undefined;
+
+    const pendingSignIn = new Promise<
+      Either.Either<AuthenticationSession, AuthenticationError>
+    >((resolve) => {
+      resolveSignIn = resolve;
+    });
+
+    const { store } = configureStore({
+      signIn: vi.fn().mockReturnValue(pendingSignIn),
+
+      observeSessionChanges: vi.fn(
+        (onChange: (value: AuthenticationSession | null) => void) => {
+          onSessionChange = onChange;
+
+          return () => undefined;
+        }
+      ),
+    });
+
+    await store.initialize();
+
+    const result = store.signIn('owner@chat-hub.local', 'Password123!');
+
+    onSessionChange?.(session);
+
+    expect(store.signInStatus()).toBe('pending');
+
+    resolveSignIn?.(Either.right(session));
+
+    await expect(result).resolves.toBe(true);
+
+    expect(store.signInStatus()).toBe('idle');
+  });
+
+  it('does not let a stale sign-in result replace a newer observed session', async () => {
+    const newerSession: AuthenticationSession = {
+      userId: '00000000-0000-4000-8000-000000000002',
+      email: 'newer@chat-hub.local',
+    };
+
+    let onSessionChange:
+      | ((value: AuthenticationSession | null) => void)
+      | undefined;
+
+    let resolveSignIn:
+      | ((
+          value: Either.Either<AuthenticationSession, AuthenticationError>
+        ) => void)
+      | undefined;
+
+    const pendingSignIn = new Promise<
+      Either.Either<AuthenticationSession, AuthenticationError>
+    >((resolve) => {
+      resolveSignIn = resolve;
+    });
+
+    const { store } = configureStore({
+      signIn: vi.fn().mockReturnValue(pendingSignIn),
+
+      observeSessionChanges: vi.fn(
+        (onChange: (value: AuthenticationSession | null) => void) => {
+          onSessionChange = onChange;
+
+          return () => undefined;
+        }
+      ),
+    });
+
+    await store.initialize();
+
+    const result = store.signIn('owner@chat-hub.local', 'Password123!');
+
+    onSessionChange?.(newerSession);
+
+    resolveSignIn?.(Either.right(session));
+
+    await expect(result).resolves.toBe(true);
+
+    expect(store.session()).toEqual(newerSession);
+  });
+
   it('becomes anonymous after sign-out', async () => {
     const { store } = configureStore({
       restoreSession: vi.fn().mockResolvedValue(Either.right(session)),
@@ -321,6 +409,55 @@ describe('AuthenticationStore', () => {
     expect(store.session()).toEqual(session);
 
     expect(store.signOutStatus()).toBe('failed');
+  });
+
+  it('does not let a stale sign-out result clear a newer observed session', async () => {
+    const newerSession: AuthenticationSession = {
+      userId: '00000000-0000-4000-8000-000000000002',
+      email: 'newer@chat-hub.local',
+    };
+
+    let onSessionChange:
+      | ((value: AuthenticationSession | null) => void)
+      | undefined;
+
+    let resolveSignOut:
+      | ((value: Either.Either<void, AuthenticationError>) => void)
+      | undefined;
+
+    const pendingSignOut = new Promise<
+      Either.Either<void, AuthenticationError>
+    >((resolve) => {
+      resolveSignOut = resolve;
+    });
+
+    const { store } = configureStore({
+      restoreSession: vi.fn().mockResolvedValue(Either.right(session)),
+
+      signOut: vi.fn().mockReturnValue(pendingSignOut),
+
+      observeSessionChanges: vi.fn(
+        (onChange: (value: AuthenticationSession | null) => void) => {
+          onSessionChange = onChange;
+
+          return () => undefined;
+        }
+      ),
+    });
+
+    await store.initialize();
+
+    const result = store.signOut();
+
+    onSessionChange?.(newerSession);
+
+    resolveSignOut?.(Either.right(undefined));
+
+    await expect(result).resolves.toBe(true);
+
+    expect(store.session()).toEqual(newerSession);
+
+    expect(store.signOutStatus()).toBe('idle');
   });
 
   it('unsubscribes when its injection context is destroyed', async () => {
