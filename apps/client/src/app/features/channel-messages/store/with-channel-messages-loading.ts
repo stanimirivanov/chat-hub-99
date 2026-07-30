@@ -1,4 +1,5 @@
 import { inject } from '@angular/core';
+import { Either } from 'effect';
 import {
   patchState,
   signalStoreFeature,
@@ -38,33 +39,32 @@ export const withChannelMessagesLoading = () =>
           channelId: ChannelId,
           generation: number
         ): Promise<void> => {
-          try {
-            const page = await messageApplication.listChannelMessages({
-              channelId,
-              limit: MESSAGE_PAGE_SIZE,
-            });
+          const result = await messageApplication.listChannelMessages({
+            channelId,
+            limit: MESSAGE_PAGE_SIZE,
+          });
 
-            if (!isCurrentRequest(channelId, generation)) {
-              return;
-            }
-
-            patchState(store, {
-              messages: page.messages,
-              nextCursor: page.nextCursor,
-              loadStatus: 'loaded',
-              olderMessagesStatus: 'idle',
-              error: null,
-            });
-          } catch (error: unknown) {
-            if (!isCurrentRequest(channelId, generation)) {
-              return;
-            }
-
-            patchState(store, {
-              loadStatus: 'failed',
-              error: toChannelMessagesError(error),
-            });
+          if (!isCurrentRequest(channelId, generation)) {
+            return;
           }
+
+          Either.match(result, {
+            onLeft: (error) => {
+              patchState(store, {
+                loadStatus: 'failed',
+                error: toChannelMessagesError(error),
+              });
+            },
+            onRight: (page) => {
+              patchState(store, {
+                messages: page.messages,
+                nextCursor: page.nextCursor,
+                loadStatus: 'loaded',
+                olderMessagesStatus: 'idle',
+                error: null,
+              });
+            },
+          });
         };
 
         return {
@@ -151,32 +151,34 @@ export const withChannelMessagesLoading = () =>
               error: null,
             });
 
-            try {
-              const page = await messageApplication.listChannelMessages({
-                channelId,
-                limit: MESSAGE_PAGE_SIZE,
-                before,
-              });
+            const result = await messageApplication.listChannelMessages({
+              channelId,
+              limit: MESSAGE_PAGE_SIZE,
+              before,
+            });
 
-              if (!isCurrentRequest(channelId, generation)) {
-                return;
-              }
-
-              patchState(store, {
-                messages: appendUniqueMessages(store.messages(), page.messages),
-                nextCursor: page.nextCursor,
-                olderMessagesStatus: 'idle',
-              });
-            } catch (error: unknown) {
-              if (!isCurrentRequest(channelId, generation)) {
-                return;
-              }
-
-              patchState(store, {
-                olderMessagesStatus: 'failed',
-                error: toChannelMessagesError(error),
-              });
+            if (!isCurrentRequest(channelId, generation)) {
+              return;
             }
+
+            Either.match(result, {
+              onLeft: (error) => {
+                patchState(store, {
+                  olderMessagesStatus: 'failed',
+                  error: toChannelMessagesError(error),
+                });
+              },
+              onRight: (page) => {
+                patchState(store, {
+                  messages: appendUniqueMessages(
+                    store.messages(),
+                    page.messages
+                  ),
+                  nextCursor: page.nextCursor,
+                  olderMessagesStatus: 'idle',
+                });
+              },
+            });
           },
 
           /**
