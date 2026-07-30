@@ -7,6 +7,13 @@ import { WorkspaceSchema, type Workspace } from '@chat-hub/domain/workspace';
 
 const decodeWorkspace = Schema.decodeUnknown(WorkspaceSchema);
 
+/**
+ * Narrow database-row projection selected by the workspace navigation query.
+ *
+ * Generated view columns remain nullable because PostgreSQL view metadata
+ * cannot express all underlying constraints. Runtime decoding below rejects
+ * missing required values.
+ */
 export interface CurrentWorkspaceNavigationRow {
   readonly workspace_id: string | null;
   readonly name: string | null;
@@ -16,6 +23,9 @@ export interface CurrentWorkspaceNavigationRow {
 
 /**
  * Decodes one generated current-workspace row into the domain projection.
+ *
+ * Schema failures are translated into the application repository vocabulary,
+ * so malformed database values never escape as domain workspaces.
  */
 export const mapCurrentWorkspace = (
   row: CurrentWorkspaceNavigationRow

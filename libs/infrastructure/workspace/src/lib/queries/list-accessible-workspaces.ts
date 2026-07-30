@@ -7,6 +7,12 @@ import type { SupabaseWorkspaceClient } from '../supabase-workspace-client';
 
 /**
  * Lists active RLS-visible workspaces in stable display order.
+ *
+ * `Effect.tryPromise` converts the lazy Supabase query into an Effect and
+ * translates thrown transport failures. `Effect.flatMap` observes the
+ * PostgREST result only after the query succeeds, converts returned errors,
+ * and decodes every external row before it can cross the infrastructure
+ * boundary.
  */
 export const listAccessibleWorkspaces = (
   client: SupabaseWorkspaceClient

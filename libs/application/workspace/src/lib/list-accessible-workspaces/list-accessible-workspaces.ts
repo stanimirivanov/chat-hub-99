@@ -18,6 +18,11 @@ export const listAccessibleWorkspaces: Effect.Effect<
   WorkspaceRepositoryError,
   WorkspaceRepository
 > = Effect.gen(function* () {
+  /*
+   * Yielding the Tag retrieves whichever repository implementation the outer
+   * Layer supplied. The use case therefore depends on the capability rather
+   * than on Supabase.
+   */
   const repository = yield* WorkspaceRepositoryTag;
   return yield* repository.listAccessible();
 });
