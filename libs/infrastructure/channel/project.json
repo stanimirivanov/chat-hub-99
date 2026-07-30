@@ -1,0 +1,21 @@
+{
+  "name": "channel-infrastructure",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/infrastructure/channel/src",
+  "projectType": "library",
+  "tags": ["scope:channel", "layer:infrastructure"],
+  "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p libs/infrastructure/channel/tsconfig.lib.json"
+      }
+    },
+    "typecheck:test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p libs/infrastructure/channel/tsconfig.spec.json"
+      }
+    }
+  }
+}

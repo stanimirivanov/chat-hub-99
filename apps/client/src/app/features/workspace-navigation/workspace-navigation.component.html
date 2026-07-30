@@ -34,6 +34,8 @@
         @if (workspace.description) {
           <p>{{ workspace.description }}</p>
         }
+
+        <app-channel-navigation [workspaceId]="workspace.id" />
       </section>
     } @else {
       <p>Select a workspace to continue.</p>

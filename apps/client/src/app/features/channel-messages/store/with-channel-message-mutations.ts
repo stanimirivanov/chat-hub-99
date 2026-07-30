@@ -5,7 +5,8 @@ import {
   type,
   withMethods,
 } from '@ngrx/signals';
-import type { ChannelId, MessageId } from '@chat-hub/domain/message';
+import type { ChannelId } from '@chat-hub/domain/channel';
+import type { MessageId } from '@chat-hub/domain/message';
 import { MessageApplicationService } from '@client/core/message/message-application.service';
 import type { ChannelMessagesState } from '../channel-messages.state';
 import { prependUniqueMessage } from './prepend-unique-message';

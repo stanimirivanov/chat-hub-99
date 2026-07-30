@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import type { ChannelId } from '@chat-hub/domain/channel';
 import type {
-  ChannelId,
   Message,
   MessageContent,
   MessageId,

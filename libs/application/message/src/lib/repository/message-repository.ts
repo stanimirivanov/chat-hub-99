@@ -1,5 +1,6 @@
 import { Context, type Effect } from 'effect';
-import type { ChannelId, Message, MessageId } from '@chat-hub/domain/message';
+import type { ChannelId } from '@chat-hub/domain/channel';
+import type { Message, MessageId } from '@chat-hub/domain/message';
 import type {
   CreateMessageCommand,
   DeleteMessageCommand,

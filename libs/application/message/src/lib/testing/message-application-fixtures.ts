@@ -1,7 +1,7 @@
 import { Schema } from 'effect';
+import { ChannelIdSchema } from '@chat-hub/domain/channel';
 
 import {
-  ChannelIdSchema,
   MessageContentSchema,
   MessageIdSchema,
   type Message,

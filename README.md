@@ -52,12 +52,15 @@ features.
 
 ```text
 apps/client/                    Angular application and presentation features
+libs/domain/channel/            Channel identity, navigation projection, and invariants
 libs/domain/message/            Message domain model and invariants
 libs/domain/workspace/          Workspace navigation projection and invariants
 libs/application/authentication/ Provider-independent authentication workflows
+libs/application/channel/       Workspace-scoped channel discovery port and use case
 libs/application/message/       Message use cases, queries, errors, and repository port
 libs/application/workspace/     Accessible-workspace discovery port and use case
 libs/infrastructure/authentication/ Supabase authentication adapter
+libs/infrastructure/channel/    Supabase workspace-channel discovery adapter
 libs/infrastructure/message/    Supabase implementation of the message repository
 libs/infrastructure/workspace/  Supabase accessible-workspace adapter
 libs/shared/database/           Generated and derived database types

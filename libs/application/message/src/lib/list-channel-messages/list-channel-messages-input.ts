@@ -1,4 +1,5 @@
-import type { ChannelId, MessageId } from '@chat-hub/domain/message';
+import type { ChannelId } from '@chat-hub/domain/channel';
+import type { MessageId } from '@chat-hub/domain/message';
 
 /**
  * Pagination cursor accepted by the list-channel-messages use case.

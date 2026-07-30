@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChannelNavigationComponent } from '@client/features/channel-navigation/channel-navigation.component';
 import { WorkspaceNavigationStore } from './workspace-navigation.store';
 
 /**
@@ -7,6 +8,7 @@ import { WorkspaceNavigationStore } from './workspace-navigation.store';
 @Component({
   selector: 'app-workspace-navigation',
   standalone: true,
+  imports: [ChannelNavigationComponent],
   providers: [WorkspaceNavigationStore],
   templateUrl: './workspace-navigation.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

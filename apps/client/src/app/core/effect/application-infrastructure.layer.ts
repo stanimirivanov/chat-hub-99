@@ -1,5 +1,6 @@
 import { Layer } from 'effect';
 import { SupabaseAuthenticationServiceLayer } from '@chat-hub/infrastructure/authentication';
+import { SupabaseChannelRepositoryLayer } from '@chat-hub/infrastructure/channel';
 import { SupabaseMessageRepositoryLayer } from '@chat-hub/infrastructure/message';
 import { SupabaseWorkspaceRepositoryLayer } from '@chat-hub/infrastructure/workspace';
 import type { SupabaseClientConfig } from '../supabase/supabase-client-config';
@@ -26,6 +27,7 @@ export const makeApplicationInfrastructureLayer = (
   const applicationServicesLayer = Layer.mergeAll(
     SupabaseMessageRepositoryLayer,
     SupabaseAuthenticationServiceLayer,
+    SupabaseChannelRepositoryLayer,
     SupabaseWorkspaceRepositoryLayer
   );
 

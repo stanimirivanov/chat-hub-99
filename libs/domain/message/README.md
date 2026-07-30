@@ -4,7 +4,7 @@
 
 ## Responsibilities
 
-- Branded identifiers such as `MessageId` and `ChannelId`
+- Branded message identifiers such as `MessageId`
 - Validated message content
 - Active and deleted message projections
 - Commands expressed in domain vocabulary
@@ -12,7 +12,10 @@
 
 ## Dependency rule
 
-This library may depend on general-purpose modeling tools such as Effect Schema. It must not depend on Angular, NgRx, Supabase, generated database types, browser APIs, or application services.
+This library may depend on the channel domain for channel identity and on
+general-purpose modeling tools such as Effect Schema. It must not depend on
+Angular, NgRx, Supabase, generated database types, browser APIs, or application
+services.
 
 ```text
 application/message ──depends on──> domain/message
@@ -28,7 +31,7 @@ Deleted messages are modeled explicitly rather than represented as partially nul
 
 ## Internal modules
 
-- `channel-id.ts` and `message-id.ts`: identity schemas and branded types
+- `message-id.ts`: message identity schema and branded type
 - `message-content.ts`: content normalization and length invariant
 - `message.ts`: active/deleted message union and schemas
 

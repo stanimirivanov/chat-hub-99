@@ -7,10 +7,14 @@
       "@client/*": ["./apps/client/src/app/*"],
       "@client-environments/*": ["./apps/client/src/environments/*"],
       "@chat-hub/shared/database": ["./libs/shared/database/src/index.ts"],
+      "@chat-hub/domain/channel": ["./libs/domain/channel/src/index.ts"],
       "@chat-hub/domain/message": ["./libs/domain/message/src/index.ts"],
       "@chat-hub/domain/workspace": ["./libs/domain/workspace/src/index.ts"],
       "@chat-hub/application/authentication": [
         "./libs/application/authentication/src/index.ts"
+      ],
+      "@chat-hub/application/channel": [
+        "./libs/application/channel/src/index.ts"
       ],
       "@chat-hub/application/message": [
         "./libs/application/message/src/index.ts"
@@ -20,6 +24,9 @@
       ],
       "@chat-hub/infrastructure/message": [
         "./libs/infrastructure/message/src/index.ts"
+      ],
+      "@chat-hub/infrastructure/channel": [
+        "./libs/infrastructure/channel/src/index.ts"
       ],
       "@chat-hub/infrastructure/authentication": [
         "./libs/infrastructure/authentication/src/index.ts"

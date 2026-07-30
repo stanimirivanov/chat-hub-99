@@ -1,0 +1,42 @@
+<section aria-labelledby="channel-navigation-heading">
+  <h3 id="channel-navigation-heading">Channels</h3>
+
+  @if (store.isLoading()) {
+    <p>Loading channels&hellip;</p>
+  } @else if (store.error(); as error) {
+    <p role="alert">{{ error.message }}</p>
+    <button type="button" (click)="store.load(workspaceId())">Try again</button>
+  } @else if (!store.hasChannels()) {
+    <p>This workspace has no active channels.</p>
+  } @else {
+    <nav aria-label="Workspace channels">
+      <ul>
+        @for (channel of store.channels(); track channel.id) {
+          <li>
+            <button
+              type="button"
+              [attr.aria-current]="
+                store.selectedChannelId() === channel.id ? 'page' : null
+              "
+              (click)="store.select(channel.id)"
+            >
+              {{ channel.name }}
+            </button>
+          </li>
+        }
+      </ul>
+    </nav>
+
+    @if (store.selectedChannel(); as channel) {
+      <section [attr.aria-label]="channel.name + ' messages'">
+        @if (channel.description) {
+          <p>{{ channel.description }}</p>
+        }
+
+        <app-channel-messages [channelId]="channel.id" />
+      </section>
+    } @else {
+      <p>Select a channel to view its messages.</p>
+    }
+  }
+</section>

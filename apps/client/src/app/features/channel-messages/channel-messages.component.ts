@@ -5,7 +5,7 @@ import {
   inject,
   input,
 } from '@angular/core';
-import type { ChannelId } from '@chat-hub/domain/message';
+import type { ChannelId } from '@chat-hub/domain/channel';
 import { ChannelMessageComposerComponent } from './composer/channel-message-composer.component';
 import { ChannelMessageHistoryComponent } from './history/channel-message-history.component';
 import { ChannelMessagesStore } from './channel-messages.store';
