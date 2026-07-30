@@ -18,7 +18,7 @@
               [attr.aria-current]="
                 store.selectedChannelId() === channel.id ? 'page' : null
               "
-              (click)="store.select(channel.id)"
+              (click)="navigateToChannel(channel.slug)"
             >
               {{ channel.name }}
             </button>

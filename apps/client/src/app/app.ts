@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { AuthenticationShellComponent } from '@client/features/authentication/authentication-shell.component';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [AuthenticationShellComponent],
+  imports: [RouterOutlet],
   templateUrl: './app.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

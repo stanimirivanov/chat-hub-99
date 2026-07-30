@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
+import { provideRouter } from '@angular/router';
 import { Either } from 'effect';
 import { describe, expect, it, vi } from 'vitest';
 import type { AuthenticationSession } from '@chat-hub/application/authentication';
@@ -41,6 +42,7 @@ describe('AuthenticationShellComponent', () => {
       imports: [AuthenticationShellComponent],
 
       providers: [
+        provideRouter([]),
         {
           provide: AuthenticationStore,
           useValue: store,

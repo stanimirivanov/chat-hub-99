@@ -119,6 +119,15 @@ export const ChannelNavigationStore = signalStore(
           patchState(store, { selectedChannelId: channelId });
           return true;
         },
+
+        /**
+         * Clears presentation selection without reloading the collection.
+         */
+        clearSelection(): void {
+          patchState(store, {
+            selectedChannelId: null,
+          });
+        },
       };
     }
   )

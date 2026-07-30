@@ -72,6 +72,20 @@ previous workspace from replacing the current collection. Selecting a channel
 composes the existing `channel-messages` component through its typed input;
 the two stores do not depend on each other.
 
+Workspace and channel selections are reflected in the root route as validated
+slugs:
+
+```text
+/?workspace=chat-hub-development&channel=general
+```
+
+The URL is the browser-history and deep-link source of selection, while the
+stores retain canonical branded identifiers after matching a slug against the
+RLS-visible collection. Changing workspaces removes the channel parameter.
+Unknown slugs are removed with history replacement only after their owning
+collection loaded successfully; repository failures therefore remain retryable
+and are not misclassified as invalid navigation.
+
 ## Testing
 
 Component tests verify rendering and interaction. Store tests verify state
