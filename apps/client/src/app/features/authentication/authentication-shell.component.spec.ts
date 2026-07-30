@@ -60,6 +60,7 @@ describe('AuthenticationShellComponent', () => {
                 status: 'active',
               })
             ),
+            updateCurrentProfile: vi.fn(),
           },
         },
         {

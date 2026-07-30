@@ -1,6 +1,6 @@
 import { Data } from 'effect';
 import type { ProfileId } from '@chat-hub/domain/profile';
-import type { ProfileRepositoryError } from '../repository';
+import type { ProfileRepositoryReadError } from '../repository';
 
 /**
  * Indicates that current-profile input did not contain a valid profile UUID.
@@ -23,4 +23,4 @@ export class CurrentProfileNotFoundError extends Data.TaggedError(
 export type GetCurrentProfileError =
   | InvalidCurrentProfileInputError
   | CurrentProfileNotFoundError
-  | ProfileRepositoryError;
+  | ProfileRepositoryReadError;

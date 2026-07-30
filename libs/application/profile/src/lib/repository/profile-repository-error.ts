@@ -18,6 +18,19 @@ export class InvalidProfileDataError extends Data.TaggedError(
   readonly cause: unknown;
 }> {}
 
-export type ProfileRepositoryError =
+/**
+ * Indicates that another current profile already owns the requested username.
+ */
+export class ProfileUsernameUnavailableError extends Data.TaggedError(
+  'ProfileUsernameUnavailableError'
+)<{
+  readonly username: string;
+}> {}
+
+export type ProfileRepositoryReadError =
   | ProfileRepositoryUnavailableError
   | InvalidProfileDataError;
+
+export type ProfileRepositoryUpdateError =
+  | ProfileRepositoryReadError
+  | ProfileUsernameUnavailableError;

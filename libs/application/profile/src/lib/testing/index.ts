@@ -3,4 +3,5 @@ export {
   makeFindCurrentProfileRepository,
   makeListCurrentProfilesRepository,
   makeProfileRepositoryStub,
+  makeUpdateCurrentProfileRepository,
 } from './profile-repository.stub';

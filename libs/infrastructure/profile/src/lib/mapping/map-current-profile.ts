@@ -1,8 +1,5 @@
 import { Effect, Schema } from 'effect';
-import {
-  InvalidProfileDataError,
-  type ProfileRepositoryError,
-} from '@chat-hub/application/profile';
+import { InvalidProfileDataError } from '@chat-hub/application/profile';
 import { ProfileSchema, type Profile } from '@chat-hub/domain/profile';
 
 const decodeProfile = Schema.decodeUnknown(ProfileSchema);
@@ -26,7 +23,7 @@ export interface CurrentProfileRow {
  */
 export const mapCurrentProfile = (
   row: CurrentProfileRow
-): Effect.Effect<Profile, ProfileRepositoryError> =>
+): Effect.Effect<Profile, InvalidProfileDataError> =>
   decodeProfile({
     id: row.user_id,
     username: row.username,

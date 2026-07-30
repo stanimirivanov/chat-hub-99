@@ -1,5 +1,5 @@
 import { Effect } from 'effect';
-import type { ProfileRepositoryError } from '@chat-hub/application/profile';
+import type { ProfileRepositoryReadError } from '@chat-hub/application/profile';
 import type { Profile, ProfileId } from '@chat-hub/domain/profile';
 import { mapProfileRepositoryError } from '../errors';
 import { mapCurrentProfile } from '../mapping';
@@ -15,7 +15,7 @@ import type { SupabaseProfileClient } from '../supabase-profile-client';
 export const findCurrentProfile = (
   client: SupabaseProfileClient,
   profileId: ProfileId
-): Effect.Effect<Profile | null, ProfileRepositoryError> =>
+): Effect.Effect<Profile | null, ProfileRepositoryReadError> =>
   Effect.tryPromise({
     try: () =>
       client
@@ -25,11 +25,16 @@ export const findCurrentProfile = (
         .maybeSingle(),
     catch: mapProfileRepositoryError,
   }).pipe(
-    Effect.flatMap(({ data, error }) => {
-      if (error) {
-        return Effect.fail(mapProfileRepositoryError(error));
-      }
+    Effect.flatMap(
+      ({
+        data,
+        error,
+      }): Effect.Effect<Profile | null, ProfileRepositoryReadError> => {
+        if (error) {
+          return Effect.fail(mapProfileRepositoryError(error));
+        }
 
-      return data === null ? Effect.succeed(null) : mapCurrentProfile(data);
-    })
+        return data === null ? Effect.succeed(null) : mapCurrentProfile(data);
+      }
+    )
   );

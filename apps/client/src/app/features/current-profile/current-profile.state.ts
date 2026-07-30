@@ -1,6 +1,7 @@
 import type { Profile } from '@chat-hub/domain/profile';
 
 export type CurrentProfileLoadStatus = 'idle' | 'loading' | 'loaded' | 'failed';
+export type CurrentProfileUpdateStatus = 'idle' | 'updating' | 'failed';
 
 export interface CurrentProfilePresentationError {
   readonly message: string;
@@ -14,6 +15,8 @@ export interface CurrentProfileState {
   readonly profile: Profile | null;
   readonly loadStatus: CurrentProfileLoadStatus;
   readonly error: CurrentProfilePresentationError | null;
+  readonly updateStatus: CurrentProfileUpdateStatus;
+  readonly updateError: CurrentProfilePresentationError | null;
 }
 
 export const initialCurrentProfileState: CurrentProfileState = {
@@ -21,4 +24,6 @@ export const initialCurrentProfileState: CurrentProfileState = {
   profile: null,
   loadStatus: 'idle',
   error: null,
+  updateStatus: 'idle',
+  updateError: null,
 };

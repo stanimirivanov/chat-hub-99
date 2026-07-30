@@ -2,14 +2,20 @@
 
 ## Purpose
 
+Implements current-profile discovery and self-service updates with Supabase.
 Implements single and batched current-profile discovery with the RLS-protected
 Supabase `current_profiles` view.
 
 ## Responsibilities
 
 - Query one profile by stable authenticated-user identity.
+- Execute `update_my_profile` without exposing lifecycle-status mutation.
 - Query multiple author profiles in one identity-filtered request.
 - Decode generated nullable view data into a profile domain projection.
+- Decode the RPC result through the same profile domain mapper.
+- Preserve missing rows as absence for application policy.
+- Translate provider, username-conflict, and validation failures into
+  application errors.
 - Preserve a missing single row as absence and omit invisible rows from batch
   results.
 - Translate provider and validation failures into application errors.
@@ -23,7 +29,7 @@ Generated database types and Supabase query details stop at this boundary.
 getCurrentProfile use case
   -> ProfileRepositoryTag
   -> SupabaseProfileRepositoryLayer
-  -> current_profiles view + RLS
+  -> current_profiles view or update_my_profile RPC
   -> ProfileSchema decoding
 
 listCurrentProfiles use case
