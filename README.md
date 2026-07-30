@@ -53,8 +53,13 @@ features.
 ```text
 apps/client/                    Angular application and presentation features
 libs/domain/message/            Message domain model and invariants
+libs/domain/workspace/          Workspace navigation projection and invariants
+libs/application/authentication/ Provider-independent authentication workflows
 libs/application/message/       Message use cases, queries, errors, and repository port
+libs/application/workspace/     Accessible-workspace discovery port and use case
+libs/infrastructure/authentication/ Supabase authentication adapter
 libs/infrastructure/message/    Supabase implementation of the message repository
+libs/infrastructure/workspace/  Supabase accessible-workspace adapter
 libs/shared/database/           Generated and derived database types
 supabase/                       Migrations, seed data, configuration, and pgTAP tests
 tools/database/                 Database type-generation tooling
@@ -227,7 +232,7 @@ The reset is destructive to local database data.
 Seeded users
 
 | Role               | Email                     | Password       |
-|:-------------------|:--------------------------|:---------------|
+| :----------------- | :------------------------ | :------------- |
 | Workspace owner    | `owner@chat-hub.local`    | `Password123!` |
 | Workspace member   | `member@chat-hub.local`   | `Password123!` |
 | Workspace outsider | `outsider@chat-hub.local` | `Password123!` |

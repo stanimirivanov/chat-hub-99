@@ -7,6 +7,10 @@ import {
   SupabaseMessageClientTag,
   type ChatHubSupabaseClient,
 } from '@chat-hub/infrastructure/message';
+import {
+  SupabaseWorkspaceClientTag,
+  type SupabaseWorkspaceClient,
+} from '@chat-hub/infrastructure/workspace';
 import { makeSupabaseClient } from './make-supabase-client';
 import type { SupabaseClientConfig } from './supabase-client-config';
 
@@ -30,5 +34,13 @@ export const makeSupabaseClientLayer = (config: SupabaseClientConfig) => {
     client as SupabaseAuthenticationClient
   );
 
-  return Layer.merge(messageClientLayer, authenticationClientLayer);
+  const workspaceClientLayer = Layer.succeed(
+    SupabaseWorkspaceClientTag,
+    client satisfies SupabaseWorkspaceClient
+  );
+
+  return Layer.merge(
+    Layer.merge(messageClientLayer, authenticationClientLayer),
+    workspaceClientLayer
+  );
 };

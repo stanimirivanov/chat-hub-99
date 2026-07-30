@@ -1,0 +1,21 @@
+{
+  "name": "workspace-domain",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/domain/workspace/src",
+  "projectType": "library",
+  "tags": ["scope:workspace", "layer:domain"],
+  "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p libs/domain/workspace/tsconfig.lib.json"
+      }
+    },
+    "typecheck:test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p libs/domain/workspace/tsconfig.spec.json"
+      }
+    }
+  }
+}

@@ -1,9 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
+import { Either } from 'effect';
 import { describe, expect, it, vi } from 'vitest';
 import type { AuthenticationSession } from '@chat-hub/application/authentication';
 import { AuthenticationStore } from './store/authentication.store';
 import { AuthenticationShellComponent } from './authentication-shell.component';
+import { WorkspaceApplicationService } from '@client/core/workspace/workspace-application.service';
 
 describe('AuthenticationShellComponent', () => {
   const configureComponent = async (
@@ -42,6 +44,14 @@ describe('AuthenticationShellComponent', () => {
         {
           provide: AuthenticationStore,
           useValue: store,
+        },
+        {
+          provide: WorkspaceApplicationService,
+          useValue: {
+            listAccessibleWorkspaces: vi
+              .fn()
+              .mockResolvedValue(Either.right([])),
+          },
         },
       ],
     }).compileComponents();

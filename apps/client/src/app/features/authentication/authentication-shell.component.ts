@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { SignInComponent } from './sign-in/sign-in.component';
 import { AuthenticationStore } from './store/authentication.store';
+import { WorkspaceNavigationComponent } from '../workspace-navigation/workspace-navigation.component';
 
 /**
  * Application entry shell selected by authentication state.
@@ -11,7 +12,7 @@ import { AuthenticationStore } from './store/authentication.store';
 @Component({
   selector: 'app-authentication-shell',
   standalone: true,
-  imports: [SignInComponent],
+  imports: [SignInComponent, WorkspaceNavigationComponent],
   templateUrl: './authentication-shell.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

@@ -1,0 +1,42 @@
+<section aria-labelledby="workspace-navigation-heading">
+  <h1 id="workspace-navigation-heading">Workspaces</h1>
+
+  @if (store.isLoading()) {
+    <p>Loading workspaces…</p>
+  } @else if (store.error(); as error) {
+    <p role="alert">{{ error.message }}</p>
+    <button type="button" (click)="store.load()">Try again</button>
+  } @else if (!store.hasWorkspaces()) {
+    <p>You do not have access to an active workspace.</p>
+  } @else {
+    <nav aria-label="Accessible workspaces">
+      <ul>
+        @for (workspace of store.workspaces(); track workspace.id) {
+          <li>
+            <button
+              type="button"
+              [attr.aria-current]="
+                store.selectedWorkspaceId() === workspace.id ? 'page' : null
+              "
+              (click)="store.select(workspace.id)"
+            >
+              {{ workspace.name }}
+            </button>
+          </li>
+        }
+      </ul>
+    </nav>
+
+    @if (store.selectedWorkspace(); as workspace) {
+      <section aria-labelledby="selected-workspace-heading">
+        <h2 id="selected-workspace-heading">{{ workspace.name }}</h2>
+
+        @if (workspace.description) {
+          <p>{{ workspace.description }}</p>
+        }
+      </section>
+    } @else {
+      <p>Select a workspace to continue.</p>
+    }
+  }
+</section>
