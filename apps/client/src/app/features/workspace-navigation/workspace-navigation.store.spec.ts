@@ -104,5 +104,9 @@ describe('WorkspaceNavigationStore', () => {
 
     expect(store.select(workspaceId)).toBe(true);
     expect(store.selectedWorkspace()).toEqual(workspace);
+
+    store.clearSelection();
+
+    expect(store.selectedWorkspace()).toBeNull();
   });
 });

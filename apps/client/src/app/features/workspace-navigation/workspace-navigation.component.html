@@ -18,7 +18,7 @@
               [attr.aria-current]="
                 store.selectedWorkspaceId() === workspace.id ? 'page' : null
               "
-              (click)="store.select(workspace.id)"
+              (click)="navigateToWorkspace(workspace.slug)"
             >
               {{ workspace.name }}
             </button>

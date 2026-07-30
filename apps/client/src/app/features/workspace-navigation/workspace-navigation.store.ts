@@ -104,6 +104,15 @@ export const WorkspaceNavigationStore = signalStore(
 
           return true;
         },
+
+        /**
+         * Clears presentation selection without reloading the collection.
+         */
+        clearSelection(): void {
+          patchState(store, {
+            selectedWorkspaceId: null,
+          });
+        },
       };
     }
   )

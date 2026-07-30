@@ -56,6 +56,9 @@ describe('ChannelNavigationStore', () => {
     expect(store.select(channelId)).toBe(true);
     expect(store.selectedChannel()).toEqual(channel);
 
+    store.clearSelection();
+    expect(store.selectedChannel()).toBeNull();
+
     await store.load(workspaceId);
     expect(listWorkspaceChannels).toHaveBeenCalledOnce();
 
