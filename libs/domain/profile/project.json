@@ -1,0 +1,21 @@
+{
+  "name": "profile-domain",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/domain/profile/src",
+  "projectType": "library",
+  "tags": ["scope:profile", "layer:domain"],
+  "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p libs/domain/profile/tsconfig.lib.json"
+      }
+    },
+    "typecheck:test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p libs/domain/profile/tsconfig.spec.json"
+      }
+    }
+  }
+}

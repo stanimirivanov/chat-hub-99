@@ -9,6 +9,7 @@
       "@chat-hub/shared/database": ["./libs/shared/database/src/index.ts"],
       "@chat-hub/domain/channel": ["./libs/domain/channel/src/index.ts"],
       "@chat-hub/domain/message": ["./libs/domain/message/src/index.ts"],
+      "@chat-hub/domain/profile": ["./libs/domain/profile/src/index.ts"],
       "@chat-hub/domain/workspace": ["./libs/domain/workspace/src/index.ts"],
       "@chat-hub/application/authentication": [
         "./libs/application/authentication/src/index.ts"
@@ -19,11 +20,17 @@
       "@chat-hub/application/message": [
         "./libs/application/message/src/index.ts"
       ],
+      "@chat-hub/application/profile": [
+        "./libs/application/profile/src/index.ts"
+      ],
       "@chat-hub/application/workspace": [
         "./libs/application/workspace/src/index.ts"
       ],
       "@chat-hub/infrastructure/message": [
         "./libs/infrastructure/message/src/index.ts"
+      ],
+      "@chat-hub/infrastructure/profile": [
+        "./libs/infrastructure/profile/src/index.ts"
       ],
       "@chat-hub/infrastructure/channel": [
         "./libs/infrastructure/channel/src/index.ts"

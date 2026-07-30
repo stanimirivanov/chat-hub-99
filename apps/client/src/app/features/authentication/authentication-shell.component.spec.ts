@@ -4,9 +4,10 @@ import { provideRouter } from '@angular/router';
 import { Either } from 'effect';
 import { describe, expect, it, vi } from 'vitest';
 import type { AuthenticationSession } from '@chat-hub/application/authentication';
+import { ProfileApplicationService } from '@client/core/profile/profile-application.service';
+import { WorkspaceApplicationService } from '@client/core/workspace/workspace-application.service';
 import { AuthenticationStore } from './store/authentication.store';
 import { AuthenticationShellComponent } from './authentication-shell.component';
-import { WorkspaceApplicationService } from '@client/core/workspace/workspace-application.service';
 
 describe('AuthenticationShellComponent', () => {
   const configureComponent = async (
@@ -46,6 +47,20 @@ describe('AuthenticationShellComponent', () => {
         {
           provide: AuthenticationStore,
           useValue: store,
+        },
+        {
+          provide: ProfileApplicationService,
+          useValue: {
+            getCurrentProfile: vi.fn().mockResolvedValue(
+              Either.right({
+                id: '00000000-0000-4000-8000-000000000001',
+                username: 'owner',
+                displayName: 'Workspace Owner',
+                avatarUrl: null,
+                status: 'active',
+              })
+            ),
+          },
         },
         {
           provide: WorkspaceApplicationService,

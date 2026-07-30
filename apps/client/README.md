@@ -72,6 +72,14 @@ previous workspace from replacing the current collection. Selecting a channel
 composes the existing `channel-messages` component through its typed input;
 the two stores do not depend on each other.
 
+The `current-profile` slice enriches the authenticated header with the
+RLS-visible profile belonging to the session identity. It keeps the
+authentication session email as a reliable fallback while profile data loads
+or fails. Its feature-scoped store does not duplicate session ownership, and a
+late response for a previous session identity cannot replace the current
+profile. Avatar values are decoded but are not rendered until a concrete media
+or URL policy is implemented.
+
 Workspace and channel selections are reflected in the root route as validated
 slugs:
 

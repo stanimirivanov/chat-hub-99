@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { SignInComponent } from './sign-in/sign-in.component';
 import { AuthenticationStore } from './store/authentication.store';
+import { CurrentProfileComponent } from '../current-profile/current-profile.component';
 import { WorkspaceNavigationComponent } from '../workspace-navigation/workspace-navigation.component';
 
 /**
@@ -12,7 +13,11 @@ import { WorkspaceNavigationComponent } from '../workspace-navigation/workspace-
 @Component({
   selector: 'app-authentication-shell',
   standalone: true,
-  imports: [SignInComponent, WorkspaceNavigationComponent],
+  imports: [
+    SignInComponent,
+    CurrentProfileComponent,
+    WorkspaceNavigationComponent,
+  ],
   templateUrl: './authentication-shell.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
