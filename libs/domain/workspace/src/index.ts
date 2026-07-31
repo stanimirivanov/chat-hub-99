@@ -1,2 +1,7 @@
 export { WorkspaceIdSchema, type WorkspaceId } from './lib/workspace-id';
-export { WorkspaceSchema, type Workspace } from './lib/workspace';
+export {
+  WorkspaceNameSchema,
+  WorkspaceSchema,
+  WorkspaceSlugSchema,
+  type Workspace,
+} from './lib/workspace';

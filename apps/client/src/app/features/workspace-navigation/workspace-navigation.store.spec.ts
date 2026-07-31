@@ -3,7 +3,9 @@ import { TestBed } from '@angular/core/testing';
 import { describe, expect, it, vi } from 'vitest';
 import {
   WorkspaceRepositoryUnavailableError,
-  type WorkspaceRepositoryError,
+  WorkspaceSlugUnavailableError,
+  type CreateWorkspaceError,
+  type WorkspaceRepositoryReadError,
 } from '@chat-hub/application/workspace';
 import { WorkspaceIdSchema, type Workspace } from '@chat-hub/domain/workspace';
 import { WorkspaceApplicationService } from '@client/core/workspace/workspace-application.service';
@@ -24,14 +26,27 @@ const workspace: Workspace = {
   description: null,
 };
 
+const createdWorkspace: Workspace = {
+  id: Schema.decodeUnknownSync(WorkspaceIdSchema)(
+    '00000000-0000-4000-8000-000000000003'
+  ),
+  name: 'Product Design',
+  slug: 'product-design',
+  description: 'Design collaboration',
+};
+
 const configureStore = (
   result: Either.Either<
     readonly Workspace[],
-    WorkspaceRepositoryError
-  > = Either.right([workspace])
+    WorkspaceRepositoryReadError
+  > = Either.right([workspace]),
+  creationResult: Either.Either<Workspace, CreateWorkspaceError> = Either.right(
+    createdWorkspace
+  )
 ) => {
   const service = {
     listAccessibleWorkspaces: vi.fn().mockResolvedValue(result),
+    createWorkspace: vi.fn().mockResolvedValue(creationResult),
   };
 
   TestBed.configureTestingModule({
@@ -108,5 +123,55 @@ describe('WorkspaceNavigationStore', () => {
     store.clearSelection();
 
     expect(store.selectedWorkspace()).toBeNull();
+  });
+
+  it('inserts the canonical created workspace into navigation', async () => {
+    const { store, service } = configureStore();
+
+    await store.load();
+
+    const result = await store.createWorkspace({
+      name: ' Product Design ',
+      slug: ' Product-Design ',
+      description: ' Design collaboration ',
+    });
+
+    expect(service.createWorkspace).toHaveBeenCalledExactlyOnceWith({
+      name: ' Product Design ',
+      slug: ' Product-Design ',
+      description: ' Design collaboration ',
+    });
+    expect(result).toBe(createdWorkspace);
+    expect(store.workspaces()).toEqual([workspace, createdWorkspace]);
+    expect(store.creationStatus()).toBe('idle');
+    expect(store.creationError()).toBeNull();
+  });
+
+  it('retains navigation and exposes an actionable slug conflict', async () => {
+    const failure = new WorkspaceSlugUnavailableError({
+      slug: 'product-design',
+    });
+    const { store } = configureStore(
+      Either.right([workspace]),
+      Either.left(failure)
+    );
+
+    await store.load();
+    const result = await store.createWorkspace({
+      name: 'Product Design',
+      slug: 'product-design',
+    });
+
+    expect(result).toBeNull();
+    expect(store.workspaces()).toEqual([workspace]);
+    expect(store.creationStatus()).toBe('failed');
+    expect(store.creationError()).toEqual({
+      message: 'That workspace URL is already in use.',
+    });
+
+    store.clearCreationError();
+
+    expect(store.creationStatus()).toBe('idle');
+    expect(store.creationError()).toBeNull();
   });
 });

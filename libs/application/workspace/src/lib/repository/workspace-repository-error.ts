@@ -18,6 +18,19 @@ export class InvalidWorkspaceDataError extends Data.TaggedError(
   readonly cause: unknown;
 }> {}
 
-export type WorkspaceRepositoryError =
+/**
+ * Indicates that another current workspace already owns the requested slug.
+ */
+export class WorkspaceSlugUnavailableError extends Data.TaggedError(
+  'WorkspaceSlugUnavailableError'
+)<{
+  readonly slug: string;
+}> {}
+
+export type WorkspaceRepositoryReadError =
   | WorkspaceRepositoryUnavailableError
   | InvalidWorkspaceDataError;
+
+export type WorkspaceRepositoryCreateError =
+  | WorkspaceRepositoryReadError
+  | WorkspaceSlugUnavailableError;

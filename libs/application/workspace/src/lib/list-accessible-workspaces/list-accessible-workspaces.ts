@@ -3,7 +3,7 @@ import type { Workspace } from '@chat-hub/domain/workspace';
 import {
   WorkspaceRepositoryTag,
   type WorkspaceRepository,
-  type WorkspaceRepositoryError,
+  type WorkspaceRepositoryReadError,
 } from '../repository';
 
 /**
@@ -15,7 +15,7 @@ import {
  */
 export const listAccessibleWorkspaces: Effect.Effect<
   readonly Workspace[],
-  WorkspaceRepositoryError,
+  WorkspaceRepositoryReadError,
   WorkspaceRepository
 > = Effect.gen(function* () {
   /*

@@ -1,14 +1,17 @@
 # Workspace Infrastructure
 
 `@chat-hub/infrastructure/workspace` implements workspace discovery with the
-RLS-protected Supabase `current_workspaces` view.
+RLS-protected Supabase `current_workspaces` view and creation with the existing
+transactional `create_workspace` RPC.
 
 ## Responsibilities
 
 - Query active workspaces visible to the authenticated user.
+- Execute workspace creation without exposing owner identity as an argument.
 - Apply stable name/identity ordering.
-- Map generated view rows into validated domain projections.
-- Translate transport and row-validation failures into application errors.
+- Map generated view and RPC rows into validated domain projections.
+- Preserve actionable current-slug conflicts as a typed application failure.
+- Translate all other transport and row-validation failures.
 - Supply `WorkspaceRepository` through an Effect Layer.
 
 Generated database types and Supabase-shaped query contracts stop here. The
@@ -22,6 +25,12 @@ listAccessibleWorkspaces use case
   -> SupabaseWorkspaceRepositoryLayer
   -> current_workspaces view + RLS
   -> WorkspaceSchema decoding
+
+createWorkspace use case
+  -> WorkspaceRepositoryTag
+  -> SupabaseWorkspaceRepositoryLayer
+  -> create_workspace RPC
+  -> WorkspaceSchema decoding of the canonical result
 ```
 
 The focused client projection contains only operations needed by this slice.

@@ -1,10 +1,14 @@
-import type { WorkspaceId } from '@chat-hub/domain/workspace';
-import type { Workspace } from '@chat-hub/domain/workspace';
+import type { Workspace, WorkspaceId } from '@chat-hub/domain/workspace';
 
 /**
  * Lifecycle of accessible-workspace discovery.
  */
 export type WorkspaceLoadStatus = 'idle' | 'loading' | 'loaded' | 'failed';
+
+/**
+ * Lifecycle of the single in-flight workspace creation operation.
+ */
+export type WorkspaceCreationStatus = 'idle' | 'creating' | 'failed';
 
 /**
  * Safe failure information rendered by workspace navigation.
@@ -21,6 +25,8 @@ export interface WorkspaceNavigationState {
   readonly selectedWorkspaceId: WorkspaceId | null;
   readonly loadStatus: WorkspaceLoadStatus;
   readonly error: WorkspaceNavigationError | null;
+  readonly creationStatus: WorkspaceCreationStatus;
+  readonly creationError: WorkspaceNavigationError | null;
 }
 
 /**
@@ -31,4 +37,6 @@ export const initialWorkspaceNavigationState: WorkspaceNavigationState = {
   selectedWorkspaceId: null,
   loadStatus: 'idle',
   error: null,
+  creationStatus: 'idle',
+  creationError: null,
 };

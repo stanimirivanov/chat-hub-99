@@ -1,20 +1,17 @@
 import { Effect, Schema } from 'effect';
-import {
-  InvalidWorkspaceDataError,
-  type WorkspaceRepositoryError,
-} from '@chat-hub/application/workspace';
+import { InvalidWorkspaceDataError } from '@chat-hub/application/workspace';
 import { WorkspaceSchema, type Workspace } from '@chat-hub/domain/workspace';
 
 const decodeWorkspace = Schema.decodeUnknown(WorkspaceSchema);
 
 /**
- * Narrow database-row projection selected by the workspace navigation query.
+ * Narrow external workspace projection shared by query and command adapters.
  *
  * Generated view columns remain nullable because PostgreSQL view metadata
  * cannot express all underlying constraints. Runtime decoding below rejects
  * missing required values.
  */
-export interface CurrentWorkspaceNavigationRow {
+export interface WorkspaceProjectionRow {
   readonly workspace_id: string | null;
   readonly name: string | null;
   readonly slug: string | null;
@@ -28,8 +25,8 @@ export interface CurrentWorkspaceNavigationRow {
  * so malformed database values never escape as domain workspaces.
  */
 export const mapCurrentWorkspace = (
-  row: CurrentWorkspaceNavigationRow
-): Effect.Effect<Workspace, WorkspaceRepositoryError> =>
+  row: WorkspaceProjectionRow
+): Effect.Effect<Workspace, InvalidWorkspaceDataError> =>
   decodeWorkspace({
     id: row.workspace_id,
     name: row.name,

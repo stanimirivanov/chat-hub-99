@@ -1,13 +1,13 @@
 import { Schema } from 'effect';
 import { WorkspaceIdSchema } from './workspace-id';
 
-const WorkspaceNameSchema = Schema.String.pipe(
+export const WorkspaceNameSchema = Schema.String.pipe(
   Schema.filter((name) => name.trim().length > 0, {
     message: () => 'Workspace name must not be blank.',
   })
 );
 
-const WorkspaceSlugSchema = Schema.String.pipe(
+export const WorkspaceSlugSchema = Schema.String.pipe(
   Schema.pattern(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
 );
 

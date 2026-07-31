@@ -3,6 +3,7 @@ import {
   Component,
   effect,
   inject,
+  signal,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -22,6 +23,7 @@ import { WorkspaceNavigationStore } from './workspace-navigation.store';
 })
 export class WorkspaceNavigationComponent {
   protected readonly store = inject(WorkspaceNavigationStore);
+  protected readonly isCreatingWorkspace = signal(false);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly queryParamMap = toSignal(this.route.queryParamMap, {
@@ -50,6 +52,33 @@ export class WorkspaceNavigationComponent {
       },
       queryParamsHandling: 'merge',
     });
+  }
+
+  protected beginWorkspaceCreation(): void {
+    this.store.clearCreationError();
+    this.isCreatingWorkspace.set(true);
+  }
+
+  protected cancelWorkspaceCreation(): void {
+    this.store.clearCreationError();
+    this.isCreatingWorkspace.set(false);
+  }
+
+  protected async saveWorkspace(
+    nameInput: HTMLInputElement,
+    slugInput: HTMLInputElement,
+    descriptionInput: HTMLTextAreaElement
+  ): Promise<void> {
+    const workspace = await this.store.createWorkspace({
+      name: nameInput.value,
+      slug: slugInput.value,
+      description: descriptionInput.value,
+    });
+
+    if (workspace !== null) {
+      this.isCreatingWorkspace.set(false);
+      this.navigateToWorkspace(workspace.slug);
+    }
   }
 
   private async selectWorkspaceFromRoute(

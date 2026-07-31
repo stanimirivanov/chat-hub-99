@@ -77,9 +77,11 @@ pagination, realtime reconciliation, and mutations remain within one
 feature-scoped consistency boundary.
 
 The `workspace-navigation` slice owns a feature-scoped store. It loads active
-workspaces visible through database RLS and retains one explicit selection.
-Selection is presentation state; workspace discovery remains an application
-use case.
+workspaces visible through database RLS, creates workspaces through the
+authenticated application command, and retains one explicit selection.
+Creation has independent pending/error state and inserts only the canonical RPC
+result into navigation. The component then writes the returned slug to the URL,
+leaving the existing route effect as the selection authority.
 
 The nested `channel-navigation` slice reacts to that selected workspace, loads
 only its active RLS-visible channels, and owns a separate feature-scoped
