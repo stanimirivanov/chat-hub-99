@@ -1,7 +1,8 @@
 import { Data } from 'effect';
 
 /**
- * Indicates that workspace discovery could not reach or query its provider.
+ * Indicates that a workspace or membership operation could not reach its
+ * provider.
  */
 export class WorkspaceRepositoryUnavailableError extends Data.TaggedError(
   'WorkspaceRepositoryUnavailableError'
@@ -19,6 +20,15 @@ export class InvalidWorkspaceDataError extends Data.TaggedError(
 }> {}
 
 /**
+ * Indicates that an external membership row violated the domain contract.
+ */
+export class InvalidWorkspaceMemberDataError extends Data.TaggedError(
+  'InvalidWorkspaceMemberDataError'
+)<{
+  readonly cause: unknown;
+}> {}
+
+/**
  * Indicates that another current workspace already owns the requested slug.
  */
 export class WorkspaceSlugUnavailableError extends Data.TaggedError(
@@ -30,6 +40,10 @@ export class WorkspaceSlugUnavailableError extends Data.TaggedError(
 export type WorkspaceRepositoryReadError =
   | WorkspaceRepositoryUnavailableError
   | InvalidWorkspaceDataError;
+
+export type WorkspaceMemberRepositoryReadError =
+  | WorkspaceRepositoryUnavailableError
+  | InvalidWorkspaceMemberDataError;
 
 export type WorkspaceRepositoryCreateError =
   | WorkspaceRepositoryReadError

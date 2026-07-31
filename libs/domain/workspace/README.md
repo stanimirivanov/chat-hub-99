@@ -1,13 +1,14 @@
 # Workspace Domain
 
-`@chat-hub/domain/workspace` contains the technology-independent workspace
-projection required by navigation.
+`@chat-hub/domain/workspace` contains the technology-independent workspace and
+active-membership projections required by presentation.
 
 ## Responsibilities
 
 - Define branded workspace identity.
 - Validate workspace names, normalized slugs, and optional descriptions.
 - Expose the active workspace projection consumed by application use cases.
+- Validate active member identities and the closed owner/member role vocabulary.
 
 It does not own persistence, membership authorization, selection state, or
 Angular presentation. Those responsibilities remain in infrastructure,
@@ -15,14 +16,16 @@ database policies, and the client feature.
 
 ## Dependency rule
 
-This library may depend on Effect Schema. It must not depend on Angular, NgRx,
-Supabase, generated database types, or application services.
+This library may depend on Effect Schema and the profile domain's stable
+identity. It must not depend on Angular, NgRx, Supabase, generated database
+types, or application services.
 
 ## Public API
 
 - `WorkspaceIdSchema` and `WorkspaceId`
 - `WorkspaceNameSchema` and `WorkspaceSlugSchema`
 - `WorkspaceSchema` and `Workspace`
+- `WorkspaceMemberSchema`, `WorkspaceMember`, and their role schema/type
 
 ## Verification
 

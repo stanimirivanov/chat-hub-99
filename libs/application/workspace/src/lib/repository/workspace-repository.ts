@@ -1,6 +1,11 @@
 import { Context, type Effect } from 'effect';
-import type { Workspace } from '@chat-hub/domain/workspace';
 import type {
+  Workspace,
+  WorkspaceId,
+  WorkspaceMember,
+} from '@chat-hub/domain/workspace';
+import type {
+  WorkspaceMemberRepositoryReadError,
   WorkspaceRepositoryCreateError,
   WorkspaceRepositoryReadError,
 } from './workspace-repository-error';
@@ -15,7 +20,7 @@ export interface CreateWorkspaceCommand {
 }
 
 /**
- * Outbound port for workspace discovery and creation.
+ * Outbound port for workspace discovery, membership discovery, and creation.
  *
  * Implementations return active workspaces visible to the current
  * authenticated user and must validate external rows before returning them.
@@ -30,6 +35,16 @@ export interface WorkspaceRepository {
   >;
 
   /**
+   * Returns active RLS-visible members belonging to one workspace.
+   */
+  readonly listActiveMembers: (
+    workspaceId: WorkspaceId
+  ) => Effect.Effect<
+    readonly WorkspaceMember[],
+    WorkspaceMemberRepositoryReadError
+  >;
+
+  /**
    * Creates a workspace owned by the provider-authenticated user.
    */
   readonly create: (
@@ -38,7 +53,7 @@ export interface WorkspaceRepository {
 }
 
 /**
- * Typed Effect service key for workspace discovery and creation.
+ * Typed Effect service key for workspace and membership capabilities.
  *
  * Application programs yield this Tag to request a `WorkspaceRepository`.
  * Infrastructure supplies the concrete implementation through a Layer.

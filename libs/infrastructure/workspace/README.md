@@ -1,12 +1,13 @@
 # Workspace Infrastructure
 
-`@chat-hub/infrastructure/workspace` implements workspace discovery with the
-RLS-protected Supabase `current_workspaces` view and creation with the existing
+`@chat-hub/infrastructure/workspace` implements workspace and active-membership
+discovery with RLS-protected Supabase views, and creation with the existing
 transactional `create_workspace` RPC.
 
 ## Responsibilities
 
 - Query active workspaces visible to the authenticated user.
+- Query active members visible in one selected workspace.
 - Execute workspace creation without exposing owner identity as an argument.
 - Apply stable name/identity ordering.
 - Map generated view and RPC rows into validated domain projections.
@@ -31,10 +32,19 @@ createWorkspace use case
   -> SupabaseWorkspaceRepositoryLayer
   -> create_workspace RPC
   -> WorkspaceSchema decoding of the canonical result
+
+listWorkspaceMembers use case
+  -> WorkspaceRepositoryTag
+  -> SupabaseWorkspaceRepositoryLayer
+  -> current_workspace_memberships view + RLS
+  -> WorkspaceMemberSchema decoding
 ```
 
-The focused client projection contains only operations needed by this slice.
-Testing support provides fresh query doubles and canonical generated rows.
+The membership query returns stable identities and roles only. Profile
+enrichment remains a separate application capability, preventing the workspace
+adapter from depending on profile persistence. The focused client projection
+contains only operations needed by implemented slices. Testing support provides
+fresh query doubles and canonical generated rows.
 
 ## Public API
 
