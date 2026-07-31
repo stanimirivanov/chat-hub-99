@@ -2,9 +2,9 @@
 
 ## Purpose
 
-Implements current-profile discovery and self-service updates with Supabase.
-Implements single and batched current-profile discovery with the RLS-protected
-Supabase `current_profiles` view.
+Implements single and batched current-profile discovery through the
+RLS-protected Supabase `current_profiles` view and self-service updates through
+the `update_my_profile` RPC.
 
 ## Responsibilities
 
@@ -13,12 +13,10 @@ Supabase `current_profiles` view.
 - Query multiple author profiles in one identity-filtered request.
 - Decode generated nullable view data into a profile domain projection.
 - Decode the RPC result through the same profile domain mapper.
-- Preserve missing rows as absence for application policy.
-- Translate provider, username-conflict, and validation failures into
-  application errors.
 - Preserve a missing single row as absence and omit invisible rows from batch
   results.
-- Translate provider and validation failures into application errors.
+- Translate provider, username-conflict, and validation failures into
+  application errors.
 - Supply `ProfileRepository` through an Effect Layer.
 
 Generated database types and Supabase query details stop at this boundary.
@@ -29,7 +27,7 @@ Generated database types and Supabase query details stop at this boundary.
 getCurrentProfile use case
   -> ProfileRepositoryTag
   -> SupabaseProfileRepositoryLayer
-  -> current_profiles view or update_my_profile RPC
+  -> current_profiles view + RLS
   -> ProfileSchema decoding
 
 listCurrentProfiles use case
@@ -37,6 +35,12 @@ listCurrentProfiles use case
   -> SupabaseProfileRepositoryLayer
   -> one current_profiles `in` query + RLS
   -> ProfileSchema decoding for every returned row
+
+updateCurrentProfile use case
+  -> ProfileRepositoryTag
+  -> SupabaseProfileRepositoryLayer
+  -> update_my_profile RPC
+  -> ProfileSchema decoding of the canonical result
 ```
 
 A Tag is the typed key through which the application requests a capability. A
