@@ -1,4 +1,4 @@
-import { Effect, Layer } from 'effect';
+import { Effect, Layer, Stream } from 'effect';
 import { vi } from 'vitest';
 
 import { MessageRepositoryTag, type MessageRepository } from '../repository';
@@ -10,6 +10,11 @@ const unexpectedOperation = (
     new Error(`Unexpected MessageRepository.${operation} call in test`)
   );
 
+const unexpectedStream = (operation: keyof MessageRepository) =>
+  Stream.die(
+    new Error(`Unexpected MessageRepository.${operation} call in test`)
+  );
+
 export const makeMessageRepositoryStub = (
   overrides: Partial<MessageRepository> = {}
 ): MessageRepository => ({
@@ -18,6 +23,7 @@ export const makeMessageRepositoryStub = (
   delete: () => unexpectedOperation('delete'),
   findById: () => unexpectedOperation('findById'),
   listByChannel: () => unexpectedOperation('listByChannel'),
+  changesByChannel: () => unexpectedStream('changesByChannel'),
   ...overrides,
 });
 
@@ -38,3 +44,11 @@ export const makeListByChannelRepository = (
     }),
   };
 };
+
+export const makeObserveByChannelRepository = (
+  changesByChannel: MessageRepository['changesByChannel'],
+  findById: MessageRepository['findById']
+) => ({
+  changesByChannel: vi.fn(changesByChannel),
+  findById: vi.fn(findById),
+});

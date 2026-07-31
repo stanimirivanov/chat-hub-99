@@ -43,8 +43,8 @@ VALUES (
     '20000000-0000-0000-0000-000000000001',
     'workspace-owner@example.com',
     jsonb_build_object(
-        'username', 'workspace-owner',
-        'display_name', 'Workspace Owner'
+        'username', 'workspace-command-owner',
+        'display_name', 'Workspace Command Owner'
     )
 );
 

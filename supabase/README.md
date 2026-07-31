@@ -80,7 +80,8 @@ Migrations define:
 - message aggregates;
 - command functions;
 - read models and projections;
-- Row Level Security policies.
+- Row Level Security policies;
+- Realtime publication of RLS-protected message-head changes.
 
 Migrations are append-only after they have been shared or applied outside an
 individual disposable development database.
@@ -120,7 +121,8 @@ Contains pgTAP tests for:
 - profile and workspace read policies;
 - membership read policies;
 - channel read policies;
-- message read policies.
+- message read policies;
+- message Realtime publication configuration.
 
 Database tests should verify externally observable behavior rather than internal
 implementation details wherever possible.

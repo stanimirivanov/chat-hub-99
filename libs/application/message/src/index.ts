@@ -26,6 +26,13 @@ export {
 } from './lib/list-channel-messages';
 
 export {
+  InvalidChannelMessageObservationInputError,
+  observeChannelMessages,
+  type MessageChange,
+  type ObserveChannelMessagesError,
+} from './lib/observe-channel-messages';
+
+export {
   MessagePageSizeSchema,
   type MessageCursor,
   type MessagePage,
@@ -44,4 +51,5 @@ export {
   type EditMessageCommand,
   type MessageRepository,
   type MessageRepositoryError,
+  type MessageChangeNotification,
 } from './lib/repository';

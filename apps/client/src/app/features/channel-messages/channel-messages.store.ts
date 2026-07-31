@@ -3,6 +3,8 @@ import { initialChannelMessagesState } from './channel-messages.state';
 import { withChannelMessageMutations } from './store/with-channel-message-mutations';
 import { withChannelMessagesComputed } from './store/with-channel-messages-computed';
 import { withChannelMessagesLoading } from './store/with-channel-messages-loading';
+import { withChannelMessageAuthors } from './store/with-channel-message-authors';
+import { withChannelMessageRealtime } from './store/with-channel-message-realtime';
 
 /**
  * Owns message-list state for the currently selected channel.
@@ -10,6 +12,8 @@ import { withChannelMessagesLoading } from './store/with-channel-messages-loadin
  * The store is composed from local features grouped by responsibility:
  *
  * - derived presentation state;
+ * - author-profile enrichment;
+ * - realtime subscription lifecycle;
  * - channel selection and page loading;
  * - message mutations.
  *
@@ -19,6 +23,10 @@ export const ChannelMessagesStore = signalStore(
   withState(initialChannelMessagesState),
 
   withChannelMessagesComputed(),
+
+  withChannelMessageAuthors(),
+
+  withChannelMessageRealtime(),
 
   withChannelMessagesLoading(),
 

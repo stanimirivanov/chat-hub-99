@@ -64,11 +64,17 @@ feature-local and best-effort: hidden or unavailable profiles retain the stable
 “Another user” fallback, while stale profile responses cannot enrich a newly
 selected channel.
 
-The store is larger than the helpers because selecting, paging, refreshing, and
-sending share one consistency boundary: the selected channel and request
-generation. Splitting these methods into independent services would obscure that
-invariant. Extract pure logic or a reusable store feature only when another
-feature demonstrates the same behavior.
+After the initial page loads, the store starts one channel-scoped realtime
+subscription. Created messages are prepended, loaded edited/deleted projections
+are replaced in place, and changes for unloaded older messages are ignored.
+Switching channels or destroying the feature interrupts the Effect Fiber and
+removes the Supabase listener. Stream failures leave history readable and
+expose an explicit retry action.
+
+Author enrichment is a local store feature because both page loading and
+realtime-created messages now require the same coordination. Selection,
+pagination, realtime reconciliation, and mutations remain within one
+feature-scoped consistency boundary.
 
 The `workspace-navigation` slice owns a feature-scoped store. It loads active
 workspaces visible through database RLS and retains one explicit selection.

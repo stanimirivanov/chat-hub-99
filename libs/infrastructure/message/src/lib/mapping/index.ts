@@ -1,4 +1,5 @@
 export { mapCurrentMessage } from './map-current-message';
+export { mapMessageHeadChange } from './map-message-head-change';
 
 export { toMessage } from './message-row-mapper';
 
