@@ -4,9 +4,16 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import type { MessageId } from '@chat-hub/domain/message';
+import type { Message, MessageId } from '@chat-hub/domain/message';
+import { AuthenticationStore } from '@client/features/authentication/store/authentication.store';
 import { ChannelMessagesStore } from '../channel-messages.store';
 
+/**
+ * Renders channel history and exposes author-only mutation controls.
+ *
+ * The browser check improves presentation correctness; Supabase command
+ * authorization remains the security boundary.
+ */
 @Component({
   selector: 'app-channel-message-history',
   standalone: true,
@@ -16,9 +23,15 @@ import { ChannelMessagesStore } from '../channel-messages.store';
 export class ChannelMessageHistoryComponent {
   protected readonly store = inject(ChannelMessagesStore);
 
+  private readonly authenticationStore = inject(AuthenticationStore);
+
   protected readonly editingMessageId = signal<MessageId | null>(null);
 
   protected readonly deletingMessageId = signal<MessageId | null>(null);
+
+  protected isAuthoredByCurrentUser(message: Message): boolean {
+    return message.authorId === this.authenticationStore.session()?.userId;
+  }
 
   protected beginEdit(messageId: MessageId): void {
     this.store.clearEditError();

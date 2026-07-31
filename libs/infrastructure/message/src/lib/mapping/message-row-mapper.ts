@@ -22,6 +22,7 @@ export const toMessage = (
         return yield* decode({
           id: row.message_id,
           channelId: row.channel_id,
+          authorId: row.author_user_id,
           status: 'active',
           content: row.content,
           createdAt,
@@ -37,6 +38,7 @@ export const toMessage = (
         return yield* decode({
           id: row.message_id,
           channelId: row.channel_id,
+          authorId: row.author_user_id,
           status: 'deleted',
           content: null,
           createdAt,

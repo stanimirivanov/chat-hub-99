@@ -54,6 +54,13 @@ The initial `channel-messages` slice keeps closely related files together:
 - collection helpers: pure deduplication operations
 - error adapter: stable presentation-safe error shape
 
+Message history retains the stable profile identity of each author. It uses
+the root authentication store only to label the current user's messages and
+show Edit/Delete controls for those messages. This is presentation behavior,
+not authorization: Supabase command policies remain the security boundary.
+Human-readable profiles for other authors require a separate implemented
+profile-discovery slice.
+
 The store is larger than the helpers because selecting, paging, refreshing, and
 sending share one consistency boundary: the selected channel and request
 generation. Splitting these methods into independent services would obscure that

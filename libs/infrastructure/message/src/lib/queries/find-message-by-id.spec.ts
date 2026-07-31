@@ -24,6 +24,7 @@ describe('findMessageById', () => {
     expect(message).toEqual({
       id: messageId,
       channelId: activeMessageRow.channel_id,
+      authorId: activeMessageRow.author_user_id,
       status: 'active',
       content: 'Hello',
       createdAt: new Date('2026-07-26T18:00:00.000Z'),

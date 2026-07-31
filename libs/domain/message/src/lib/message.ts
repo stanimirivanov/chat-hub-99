@@ -1,11 +1,13 @@
 import { Schema } from 'effect';
 import { ChannelIdSchema } from '@chat-hub/domain/channel';
+import { ProfileIdSchema } from '@chat-hub/domain/profile';
 import { MessageContentSchema } from './message-content';
 import { MessageIdSchema } from './message-id';
 
 export const ActiveMessageSchema = Schema.Struct({
   id: MessageIdSchema,
   channelId: ChannelIdSchema,
+  authorId: ProfileIdSchema,
   status: Schema.Literal('active'),
   content: MessageContentSchema,
   createdAt: Schema.DateFromSelf,
@@ -17,6 +19,7 @@ export type ActiveMessage = typeof ActiveMessageSchema.Type;
 export const DeletedMessageSchema = Schema.Struct({
   id: MessageIdSchema,
   channelId: ChannelIdSchema,
+  authorId: ProfileIdSchema,
   status: Schema.Literal('deleted'),
   content: Schema.Null,
   createdAt: Schema.DateFromSelf,

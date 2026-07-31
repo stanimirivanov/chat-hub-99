@@ -13,10 +13,12 @@ import type {
   MessageContent,
   MessageId,
 } from '@chat-hub/domain/message';
+import type { ProfileId } from '@chat-hub/domain/profile';
 import { MessageApplicationService } from '@client/core/message/message-application.service';
 import { ChannelMessagesStore } from './channel-messages.store';
 
 const channelId = '00000000-0000-4000-8000-000000000001' as ChannelId;
+const authorId = '00000000-0000-4000-8000-000000000010' as ProfileId;
 
 const makeDeferredPromise = <Value>() => {
   let resolve!: (value: Value | PromiseLike<Value>) => void;
@@ -114,6 +116,7 @@ describe('ChannelMessagesStore', () => {
     const message: Message = {
       id: '00000000-0000-4000-8000-000000000002' as MessageId,
       channelId,
+      authorId,
       status: 'active',
       content: 'Hello' as MessageContent,
       createdAt: new Date('2026-07-27T08:00:00.000Z'),
@@ -162,6 +165,7 @@ describe('ChannelMessagesStore', () => {
     const createdMessage: Message = {
       id: '00000000-0000-4000-8000-000000000004' as MessageId,
       channelId,
+      authorId,
       status: 'active',
       content: 'Created in the first channel' as MessageContent,
       createdAt: new Date('2026-07-29T08:00:00.000Z'),
@@ -171,6 +175,7 @@ describe('ChannelMessagesStore', () => {
     const secondChannelMessage: Message = {
       id: '00000000-0000-4000-8000-000000000005' as MessageId,
       channelId: secondChannelId,
+      authorId,
       status: 'active',
       content: 'Message from the second channel' as MessageContent,
       createdAt: new Date('2026-07-29T09:00:00.000Z'),
@@ -288,6 +293,7 @@ describe('ChannelMessagesStore message editing', () => {
     const message: Message = {
       id: '00000000-0000-4000-8000-000000000002' as MessageId,
       channelId,
+      authorId,
       status: 'active',
       content: 'Before' as MessageContent,
       createdAt: new Date('2026-07-27T08:00:00.000Z'),
@@ -336,6 +342,7 @@ describe('ChannelMessagesStore message editing', () => {
     const originalMessage: Message = {
       id: '00000000-0000-4000-8000-000000000002' as MessageId,
       channelId,
+      authorId,
       status: 'active',
       content: 'Before' as MessageContent,
       createdAt: new Date('2026-07-27T08:00:00.000Z'),
@@ -351,6 +358,7 @@ describe('ChannelMessagesStore message editing', () => {
     const secondChannelMessage: Message = {
       id: '00000000-0000-4000-8000-000000000005' as MessageId,
       channelId: secondChannelId,
+      authorId,
       status: 'active',
       content: 'Message from the second channel' as MessageContent,
       createdAt: new Date('2026-07-29T09:00:00.000Z'),
@@ -424,6 +432,7 @@ describe('ChannelMessagesStore message editing', () => {
     const message: Message = {
       id: '00000000-0000-4000-8000-000000000002' as MessageId,
       channelId,
+      authorId,
       status: 'active',
       content: 'Before' as MessageContent,
       createdAt: new Date('2026-07-27T08:00:00.000Z'),
@@ -474,6 +483,7 @@ describe('ChannelMessagesStore message deletion', () => {
     const message: Message = {
       id: '00000000-0000-4000-8000-000000000002' as MessageId,
       channelId,
+      authorId,
       status: 'active',
       content: 'Delete me' as MessageContent,
       createdAt: new Date('2026-07-27T08:00:00.000Z'),
@@ -483,6 +493,7 @@ describe('ChannelMessagesStore message deletion', () => {
     const deletedMessage: Message = {
       id: message.id,
       channelId,
+      authorId,
       status: 'deleted',
       content: null,
       createdAt: message.createdAt,
@@ -533,6 +544,7 @@ describe('ChannelMessagesStore message deletion', () => {
     const message: Message = {
       id: '00000000-0000-4000-8000-000000000002' as MessageId,
       channelId,
+      authorId,
       status: 'active',
       content: 'Delete me' as MessageContent,
       createdAt: new Date('2026-07-27T08:00:00.000Z'),
@@ -594,6 +606,7 @@ describe('ChannelMessagesStore message deletion', () => {
     const message: Message = {
       id: '00000000-0000-4000-8000-000000000002' as MessageId,
       channelId,
+      authorId,
       status: 'active',
       content: 'Delete me' as MessageContent,
       createdAt: new Date('2026-07-27T08:00:00.000Z'),
@@ -603,6 +616,7 @@ describe('ChannelMessagesStore message deletion', () => {
     const deletedMessage: Message = {
       id: message.id,
       channelId,
+      authorId,
       status: 'deleted',
       content: null,
       createdAt: message.createdAt,
@@ -613,6 +627,7 @@ describe('ChannelMessagesStore message deletion', () => {
     const secondChannelMessage: Message = {
       id: '00000000-0000-4000-8000-000000000005' as MessageId,
       channelId: secondChannelId,
+      authorId,
       status: 'active',
       content: 'Message from the second channel' as MessageContent,
       createdAt: new Date('2026-07-29T09:00:00.000Z'),
