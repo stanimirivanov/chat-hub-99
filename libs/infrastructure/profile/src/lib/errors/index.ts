@@ -1,1 +1,4 @@
-export { mapProfileRepositoryError } from './profile-repository-error-mapper';
+export {
+  mapProfileRepositoryError,
+  mapProfileUpdateError,
+} from './profile-repository-error-mapper';

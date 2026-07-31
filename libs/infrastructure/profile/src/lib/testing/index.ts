@@ -1,4 +1,5 @@
-export { currentProfileRow } from './profile-fixtures';
+export { currentProfileRow, updatedProfileRow } from './profile-fixtures';
+export { makeProfileCommandClientStub } from './supabase-profile-command-client.stub';
 export {
   makeProfileListClientStub,
   makeProfileQueryClientStub,

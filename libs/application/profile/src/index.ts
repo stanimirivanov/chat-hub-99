@@ -13,6 +13,16 @@ export {
   InvalidProfileDataError,
   ProfileRepositoryTag,
   ProfileRepositoryUnavailableError,
+  ProfileUsernameUnavailableError,
   type ProfileRepository,
-  type ProfileRepositoryError,
+  type ProfileRepositoryReadError,
+  type ProfileRepositoryUpdateError,
+  type UpdateCurrentProfileCommand,
 } from './lib/repository';
+export {
+  InvalidProfileUpdateInputError,
+  updateCurrentProfile,
+  type ProfileUpdateField,
+  type UpdateCurrentProfileError,
+  type UpdateCurrentProfileInput,
+} from './lib/update-current-profile';

@@ -4,11 +4,13 @@ import {
   effect,
   inject,
   input,
+  signal,
 } from '@angular/core';
 import { CurrentProfileStore } from './current-profile.store';
 
 /**
- * Displays the current user's profile while retaining session email fallback.
+ * Displays and edits the current user's profile while retaining session email
+ * fallback.
  */
 @Component({
   selector: 'app-current-profile',
@@ -21,10 +23,40 @@ export class CurrentProfileComponent {
   readonly userId = input.required<string>();
   readonly fallbackEmail = input.required<string>();
   protected readonly store = inject(CurrentProfileStore);
+  protected readonly isEditing = signal(false);
 
   constructor() {
     effect(() => {
-      void this.store.load(this.userId());
+      const userId = this.userId();
+
+      this.isEditing.set(false);
+      void this.store.load(userId);
     });
+  }
+
+  protected beginEdit(): void {
+    this.store.clearUpdateError();
+    this.isEditing.set(true);
+  }
+
+  protected cancelEdit(): void {
+    this.store.clearUpdateError();
+    this.isEditing.set(false);
+  }
+
+  protected async saveProfile(
+    displayNameInput: HTMLInputElement,
+    usernameInput: HTMLInputElement,
+    avatarUrlInput: HTMLInputElement
+  ): Promise<void> {
+    const updated = await this.store.update({
+      displayName: displayNameInput.value,
+      username: usernameInput.value,
+      avatarUrl: avatarUrlInput.value,
+    });
+
+    if (updated) {
+      this.isEditing.set(false);
+    }
   }
 }

@@ -52,6 +52,8 @@ describe('makeApplicationInfrastructureLayer', () => {
 
     expect(repository.profileRepository.findCurrentById).toBeTypeOf('function');
 
+    expect(repository.profileRepository.updateCurrent).toBeTypeOf('function');
+
     expect(repository.workspaceRepository.listAccessible).toBeTypeOf(
       'function'
     );

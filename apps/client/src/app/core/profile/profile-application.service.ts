@@ -2,8 +2,11 @@ import { Injectable } from '@angular/core';
 import { Effect, Either } from 'effect';
 import {
   getCurrentProfile,
+  updateCurrentProfile,
   listCurrentProfiles,
   type GetCurrentProfileError,
+  type UpdateCurrentProfileError,
+  type UpdateCurrentProfileInput,
   type ListCurrentProfilesError,
 } from '@chat-hub/application/profile';
 import type { Profile, ProfileId } from '@chat-hub/domain/profile';
@@ -31,6 +34,17 @@ export class ProfileApplicationService {
   ): Promise<Either.Either<Profile, GetCurrentProfileError>> {
     return applicationRuntime.runPromise(
       getCurrentProfile({ userId }).pipe(Effect.either)
+    );
+  }
+
+  /**
+   * Updates the editable fields of the provider-authenticated profile.
+   */
+  updateCurrentProfile(
+    input: UpdateCurrentProfileInput
+  ): Promise<Either.Either<Profile, UpdateCurrentProfileError>> {
+    return applicationRuntime.runPromise(
+      updateCurrentProfile(input).pipe(Effect.either)
     );
   }
 
