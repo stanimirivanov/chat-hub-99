@@ -1,8 +1,15 @@
 <section
   aria-labelledby="workspace-member-directory-heading"
-  [attr.aria-busy]="store.isLoading()"
+  [attr.aria-busy]="store.isLoading() || store.isChangingRole()"
 >
   <h3 id="workspace-member-directory-heading">Members</h3>
+
+  @if (store.roleChangeError(); as error) {
+    <p role="alert">{{ error.message }}</p>
+    <button type="button" (click)="store.clearRoleChangeError()">
+      Dismiss
+    </button>
+  }
 
   @if (store.isLoading()) {
     <p>Loading workspace members&hellip;</p>
@@ -22,6 +29,26 @@
           <span>
             &mdash; {{ entry.role === 'owner' ? 'Owner' : 'Member' }}</span
           >
+          @if (canChangeRoles()) {
+            <button
+              type="button"
+              [disabled]="store.isChangingRole()"
+              [attr.aria-label]="
+                (entry.role === 'owner' ? 'Make member: ' : 'Make owner: ') +
+                entry.displayName
+              "
+              (click)="changeRole(entry.profileId, entry.role)"
+            >
+              @if (
+                store.isChangingRole() &&
+                store.changingProfileId() === entry.profileId
+              ) {
+                Changing&hellip;
+              } @else {
+                {{ entry.role === 'owner' ? 'Make member' : 'Make owner' }}
+              }
+            </button>
+          }
         </li>
       }
     </ul>

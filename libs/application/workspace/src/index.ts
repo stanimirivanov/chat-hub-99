@@ -1,4 +1,11 @@
 export {
+  changeWorkspaceMemberRole,
+  InvalidWorkspaceMemberRoleChangeInputError,
+  type ChangeWorkspaceMemberRoleError,
+  type ChangeWorkspaceMemberRoleInput,
+  type WorkspaceMemberRoleChangeField,
+} from './lib/change-workspace-member-role';
+export {
   createWorkspace,
   InvalidWorkspaceCreationInputError,
   type CreateWorkspaceError,
@@ -9,15 +16,22 @@ export { listAccessibleWorkspaces } from './lib/list-accessible-workspaces';
 export { listWorkspaceMembers } from './lib/list-workspace-members';
 export {
   WorkspaceRepositoryTag,
+  type ChangeWorkspaceMemberRoleCommand,
   type CreateWorkspaceCommand,
   type WorkspaceRepository,
 } from './lib/repository';
 export {
   InvalidWorkspaceMemberDataError,
   InvalidWorkspaceDataError,
+  WorkspaceLastOwnerDemotionError,
+  WorkspaceMemberNotActiveError,
+  WorkspaceMemberNotFoundError,
+  WorkspaceMemberRoleChangeNotAllowedError,
+  WorkspaceMemberRoleUnchangedError,
   WorkspaceRepositoryUnavailableError,
   WorkspaceSlugUnavailableError,
   type WorkspaceMemberRepositoryReadError,
+  type WorkspaceMemberRoleChangeRepositoryError,
   type WorkspaceRepositoryCreateError,
   type WorkspaceRepositoryReadError,
 } from './lib/repository';

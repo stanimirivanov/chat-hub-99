@@ -1,4 +1,5 @@
 import type {
+  ChangeWorkspaceMemberRoleResult,
   CreateWorkspaceResult,
   CurrentWorkspaceMembership,
   CurrentWorkspace,
@@ -15,6 +16,15 @@ export const currentWorkspaceRow: CurrentWorkspace = {
   version_created_at: '2026-07-24T08:00:00.000Z',
   version_created_by: '00000000-0000-4000-8000-000000000002',
   version_number: 1,
+};
+
+export const changedWorkspaceMemberRoleRow: ChangeWorkspaceMemberRoleResult = {
+  workspace_membership_id: '00000000-0000-4000-8000-000000000010',
+  workspace_id: '00000000-0000-4000-8000-000000000001',
+  user_id: '00000000-0000-4000-8000-000000000012',
+  membership_role: 'owner',
+  membership_status: 'active',
+  latest_event_id: '00000000-0000-4000-8000-000000000013',
 };
 
 export const currentWorkspaceMemberRow: CurrentWorkspaceMembership = {

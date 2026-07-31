@@ -1,11 +1,14 @@
 import { Context, type Effect } from 'effect';
+import type { ProfileId } from '@chat-hub/domain/profile';
 import type {
   Workspace,
   WorkspaceId,
   WorkspaceMember,
+  WorkspaceMemberRole,
 } from '@chat-hub/domain/workspace';
 import type {
   WorkspaceMemberRepositoryReadError,
+  WorkspaceMemberRoleChangeRepositoryError,
   WorkspaceRepositoryCreateError,
   WorkspaceRepositoryReadError,
 } from './workspace-repository-error';
@@ -20,7 +23,17 @@ export interface CreateWorkspaceCommand {
 }
 
 /**
- * Outbound port for workspace discovery, membership discovery, and creation.
+ * Validated target and role used to change an active workspace membership.
+ */
+export interface ChangeWorkspaceMemberRoleCommand {
+  readonly workspaceId: WorkspaceId;
+  readonly profileId: ProfileId;
+  readonly role: WorkspaceMemberRole;
+}
+
+/**
+ * Outbound port for workspace discovery, membership discovery, creation, and
+ * role changes.
  *
  * Implementations return active workspaces visible to the current
  * authenticated user and must validate external rows before returning them.
@@ -50,6 +63,13 @@ export interface WorkspaceRepository {
   readonly create: (
     command: CreateWorkspaceCommand
   ) => Effect.Effect<Workspace, WorkspaceRepositoryCreateError>;
+
+  /**
+   * Changes one active member's role using provider-session authorization.
+   */
+  readonly changeMemberRole: (
+    command: ChangeWorkspaceMemberRoleCommand
+  ) => Effect.Effect<WorkspaceMember, WorkspaceMemberRoleChangeRepositoryError>;
 }
 
 /**

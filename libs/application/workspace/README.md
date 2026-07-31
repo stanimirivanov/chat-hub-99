@@ -1,20 +1,23 @@
 # Workspace Application
 
 `@chat-hub/application/workspace` owns provider-independent workflows for
-discovering accessible workspaces and active members, and creating a workspace
-for the current user.
+discovering accessible workspaces and active members, creating a workspace for
+the current user, and changing an active member's role.
 
 ## Responsibilities
 
 - Define the `WorkspaceRepository` outbound port.
-- Define typed read, creation, and slug-conflict failures.
+- Define typed read, creation, role-change, and expected command failures.
 - List active, accessible workspaces through an Effect use case.
 - List active, RLS-visible members for one selected workspace.
 - Normalize and validate workspace creation input before repository access.
 - Create a workspace without accepting client-supplied owner identity.
+- Normalize and validate role-change targets and roles before repository access.
+- Change roles without accepting client-supplied actor identity.
 
 It does not know about Supabase, generated database rows, Angular, selection
-state, profile display data, channels, or workspace update/archive commands.
+state, profile display data, channels, or workspace update/archive/member
+removal commands.
 
 ## Runtime flow
 
@@ -34,6 +37,12 @@ Angular caller
   -> listWorkspaceMembers(workspaceId)
   -> WorkspaceRepositoryTag
   -> validated WorkspaceMember values
+
+Angular caller
+  -> changeWorkspaceMemberRole(input)
+  -> validated ChangeWorkspaceMemberRoleCommand
+  -> WorkspaceRepositoryTag
+  -> canonical WorkspaceMember
 ```
 
 Testing support is private and follows the fixture/stub convention used by the
@@ -44,6 +53,7 @@ other application libraries.
 - `listAccessibleWorkspaces`
 - `listWorkspaceMembers`
 - `createWorkspace` and its input/error contracts
+- `changeWorkspaceMemberRole` and its input/error contracts
 - `WorkspaceRepositoryTag` and `WorkspaceRepository`
 - workspace repository error types
 

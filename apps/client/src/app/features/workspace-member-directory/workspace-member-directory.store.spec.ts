@@ -2,7 +2,10 @@ import { Either, Schema } from 'effect';
 import { TestBed } from '@angular/core/testing';
 import { describe, expect, it, vi } from 'vitest';
 import { ProfileRepositoryUnavailableError } from '@chat-hub/application/profile';
-import { WorkspaceRepositoryUnavailableError } from '@chat-hub/application/workspace';
+import {
+  WorkspaceLastOwnerDemotionError,
+  WorkspaceRepositoryUnavailableError,
+} from '@chat-hub/application/workspace';
 import { ProfileIdSchema, type Profile } from '@chat-hub/domain/profile';
 import {
   WorkspaceIdSchema,
@@ -56,14 +59,17 @@ const configureStore = (
   listWorkspaceMembers = vi
     .fn()
     .mockResolvedValue(Either.right([member, owner])),
-  listCurrentProfiles = vi.fn().mockResolvedValue(Either.right(profiles))
+  listCurrentProfiles = vi.fn().mockResolvedValue(Either.right(profiles)),
+  changeWorkspaceMemberRole = vi
+    .fn()
+    .mockResolvedValue(Either.right({ ...member, role: 'owner' as const }))
 ) => {
   TestBed.configureTestingModule({
     providers: [
       WorkspaceMemberDirectoryStore,
       {
         provide: WorkspaceApplicationService,
-        useValue: { listWorkspaceMembers },
+        useValue: { listWorkspaceMembers, changeWorkspaceMemberRole },
       },
       {
         provide: ProfileApplicationService,
@@ -76,6 +82,7 @@ const configureStore = (
     store: TestBed.inject(WorkspaceMemberDirectoryStore),
     listWorkspaceMembers,
     listCurrentProfiles,
+    changeWorkspaceMemberRole,
   };
 };
 
@@ -186,5 +193,97 @@ describe('WorkspaceMemberDirectoryStore', () => {
 
     expect(store.workspaceId()).toBe(nextWorkspaceId);
     expect(store.members()).toEqual([nextMember]);
+  });
+
+  it('replaces the changed member with the canonical role projection', async () => {
+    const changedMember: WorkspaceMember = { ...member, role: 'owner' };
+    const changeWorkspaceMemberRole = vi
+      .fn()
+      .mockResolvedValue(Either.right(changedMember));
+    const { store } = configureStore(
+      undefined,
+      undefined,
+      changeWorkspaceMemberRole
+    );
+    await store.load(workspaceId);
+
+    const change = store.changeMemberRole(memberId, 'owner');
+
+    expect(store.isChangingRole()).toBe(true);
+    expect(store.changingProfileId()).toBe(memberId);
+    await expect(change).resolves.toBe(true);
+    expect(changeWorkspaceMemberRole).toHaveBeenCalledExactlyOnceWith({
+      workspaceId,
+      profileId: memberId,
+      role: 'owner',
+    });
+    expect(store.members()).toEqual([changedMember, owner]);
+    expect(store.roleChangeStatus()).toBe('idle');
+    expect(store.roleChangeError()).toBeNull();
+  });
+
+  it('presents the protected last-owner rule and permits dismissal', async () => {
+    const failure = new WorkspaceLastOwnerDemotionError({
+      workspaceId,
+      profileId: ownerId,
+    });
+    const changeWorkspaceMemberRole = vi
+      .fn()
+      .mockResolvedValue(Either.left(failure));
+    const { store } = configureStore(
+      vi.fn().mockResolvedValue(Either.right([owner])),
+      undefined,
+      changeWorkspaceMemberRole
+    );
+    await store.load(workspaceId);
+
+    await expect(store.changeMemberRole(ownerId, 'member')).resolves.toBe(
+      false
+    );
+
+    expect(store.roleChangeStatus()).toBe('failed');
+    expect(store.roleChangeError()).toEqual({
+      message:
+        'Assign another owner before changing the last owner to a member.',
+    });
+
+    store.clearRoleChangeError();
+    expect(store.roleChangeStatus()).toBe('idle');
+    expect(store.roleChangeError()).toBeNull();
+  });
+
+  it('ignores a role-change result after the selected workspace changes', async () => {
+    let resolveChange:
+      | ((result: Either.Either<WorkspaceMember, never>) => void)
+      | undefined;
+    const changeResult = new Promise<Either.Either<WorkspaceMember, never>>(
+      (resolve) => {
+        resolveChange = resolve;
+      }
+    );
+    const nextMember: WorkspaceMember = {
+      workspaceId: nextWorkspaceId,
+      profileId: memberId,
+      role: 'member',
+    };
+    const listWorkspaceMembers = vi
+      .fn()
+      .mockResolvedValueOnce(Either.right([member]))
+      .mockResolvedValueOnce(Either.right([nextMember]));
+    const { store } = configureStore(
+      listWorkspaceMembers,
+      undefined,
+      vi.fn().mockReturnValue(changeResult)
+    );
+    await store.load(workspaceId);
+
+    const oldChange = store.changeMemberRole(memberId, 'owner');
+    await store.load(nextWorkspaceId);
+    resolveChange?.(Either.right({ ...member, role: 'owner' }));
+    await oldChange;
+
+    expect(store.workspaceId()).toBe(nextWorkspaceId);
+    expect(store.members()).toEqual([nextMember]);
+    expect(store.roleChangeStatus()).toBe('idle');
   });
 });

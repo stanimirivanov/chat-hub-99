@@ -1,17 +1,21 @@
 # Workspace Infrastructure
 
 `@chat-hub/infrastructure/workspace` implements workspace and active-membership
-discovery with RLS-protected Supabase views, and creation with the existing
-transactional `create_workspace` RPC.
+discovery with RLS-protected Supabase views, creation with the transactional
+`create_workspace` RPC, and role changes with the transactional
+`change_workspace_member_role` RPC.
 
 ## Responsibilities
 
 - Query active workspaces visible to the authenticated user.
 - Query active members visible in one selected workspace.
 - Execute workspace creation without exposing owner identity as an argument.
+- Execute member role changes without exposing actor identity as an argument.
 - Apply stable name/identity ordering.
 - Map generated view and RPC rows into validated domain projections.
 - Preserve actionable current-slug conflicts as a typed application failure.
+- Preserve authorization, stale-membership, unchanged-role, and last-owner
+  outcomes as typed application failures.
 - Translate all other transport and row-validation failures.
 - Supply `WorkspaceRepository` through an Effect Layer.
 
@@ -38,13 +42,21 @@ listWorkspaceMembers use case
   -> SupabaseWorkspaceRepositoryLayer
   -> current_workspace_memberships view + RLS
   -> WorkspaceMemberSchema decoding
+
+changeWorkspaceMemberRole use case
+  -> WorkspaceRepositoryTag
+  -> SupabaseWorkspaceRepositoryLayer
+  -> change_workspace_member_role RPC
+  -> active target/identity checks + WorkspaceMemberSchema decoding
 ```
 
 The membership query returns stable identities and roles only. Profile
 enrichment remains a separate application capability, preventing the workspace
-adapter from depending on profile persistence. The focused client projection
-contains only operations needed by implemented slices. Testing support provides
-fresh query doubles and canonical generated rows.
+adapter from depending on profile persistence. Role-change authorization and
+the last-owner invariant remain transactional database concerns; the adapter
+translates their stable outcomes without reimplementing them. The focused client
+projection contains only operations needed by implemented slices. Testing
+support provides fresh query doubles and canonical generated rows.
 
 ## Public API
 
