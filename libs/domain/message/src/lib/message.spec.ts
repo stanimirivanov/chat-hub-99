@@ -10,6 +10,7 @@ describe('MessageSchema', () => {
       decode({
         id: '00000000-0000-4000-8000-000000000001',
         channelId: '00000000-0000-4000-8000-000000000002',
+        authorId: '00000000-0000-4000-8000-000000000003',
         status: 'active',
         content: 'Hello world',
         createdAt: new Date('2026-01-01T10:00:00Z'),
@@ -26,6 +27,7 @@ describe('MessageSchema', () => {
       decode({
         id: '00000000-0000-4000-8000-000000000001',
         channelId: '00000000-0000-4000-8000-000000000002',
+        authorId: '00000000-0000-4000-8000-000000000003',
         status: 'deleted',
         content: null,
         createdAt: new Date('2026-01-01T10:00:00Z'),
@@ -44,6 +46,7 @@ describe('MessageSchema', () => {
         decode({
           id: '00000000-0000-4000-8000-000000000001',
           channelId: '00000000-0000-4000-8000-000000000002',
+          authorId: '00000000-0000-4000-8000-000000000003',
           status: 'active',
           content: null,
           createdAt: new Date(),
@@ -59,6 +62,7 @@ describe('MessageSchema', () => {
         decode({
           id: '00000000-0000-4000-8000-000000000001',
           channelId: '00000000-0000-4000-8000-000000000002',
+          authorId: '00000000-0000-4000-8000-000000000003',
           status: 'deleted',
           content: 'Should not exist',
           createdAt: new Date(),
@@ -75,8 +79,24 @@ describe('MessageSchema', () => {
         decode({
           id: '00000000-0000-4000-8000-000000000001',
           channelId: '00000000-0000-4000-8000-000000000002',
+          authorId: '00000000-0000-4000-8000-000000000003',
           status: 'deleted',
           content: null,
+          createdAt: new Date(),
+          editedAt: null,
+        })
+      )
+    ).rejects.toBeDefined();
+  });
+
+  it('rejects a message without an author identity', async () => {
+    await expect(
+      Effect.runPromise(
+        decode({
+          id: '00000000-0000-4000-8000-000000000001',
+          channelId: '00000000-0000-4000-8000-000000000002',
+          status: 'active',
+          content: 'Hello',
           createdAt: new Date(),
           editedAt: null,
         })

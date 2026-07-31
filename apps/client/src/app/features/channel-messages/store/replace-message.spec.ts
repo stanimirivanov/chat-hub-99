@@ -5,14 +5,17 @@ import type {
   MessageContent,
   MessageId,
 } from '@chat-hub/domain/message';
+import type { ProfileId } from '@chat-hub/domain/profile';
 import { replaceMessage } from './replace-message';
 
 const channelId = '00000000-0000-4000-8000-000000000001' as ChannelId;
 const messageId = '00000000-0000-4000-8000-000000000002' as MessageId;
+const authorId = '00000000-0000-4000-8000-000000000003' as ProfileId;
 
 const message: Message = {
   id: messageId,
   channelId,
+  authorId,
   status: 'active',
   content: 'Before' as MessageContent,
   createdAt: new Date('2026-07-27T08:00:00.000Z'),

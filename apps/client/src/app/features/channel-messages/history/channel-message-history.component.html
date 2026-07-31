@@ -1,5 +1,5 @@
 @if (store.isLoading()) {
-  <p>Loading messages…</p>
+  <p>Loading messages&hellip;</p>
 } @else if (store.error(); as error) {
   <p role="alert">{{ error.message }}</p>
   <button type="button" (click)="store.refresh()">Retry</button>
@@ -9,14 +9,21 @@
   <ul>
     @for (message of store.messages(); track message.id) {
       <li>
+        <strong>
+          {{ isAuthoredByCurrentUser(message) ? 'You' : 'Another user' }}
+        </strong>
+
         @if (message.status === 'active') {
-          @if (editingMessageId() === message.id) {
+          @if (
+            isAuthoredByCurrentUser(message) &&
+            editingMessageId() === message.id
+          ) {
             <form
               (submit)="
                 $event.preventDefault(); saveEdit(message.id, editInput)
               "
             >
-              <label [for]="'edit-message-' + message.id"> Edit message </label>
+              <label [for]="'edit-message-' + message.id">Edit message</label>
 
               <input
                 #editInput
@@ -29,7 +36,7 @@
 
               <button type="submit" [disabled]="store.isEditing()">
                 @if (store.isEditing()) {
-                  Saving…
+                  Saving&hellip;
                 } @else {
                   Save
                 }
@@ -46,44 +53,46 @@
           } @else {
             <span>{{ message.content }}</span>
 
-            @if (deletingMessageId() === message.id) {
-              <span>Delete this message?</span>
+            @if (isAuthoredByCurrentUser(message)) {
+              @if (deletingMessageId() === message.id) {
+                <span>Delete this message?</span>
 
-              <button
-                type="button"
-                [disabled]="store.isDeleting()"
-                (click)="confirmDelete(message.id)"
-              >
-                @if (store.isDeleting()) {
-                  Deleting…
-                } @else {
-                  Confirm
-                }
-              </button>
+                <button
+                  type="button"
+                  [disabled]="store.isDeleting()"
+                  (click)="confirmDelete(message.id)"
+                >
+                  @if (store.isDeleting()) {
+                    Deleting&hellip;
+                  } @else {
+                    Confirm
+                  }
+                </button>
 
-              <button
-                type="button"
-                [disabled]="store.isDeleting()"
-                (click)="cancelDelete()"
-              >
-                Cancel
-              </button>
-            } @else {
-              <button
-                type="button"
-                [disabled]="store.isDeleting()"
-                (click)="beginEdit(message.id)"
-              >
-                Edit
-              </button>
+                <button
+                  type="button"
+                  [disabled]="store.isDeleting()"
+                  (click)="cancelDelete()"
+                >
+                  Cancel
+                </button>
+              } @else {
+                <button
+                  type="button"
+                  [disabled]="store.isDeleting()"
+                  (click)="beginEdit(message.id)"
+                >
+                  Edit
+                </button>
 
-              <button
-                type="button"
-                [disabled]="store.isEditing() || store.isDeleting()"
-                (click)="beginDelete(message.id)"
-              >
-                Delete
-              </button>
+                <button
+                  type="button"
+                  [disabled]="store.isEditing() || store.isDeleting()"
+                  (click)="beginDelete(message.id)"
+                >
+                  Delete
+                </button>
+              }
             }
           }
         } @else {
@@ -100,7 +109,7 @@
       (click)="store.loadOlder()"
     >
       @if (store.isLoadingOlder()) {
-        Loading…
+        Loading&hellip;
       } @else {
         Load older messages
       }

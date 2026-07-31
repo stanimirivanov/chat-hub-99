@@ -49,7 +49,8 @@ src/lib/
 Supporting mappers remain small and focused:
 
 - `message-rpc-mapper.ts` maps domain commands to generated RPC arguments.
-- `message-row-mapper.ts` validates row fields with domain schemas.
+- `message-row-mapper.ts` validates row fields, including stable author
+  identity, with domain schemas.
 - `message-repository-error-mapper.ts` translates Supabase failures.
 - `supabase-message-client.ts` declares the infrastructure client dependency.
 

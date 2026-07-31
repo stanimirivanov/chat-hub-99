@@ -5,6 +5,7 @@
 ## Responsibilities
 
 - Branded message identifiers such as `MessageId`
+- Stable author identity represented by the profile-domain `ProfileId`
 - Validated message content
 - Active and deleted message projections
 - Commands expressed in domain vocabulary
@@ -12,10 +13,10 @@
 
 ## Dependency rule
 
-This library may depend on the channel domain for channel identity and on
-general-purpose modeling tools such as Effect Schema. It must not depend on
-Angular, NgRx, Supabase, generated database types, browser APIs, or application
-services.
+This library may depend on the channel domain for channel identity, the profile
+domain for stable author identity, and general-purpose modeling tools such as
+Effect Schema. It must not depend on Angular, NgRx, Supabase, generated
+database types, browser APIs, or application services.
 
 ```text
 application/message ──depends on──> domain/message
@@ -28,6 +29,10 @@ client presentation ───────────────> domain/messag
 Database rows are not domain entities. Infrastructure validates an untrusted database projection with the schemas in this library before application code receives it. Branded identifiers prevent accidental interchange of UUID-shaped values belonging to different concepts.
 
 Deleted messages are modeled explicitly rather than represented as partially nullable active messages. This makes consumers handle the state transition deliberately.
+
+Both active and deleted projections retain `authorId`. Authorship belongs to
+the stable message identity and does not change when message content is edited
+or soft-deleted.
 
 ## Internal modules
 

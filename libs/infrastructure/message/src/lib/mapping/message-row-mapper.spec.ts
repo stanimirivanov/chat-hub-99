@@ -29,6 +29,7 @@ describe('message row mapper', () => {
     expect(message).toEqual({
       id: activeRow.message_id,
       channelId: activeRow.channel_id,
+      authorId: activeRow.author_user_id,
       status: 'active',
       content: 'Hello',
       createdAt: new Date('2026-07-26T18:00:00.000Z'),
@@ -50,6 +51,7 @@ describe('message row mapper', () => {
     expect(message).toEqual({
       id: row.message_id,
       channelId: row.channel_id,
+      authorId: row.author_user_id,
       status: 'active',
       content: 'Edited content',
       createdAt: new Date('2026-07-26T18:00:00.000Z'),
@@ -72,6 +74,7 @@ describe('message row mapper', () => {
     expect(message).toEqual({
       id: row.message_id,
       channelId: row.channel_id,
+      authorId: row.author_user_id,
       status: 'deleted',
       content: null,
       createdAt: new Date('2026-07-26T18:00:00.000Z'),
@@ -93,6 +96,17 @@ describe('message row mapper', () => {
     if (result._tag === 'Left') {
       expect(result.left._tag).toBe('MessageRowMappingError');
     }
+  });
+
+  it('rejects a row without an author identity', async () => {
+    const row: CurrentMessage = {
+      ...activeRow,
+      author_user_id: null,
+    };
+
+    const result = await Effect.runPromise(Effect.either(toMessage(row)));
+
+    expect(result._tag).toBe('Left');
   });
 
   it('rejects an active row without content', async () => {
