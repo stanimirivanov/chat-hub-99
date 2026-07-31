@@ -1,0 +1,29 @@
+<section
+  aria-labelledby="workspace-member-directory-heading"
+  [attr.aria-busy]="store.isLoading()"
+>
+  <h3 id="workspace-member-directory-heading">Members</h3>
+
+  @if (store.isLoading()) {
+    <p>Loading workspace members&hellip;</p>
+  } @else if (store.error(); as error) {
+    <p role="alert">{{ error.message }}</p>
+    <button type="button" (click)="store.load(workspaceId())">Try again</button>
+  } @else if (!store.hasMembers()) {
+    <p>No active workspace members are visible.</p>
+  } @else {
+    <ul aria-label="Active workspace members">
+      @for (entry of store.entries(); track entry.profileId) {
+        <li>
+          <span>{{ entry.displayName }}</span>
+          @if (isCurrentUser(entry.profileId)) {
+            <span> (you)</span>
+          }
+          <span>
+            &mdash; {{ entry.role === 'owner' ? 'Owner' : 'Member' }}</span
+          >
+        </li>
+      }
+    </ul>
+  }
+</section>

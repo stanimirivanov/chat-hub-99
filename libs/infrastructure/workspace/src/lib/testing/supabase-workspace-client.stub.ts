@@ -1,4 +1,7 @@
-import type { CurrentWorkspace } from '@chat-hub/shared/database';
+import type {
+  CurrentWorkspace,
+  CurrentWorkspaceMembership,
+} from '@chat-hub/shared/database';
 import { vi } from 'vitest';
 import type { SupabaseWorkspaceClient } from '../supabase-workspace-client';
 
@@ -10,7 +13,18 @@ interface WorkspaceQueryResult {
   } | null;
 }
 
-export const makeWorkspaceListClientStub = (result: WorkspaceQueryResult) => {
+interface WorkspaceMemberQueryResult {
+  readonly data: readonly CurrentWorkspaceMembership[] | null;
+  readonly error: {
+    readonly code: string;
+    readonly message: string;
+  } | null;
+}
+
+const makeWorkspaceQueryClientStub = (result: {
+  readonly data: readonly unknown[] | null;
+  readonly error: { readonly code: string; readonly message: string } | null;
+}) => {
   const resolved = Promise.resolve(result);
   const query = {
     then: resolved.then.bind(resolved),
@@ -18,23 +32,22 @@ export const makeWorkspaceListClientStub = (result: WorkspaceQueryResult) => {
     order: vi.fn(() => query),
   };
   const { eq, order } = query;
-
   const select = vi.fn(() => query);
   const from = vi.fn(() => ({ select }));
 
+  const client = { from } as unknown as SupabaseWorkspaceClient;
+
+  return { client, from, select, eq, order };
+};
+
+export const makeWorkspaceListClientStub = (result: WorkspaceQueryResult) => {
   /*
    * This is a deliberate external test boundary: constructing the complete
    * third-party Supabase client would add no value to this focused query test.
    */
-  const client = {
-    from,
-  } as unknown as SupabaseWorkspaceClient;
-
-  return {
-    client,
-    from,
-    select,
-    eq,
-    order,
-  };
+  return makeWorkspaceQueryClientStub(result);
 };
+
+export const makeWorkspaceMemberListClientStub = (
+  result: WorkspaceMemberQueryResult
+) => makeWorkspaceQueryClientStub(result);

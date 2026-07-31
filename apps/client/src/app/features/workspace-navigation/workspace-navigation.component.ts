@@ -8,6 +8,7 @@ import {
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ChannelNavigationComponent } from '@client/features/channel-navigation/channel-navigation.component';
+import { WorkspaceMemberDirectoryComponent } from '@client/features/workspace-member-directory/workspace-member-directory.component';
 import { WorkspaceNavigationStore } from './workspace-navigation.store';
 
 /**
@@ -16,7 +17,7 @@ import { WorkspaceNavigationStore } from './workspace-navigation.store';
 @Component({
   selector: 'app-workspace-navigation',
   standalone: true,
-  imports: [ChannelNavigationComponent],
+  imports: [ChannelNavigationComponent, WorkspaceMemberDirectoryComponent],
   providers: [WorkspaceNavigationStore],
   templateUrl: './workspace-navigation.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -49,7 +49,7 @@ export class ProfileApplicationService {
   }
 
   /**
-   * Loads current profiles for message-author identities in one batch.
+   * Loads current profiles for stable identities in one batch.
    *
    * RLS may omit identities that are not visible to the current session.
    */

@@ -88,6 +88,14 @@ Creation has independent pending/error state and inserts only the canonical RPC
 result into navigation. The component then writes the returned slug to the URL,
 leaving the existing route effect as the selection authority.
 
+The nested `workspace-member-directory` slice loads active RLS-visible
+memberships for the selected workspace and batch-enriches their stable profile
+identities. Owners are displayed before members and the authenticated user is
+labelled locally. Profile enrichment is best-effort: valid roles remain visible
+with a neutral fallback name if profiles are unavailable. Displayed roles are
+not an authorization decision; database policies and commands remain the
+security boundary.
+
 The nested `channel-navigation` slice reacts to that selected workspace, loads
 only its active RLS-visible channels, and owns a separate feature-scoped
 selection store. Its request generation prevents a late response for a

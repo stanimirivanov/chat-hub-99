@@ -3,11 +3,17 @@ import { Effect, Either } from 'effect';
 import {
   createWorkspace,
   listAccessibleWorkspaces,
+  listWorkspaceMembers,
   type CreateWorkspaceError,
   type CreateWorkspaceInput,
+  type WorkspaceMemberRepositoryReadError,
   type WorkspaceRepositoryReadError,
 } from '@chat-hub/application/workspace';
-import type { Workspace } from '@chat-hub/domain/workspace';
+import type {
+  Workspace,
+  WorkspaceId,
+  WorkspaceMember,
+} from '@chat-hub/domain/workspace';
 import { applicationRuntime } from '../effect/application-runtime';
 
 /**
@@ -30,6 +36,22 @@ export class WorkspaceApplicationService {
   > {
     return applicationRuntime.runPromise(
       listAccessibleWorkspaces.pipe(Effect.either)
+    );
+  }
+
+  /**
+   * Lists active members visible in one selected workspace.
+   */
+  listWorkspaceMembers(
+    workspaceId: WorkspaceId
+  ): Promise<
+    Either.Either<
+      readonly WorkspaceMember[],
+      WorkspaceMemberRepositoryReadError
+    >
+  > {
+    return applicationRuntime.runPromise(
+      listWorkspaceMembers(workspaceId).pipe(Effect.either)
     );
   }
 

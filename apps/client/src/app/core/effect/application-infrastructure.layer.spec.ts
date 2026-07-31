@@ -68,6 +68,10 @@ describe('makeApplicationInfrastructureLayer', () => {
       'function'
     );
 
+    expect(repository.workspaceRepository.listActiveMembers).toBeTypeOf(
+      'function'
+    );
+
     expect(repository.workspaceRepository.create).toBeTypeOf('function');
   });
 });

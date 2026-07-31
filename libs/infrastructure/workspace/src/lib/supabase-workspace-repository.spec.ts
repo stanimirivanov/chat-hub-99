@@ -14,8 +14,10 @@ describe('makeSupabaseWorkspaceRepository', () => {
     expect(Object.keys(repository).sort()).toEqual([
       'create',
       'listAccessible',
+      'listActiveMembers',
     ]);
     expect(repository.create).toBeTypeOf('function');
     expect(repository.listAccessible).toBeTypeOf('function');
+    expect(repository.listActiveMembers).toBeTypeOf('function');
   });
 });
