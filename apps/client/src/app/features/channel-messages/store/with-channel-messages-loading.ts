@@ -7,16 +7,15 @@ import {
   withMethods,
 } from '@ngrx/signals';
 import type { ChannelId } from '@chat-hub/domain/channel';
-import type { Message } from '@chat-hub/domain/message';
-import type { Profile, ProfileId } from '@chat-hub/domain/profile';
 import { MessageApplicationService } from '@client/core/message/message-application.service';
-import { ProfileApplicationService } from '@client/core/profile/profile-application.service';
 import { appendUniqueMessages } from './append-unique-messages';
 import {
   initialChannelMessagesState,
   type ChannelMessagesState,
 } from '../channel-messages.state';
 import { toChannelMessagesError } from './to-channel-messages-error';
+import type { ChannelMessageAuthorMethods } from './with-channel-message-authors';
+import type { ChannelMessageRealtimeMethods } from './with-channel-message-realtime';
 
 const MESSAGE_PAGE_SIZE = 50;
 
@@ -27,80 +26,19 @@ export const withChannelMessagesLoading = () =>
   signalStoreFeature(
     {
       state: type<ChannelMessagesState>(),
+      methods: type<
+        ChannelMessageAuthorMethods & ChannelMessageRealtimeMethods
+      >(),
     },
 
     withMethods(
-      (
-        store,
-        messageApplication = inject(MessageApplicationService),
-        profileApplication = inject(ProfileApplicationService)
-      ) => {
+      (store, messageApplication = inject(MessageApplicationService)) => {
         const isCurrentRequest = (
           channelId: ChannelId,
           generation: number
         ): boolean =>
           store.channelId() === channelId &&
           store.requestGeneration() === generation;
-
-        const mergeAuthorProfiles = (
-          current: readonly Profile[],
-          additions: readonly Profile[]
-        ): readonly Profile[] => {
-          const profilesById = new Map(
-            current.map((profile) => [profile.id, profile])
-          );
-
-          for (const profile of additions) {
-            profilesById.set(profile.id, profile);
-          }
-
-          return [...profilesById.values()];
-        };
-
-        /**
-         * Best-effort enrichment for authors in a newly loaded message page.
-         *
-         * Message history remains usable when profile discovery fails. The
-         * request-generation check prevents a late profile response from
-         * enriching a different channel.
-         */
-        const loadAuthorProfiles = async (
-          messages: readonly Message[],
-          channelId: ChannelId,
-          generation: number
-        ): Promise<void> => {
-          const loadedProfileIds = new Set(
-            store.authorProfiles().map((profile) => profile.id)
-          );
-          const profileIds = [
-            ...new Set<ProfileId>(
-              messages
-                .map((message) => message.authorId)
-                .filter((profileId) => !loadedProfileIds.has(profileId))
-            ),
-          ];
-
-          if (profileIds.length === 0) {
-            return;
-          }
-
-          const result =
-            await profileApplication.listCurrentProfiles(profileIds);
-
-          if (
-            !isCurrentRequest(channelId, generation) ||
-            Either.isLeft(result)
-          ) {
-            return;
-          }
-
-          patchState(store, {
-            authorProfiles: mergeAuthorProfiles(
-              store.authorProfiles(),
-              result.right
-            ),
-          });
-        };
 
         const loadInitialPage = async (
           channelId: ChannelId,
@@ -134,7 +72,9 @@ export const withChannelMessagesLoading = () =>
           });
 
           if (Either.isRight(result)) {
-            await loadAuthorProfiles(
+            store.startRealtime(channelId);
+
+            await store.enrichAuthors(
               result.right.messages,
               channelId,
               generation
@@ -156,6 +96,8 @@ export const withChannelMessagesLoading = () =>
 
             const generation = store.requestGeneration() + 1;
 
+            store.stopRealtime();
+
             patchState(store, {
               channelId,
               messages: [],
@@ -166,10 +108,12 @@ export const withChannelMessagesLoading = () =>
               sendMessageStatus: 'idle',
               editMessageStatus: 'idle',
               deleteMessageStatus: 'idle',
+              realtimeStatus: 'idle',
               error: null,
               sendError: null,
               editError: null,
               deleteError: null,
+              realtimeError: null,
               requestGeneration: generation,
             });
 
@@ -188,6 +132,8 @@ export const withChannelMessagesLoading = () =>
 
             const generation = store.requestGeneration() + 1;
 
+            store.stopRealtime();
+
             patchState(store, {
               authorProfiles: [],
               loadStatus: 'loading',
@@ -195,10 +141,12 @@ export const withChannelMessagesLoading = () =>
               sendMessageStatus: 'idle',
               editMessageStatus: 'idle',
               deleteMessageStatus: 'idle',
+              realtimeStatus: 'idle',
               error: null,
               sendError: null,
               editError: null,
               deleteError: null,
+              realtimeError: null,
               requestGeneration: generation,
             });
 
@@ -258,7 +206,7 @@ export const withChannelMessagesLoading = () =>
             });
 
             if (Either.isRight(result)) {
-              await loadAuthorProfiles(
+              await store.enrichAuthors(
                 result.right.messages,
                 channelId,
                 generation
@@ -271,6 +219,8 @@ export const withChannelMessagesLoading = () =>
            */
           clear(): void {
             const nextGeneration = store.requestGeneration() + 1;
+
+            store.stopRealtime();
 
             patchState(store, {
               ...initialChannelMessagesState,

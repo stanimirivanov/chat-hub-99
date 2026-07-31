@@ -32,6 +32,11 @@ export type EditMessageStatus = 'idle' | 'editing' | 'failed';
 export type DeleteMessageStatus = 'idle' | 'deleting' | 'failed';
 
 /**
+ * Lifecycle of the selected channel's long-lived realtime subscription.
+ */
+export type ChannelMessagesRealtimeStatus = 'idle' | 'observing' | 'failed';
+
+/**
  * Presentation-safe failure information retained by the feature store.
  */
 export interface ChannelMessagesError {
@@ -67,6 +72,8 @@ export interface ChannelMessagesState {
 
   readonly deleteMessageStatus: DeleteMessageStatus;
 
+  readonly realtimeStatus: ChannelMessagesRealtimeStatus;
+
   readonly error: ChannelMessagesError | null;
 
   readonly sendError: ChannelMessagesError | null;
@@ -74,6 +81,8 @@ export interface ChannelMessagesState {
   readonly editError: ChannelMessagesError | null;
 
   readonly deleteError: ChannelMessagesError | null;
+
+  readonly realtimeError: ChannelMessagesError | null;
 
   /**
    * Identifies the currently active request generation.
@@ -97,9 +106,11 @@ export const initialChannelMessagesState: ChannelMessagesState = {
   sendMessageStatus: 'idle',
   editMessageStatus: 'idle',
   deleteMessageStatus: 'idle',
+  realtimeStatus: 'idle',
   error: null,
   sendError: null,
   editError: null,
   deleteError: null,
+  realtimeError: null,
   requestGeneration: 0,
 };

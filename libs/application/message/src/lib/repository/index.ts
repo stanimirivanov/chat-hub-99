@@ -1,3 +1,4 @@
+export type { MessageChangeNotification } from './message-change-notification';
 export {
   MessageRepositoryTag,
   type ListChannelMessagesQuery,

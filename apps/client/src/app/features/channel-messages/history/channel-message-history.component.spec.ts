@@ -43,7 +43,11 @@ const otherProfile = Schema.decodeUnknownSync(ProfileSchema)({
 
 const configureComponent = async (
   messages: readonly Message[] = [ownMessage, otherMessage],
-  authorProfiles: readonly Profile[] = []
+  authorProfiles: readonly Profile[] = [],
+  realtimeError: {
+    readonly tag: string;
+    readonly message: string;
+  } | null = null
 ) => {
   const session = signal<AuthenticationSession | null>({
     userId: currentUserId,
@@ -61,12 +65,14 @@ const configureComponent = async (
     isLoadingOlder: signal(false),
     editError: signal(null),
     deleteError: signal(null),
+    realtimeError: signal(realtimeError),
     refresh: vi.fn(),
     loadOlder: vi.fn(),
     edit: vi.fn().mockResolvedValue(true),
     delete: vi.fn().mockResolvedValue(true),
     clearEditError: vi.fn(),
     clearDeleteError: vi.fn(),
+    retryRealtime: vi.fn(),
   };
 
   await TestBed.configureTestingModule({
@@ -87,7 +93,7 @@ const configureComponent = async (
     TestBed.createComponent(ChannelMessageHistoryComponent);
   fixture.detectChanges();
 
-  return { fixture, session };
+  return { fixture, session, store };
 };
 
 describe('ChannelMessageHistoryComponent', () => {
@@ -133,5 +139,27 @@ describe('ChannelMessageHistoryComponent', () => {
     expect(items[0].textContent).toContain('You');
     expect(items[1].textContent).toContain('Workspace Member');
     expect(items[1].textContent).not.toContain('Another user');
+  });
+
+  it('keeps history visible and offers retry when live updates fail', async () => {
+    const { fixture, store } = await configureComponent([ownMessage], [], {
+      tag: 'MessageRepositoryUnavailableError',
+      message: 'Live message updates are unavailable. Retry to reconnect.',
+    });
+
+    expect(fixture.nativeElement.textContent).toContain('My message');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Live message updates are unavailable.'
+    );
+
+    const buttons: NodeListOf<HTMLButtonElement> =
+      fixture.nativeElement.querySelectorAll('button');
+    const retryButton = [...buttons].find((button) =>
+      button.textContent?.includes('Retry live updates')
+    );
+    expect(retryButton).toBeDefined();
+    retryButton?.click();
+
+    expect(store.retryRealtime).toHaveBeenCalledOnce();
   });
 });

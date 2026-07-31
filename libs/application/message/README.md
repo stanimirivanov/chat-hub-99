@@ -6,11 +6,13 @@ external systems.
 
 ## Responsibilities
 
-- Use cases such as creating a message and listing channel messages
+- Use cases for creating, editing, deleting, listing, and observing channel
+  messages
 - Input validation that belongs to a use-case boundary
 - Pagination query and result contracts
 - Typed application and repository failures
-- The `MessageRepository` port and its Effect service tag
+- The `MessageRepository` port, including its scoped change stream, and its
+  Effect service tag
 
 ## Dependency rule
 
@@ -32,7 +34,10 @@ Use cases are grouped by capability:
 ```text
 src/lib/
 ├── create-message/
+├── delete-message/
+├── edit-message/
 ├── list-channel-messages/
+├── observe-channel-messages/
 ├── pagination/
 ├── repository/
 └── testing/
@@ -44,6 +49,8 @@ Cross-use-case contracts remain near the package root:
   validation failure, and type tests.
 - `list-channel-messages/` contains the paginated channel query and its
   boundary-specific input and error types.
+- `observe-channel-messages/` validates channel identity, consumes repository
+  notifications, and loads authoritative current projections.
 - `pagination/` contains pagination value types shared by callers and the
   repository port.
 - `repository/` defines the outbound repository port, validated command
@@ -66,10 +73,10 @@ Imports communicate architectural boundaries:
 
 ## Effect boundary
 
-Use cases return `Effect` values rather than starting asynchronous work
-themselves. This keeps dependencies and failure types visible. The Angular
-boundary runs those Effects and converts them to Promises for Signal Store
-methods.
+Commands and queries return `Effect` values, while long-lived observation
+returns a scoped Effect `Stream`. This keeps dependencies, failures, and
+listener lifetime visible. The Angular boundary runs Effects as Promises and
+Streams as interruptible Fibers for Signal Store methods.
 
 ## Adding a use case
 

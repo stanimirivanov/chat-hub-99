@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
-import { Effect, Either } from 'effect';
+import { Effect, Either, Fiber, Stream } from 'effect';
 import {
   createMessage,
   deleteMessage,
   editMessage,
   listChannelMessages,
+  observeChannelMessages,
   type CreateMessageError,
   type CreateMessageInput,
   type DeleteMessageError,
@@ -14,7 +15,10 @@ import {
   type ListChannelMessagesError,
   type ListChannelMessagesInput,
   type MessagePage,
+  type MessageChange,
+  type ObserveChannelMessagesError,
 } from '@chat-hub/application/message';
+import type { ChannelId } from '@chat-hub/domain/channel';
 import type { Message } from '@chat-hub/domain/message';
 import { applicationRuntime } from '../effect/application-runtime';
 
@@ -60,5 +64,35 @@ export class MessageApplicationService {
     return applicationRuntime.runPromise(
       deleteMessage(input).pipe(Effect.either)
     );
+  }
+
+  /**
+   * Starts a scoped stream of authoritative changes for one channel.
+   *
+   * The returned cleanup function interrupts the Effect Fiber, which releases
+   * the underlying Supabase Realtime channel.
+   */
+  observeChannelMessages(
+    channelId: ChannelId,
+    onChange: (change: MessageChange) => void,
+    onError: (error: ObserveChannelMessagesError) => void
+  ): () => void {
+    const program = observeChannelMessages({ channelId }).pipe(
+      Stream.runForEach((change) =>
+        Effect.sync(() => {
+          onChange(change);
+        })
+      ),
+      Effect.catchAll((error) =>
+        Effect.sync(() => {
+          onError(error);
+        })
+      )
+    );
+    const fiber = applicationRuntime.runFork(program);
+
+    return () => {
+      void applicationRuntime.runPromise(Fiber.interrupt(fiber));
+    };
   }
 }

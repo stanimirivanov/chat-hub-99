@@ -126,3 +126,10 @@
   <p role="alert">{{ error.message }}</p>
   <button type="button" (click)="store.clearDeleteError()">Dismiss</button>
 }
+
+@if (store.realtimeError(); as error) {
+  <p role="alert">{{ error.message }}</p>
+  <button type="button" (click)="store.retryRealtime()">
+    Retry live updates
+  </button>
+}

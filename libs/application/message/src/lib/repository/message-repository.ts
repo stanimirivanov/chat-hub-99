@@ -1,4 +1,4 @@
-import { Context, type Effect } from 'effect';
+import { Context, type Effect, type Stream } from 'effect';
 import type { ChannelId } from '@chat-hub/domain/channel';
 import type { Message, MessageId } from '@chat-hub/domain/message';
 import type {
@@ -7,6 +7,7 @@ import type {
   EditMessageCommand,
 } from './message-repository-command';
 import type { MessageRepositoryError } from './message-repository-error';
+import type { MessageChangeNotification } from './message-change-notification';
 import type {
   MessageCursor,
   MessagePage,
@@ -58,6 +59,16 @@ export interface MessageRepository {
   readonly listByChannel: (
     query: ListChannelMessagesQuery
   ) => Effect.Effect<MessagePage, MessageRepositoryError>;
+
+  /**
+   * Observes message-head changes scoped to one RLS-visible channel.
+   *
+   * Every stream subscription owns one provider listener. Interrupting the
+   * stream must release that listener.
+   */
+  readonly changesByChannel: (
+    channelId: ChannelId
+  ) => Stream.Stream<MessageChangeNotification, MessageRepositoryError>;
 }
 
 /**

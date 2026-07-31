@@ -31,6 +31,8 @@ describe('makeSupabaseMessageRepository', () => {
     expect(repository.findById).toBeTypeOf('function');
 
     expect(repository.listByChannel).toBeTypeOf('function');
+
+    expect(repository.changesByChannel).toBeTypeOf('function');
   });
 });
 

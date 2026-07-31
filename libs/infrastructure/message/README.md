@@ -10,6 +10,7 @@ domain values.
 - Hold the typed Supabase client service
 - Execute message command RPCs
 - Query current message projections
+- Subscribe to channel-filtered message-head changes
 - Map PostgREST and thrown failures into application repository errors
 - Validate database results before they cross into the application layer
 - Compose operation functions into `MessageRepository`
@@ -40,6 +41,7 @@ src/lib/
 ├── queries/                                Read operations and pagination
 ├── mapping/                                Database/RPC value translation
 ├── errors/                                 Infrastructure error translation
+├── realtime/                               Scoped Supabase change streams
 ├── testing/                                Internal test fixtures and client doubles
 ├── supabase-message-client.ts              Typed Supabase client dependency
 ├── supabase-message-repository.ts          Repository composition
@@ -51,6 +53,8 @@ Supporting mappers remain small and focused:
 - `message-rpc-mapper.ts` maps domain commands to generated RPC arguments.
 - `message-row-mapper.ts` validates row fields, including stable author
   identity, with domain schemas.
+- `map-message-head-change.ts` validates Realtime event identity and channel
+  ownership before emitting an application notification.
 - `message-repository-error-mapper.ts` translates Supabase failures.
 - `supabase-message-client.ts` declares the infrastructure client dependency.
 
@@ -60,6 +64,19 @@ Adapters Architecture). It assembles focused command and query functions into
 one repository object but does not re-export those internal functions.
 
 `src/index.ts` is the only public entry point, while internal capability barrels are private implementation conveniences.
+
+## Realtime lifecycle
+
+`message_heads` is the single mutable row in a message aggregate and is
+published through `supabase_realtime`. The adapter listens for channel-filtered
+INSERT and UPDATE events, emits only stable message identities, and lets the
+application reload each authoritative `current_messages` projection through
+the existing RLS-protected query.
+
+Each Effect Stream subscription owns one Supabase Realtime channel. Interrupting
+the stream removes that channel; provider closure, timeout, malformed payload,
+or projection-query failure terminates the stream with the existing typed
+repository error vocabulary.
 
 ## Testing strategy
 
