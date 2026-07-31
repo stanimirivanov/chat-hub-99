@@ -18,6 +18,11 @@ Cross-boundary client imports use `@client/*` and
 `@client-environments/*`. Closely related modules within one feature or core
 folder continue to use relative imports so locality remains visible.
 
+The root route lazy-loads the authentication shell. This is the natural feature
+boundary for keeping Effect, Supabase, and authenticated feature code out of
+the small browser bootstrap bundle; query-parameter navigation does not destroy
+that shell after it has loaded.
+
 ## Angular boundary
 
 Effect use cases remain framework-independent. Services under `core` run
@@ -88,7 +93,11 @@ only its active RLS-visible channels, and owns a separate feature-scoped
 selection store. Its request generation prevents a late response for a
 previous workspace from replacing the current collection. Selecting a channel
 composes the existing `channel-messages` component through its typed input;
-the two stores do not depend on each other.
+the two stores do not depend on each other. Active members can also create a
+channel through the authenticated database command. Creation has independent
+pending/error state, inserts the validated result in stable navigation order,
+and then writes its normalized slug to the URL so the existing route effect
+remains the selection authority.
 
 The `current-profile` slice enriches the authenticated header with the
 RLS-visible profile belonging to the session identity. It keeps the

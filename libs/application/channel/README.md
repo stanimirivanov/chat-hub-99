@@ -2,33 +2,67 @@
 
 ## Purpose
 
-Defines the technology-independent workflow and outbound port for listing the
-active channels of a selected workspace.
+Defines technology-independent workflows and the outbound port for discovering
+and creating workspace channels.
 
-## Responsibilities
+## Responsibilities and non-responsibilities
 
 - `listWorkspaceChannels` orchestrates workspace-scoped discovery.
-- `ChannelRepository` defines the capability required by that use case.
-- Tagged errors describe unavailable providers and invalid external data.
+- `createChannel` normalizes and validates untrusted creation input.
+- `ChannelRepository` defines only the read and create capabilities required by
+  those use cases.
+- Tagged errors distinguish invalid input, unavailable providers, invalid
+  external data, slug conflicts, and authorization failures.
 
-This library does not query Supabase, run Effects, or own Angular selection
-state. It depends only on application, domain, and utility libraries.
+This library does not query Supabase, run Effects, inspect sessions, or own
+Angular state. It depends only on domain and Effect contracts.
+
+## Structure
+
+```text
+create-channel/             creation workflow, input, and errors
+list-workspace-channels/    workspace-scoped discovery workflow
+repository/                 outbound port and technology-neutral failures
+testing/                    isolated repository Layers and fixtures
+```
+
+## Public API
+
+- `createChannel` and its input/error contracts
+- `listWorkspaceChannels`
+- `ChannelRepositoryTag`, `ChannelRepository`, and `CreateChannelCommand`
+- channel repository read/create errors
+
+## Design decisions
+
+Actor identity is not accepted from callers. The repository implementation must
+derive it from the authenticated provider session, preventing presentation code
+from choosing an actor or bypassing membership authorization.
+
+The creation RPC returns a database-issued channel UUID. After the repository
+validates that identity, the use case combines it with the already validated and
+normalized command to produce the channel projection. This avoids adding a
+second query or a `findById` port that no implemented use case otherwise needs.
 
 ## Runtime flow
 
 ```text
-caller -> listWorkspaceChannels -> ChannelRepositoryTag
-       -> supplied repository -> validated Channel values
+Angular caller -> createChannel -> validate and normalize input
+               -> ChannelRepositoryTag -> repository.create
+               -> provider-issued ChannelId -> validated Channel
 ```
 
-In Effect, the Tag is a typed key used to request the repository. The exported
-use case builds a lazy Effect whose success, error, and required-service
-channels remain visible until an outer runtime supplies and executes it.
+In Effect, a Tag is the typed key used to request the repository. The use cases
+build lazy Effects whose success, failure, and required-service channels remain
+visible until the Angular runtime supplies and executes them. `Effect.gen`
+sequences validation and repository access while preserving those typed
+channels.
 
 ## Extension
 
-Add a repository operation only when a channel use case needs the capability.
-Keep Supabase filters and row shapes in infrastructure.
+Add a repository operation only when an implemented channel use case needs it.
+Keep database arguments, authorization details, and row shapes in
+infrastructure. Keep form state and URL selection in the Angular feature.
 
 ## Verification
 

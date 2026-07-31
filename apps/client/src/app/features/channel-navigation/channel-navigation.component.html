@@ -1,4 +1,7 @@
-<section aria-labelledby="channel-navigation-heading">
+<section
+  aria-labelledby="channel-navigation-heading"
+  [attr.aria-busy]="store.isLoading() || store.isCreating()"
+>
   <h3 id="channel-navigation-heading">Channels</h3>
 
   @if (store.isLoading()) {
@@ -6,37 +9,107 @@
   } @else if (store.error(); as error) {
     <p role="alert">{{ error.message }}</p>
     <button type="button" (click)="store.load(workspaceId())">Try again</button>
-  } @else if (!store.hasChannels()) {
-    <p>This workspace has no active channels.</p>
   } @else {
-    <nav aria-label="Workspace channels">
-      <ul>
-        @for (channel of store.channels(); track channel.id) {
-          <li>
-            <button
-              type="button"
-              [attr.aria-current]="
-                store.selectedChannelId() === channel.id ? 'page' : null
-              "
-              (click)="navigateToChannel(channel.slug)"
-            >
-              {{ channel.name }}
-            </button>
-          </li>
-        }
-      </ul>
-    </nav>
+    @if (isCreatingChannel()) {
+      <form
+        (submit)="
+          $event.preventDefault();
+          saveChannel(nameInput, slugInput, descriptionInput)
+        "
+      >
+        <label for="channel-name">Channel name</label>
+        <input
+          #nameInput
+          id="channel-name"
+          name="channel-name"
+          type="text"
+          required
+          [disabled]="store.isCreating()"
+        />
 
-    @if (store.selectedChannel(); as channel) {
-      <section [attr.aria-label]="channel.name + ' messages'">
-        @if (channel.description) {
-          <p>{{ channel.description }}</p>
-        }
+        <label for="channel-slug">Channel URL</label>
+        <input
+          #slugInput
+          id="channel-slug"
+          name="channel-slug"
+          type="text"
+          required
+          aria-describedby="channel-slug-help"
+          [disabled]="store.isCreating()"
+        />
+        <small id="channel-slug-help">
+          Lowercase letters, numbers, and single hyphens.
+        </small>
 
-        <app-channel-messages [channelId]="channel.id" />
-      </section>
+        <label for="channel-description">Description</label>
+        <textarea
+          #descriptionInput
+          id="channel-description"
+          name="channel-description"
+          [disabled]="store.isCreating()"
+        ></textarea>
+
+        <button type="submit" [disabled]="store.isCreating()">
+          @if (store.isCreating()) {
+            Creating&hellip;
+          } @else {
+            Create channel
+          }
+        </button>
+
+        <button
+          type="button"
+          [disabled]="store.isCreating()"
+          (click)="cancelChannelCreation()"
+        >
+          Cancel
+        </button>
+      </form>
     } @else {
-      <p>Select a channel to view its messages.</p>
+      <button type="button" (click)="beginChannelCreation()">
+        Create channel
+      </button>
+    }
+
+    @if (store.creationError(); as error) {
+      <p role="alert">{{ error.message }}</p>
+      <button type="button" (click)="store.clearCreationError()">
+        Dismiss
+      </button>
+    }
+
+    @if (!store.hasChannels()) {
+      <p>This workspace has no active channels.</p>
+    } @else {
+      <nav aria-label="Workspace channels">
+        <ul>
+          @for (channel of store.channels(); track channel.id) {
+            <li>
+              <button
+                type="button"
+                [attr.aria-current]="
+                  store.selectedChannelId() === channel.id ? 'page' : null
+                "
+                (click)="navigateToChannel(channel.slug)"
+              >
+                {{ channel.name }}
+              </button>
+            </li>
+          }
+        </ul>
+      </nav>
+
+      @if (store.selectedChannel(); as channel) {
+        <section [attr.aria-label]="channel.name + ' messages'">
+          @if (channel.description) {
+            <p>{{ channel.description }}</p>
+          }
+
+          <app-channel-messages [channelId]="channel.id" />
+        </section>
+      } @else {
+        <p>Select a channel to view its messages.</p>
+      }
     }
   }
 </section>

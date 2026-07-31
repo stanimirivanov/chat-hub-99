@@ -1,13 +1,27 @@
 import { Context, type Effect } from 'effect';
-import type { Channel } from '@chat-hub/domain/channel';
+import type { Channel, ChannelId } from '@chat-hub/domain/channel';
 import type { WorkspaceId } from '@chat-hub/domain/workspace';
-import type { ChannelRepositoryError } from './channel-repository-error';
+import type {
+  ChannelRepositoryCreateError,
+  ChannelRepositoryReadError,
+} from './channel-repository-error';
 
 /**
- * Outbound port for workspace-scoped channel discovery.
+ * Validated values used to create a channel in one workspace.
+ */
+export interface CreateChannelCommand {
+  readonly workspaceId: WorkspaceId;
+  readonly name: string;
+  readonly slug: string;
+  readonly description: string | null;
+}
+
+/**
+ * Outbound port for workspace-scoped channel discovery and creation.
  *
  * Implementations return active channels visible to the current authenticated
- * user and validate external rows before returning them.
+ * user, validate external data, and derive the creation actor from the
+ * provider-authenticated session.
  */
 export interface ChannelRepository {
   /**
@@ -15,11 +29,18 @@ export interface ChannelRepository {
    */
   readonly listByWorkspace: (
     workspaceId: WorkspaceId
-  ) => Effect.Effect<readonly Channel[], ChannelRepositoryError>;
+  ) => Effect.Effect<readonly Channel[], ChannelRepositoryReadError>;
+
+  /**
+   * Creates a channel for the provider-authenticated workspace member.
+   */
+  readonly create: (
+    command: CreateChannelCommand
+  ) => Effect.Effect<ChannelId, ChannelRepositoryCreateError>;
 }
 
 /**
- * Typed Effect service key used to request channel discovery.
+ * Typed Effect service key used to request channel discovery and creation.
  *
  * Application programs request this key without knowing which persistence
  * technology supplies its implementation.

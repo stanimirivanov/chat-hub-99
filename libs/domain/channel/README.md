@@ -15,6 +15,8 @@ is owned here.
 ## Public API
 
 - `ChannelIdSchema` and `ChannelId`
+- `ChannelNameSchema`
+- `ChannelSlugSchema`
 - `ChannelSchema` and `Channel`
 
 `ChannelSchema` validates unknown adapter data at runtime. Required identifiers

@@ -32,3 +32,6 @@ pnpm db:types:check
 ```
 
 Derived aliases under `src/lib` should remain thin. Business behavior belongs in domain or application packages, not in database type helpers.
+
+The production typecheck excludes `*.type-test.ts`; the separate test
+typecheck compiles those contract assertions through `tsconfig.spec.json`.

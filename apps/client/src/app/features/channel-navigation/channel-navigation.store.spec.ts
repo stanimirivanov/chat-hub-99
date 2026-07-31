@@ -1,7 +1,10 @@
 import { Either, Schema } from 'effect';
 import { TestBed } from '@angular/core/testing';
 import { describe, expect, it, vi } from 'vitest';
-import { ChannelRepositoryUnavailableError } from '@chat-hub/application/channel';
+import {
+  ChannelRepositoryUnavailableError,
+  ChannelSlugUnavailableError,
+} from '@chat-hub/application/channel';
 import { ChannelIdSchema, type Channel } from '@chat-hub/domain/channel';
 import { WorkspaceIdSchema } from '@chat-hub/domain/workspace';
 import { ChannelApplicationService } from '@client/core/channel/channel-application.service';
@@ -25,21 +28,34 @@ const channel: Channel = {
   description: null,
 };
 
+const createdChannelId = Schema.decodeUnknownSync(ChannelIdSchema)(
+  '00000000-0000-4000-8000-000000000005'
+);
+const createdChannel: Channel = {
+  id: createdChannelId,
+  workspaceId,
+  name: 'Design',
+  slug: 'design',
+  description: 'Design collaboration',
+};
+
 const configureStore = (
-  listWorkspaceChannels = vi.fn().mockResolvedValue(Either.right([channel]))
+  listWorkspaceChannels = vi.fn().mockResolvedValue(Either.right([channel])),
+  createChannel = vi.fn().mockResolvedValue(Either.right(createdChannel))
 ) => {
   TestBed.configureTestingModule({
     providers: [
       ChannelNavigationStore,
       {
         provide: ChannelApplicationService,
-        useValue: { listWorkspaceChannels },
+        useValue: { createChannel, listWorkspaceChannels },
       },
     ],
   });
 
   return {
     store: TestBed.inject(ChannelNavigationStore),
+    createChannel,
     listWorkspaceChannels,
   };
 };
@@ -114,5 +130,83 @@ describe('ChannelNavigationStore', () => {
     expect(store.workspaceId()).toBe(nextWorkspaceId);
     expect(store.channels()).toEqual([]);
     expect(store.loadStatus()).toBe('loaded');
+  });
+
+  it('creates, inserts, and returns a channel without changing selection', async () => {
+    const { store, createChannel } = configureStore();
+    await store.load(workspaceId);
+    store.select(channelId);
+
+    const result = await store.createChannel({
+      name: 'Design',
+      slug: 'design',
+      description: 'Design collaboration',
+    });
+
+    expect(createChannel).toHaveBeenCalledExactlyOnceWith({
+      workspaceId,
+      name: 'Design',
+      slug: 'design',
+      description: 'Design collaboration',
+    });
+    expect(result).toBe(createdChannel);
+    expect(store.channels()).toEqual([createdChannel, channel]);
+    expect(store.selectedChannelId()).toBe(channelId);
+    expect(store.creationStatus()).toBe('idle');
+    expect(store.creationError()).toBeNull();
+  });
+
+  it('keeps creation failure separate from the loaded collection', async () => {
+    const failure = new ChannelSlugUnavailableError({
+      workspaceId,
+      slug: 'design',
+    });
+    const createChannel = vi.fn().mockResolvedValue(Either.left(failure));
+    const { store } = configureStore(undefined, createChannel);
+    await store.load(workspaceId);
+
+    const result = await store.createChannel({
+      name: 'Design',
+      slug: 'design',
+    });
+
+    expect(result).toBeNull();
+    expect(store.loadStatus()).toBe('loaded');
+    expect(store.channels()).toEqual([channel]);
+    expect(store.creationStatus()).toBe('failed');
+    expect(store.creationError()).toEqual({
+      message: 'That channel URL is already in use in this workspace.',
+    });
+
+    store.clearCreationError();
+    expect(store.creationStatus()).toBe('idle');
+    expect(store.creationError()).toBeNull();
+  });
+
+  it('ignores a channel created after the selected workspace changes', async () => {
+    let resolveCreation:
+      | ((result: Either.Either<Channel, never>) => void)
+      | undefined;
+    const creationResult = new Promise<Either.Either<Channel, never>>(
+      (resolve) => {
+        resolveCreation = resolve;
+      }
+    );
+    const createChannel = vi.fn().mockReturnValue(creationResult);
+    const listWorkspaceChannels = vi
+      .fn()
+      .mockResolvedValueOnce(Either.right([channel]))
+      .mockResolvedValueOnce(Either.right([]));
+    const { store } = configureStore(listWorkspaceChannels, createChannel);
+    await store.load(workspaceId);
+
+    const creation = store.createChannel({ name: 'Design', slug: 'design' });
+    await store.load(nextWorkspaceId);
+    resolveCreation?.(Either.right(createdChannel));
+
+    expect(await creation).toBeNull();
+    expect(store.workspaceId()).toBe(nextWorkspaceId);
+    expect(store.channels()).toEqual([]);
+    expect(store.creationStatus()).toBe('idle');
   });
 });

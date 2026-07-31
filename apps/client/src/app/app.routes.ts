@@ -1,18 +1,23 @@
 import type { Routes } from '@angular/router';
-import { AuthenticationShellComponent } from '@client/features/authentication/authentication-shell.component';
 
 /**
  * Browser entry routes.
  *
  * Workspace and channel selection use query parameters on the stable root
- * route. This keeps the authenticated shell and its feature-scoped stores
- * alive while browser history changes between selections.
+ * route. Loading the authenticated shell at the route boundary keeps its
+ * application dependencies out of the bootstrap bundle, while query-parameter
+ * changes keep the shell and its feature-scoped stores alive.
  */
 export const appRoutes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    component: AuthenticationShellComponent,
+    loadComponent: () =>
+      import(
+        '@client/features/authentication/authentication-shell.component'
+      ).then(
+        ({ AuthenticationShellComponent }) => AuthenticationShellComponent
+      ),
   },
   {
     path: '**',

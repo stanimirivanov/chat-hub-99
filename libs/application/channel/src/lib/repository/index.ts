@@ -1,9 +1,13 @@
 export {
   ChannelRepositoryTag,
+  type CreateChannelCommand,
   type ChannelRepository,
 } from './channel-repository';
 export {
+  ChannelCreationNotAllowedError,
   ChannelRepositoryUnavailableError,
+  ChannelSlugUnavailableError,
   InvalidChannelDataError,
-  type ChannelRepositoryError,
+  type ChannelRepositoryCreateError,
+  type ChannelRepositoryReadError,
 } from './channel-repository-error';

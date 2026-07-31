@@ -2,13 +2,19 @@ import { Schema } from 'effect';
 import { WorkspaceIdSchema } from '@chat-hub/domain/workspace';
 import { ChannelIdSchema } from './channel-id';
 
-const ChannelNameSchema = Schema.String.pipe(
+/**
+ * Non-blank channel display name accepted by channel projections and commands.
+ */
+export const ChannelNameSchema = Schema.String.pipe(
   Schema.filter((name) => name.trim().length > 0, {
     message: () => 'Channel name must not be blank.',
   })
 );
 
-const ChannelSlugSchema = Schema.String.pipe(
+/**
+ * Lowercase kebab-case channel slug scoped to one workspace.
+ */
+export const ChannelSlugSchema = Schema.String.pipe(
   Schema.pattern(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
 );
 

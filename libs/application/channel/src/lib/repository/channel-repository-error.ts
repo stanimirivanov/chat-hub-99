@@ -1,7 +1,8 @@
 import { Data } from 'effect';
+import type { WorkspaceId } from '@chat-hub/domain/workspace';
 
 /**
- * Indicates that channel discovery could not reach or query its provider.
+ * Indicates that a channel operation could not reach or query its provider.
  */
 export class ChannelRepositoryUnavailableError extends Data.TaggedError(
   'ChannelRepositoryUnavailableError'
@@ -10,7 +11,7 @@ export class ChannelRepositoryUnavailableError extends Data.TaggedError(
 }> {}
 
 /**
- * Indicates that an external channel row violated the domain contract.
+ * Indicates that external channel data violated the domain contract.
  */
 export class InvalidChannelDataError extends Data.TaggedError(
   'InvalidChannelDataError'
@@ -18,6 +19,30 @@ export class InvalidChannelDataError extends Data.TaggedError(
   readonly cause: unknown;
 }> {}
 
-export type ChannelRepositoryError =
+/**
+ * Indicates that another channel in the workspace already owns the slug.
+ */
+export class ChannelSlugUnavailableError extends Data.TaggedError(
+  'ChannelSlugUnavailableError'
+)<{
+  readonly workspaceId: WorkspaceId;
+  readonly slug: string;
+}> {}
+
+/**
+ * Indicates that the authenticated actor may not create in the workspace.
+ */
+export class ChannelCreationNotAllowedError extends Data.TaggedError(
+  'ChannelCreationNotAllowedError'
+)<{
+  readonly workspaceId: WorkspaceId;
+}> {}
+
+export type ChannelRepositoryReadError =
   | ChannelRepositoryUnavailableError
   | InvalidChannelDataError;
+
+export type ChannelRepositoryCreateError =
+  | ChannelRepositoryReadError
+  | ChannelSlugUnavailableError
+  | ChannelCreationNotAllowedError;

@@ -4,6 +4,7 @@ import {
   effect,
   inject,
   input,
+  signal,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -25,6 +26,7 @@ import { ChannelNavigationStore } from './channel-navigation.store';
 export class ChannelNavigationComponent {
   readonly workspaceId = input.required<WorkspaceId>();
   protected readonly store = inject(ChannelNavigationStore);
+  protected readonly isCreatingChannel = signal(false);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly queryParamMap = toSignal(this.route.queryParamMap, {
@@ -52,10 +54,41 @@ export class ChannelNavigationComponent {
     });
   }
 
+  protected beginChannelCreation(): void {
+    this.store.clearCreationError();
+    this.isCreatingChannel.set(true);
+  }
+
+  protected cancelChannelCreation(): void {
+    this.store.clearCreationError();
+    this.isCreatingChannel.set(false);
+  }
+
+  protected async saveChannel(
+    nameInput: HTMLInputElement,
+    slugInput: HTMLInputElement,
+    descriptionInput: HTMLTextAreaElement
+  ): Promise<void> {
+    const channel = await this.store.createChannel({
+      name: nameInput.value,
+      slug: slugInput.value,
+      description: descriptionInput.value,
+    });
+
+    if (channel !== null) {
+      this.isCreatingChannel.set(false);
+      this.navigateToChannel(channel.slug);
+    }
+  }
+
   private async selectChannelFromRoute(
     workspaceId: WorkspaceId,
     channelSlug: string | null
   ): Promise<void> {
+    if (this.store.workspaceId() !== workspaceId) {
+      this.isCreatingChannel.set(false);
+    }
+
     await this.store.load(workspaceId);
 
     if (
