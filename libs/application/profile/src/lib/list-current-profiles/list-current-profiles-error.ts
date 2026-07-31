@@ -1,5 +1,5 @@
 import { Data } from 'effect';
-import type { ProfileRepositoryError } from '../repository';
+import type { ProfileRepositoryReadError } from '../repository';
 
 /**
  * Indicates that author-profile discovery received an invalid identity list.
@@ -12,4 +12,4 @@ export class InvalidCurrentProfilesInputError extends Data.TaggedError(
 
 export type ListCurrentProfilesError =
   | InvalidCurrentProfilesInputError
-  | ProfileRepositoryError;
+  | ProfileRepositoryReadError;

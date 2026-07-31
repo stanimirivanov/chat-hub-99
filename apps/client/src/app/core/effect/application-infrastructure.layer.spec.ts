@@ -44,6 +44,10 @@ describe('makeApplicationInfrastructureLayer', () => {
 
     expect(repository.messageRepository.listByChannel).toBeTypeOf('function');
 
+    expect(repository.messageRepository.changesByChannel).toBeTypeOf(
+      'function'
+    );
+
     expect(repository.authenticationService.signIn).toBeTypeOf('function');
 
     expect(repository.authenticationService.signOut).toBeTypeOf('function');
@@ -53,6 +57,10 @@ describe('makeApplicationInfrastructureLayer', () => {
     expect(repository.profileRepository.findCurrentById).toBeTypeOf('function');
 
     expect(repository.profileRepository.updateCurrent).toBeTypeOf('function');
+
+    expect(repository.profileRepository.listCurrentByIds).toBeTypeOf(
+      'function'
+    );
 
     expect(repository.workspaceRepository.listAccessible).toBeTypeOf(
       'function'

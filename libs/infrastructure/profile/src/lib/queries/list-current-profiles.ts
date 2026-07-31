@@ -1,5 +1,5 @@
 import { Effect } from 'effect';
-import type { ProfileRepositoryError } from '@chat-hub/application/profile';
+import type { ProfileRepositoryReadError } from '@chat-hub/application/profile';
 import type { Profile, ProfileId } from '@chat-hub/domain/profile';
 import { mapProfileRepositoryError } from '../errors';
 import { mapCurrentProfile } from '../mapping';
@@ -16,7 +16,7 @@ import type { SupabaseProfileClient } from '../supabase-profile-client';
 export const listCurrentProfiles = (
   client: SupabaseProfileClient,
   profileIds: readonly ProfileId[]
-): Effect.Effect<readonly Profile[], ProfileRepositoryError> => {
+): Effect.Effect<readonly Profile[], ProfileRepositoryReadError> => {
   if (profileIds.length === 0) {
     return Effect.succeed([]);
   }
@@ -29,12 +29,17 @@ export const listCurrentProfiles = (
         .in('user_id', profileIds),
     catch: mapProfileRepositoryError,
   }).pipe(
-    Effect.flatMap(({ data, error }) => {
-      if (error) {
-        return Effect.fail(mapProfileRepositoryError(error));
-      }
+    Effect.flatMap(
+      ({
+        data,
+        error,
+      }): Effect.Effect<readonly Profile[], ProfileRepositoryReadError> => {
+        if (error) {
+          return Effect.fail(mapProfileRepositoryError(error));
+        }
 
-      return Effect.forEach(data ?? [], mapCurrentProfile);
-    })
+        return Effect.forEach(data ?? [], mapCurrentProfile);
+      }
+    )
   );
 };

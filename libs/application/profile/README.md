@@ -2,22 +2,20 @@
 
 ## Purpose
 
-Defines technology-independent workflows and the outbound port for loading and
-updating the authenticated user's current profile projection.
 Defines technology-independent workflows and the outbound port for loading
-RLS-visible current profile projections.
+RLS-visible current profile projections and updating the authenticated user's
+profile.
 
 ## Responsibilities and boundary
 
-- `getCurrentProfile` validates unknown boundary input and orchestrates lookup.
-- `updateCurrentProfile` normalizes editable values and coordinates the
-  self-service update.
-- `ProfileRepository` defines current-profile discovery and update operations.
 - `getCurrentProfile` validates unknown boundary input and orchestrates one
   required profile lookup.
+- `updateCurrentProfile` normalizes editable values and coordinates the
+  self-service update.
 - `listCurrentProfiles` validates and deduplicates an identity collection for
   batched discovery.
-- `ProfileRepository` defines single and batched current-profile discovery.
+- `ProfileRepository` defines single and batched discovery plus self-service
+  update operations.
 - Tagged errors represent invalid input, missing projections, provider
   unavailability, malformed external data, and username conflicts.
 
@@ -46,8 +44,6 @@ profile while the associated message remains readable.
 Add repository operations only for implemented profile use cases.
 Administrative lifecycle changes remain outside the self-service update
 contract.
-Add repository operations only for implemented profile use cases. Profile
-editing remains a separate command slice.
 
 ## Verification
 
