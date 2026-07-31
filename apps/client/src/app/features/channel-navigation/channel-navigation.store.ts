@@ -1,5 +1,9 @@
 import { computed, inject } from '@angular/core';
 import { Either } from 'effect';
+import type {
+  CreateChannelError,
+  CreateChannelInput,
+} from '@chat-hub/application/channel';
 import {
   patchState,
   signalStore,
@@ -7,7 +11,7 @@ import {
   withMethods,
   withState,
 } from '@ngrx/signals';
-import type { ChannelId } from '@chat-hub/domain/channel';
+import type { Channel, ChannelId } from '@chat-hub/domain/channel';
 import type { WorkspaceId } from '@chat-hub/domain/workspace';
 import { ChannelApplicationService } from '@client/core/channel/channel-application.service';
 import { initialChannelNavigationState } from './channel-navigation.state';
@@ -20,6 +24,7 @@ export const ChannelNavigationStore = signalStore(
 
   withComputed((store) => ({
     isLoading: computed(() => store.loadStatus() === 'loading'),
+    isCreating: computed(() => store.creationStatus() === 'creating'),
     hasChannels: computed(() => store.channels().length > 0),
     selectedChannel: computed(() => {
       const selectedChannelId = store.selectedChannelId();
@@ -60,6 +65,7 @@ export const ChannelNavigationStore = signalStore(
           }
 
           const version = ++requestVersion;
+          const workspaceChanged = store.workspaceId() !== workspaceId;
 
           patchState(store, {
             workspaceId,
@@ -67,6 +73,9 @@ export const ChannelNavigationStore = signalStore(
             selectedChannelId: null,
             loadStatus: 'loading',
             error: null,
+            ...(workspaceChanged
+              ? { creationStatus: 'idle', creationError: null }
+              : {}),
           });
 
           const promise = channelApplication
@@ -128,7 +137,109 @@ export const ChannelNavigationStore = signalStore(
             selectedChannelId: null,
           });
         },
+
+        /**
+         * Creates a channel in the loaded workspace and adds the validated
+         * result without changing selection. Route navigation remains the
+         * component's responsibility and is therefore the selection source.
+         */
+        async createChannel(
+          input: Omit<CreateChannelInput, 'workspaceId'>
+        ): Promise<Channel | null> {
+          const workspaceId = store.workspaceId();
+
+          if (
+            workspaceId === null ||
+            store.loadStatus() !== 'loaded' ||
+            store.creationStatus() === 'creating'
+          ) {
+            return null;
+          }
+
+          patchState(store, {
+            creationStatus: 'creating',
+            creationError: null,
+          });
+
+          const result = await channelApplication.createChannel({
+            ...input,
+            workspaceId,
+          });
+
+          if (store.workspaceId() !== workspaceId) {
+            return null;
+          }
+
+          return Either.match(result, {
+            onLeft: (error) => {
+              patchState(store, {
+                creationStatus: 'failed',
+                creationError: toChannelCreationError(error),
+              });
+
+              return null;
+            },
+            onRight: (channel) => {
+              patchState(store, {
+                channels: insertChannel(store.channels(), channel),
+                creationStatus: 'idle',
+                creationError: null,
+              });
+
+              return channel;
+            },
+          });
+        },
+
+        clearCreationError(): void {
+          patchState(store, {
+            creationStatus: 'idle',
+            creationError: null,
+          });
+        },
       };
     }
   )
 );
+
+const insertChannel = (
+  channels: readonly Channel[],
+  created: Channel
+): readonly Channel[] =>
+  [...channels.filter((channel) => channel.id !== created.id), created].sort(
+    (left, right) =>
+      left.name.localeCompare(right.name) || left.id.localeCompare(right.id)
+  );
+
+const toChannelCreationError = (
+  error: CreateChannelError
+): { readonly message: string } => {
+  switch (error._tag) {
+    case 'InvalidChannelCreationInputError':
+      return {
+        message:
+          error.field === 'name'
+            ? 'Enter a channel name.'
+            : error.field === 'slug'
+              ? 'Use lowercase letters, numbers, and single hyphens for the channel URL.'
+              : error.field === 'workspaceId'
+                ? 'Select an active workspace before creating a channel.'
+                : 'Check the channel description and try again.',
+      };
+
+    case 'ChannelSlugUnavailableError':
+      return {
+        message: 'That channel URL is already in use in this workspace.',
+      };
+
+    case 'ChannelCreationNotAllowedError':
+      return {
+        message: 'You no longer have permission to create channels here.',
+      };
+
+    default:
+      return {
+        message: 'The channel could not be created. Please try again.',
+      };
+  }
+};

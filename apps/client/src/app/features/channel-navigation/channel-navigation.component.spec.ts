@@ -47,16 +47,21 @@ const configureComponent = async ({
     navigate: vi.fn().mockResolvedValue(true),
   };
   const store = {
+    workspaceId: signal(workspaceId),
     channels: signal(channels),
     selectedChannelId: signal(null),
     selectedChannel: signal(null),
     isLoading: signal(false),
+    isCreating: signal(false),
     hasChannels: signal(channels.length > 0),
     loadStatus: signal('loaded'),
     error: signal(null),
+    creationError: signal(null),
     load: vi.fn().mockResolvedValue(undefined),
+    createChannel: vi.fn().mockResolvedValue(channel),
     select: vi.fn().mockReturnValue(true),
     clearSelection: vi.fn(),
+    clearCreationError: vi.fn(),
   };
 
   TestBed.overrideComponent(ChannelNavigationComponent, {
@@ -135,6 +140,55 @@ describe('ChannelNavigationComponent', () => {
       },
       queryParamsHandling: 'merge',
       replaceUrl: true,
+    });
+  });
+
+  it('creates a channel and navigates to its canonical slug', async () => {
+    const { fixture, route, router, store } = await configureComponent({
+      queryParams: {
+        workspace: workspaceSlug,
+      },
+    });
+    const buttons = Array.from(
+      fixture.nativeElement.querySelectorAll(
+        'button'
+      ) as NodeListOf<HTMLButtonElement>
+    );
+    const createButton = buttons.find(
+      (button) => button.textContent?.trim() === 'Create channel'
+    );
+
+    createButton?.click();
+    fixture.detectChanges();
+
+    const nameInput: HTMLInputElement =
+      fixture.nativeElement.querySelector('#channel-name');
+    const slugInput: HTMLInputElement =
+      fixture.nativeElement.querySelector('#channel-slug');
+    const descriptionInput: HTMLTextAreaElement =
+      fixture.nativeElement.querySelector('#channel-description');
+    const form: HTMLFormElement = fixture.nativeElement.querySelector('form');
+
+    nameInput.value = 'General';
+    slugInput.value = 'general';
+    descriptionInput.value = 'Workspace discussion';
+    form.dispatchEvent(
+      new Event('submit', { bubbles: true, cancelable: true })
+    );
+
+    await fixture.whenStable();
+
+    expect(store.createChannel).toHaveBeenCalledExactlyOnceWith({
+      name: 'General',
+      slug: 'general',
+      description: 'Workspace discussion',
+    });
+    expect(router.navigate).toHaveBeenCalledExactlyOnceWith([], {
+      relativeTo: route,
+      queryParams: {
+        channel: channel.slug,
+      },
+      queryParamsHandling: 'merge',
     });
   });
 });

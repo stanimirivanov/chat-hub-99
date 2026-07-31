@@ -4,7 +4,7 @@ import type { WorkspaceId } from '@chat-hub/domain/workspace';
 import {
   ChannelRepositoryTag,
   type ChannelRepository,
-  type ChannelRepositoryError,
+  type ChannelRepositoryReadError,
 } from '../repository';
 
 /**
@@ -17,7 +17,7 @@ export const listWorkspaceChannels = (
   workspaceId: WorkspaceId
 ): Effect.Effect<
   readonly Channel[],
-  ChannelRepositoryError,
+  ChannelRepositoryReadError,
   ChannelRepository
 > =>
   Effect.gen(function* () {

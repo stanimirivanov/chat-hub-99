@@ -1,2 +1,5 @@
 export { currentChannelRow } from './channel-fixtures';
-export { makeChannelListClientStub } from './supabase-channel-client.stub';
+export {
+  makeChannelCommandClientStub,
+  makeChannelListClientStub,
+} from './supabase-channel-client.stub';

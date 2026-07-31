@@ -9,17 +9,34 @@ export const makeChannelRepositoryStub = (
     Effect.dieMessage(
       'Unexpected ChannelRepository.listByWorkspace call in test'
     ),
+  create: () =>
+    Effect.dieMessage('Unexpected ChannelRepository.create call in test'),
   ...overrides,
 });
+
+export const makeChannelRepositoryLayer = (
+  overrides: Partial<ChannelRepository> = {}
+): Layer.Layer<ChannelRepository> =>
+  Layer.succeed(ChannelRepositoryTag, makeChannelRepositoryStub(overrides));
 
 export const makeListByWorkspaceChannelRepository = (
   implementation: ChannelRepository['listByWorkspace']
 ) => {
   const listByWorkspace = vi.fn(implementation);
-  const repository = makeChannelRepositoryStub({ listByWorkspace });
 
   return {
     listByWorkspace,
-    repositoryLayer: Layer.succeed(ChannelRepositoryTag, repository),
+    repositoryLayer: makeChannelRepositoryLayer({ listByWorkspace }),
+  };
+};
+
+export const makeCreateChannelRepository = (
+  implementation: ChannelRepository['create']
+) => {
+  const create = vi.fn(implementation);
+
+  return {
+    create,
+    repositoryLayer: makeChannelRepositoryLayer({ create }),
   };
 };

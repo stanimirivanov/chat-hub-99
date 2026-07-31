@@ -1,5 +1,5 @@
 import { Effect } from 'effect';
-import type { ChannelRepositoryError } from '@chat-hub/application/channel';
+import type { ChannelRepositoryReadError } from '@chat-hub/application/channel';
 import type { Channel } from '@chat-hub/domain/channel';
 import type { WorkspaceId } from '@chat-hub/domain/workspace';
 import { mapChannelRepositoryError } from '../errors';
@@ -16,7 +16,7 @@ import type { SupabaseChannelClient } from '../supabase-channel-client';
 export const listWorkspaceChannels = (
   client: SupabaseChannelClient,
   workspaceId: WorkspaceId
-): Effect.Effect<readonly Channel[], ChannelRepositoryError> =>
+): Effect.Effect<readonly Channel[], ChannelRepositoryReadError> =>
   Effect.tryPromise({
     try: () =>
       client

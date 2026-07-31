@@ -1,4 +1,7 @@
-import type { CurrentChannel } from '@chat-hub/shared/database';
+import type {
+  CreateChannelResult,
+  CurrentChannel,
+} from '@chat-hub/shared/database';
 import { vi } from 'vitest';
 import type { SupabaseChannelClient } from '../supabase-channel-client';
 
@@ -8,6 +11,23 @@ interface ChannelQueryResult {
     readonly code: string;
     readonly message: string;
   } | null;
+}
+
+interface ChannelCommandResult {
+  readonly data: CreateChannelResult | null;
+  readonly error: {
+    readonly code: string;
+    readonly message: string;
+    readonly details?: string;
+  } | null;
+}
+
+interface ChannelCommandClientStub {
+  readonly client: SupabaseChannelClient;
+  readonly rpc: (
+    functionName: string,
+    args: Record<string, unknown>
+  ) => Promise<ChannelCommandResult>;
 }
 
 export const makeChannelListClientStub = (result: ChannelQueryResult) => {
@@ -28,4 +48,18 @@ export const makeChannelListClientStub = (result: ChannelQueryResult) => {
   const client = { from } as unknown as SupabaseChannelClient;
 
   return { client, from, select, eq, order };
+};
+
+export const makeChannelCommandClientStub = (
+  result: ChannelCommandResult
+): ChannelCommandClientStub => {
+  const rpc = vi.fn().mockResolvedValue(result);
+
+  /*
+   * This deliberate external test boundary avoids constructing the complete
+   * third-party client for one focused RPC command.
+   */
+  const client = { rpc } as unknown as SupabaseChannelClient;
+
+  return { client, rpc };
 };

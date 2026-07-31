@@ -1,8 +1,11 @@
 import { Injectable } from '@angular/core';
 import { Effect, Either } from 'effect';
 import {
+  createChannel,
   listWorkspaceChannels,
-  type ChannelRepositoryError,
+  type CreateChannelError,
+  type CreateChannelInput,
+  type ChannelRepositoryReadError,
 } from '@chat-hub/application/channel';
 import type { Channel } from '@chat-hub/domain/channel';
 import type { WorkspaceId } from '@chat-hub/domain/workspace';
@@ -23,9 +26,20 @@ export class ChannelApplicationService {
    */
   listWorkspaceChannels(
     workspaceId: WorkspaceId
-  ): Promise<Either.Either<readonly Channel[], ChannelRepositoryError>> {
+  ): Promise<Either.Either<readonly Channel[], ChannelRepositoryReadError>> {
     return applicationRuntime.runPromise(
       listWorkspaceChannels(workspaceId).pipe(Effect.either)
+    );
+  }
+
+  /**
+   * Creates a channel for the authenticated member of one workspace.
+   */
+  createChannel(
+    input: CreateChannelInput
+  ): Promise<Either.Either<Channel, CreateChannelError>> {
+    return applicationRuntime.runPromise(
+      createChannel(input).pipe(Effect.either)
     );
   }
 }

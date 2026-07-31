@@ -1,7 +1,7 @@
 import { Effect, Schema } from 'effect';
 import {
   InvalidChannelDataError,
-  type ChannelRepositoryError,
+  type ChannelRepositoryReadError,
 } from '@chat-hub/application/channel';
 import { ChannelSchema, type Channel } from '@chat-hub/domain/channel';
 
@@ -26,7 +26,7 @@ export interface CurrentChannelNavigationRow {
  */
 export const mapCurrentChannel = (
   row: CurrentChannelNavigationRow
-): Effect.Effect<Channel, ChannelRepositoryError> =>
+): Effect.Effect<Channel, ChannelRepositoryReadError> =>
   decodeChannel({
     id: row.channel_id,
     workspaceId: row.workspace_id,
