@@ -2,14 +2,16 @@
 
 ## Purpose
 
-Implements current-profile discovery with the RLS-protected Supabase
-`current_profiles` view.
+Implements single and batched current-profile discovery with the RLS-protected
+Supabase `current_profiles` view.
 
 ## Responsibilities
 
 - Query one profile by stable authenticated-user identity.
+- Query multiple author profiles in one identity-filtered request.
 - Decode generated nullable view data into a profile domain projection.
-- Preserve missing rows as absence for application policy.
+- Preserve a missing single row as absence and omit invisible rows from batch
+  results.
 - Translate provider and validation failures into application errors.
 - Supply `ProfileRepository` through an Effect Layer.
 
@@ -23,6 +25,12 @@ getCurrentProfile use case
   -> SupabaseProfileRepositoryLayer
   -> current_profiles view + RLS
   -> ProfileSchema decoding
+
+listCurrentProfiles use case
+  -> ProfileRepositoryTag
+  -> SupabaseProfileRepositoryLayer
+  -> one current_profiles `in` query + RLS
+  -> ProfileSchema decoding for every returned row
 ```
 
 A Tag is the typed key through which the application requests a capability. A

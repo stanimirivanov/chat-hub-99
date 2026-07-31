@@ -12,6 +12,15 @@ export interface ProfileRepository {
   readonly findCurrentById: (
     profileId: ProfileId
   ) => Effect.Effect<Profile | null, ProfileRepositoryError>;
+
+  /**
+   * Lists the RLS-visible current projections for the requested identities.
+   *
+   * Missing or hidden profiles are omitted from the result.
+   */
+  readonly listCurrentByIds: (
+    profileIds: readonly ProfileId[]
+  ) => Effect.Effect<readonly Profile[], ProfileRepositoryError>;
 }
 
 /**

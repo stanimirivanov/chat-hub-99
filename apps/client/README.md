@@ -58,8 +58,11 @@ Message history retains the stable profile identity of each author. It uses
 the root authentication store only to label the current user's messages and
 show Edit/Delete controls for those messages. This is presentation behavior,
 not authorization: Supabase command policies remain the security boundary.
-Human-readable profiles for other authors require a separate implemented
-profile-discovery slice.
+For other authors, the channel-message store batch-loads RLS-visible current
+profiles for each new page and renders their display names. The enrichment is
+feature-local and best-effort: hidden or unavailable profiles retain the stable
+“Another user” fallback, while stale profile responses cannot enrich a newly
+selected channel.
 
 The store is larger than the helpers because selecting, paging, refreshing, and
 sending share one consistency boundary: the selected channel and request

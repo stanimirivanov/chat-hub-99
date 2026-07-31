@@ -6,6 +6,7 @@ import {
   InvalidMessageContentError,
   MessageAccessDeniedError,
   MessageRepositoryUnavailableError,
+  type MessageCursor,
 } from '@chat-hub/application/message';
 import type { ChannelId } from '@chat-hub/domain/channel';
 import type {
@@ -13,12 +14,27 @@ import type {
   MessageContent,
   MessageId,
 } from '@chat-hub/domain/message';
-import type { ProfileId } from '@chat-hub/domain/profile';
+import type { Profile, ProfileId } from '@chat-hub/domain/profile';
 import { MessageApplicationService } from '@client/core/message/message-application.service';
+import { ProfileApplicationService } from '@client/core/profile/profile-application.service';
 import { ChannelMessagesStore } from './channel-messages.store';
 
 const channelId = '00000000-0000-4000-8000-000000000001' as ChannelId;
 const authorId = '00000000-0000-4000-8000-000000000010' as ProfileId;
+const secondAuthorId = '00000000-0000-4000-8000-000000000011' as ProfileId;
+const authorProfile: Profile = {
+  id: authorId,
+  username: 'workspace-member',
+  displayName: 'Workspace Member',
+  avatarUrl: null,
+  status: 'active',
+};
+const secondAuthorProfile: Profile = {
+  ...authorProfile,
+  id: secondAuthorId,
+  username: 'second-member',
+  displayName: 'Second Member',
+};
 
 const makeDeferredPromise = <Value>() => {
   let resolve!: (value: Value | PromiseLike<Value>) => void;
@@ -33,6 +49,30 @@ const makeDeferredPromise = <Value>() => {
   };
 };
 
+const configureStore = (
+  messageApplication: Partial<MessageApplicationService>,
+  listCurrentProfiles = vi.fn().mockResolvedValue(Either.right([]))
+) => {
+  TestBed.configureTestingModule({
+    providers: [
+      ChannelMessagesStore,
+      {
+        provide: MessageApplicationService,
+        useValue: messageApplication,
+      },
+      {
+        provide: ProfileApplicationService,
+        useValue: { listCurrentProfiles },
+      },
+    ],
+  });
+
+  return {
+    store: TestBed.inject(ChannelMessagesStore),
+    listCurrentProfiles,
+  };
+};
+
 describe('ChannelMessagesStore', () => {
   it('loads messages for the selected channel', async () => {
     const listChannelMessages = vi.fn().mockResolvedValue(
@@ -42,19 +82,7 @@ describe('ChannelMessagesStore', () => {
       })
     );
 
-    TestBed.configureTestingModule({
-      providers: [
-        ChannelMessagesStore,
-        {
-          provide: MessageApplicationService,
-          useValue: {
-            listChannelMessages,
-          },
-        },
-      ],
-    });
-
-    const store = TestBed.inject(ChannelMessagesStore);
+    const { store } = configureStore({ listChannelMessages });
 
     await store.selectChannel(channelId);
 
@@ -86,19 +114,7 @@ describe('ChannelMessagesStore', () => {
       .fn()
       .mockResolvedValue(Either.left(applicationError));
 
-    TestBed.configureTestingModule({
-      providers: [
-        ChannelMessagesStore,
-        {
-          provide: MessageApplicationService,
-          useValue: {
-            listChannelMessages,
-          },
-        },
-      ],
-    });
-
-    const store = TestBed.inject(ChannelMessagesStore);
+    const { store } = configureStore({ listChannelMessages });
 
     await store.selectChannel(channelId);
 
@@ -110,6 +126,192 @@ describe('ChannelMessagesStore', () => {
       tag: 'MessageRepositoryUnavailableError',
       message: 'Channel messages are currently unavailable. Please try again.',
     });
+  });
+
+  it('loads each message author profile once per page', async () => {
+    const firstMessage: Message = {
+      id: '00000000-0000-4000-8000-000000000002' as MessageId,
+      channelId,
+      authorId,
+      status: 'active',
+      content: 'First' as MessageContent,
+      createdAt: new Date('2026-07-27T08:00:00.000Z'),
+      editedAt: null,
+    };
+    const secondMessage: Message = {
+      ...firstMessage,
+      id: '00000000-0000-4000-8000-000000000003' as MessageId,
+      content: 'Second' as MessageContent,
+    };
+    const listChannelMessages = vi.fn().mockResolvedValue(
+      Either.right({
+        messages: [firstMessage, secondMessage],
+        nextCursor: null,
+      })
+    );
+    const listCurrentProfiles = vi
+      .fn()
+      .mockResolvedValue(Either.right([authorProfile]));
+    const { store } = configureStore(
+      { listChannelMessages },
+      listCurrentProfiles
+    );
+
+    await store.selectChannel(channelId);
+
+    expect(listCurrentProfiles).toHaveBeenCalledExactlyOnceWith([authorId]);
+    expect(store.authorProfiles()).toEqual([authorProfile]);
+    expect(store.loadStatus()).toBe('loaded');
+  });
+
+  it('keeps loaded messages when optional author enrichment fails', async () => {
+    const message: Message = {
+      id: '00000000-0000-4000-8000-000000000002' as MessageId,
+      channelId,
+      authorId,
+      status: 'active',
+      content: 'Still readable' as MessageContent,
+      createdAt: new Date('2026-07-27T08:00:00.000Z'),
+      editedAt: null,
+    };
+    const listChannelMessages = vi.fn().mockResolvedValue(
+      Either.right({
+        messages: [message],
+        nextCursor: null,
+      })
+    );
+    const listCurrentProfiles = vi
+      .fn()
+      .mockResolvedValue(Either.left(new Error('Profiles unavailable')));
+    const { store } = configureStore(
+      { listChannelMessages },
+      listCurrentProfiles
+    );
+
+    await store.selectChannel(channelId);
+
+    expect(store.messages()).toEqual([message]);
+    expect(store.authorProfiles()).toEqual([]);
+    expect(store.loadStatus()).toBe('loaded');
+    expect(store.error()).toBeNull();
+  });
+
+  it('loads only previously unseen authors from an older page', async () => {
+    const firstMessage: Message = {
+      id: '00000000-0000-4000-8000-000000000002' as MessageId,
+      channelId,
+      authorId,
+      status: 'active',
+      content: 'Newest' as MessageContent,
+      createdAt: new Date('2026-07-27T09:00:00.000Z'),
+      editedAt: null,
+    };
+    const olderKnownAuthorMessage: Message = {
+      ...firstMessage,
+      id: '00000000-0000-4000-8000-000000000003' as MessageId,
+      content: 'Older from known author' as MessageContent,
+      createdAt: new Date('2026-07-27T08:00:00.000Z'),
+    };
+    const olderNewAuthorMessage: Message = {
+      ...olderKnownAuthorMessage,
+      id: '00000000-0000-4000-8000-000000000004' as MessageId,
+      authorId: secondAuthorId,
+      content: 'Older from new author' as MessageContent,
+    };
+    const nextCursor: MessageCursor = {
+      createdAt: firstMessage.createdAt,
+      messageId: firstMessage.id,
+    };
+    const listChannelMessages = vi
+      .fn()
+      .mockResolvedValueOnce(
+        Either.right({
+          messages: [firstMessage],
+          nextCursor,
+        })
+      )
+      .mockResolvedValueOnce(
+        Either.right({
+          messages: [olderKnownAuthorMessage, olderNewAuthorMessage],
+          nextCursor: null,
+        })
+      );
+    const listCurrentProfiles = vi
+      .fn()
+      .mockResolvedValueOnce(Either.right([authorProfile]))
+      .mockResolvedValueOnce(Either.right([secondAuthorProfile]));
+    const { store } = configureStore(
+      { listChannelMessages },
+      listCurrentProfiles
+    );
+
+    await store.selectChannel(channelId);
+    await store.loadOlder();
+
+    expect(listCurrentProfiles).toHaveBeenNthCalledWith(1, [authorId]);
+    expect(listCurrentProfiles).toHaveBeenNthCalledWith(2, [secondAuthorId]);
+    expect(store.authorProfiles()).toEqual([
+      authorProfile,
+      secondAuthorProfile,
+    ]);
+  });
+
+  it('ignores author profiles returned for a previously selected channel', async () => {
+    const secondChannelId = '00000000-0000-4000-8000-000000000003' as ChannelId;
+    const firstMessage: Message = {
+      id: '00000000-0000-4000-8000-000000000004' as MessageId,
+      channelId,
+      authorId,
+      status: 'active',
+      content: 'First channel' as MessageContent,
+      createdAt: new Date('2026-07-27T08:00:00.000Z'),
+      editedAt: null,
+    };
+    const secondMessage: Message = {
+      ...firstMessage,
+      id: '00000000-0000-4000-8000-000000000005' as MessageId,
+      channelId: secondChannelId,
+      authorId: secondAuthorId,
+      content: 'Second channel' as MessageContent,
+    };
+    const firstProfiles =
+      makeDeferredPromise<Either.Either<readonly Profile[], never>>();
+    const listChannelMessages = vi
+      .fn()
+      .mockResolvedValueOnce(
+        Either.right({
+          messages: [firstMessage],
+          nextCursor: null,
+        })
+      )
+      .mockResolvedValueOnce(
+        Either.right({
+          messages: [secondMessage],
+          nextCursor: null,
+        })
+      );
+    const listCurrentProfiles = vi
+      .fn()
+      .mockReturnValueOnce(firstProfiles.promise)
+      .mockResolvedValueOnce(Either.right([secondAuthorProfile]));
+    const { store } = configureStore(
+      { listChannelMessages },
+      listCurrentProfiles
+    );
+
+    const firstSelection = store.selectChannel(channelId);
+    await vi.waitFor(() => {
+      expect(listCurrentProfiles).toHaveBeenCalledOnce();
+    });
+
+    await store.selectChannel(secondChannelId);
+
+    firstProfiles.resolve(Either.right([authorProfile]));
+    await firstSelection;
+
+    expect(store.channelId()).toBe(secondChannelId);
+    expect(store.messages()).toEqual([secondMessage]);
+    expect(store.authorProfiles()).toEqual([secondAuthorProfile]);
   });
 
   it('creates and prepends a message in the selected channel', async () => {
@@ -131,20 +333,10 @@ describe('ChannelMessagesStore', () => {
     );
     const createMessage = vi.fn().mockResolvedValue(Either.right(message));
 
-    TestBed.configureTestingModule({
-      providers: [
-        ChannelMessagesStore,
-        {
-          provide: MessageApplicationService,
-          useValue: {
-            listChannelMessages,
-            createMessage,
-          },
-        },
-      ],
+    const { store } = configureStore({
+      listChannelMessages,
+      createMessage,
     });
-
-    const store = TestBed.inject(ChannelMessagesStore);
 
     await store.selectChannel(channelId);
 
@@ -201,20 +393,10 @@ describe('ChannelMessagesStore', () => {
 
     const createMessage = vi.fn().mockReturnValue(creation.promise);
 
-    TestBed.configureTestingModule({
-      providers: [
-        ChannelMessagesStore,
-        {
-          provide: MessageApplicationService,
-          useValue: {
-            listChannelMessages,
-            createMessage,
-          },
-        },
-      ],
+    const { store } = configureStore({
+      listChannelMessages,
+      createMessage,
     });
-
-    const store = TestBed.inject(ChannelMessagesStore);
 
     await store.selectChannel(channelId);
 
@@ -260,20 +442,10 @@ describe('ChannelMessagesStore', () => {
       )
     );
 
-    TestBed.configureTestingModule({
-      providers: [
-        ChannelMessagesStore,
-        {
-          provide: MessageApplicationService,
-          useValue: {
-            listChannelMessages,
-            createMessage,
-          },
-        },
-      ],
+    const { store } = configureStore({
+      listChannelMessages,
+      createMessage,
     });
-
-    const store = TestBed.inject(ChannelMessagesStore);
 
     await store.selectChannel(channelId);
 
@@ -312,17 +484,10 @@ describe('ChannelMessagesStore message editing', () => {
     );
     const editMessage = vi.fn().mockResolvedValue(Either.right(editedMessage));
 
-    TestBed.configureTestingModule({
-      providers: [
-        ChannelMessagesStore,
-        {
-          provide: MessageApplicationService,
-          useValue: { listChannelMessages, editMessage },
-        },
-      ],
+    const { store } = configureStore({
+      listChannelMessages,
+      editMessage,
     });
-
-    const store = TestBed.inject(ChannelMessagesStore);
     await store.selectChannel(channelId);
 
     await expect(store.edit(message.id, 'After')).resolves.toBe(true);
@@ -384,20 +549,10 @@ describe('ChannelMessagesStore message editing', () => {
 
     const editMessage = vi.fn().mockReturnValue(edit.promise);
 
-    TestBed.configureTestingModule({
-      providers: [
-        ChannelMessagesStore,
-        {
-          provide: MessageApplicationService,
-          useValue: {
-            listChannelMessages,
-            editMessage,
-          },
-        },
-      ],
+    const { store } = configureStore({
+      listChannelMessages,
+      editMessage,
     });
-
-    const store = TestBed.inject(ChannelMessagesStore);
 
     await store.selectChannel(channelId);
 
@@ -452,17 +607,10 @@ describe('ChannelMessagesStore message editing', () => {
       )
     );
 
-    TestBed.configureTestingModule({
-      providers: [
-        ChannelMessagesStore,
-        {
-          provide: MessageApplicationService,
-          useValue: { listChannelMessages, editMessage },
-        },
-      ],
+    const { store } = configureStore({
+      listChannelMessages,
+      editMessage,
     });
-
-    const store = TestBed.inject(ChannelMessagesStore);
     await store.selectChannel(channelId);
 
     await expect(store.edit(message.id, '   ')).resolves.toBe(false);
@@ -512,20 +660,10 @@ describe('ChannelMessagesStore message deletion', () => {
       .fn()
       .mockResolvedValue(Either.right(deletedMessage));
 
-    TestBed.configureTestingModule({
-      providers: [
-        ChannelMessagesStore,
-        {
-          provide: MessageApplicationService,
-          useValue: {
-            listChannelMessages,
-            deleteMessage,
-          },
-        },
-      ],
+    const { store } = configureStore({
+      listChannelMessages,
+      deleteMessage,
     });
-
-    const store = TestBed.inject(ChannelMessagesStore);
 
     await store.selectChannel(channelId);
 
@@ -566,20 +704,10 @@ describe('ChannelMessagesStore message deletion', () => {
       )
     );
 
-    TestBed.configureTestingModule({
-      providers: [
-        ChannelMessagesStore,
-        {
-          provide: MessageApplicationService,
-          useValue: {
-            listChannelMessages,
-            deleteMessage,
-          },
-        },
-      ],
+    const { store } = configureStore({
+      listChannelMessages,
+      deleteMessage,
     });
-
-    const store = TestBed.inject(ChannelMessagesStore);
 
     await store.selectChannel(channelId);
 
@@ -651,20 +779,10 @@ describe('ChannelMessagesStore message deletion', () => {
 
     const deleteMessage = vi.fn().mockReturnValue(deletion.promise);
 
-    TestBed.configureTestingModule({
-      providers: [
-        ChannelMessagesStore,
-        {
-          provide: MessageApplicationService,
-          useValue: {
-            listChannelMessages,
-            deleteMessage,
-          },
-        },
-      ],
+    const { store } = configureStore({
+      listChannelMessages,
+      deleteMessage,
     });
-
-    const store = TestBed.inject(ChannelMessagesStore);
 
     await store.selectChannel(channelId);
 

@@ -7,7 +7,10 @@ import {
   withMethods,
 } from '@ngrx/signals';
 import type { ChannelId } from '@chat-hub/domain/channel';
+import type { Message } from '@chat-hub/domain/message';
+import type { Profile, ProfileId } from '@chat-hub/domain/profile';
 import { MessageApplicationService } from '@client/core/message/message-application.service';
+import { ProfileApplicationService } from '@client/core/profile/profile-application.service';
 import { appendUniqueMessages } from './append-unique-messages';
 import {
   initialChannelMessagesState,
@@ -27,13 +30,77 @@ export const withChannelMessagesLoading = () =>
     },
 
     withMethods(
-      (store, messageApplication = inject(MessageApplicationService)) => {
+      (
+        store,
+        messageApplication = inject(MessageApplicationService),
+        profileApplication = inject(ProfileApplicationService)
+      ) => {
         const isCurrentRequest = (
           channelId: ChannelId,
           generation: number
         ): boolean =>
           store.channelId() === channelId &&
           store.requestGeneration() === generation;
+
+        const mergeAuthorProfiles = (
+          current: readonly Profile[],
+          additions: readonly Profile[]
+        ): readonly Profile[] => {
+          const profilesById = new Map(
+            current.map((profile) => [profile.id, profile])
+          );
+
+          for (const profile of additions) {
+            profilesById.set(profile.id, profile);
+          }
+
+          return [...profilesById.values()];
+        };
+
+        /**
+         * Best-effort enrichment for authors in a newly loaded message page.
+         *
+         * Message history remains usable when profile discovery fails. The
+         * request-generation check prevents a late profile response from
+         * enriching a different channel.
+         */
+        const loadAuthorProfiles = async (
+          messages: readonly Message[],
+          channelId: ChannelId,
+          generation: number
+        ): Promise<void> => {
+          const loadedProfileIds = new Set(
+            store.authorProfiles().map((profile) => profile.id)
+          );
+          const profileIds = [
+            ...new Set<ProfileId>(
+              messages
+                .map((message) => message.authorId)
+                .filter((profileId) => !loadedProfileIds.has(profileId))
+            ),
+          ];
+
+          if (profileIds.length === 0) {
+            return;
+          }
+
+          const result =
+            await profileApplication.listCurrentProfiles(profileIds);
+
+          if (
+            !isCurrentRequest(channelId, generation) ||
+            Either.isLeft(result)
+          ) {
+            return;
+          }
+
+          patchState(store, {
+            authorProfiles: mergeAuthorProfiles(
+              store.authorProfiles(),
+              result.right
+            ),
+          });
+        };
 
         const loadInitialPage = async (
           channelId: ChannelId,
@@ -65,6 +132,14 @@ export const withChannelMessagesLoading = () =>
               });
             },
           });
+
+          if (Either.isRight(result)) {
+            await loadAuthorProfiles(
+              result.right.messages,
+              channelId,
+              generation
+            );
+          }
         };
 
         return {
@@ -84,6 +159,7 @@ export const withChannelMessagesLoading = () =>
             patchState(store, {
               channelId,
               messages: [],
+              authorProfiles: [],
               nextCursor: null,
               loadStatus: 'loading',
               olderMessagesStatus: 'idle',
@@ -113,6 +189,7 @@ export const withChannelMessagesLoading = () =>
             const generation = store.requestGeneration() + 1;
 
             patchState(store, {
+              authorProfiles: [],
               loadStatus: 'loading',
               olderMessagesStatus: 'idle',
               sendMessageStatus: 'idle',
@@ -179,6 +256,14 @@ export const withChannelMessagesLoading = () =>
                 });
               },
             });
+
+            if (Either.isRight(result)) {
+              await loadAuthorProfiles(
+                result.right.messages,
+                channelId,
+                generation
+              );
+            }
           },
 
           /**

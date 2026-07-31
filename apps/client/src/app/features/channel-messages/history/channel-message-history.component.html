@@ -10,7 +10,7 @@
     @for (message of store.messages(); track message.id) {
       <li>
         <strong>
-          {{ isAuthoredByCurrentUser(message) ? 'You' : 'Another user' }}
+          {{ authorLabel(message) }}
         </strong>
 
         @if (message.status === 'active') {

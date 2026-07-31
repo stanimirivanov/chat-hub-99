@@ -9,6 +9,10 @@ export const makeProfileRepositoryStub = (
     Effect.dieMessage(
       'Unexpected ProfileRepository.findCurrentById call in test'
     ),
+  listCurrentByIds: () =>
+    Effect.dieMessage(
+      'Unexpected ProfileRepository.listCurrentByIds call in test'
+    ),
   ...overrides,
 });
 
@@ -20,6 +24,18 @@ export const makeFindCurrentProfileRepository = (
 
   return {
     findCurrentById,
+    repositoryLayer: Layer.succeed(ProfileRepositoryTag, repository),
+  };
+};
+
+export const makeListCurrentProfilesRepository = (
+  implementation: ProfileRepository['listCurrentByIds']
+) => {
+  const listCurrentByIds = vi.fn(implementation);
+  const repository = makeProfileRepositoryStub({ listCurrentByIds });
+
+  return {
+    listCurrentByIds,
     repositoryLayer: Layer.succeed(ProfileRepositoryTag, repository),
   };
 };

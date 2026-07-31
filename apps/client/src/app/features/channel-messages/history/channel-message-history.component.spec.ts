@@ -4,6 +4,7 @@ import { Schema } from 'effect';
 import { describe, expect, it, vi } from 'vitest';
 import type { AuthenticationSession } from '@chat-hub/application/authentication';
 import { MessageSchema, type Message } from '@chat-hub/domain/message';
+import { ProfileSchema, type Profile } from '@chat-hub/domain/profile';
 import { AuthenticationStore } from '@client/features/authentication/store/authentication.store';
 import { ChannelMessagesStore } from '../channel-messages.store';
 import { ChannelMessageHistoryComponent } from './channel-message-history.component';
@@ -32,9 +33,17 @@ const otherMessage = makeMessage(
   otherUserId,
   'Another message'
 );
+const otherProfile = Schema.decodeUnknownSync(ProfileSchema)({
+  id: otherUserId,
+  username: 'workspace-member',
+  displayName: 'Workspace Member',
+  avatarUrl: null,
+  status: 'active',
+});
 
 const configureComponent = async (
-  messages: readonly Message[] = [ownMessage, otherMessage]
+  messages: readonly Message[] = [ownMessage, otherMessage],
+  authorProfiles: readonly Profile[] = []
 ) => {
   const session = signal<AuthenticationSession | null>({
     userId: currentUserId,
@@ -42,6 +51,7 @@ const configureComponent = async (
   });
   const store = {
     messages: signal(messages),
+    authorProfiles: signal(authorProfiles),
     isLoading: signal(false),
     error: signal(null),
     hasMessages: signal(messages.length > 0),
@@ -110,5 +120,18 @@ describe('ChannelMessageHistoryComponent', () => {
     expect(items[0].textContent).not.toContain('Edit');
     expect(items[1].textContent).toContain('You');
     expect(items[1].textContent).toContain('Edit');
+  });
+
+  it('renders an RLS-visible display name for another author', async () => {
+    const { fixture } = await configureComponent(
+      [ownMessage, otherMessage],
+      [otherProfile]
+    );
+    const items: NodeListOf<HTMLLIElement> =
+      fixture.nativeElement.querySelectorAll('li');
+
+    expect(items[0].textContent).toContain('You');
+    expect(items[1].textContent).toContain('Workspace Member');
+    expect(items[1].textContent).not.toContain('Another user');
   });
 });
