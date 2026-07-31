@@ -1,5 +1,6 @@
 import type { MessagePage } from '@chat-hub/application/message';
 import type { ChannelId } from '@chat-hub/domain/channel';
+import type { Profile } from '@chat-hub/domain/profile';
 
 /**
  * Lifecycle of the newest-page request for the selected channel.
@@ -46,6 +47,14 @@ export interface ChannelMessagesState {
 
   readonly messages: MessagePage['messages'];
 
+  /**
+   * RLS-visible display profiles for authors in the loaded message pages.
+   *
+   * A profile may be absent when it is hidden, no longer active, or its
+   * best-effort enrichment request failed.
+   */
+  readonly authorProfiles: readonly Profile[];
+
   readonly nextCursor: MessagePage['nextCursor'];
 
   readonly loadStatus: ChannelMessagesLoadStatus;
@@ -81,6 +90,7 @@ export interface ChannelMessagesState {
 export const initialChannelMessagesState: ChannelMessagesState = {
   channelId: null,
   messages: [],
+  authorProfiles: [],
   nextCursor: null,
   loadStatus: 'idle',
   olderMessagesStatus: 'idle',

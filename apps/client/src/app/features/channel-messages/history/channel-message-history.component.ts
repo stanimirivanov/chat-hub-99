@@ -33,6 +33,19 @@ export class ChannelMessageHistoryComponent {
     return message.authorId === this.authenticationStore.session()?.userId;
   }
 
+  protected authorLabel(message: Message): string {
+    if (this.isAuthoredByCurrentUser(message)) {
+      return 'You';
+    }
+
+    return (
+      this.store
+        .authorProfiles()
+        .find((profile) => profile.id === message.authorId)?.displayName ??
+      'Another user'
+    );
+  }
+
   protected beginEdit(messageId: MessageId): void {
     this.store.clearEditError();
     this.deletingMessageId.set(null);

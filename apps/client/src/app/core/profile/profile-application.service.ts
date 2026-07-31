@@ -2,9 +2,11 @@ import { Injectable } from '@angular/core';
 import { Effect, Either } from 'effect';
 import {
   getCurrentProfile,
+  listCurrentProfiles,
   type GetCurrentProfileError,
+  type ListCurrentProfilesError,
 } from '@chat-hub/application/profile';
-import type { Profile } from '@chat-hub/domain/profile';
+import type { Profile, ProfileId } from '@chat-hub/domain/profile';
 import { applicationRuntime } from '../effect/application-runtime';
 
 /**
@@ -29,6 +31,19 @@ export class ProfileApplicationService {
   ): Promise<Either.Either<Profile, GetCurrentProfileError>> {
     return applicationRuntime.runPromise(
       getCurrentProfile({ userId }).pipe(Effect.either)
+    );
+  }
+
+  /**
+   * Loads current profiles for message-author identities in one batch.
+   *
+   * RLS may omit identities that are not visible to the current session.
+   */
+  listCurrentProfiles(
+    profileIds: readonly ProfileId[]
+  ): Promise<Either.Either<readonly Profile[], ListCurrentProfilesError>> {
+    return applicationRuntime.runPromise(
+      listCurrentProfiles({ profileIds }).pipe(Effect.either)
     );
   }
 }
