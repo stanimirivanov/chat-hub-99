@@ -1,5 +1,5 @@
 import { Effect } from 'effect';
-import type { WorkspaceRepositoryError } from '@chat-hub/application/workspace';
+import type { WorkspaceRepositoryReadError } from '@chat-hub/application/workspace';
 import type { Workspace } from '@chat-hub/domain/workspace';
 import { mapWorkspaceRepositoryError } from '../errors';
 import { mapCurrentWorkspace } from '../mapping';
@@ -16,7 +16,7 @@ import type { SupabaseWorkspaceClient } from '../supabase-workspace-client';
  */
 export const listAccessibleWorkspaces = (
   client: SupabaseWorkspaceClient
-): Effect.Effect<readonly Workspace[], WorkspaceRepositoryError> =>
+): Effect.Effect<readonly Workspace[], WorkspaceRepositoryReadError> =>
   Effect.tryPromise({
     try: () =>
       client
@@ -27,13 +27,18 @@ export const listAccessibleWorkspaces = (
         .order('workspace_id', { ascending: true }),
     catch: mapWorkspaceRepositoryError,
   }).pipe(
-    Effect.flatMap(({ data, error }) => {
-      if (error !== null) {
-        return Effect.fail(mapWorkspaceRepositoryError(error));
+    Effect.flatMap(
+      ({
+        data,
+        error,
+      }): Effect.Effect<readonly Workspace[], WorkspaceRepositoryReadError> => {
+        if (error !== null) {
+          return Effect.fail(mapWorkspaceRepositoryError(error));
+        }
+
+        const rows = data ?? [];
+
+        return Effect.forEach(rows, (row) => mapCurrentWorkspace(row));
       }
-
-      const rows = data ?? [];
-
-      return Effect.forEach(rows, (row) => mapCurrentWorkspace(row));
-    })
+    )
   );

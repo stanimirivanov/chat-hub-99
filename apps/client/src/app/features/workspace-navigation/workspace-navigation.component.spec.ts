@@ -44,12 +44,16 @@ const configureComponent = async ({
     selectedWorkspaceId: signal(null),
     selectedWorkspace: signal(null),
     isLoading: signal(false),
+    isCreating: signal(false),
     hasWorkspaces: signal(workspaces.length > 0),
     loadStatus: signal('loaded'),
     error: signal(null),
+    creationError: signal(null),
     load: vi.fn().mockResolvedValue(undefined),
+    createWorkspace: vi.fn().mockResolvedValue(workspace),
     select: vi.fn().mockReturnValue(true),
     clearSelection: vi.fn(),
+    clearCreationError: vi.fn(),
   };
 
   TestBed.overrideComponent(WorkspaceNavigationComponent, {
@@ -128,6 +132,54 @@ describe('WorkspaceNavigationComponent', () => {
       },
       queryParamsHandling: 'merge',
       replaceUrl: true,
+    });
+  });
+
+  it('creates a workspace and navigates to its canonical slug', async () => {
+    const { fixture, route, router, store } = await configureComponent({
+      queryParams: {},
+    });
+    const buttons = Array.from(
+      fixture.nativeElement.querySelectorAll(
+        'button'
+      ) as NodeListOf<HTMLButtonElement>
+    );
+    const createButton = buttons.find(
+      (button) => button.textContent?.trim() === 'Create workspace'
+    );
+
+    createButton?.click();
+    fixture.detectChanges();
+
+    const nameInput: HTMLInputElement =
+      fixture.nativeElement.querySelector('#workspace-name');
+    const slugInput: HTMLInputElement =
+      fixture.nativeElement.querySelector('#workspace-slug');
+    const descriptionInput: HTMLTextAreaElement =
+      fixture.nativeElement.querySelector('#workspace-description');
+    const form: HTMLFormElement = fixture.nativeElement.querySelector('form');
+
+    nameInput.value = 'Chat Hub Development';
+    slugInput.value = 'chat-hub-development';
+    descriptionInput.value = 'Team collaboration';
+    form.dispatchEvent(
+      new Event('submit', { bubbles: true, cancelable: true })
+    );
+
+    await fixture.whenStable();
+
+    expect(store.createWorkspace).toHaveBeenCalledExactlyOnceWith({
+      name: 'Chat Hub Development',
+      slug: 'chat-hub-development',
+      description: 'Team collaboration',
+    });
+    expect(router.navigate).toHaveBeenCalledExactlyOnceWith([], {
+      relativeTo: route,
+      queryParams: {
+        workspace: workspace.slug,
+        channel: null,
+      },
+      queryParamsHandling: 'merge',
     });
   });
 });

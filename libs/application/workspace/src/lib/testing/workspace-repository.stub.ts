@@ -12,17 +12,34 @@ export const makeWorkspaceRepositoryStub = (
     Effect.dieMessage(
       'Unexpected WorkspaceRepository.listAccessible call in test'
     ),
+  create: () =>
+    Effect.dieMessage('Unexpected WorkspaceRepository.create call in test'),
   ...overrides,
 });
+
+export const makeWorkspaceRepositoryLayer = (
+  overrides: Partial<WorkspaceRepository> = {}
+): Layer.Layer<WorkspaceRepository> =>
+  Layer.succeed(WorkspaceRepositoryTag, makeWorkspaceRepositoryStub(overrides));
 
 export const makeListAccessibleWorkspaceRepository = (
   implementation: WorkspaceRepository['listAccessible']
 ) => {
   const listAccessible = vi.fn(implementation);
-  const repository = makeWorkspaceRepositoryStub({ listAccessible });
 
   return {
     listAccessible,
-    repositoryLayer: Layer.succeed(WorkspaceRepositoryTag, repository),
+    repositoryLayer: makeWorkspaceRepositoryLayer({ listAccessible }),
+  };
+};
+
+export const makeCreateWorkspaceRepository = (
+  implementation: WorkspaceRepository['create']
+) => {
+  const create = vi.fn(implementation);
+
+  return {
+    create,
+    repositoryLayer: makeWorkspaceRepositoryLayer({ create }),
   };
 };

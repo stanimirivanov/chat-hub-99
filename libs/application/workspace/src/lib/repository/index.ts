@@ -1,9 +1,12 @@
 export {
   WorkspaceRepositoryTag,
+  type CreateWorkspaceCommand,
   type WorkspaceRepository,
 } from './workspace-repository';
 export {
   InvalidWorkspaceDataError,
   WorkspaceRepositoryUnavailableError,
-  type WorkspaceRepositoryError,
+  WorkspaceSlugUnavailableError,
+  type WorkspaceRepositoryCreateError,
+  type WorkspaceRepositoryReadError,
 } from './workspace-repository-error';

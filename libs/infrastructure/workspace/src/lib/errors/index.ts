@@ -1,1 +1,4 @@
-export { mapWorkspaceRepositoryError } from './workspace-repository-error-mapper';
+export {
+  mapWorkspaceCreateError,
+  mapWorkspaceRepositoryError,
+} from './workspace-repository-error-mapper';

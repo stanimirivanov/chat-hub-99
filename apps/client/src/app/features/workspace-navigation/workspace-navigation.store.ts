@@ -1,5 +1,9 @@
 import { computed, inject } from '@angular/core';
 import { Either } from 'effect';
+import type {
+  CreateWorkspaceError,
+  CreateWorkspaceInput,
+} from '@chat-hub/application/workspace';
 import {
   patchState,
   signalStore,
@@ -7,7 +11,7 @@ import {
   withMethods,
   withState,
 } from '@ngrx/signals';
-import type { WorkspaceId } from '@chat-hub/domain/workspace';
+import type { Workspace, WorkspaceId } from '@chat-hub/domain/workspace';
 import { WorkspaceApplicationService } from '@client/core/workspace/workspace-application.service';
 import { initialWorkspaceNavigationState } from './workspace-navigation.state';
 
@@ -19,6 +23,7 @@ export const WorkspaceNavigationStore = signalStore(
 
   withComputed((store) => ({
     isLoading: computed(() => store.loadStatus() === 'loading'),
+    isCreating: computed(() => store.creationStatus() === 'creating'),
     hasWorkspaces: computed(() => store.workspaces().length > 0),
     selectedWorkspace: computed(() => {
       const selectedWorkspaceId = store.selectedWorkspaceId();
@@ -52,6 +57,8 @@ export const WorkspaceNavigationStore = signalStore(
           patchState(store, {
             loadStatus: 'loading',
             error: null,
+            creationStatus: 'idle',
+            creationError: null,
           });
 
           loading = workspaceApplication
@@ -113,7 +120,93 @@ export const WorkspaceNavigationStore = signalStore(
             selectedWorkspaceId: null,
           });
         },
+
+        /**
+         * Creates a workspace and inserts the canonical result into navigation.
+         */
+        async createWorkspace(
+          input: CreateWorkspaceInput
+        ): Promise<Workspace | null> {
+          if (
+            store.loadStatus() !== 'loaded' ||
+            store.creationStatus() === 'creating'
+          ) {
+            return null;
+          }
+
+          patchState(store, {
+            creationStatus: 'creating',
+            creationError: null,
+          });
+
+          const result = await workspaceApplication.createWorkspace(input);
+
+          return Either.match(result, {
+            onLeft: (error) => {
+              patchState(store, {
+                creationStatus: 'failed',
+                creationError: toWorkspaceCreationError(error),
+              });
+
+              return null;
+            },
+            onRight: (workspace) => {
+              patchState(store, {
+                workspaces: insertWorkspace(store.workspaces(), workspace),
+                creationStatus: 'idle',
+                creationError: null,
+              });
+
+              return workspace;
+            },
+          });
+        },
+
+        clearCreationError(): void {
+          patchState(store, {
+            creationStatus: 'idle',
+            creationError: null,
+          });
+        },
       };
     }
   )
 );
+
+const insertWorkspace = (
+  workspaces: readonly Workspace[],
+  created: Workspace
+): readonly Workspace[] =>
+  [
+    ...workspaces.filter((workspace) => workspace.id !== created.id),
+    created,
+  ].sort(
+    (left, right) =>
+      left.name.localeCompare(right.name) || left.id.localeCompare(right.id)
+  );
+
+const toWorkspaceCreationError = (
+  error: CreateWorkspaceError
+): { readonly message: string } => {
+  switch (error._tag) {
+    case 'InvalidWorkspaceCreationInputError':
+      return {
+        message:
+          error.field === 'name'
+            ? 'Enter a workspace name.'
+            : error.field === 'slug'
+              ? 'Use lowercase letters, numbers, and single hyphens for the workspace URL.'
+              : 'Check the workspace description and try again.',
+      };
+
+    case 'WorkspaceSlugUnavailableError':
+      return {
+        message: 'That workspace URL is already in use.',
+      };
+
+    default:
+      return {
+        message: 'The workspace could not be created. Please try again.',
+      };
+  }
+};

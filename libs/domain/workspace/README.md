@@ -21,6 +21,7 @@ Supabase, generated database types, or application services.
 ## Public API
 
 - `WorkspaceIdSchema` and `WorkspaceId`
+- `WorkspaceNameSchema` and `WorkspaceSlugSchema`
 - `WorkspaceSchema` and `Workspace`
 
 ## Verification
