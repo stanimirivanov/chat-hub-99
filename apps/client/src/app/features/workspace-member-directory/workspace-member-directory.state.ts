@@ -11,6 +11,8 @@ export type WorkspaceMemberLoadStatus =
   | 'loaded'
   | 'failed';
 
+export type WorkspaceMemberRoleChangeStatus = 'idle' | 'changing' | 'failed';
+
 export interface WorkspaceMemberDirectoryError {
   readonly message: string;
 }
@@ -33,6 +35,9 @@ export interface WorkspaceMemberDirectoryState {
   readonly profiles: readonly Profile[];
   readonly loadStatus: WorkspaceMemberLoadStatus;
   readonly error: WorkspaceMemberDirectoryError | null;
+  readonly roleChangeStatus: WorkspaceMemberRoleChangeStatus;
+  readonly changingProfileId: ProfileId | null;
+  readonly roleChangeError: WorkspaceMemberDirectoryError | null;
 }
 
 export const initialWorkspaceMemberDirectoryState: WorkspaceMemberDirectoryState =
@@ -42,4 +47,7 @@ export const initialWorkspaceMemberDirectoryState: WorkspaceMemberDirectoryState
     profiles: [],
     loadStatus: 'idle',
     error: null,
+    roleChangeStatus: 'idle',
+    changingProfileId: null,
+    roleChangeError: null,
   };

@@ -1,9 +1,12 @@
 import { Injectable } from '@angular/core';
 import { Effect, Either } from 'effect';
 import {
+  changeWorkspaceMemberRole,
   createWorkspace,
   listAccessibleWorkspaces,
   listWorkspaceMembers,
+  type ChangeWorkspaceMemberRoleError,
+  type ChangeWorkspaceMemberRoleInput,
   type CreateWorkspaceError,
   type CreateWorkspaceInput,
   type WorkspaceMemberRepositoryReadError,
@@ -52,6 +55,17 @@ export class WorkspaceApplicationService {
   > {
     return applicationRuntime.runPromise(
       listWorkspaceMembers(workspaceId).pipe(Effect.either)
+    );
+  }
+
+  /**
+   * Changes one active workspace member's role using session authorization.
+   */
+  changeWorkspaceMemberRole(
+    input: ChangeWorkspaceMemberRoleInput
+  ): Promise<Either.Either<WorkspaceMember, ChangeWorkspaceMemberRoleError>> {
+    return applicationRuntime.runPromise(
+      changeWorkspaceMemberRole(input).pipe(Effect.either)
     );
   }
 

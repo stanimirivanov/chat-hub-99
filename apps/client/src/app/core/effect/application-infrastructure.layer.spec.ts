@@ -73,5 +73,9 @@ describe('makeApplicationInfrastructureLayer', () => {
     );
 
     expect(repository.workspaceRepository.create).toBeTypeOf('function');
+
+    expect(repository.workspaceRepository.changeMemberRole).toBeTypeOf(
+      'function'
+    );
   });
 });
