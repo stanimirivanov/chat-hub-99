@@ -88,6 +88,16 @@ Creation has independent pending/error state and inserts only the canonical RPC
 result into navigation. The component then writes the returned slug to the URL,
 leaving the existing route effect as the selection authority.
 
+The same navigation slice lets an owner replace the selected workspace's name,
+slug, and description. It receives the owner affordance derived by the existing
+member-directory feature rather than issuing a duplicate membership query;
+Supabase remains the authorization boundary. Update state is independent from
+creation, the canonical RPC result replaces the navigation projection, and a
+selection generation rejects responses that complete after navigating away and
+back. When the slug changes, the component replaces only the workspace query
+parameter, preserving the selected channel while avoiding an invalid historical
+URL.
+
 The nested `workspace-member-directory` slice loads active RLS-visible
 memberships for the selected workspace and batch-enriches their stable profile
 identities. Owners are displayed before members and the authenticated user is

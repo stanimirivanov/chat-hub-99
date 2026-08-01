@@ -1,5 +1,6 @@
-import { signal } from '@angular/core';
+import { Component, input, output, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import {
   ActivatedRoute,
   convertToParamMap,
@@ -10,6 +11,8 @@ import { Schema } from 'effect';
 import { BehaviorSubject } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
 import { WorkspaceIdSchema, type Workspace } from '@chat-hub/domain/workspace';
+import { ChannelNavigationComponent } from '@client/features/channel-navigation/channel-navigation.component';
+import { WorkspaceMemberDirectoryComponent } from '@client/features/workspace-member-directory/workspace-member-directory.component';
 import { WorkspaceNavigationComponent } from './workspace-navigation.component';
 import { WorkspaceNavigationStore } from './workspace-navigation.store';
 
@@ -22,12 +25,40 @@ const workspace: Workspace = {
   description: null,
 };
 
+const updatedWorkspace: Workspace = {
+  ...workspace,
+  name: 'Chat Hub Community',
+  slug: 'chat-hub-community',
+  description: 'Updated collaboration space',
+};
+
+@Component({
+  selector: 'app-channel-navigation',
+  standalone: true,
+  template: '',
+})
+class ChannelNavigationStubComponent {
+  readonly workspaceId = input.required<typeof workspace.id>();
+}
+
+@Component({
+  selector: 'app-workspace-member-directory',
+  standalone: true,
+  template: '',
+})
+class WorkspaceMemberDirectoryStubComponent {
+  readonly workspaceId = input.required<typeof workspace.id>();
+  readonly canManageMembersChange = output<boolean>();
+}
+
 const configureComponent = async ({
   queryParams,
   workspaces = [workspace],
+  selectedWorkspace = null,
 }: {
   readonly queryParams: Params;
   readonly workspaces?: readonly Workspace[];
+  readonly selectedWorkspace?: Workspace | null;
 }) => {
   const queryParamMap = new BehaviorSubject(convertToParamMap(queryParams));
   const route = {
@@ -41,20 +72,36 @@ const configureComponent = async ({
   };
   const store = {
     workspaces: signal(workspaces),
-    selectedWorkspaceId: signal(null),
-    selectedWorkspace: signal(null),
+    selectedWorkspaceId: signal(selectedWorkspace?.id ?? null),
+    selectedWorkspace: signal(selectedWorkspace),
     isLoading: signal(false),
     isCreating: signal(false),
+    isUpdating: signal(false),
     hasWorkspaces: signal(workspaces.length > 0),
     loadStatus: signal('loaded'),
     error: signal(null),
     creationError: signal(null),
+    updateError: signal(null),
     load: vi.fn().mockResolvedValue(undefined),
     createWorkspace: vi.fn().mockResolvedValue(workspace),
+    updateSelectedWorkspace: vi.fn().mockResolvedValue(updatedWorkspace),
     select: vi.fn().mockReturnValue(true),
     clearSelection: vi.fn(),
     clearCreationError: vi.fn(),
+    clearUpdateError: vi.fn(),
   };
+
+  TestBed.overrideComponent(WorkspaceNavigationComponent, {
+    remove: {
+      imports: [ChannelNavigationComponent, WorkspaceMemberDirectoryComponent],
+    },
+    add: {
+      imports: [
+        ChannelNavigationStubComponent,
+        WorkspaceMemberDirectoryStubComponent,
+      ],
+    },
+  });
 
   TestBed.overrideComponent(WorkspaceNavigationComponent, {
     set: {
@@ -180,6 +227,62 @@ describe('WorkspaceNavigationComponent', () => {
         channel: null,
       },
       queryParamsHandling: 'merge',
+    });
+  });
+
+  it('lets an owner edit details and replaces a changed slug in the URL', async () => {
+    const { fixture, route, router, store } = await configureComponent({
+      queryParams: {
+        workspace: workspace.slug,
+        channel: 'general',
+      },
+      selectedWorkspace: workspace,
+    });
+    const directory = fixture.debugElement.query(
+      By.directive(WorkspaceMemberDirectoryStubComponent)
+    ).componentInstance as WorkspaceMemberDirectoryStubComponent;
+
+    expect(fixture.nativeElement.textContent).not.toContain('Edit workspace');
+    directory.canManageMembersChange.emit(true);
+    fixture.detectChanges();
+
+    const editButton = Array.from(
+      fixture.nativeElement.querySelectorAll(
+        'button'
+      ) as NodeListOf<HTMLButtonElement>
+    ).find((button) => button.textContent?.trim() === 'Edit workspace');
+    editButton?.click();
+    fixture.detectChanges();
+
+    const nameInput = fixture.nativeElement.querySelector(
+      '#workspace-edit-name'
+    ) as HTMLInputElement;
+    const slugInput = fixture.nativeElement.querySelector(
+      '#workspace-edit-slug'
+    ) as HTMLInputElement;
+    const descriptionInput = fixture.nativeElement.querySelector(
+      '#workspace-edit-description'
+    ) as HTMLTextAreaElement;
+    const form = nameInput.closest('form') as HTMLFormElement;
+    nameInput.value = updatedWorkspace.name;
+    slugInput.value = updatedWorkspace.slug;
+    descriptionInput.value = updatedWorkspace.description ?? '';
+    form.dispatchEvent(
+      new Event('submit', { bubbles: true, cancelable: true })
+    );
+
+    await fixture.whenStable();
+
+    expect(store.updateSelectedWorkspace).toHaveBeenCalledExactlyOnceWith({
+      name: updatedWorkspace.name,
+      slug: updatedWorkspace.slug,
+      description: updatedWorkspace.description,
+    });
+    expect(router.navigate).toHaveBeenCalledExactlyOnceWith([], {
+      relativeTo: route,
+      queryParams: { workspace: updatedWorkspace.slug },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
     });
   });
 });

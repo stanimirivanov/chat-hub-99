@@ -3,6 +3,8 @@ import { Either } from 'effect';
 import type {
   CreateWorkspaceError,
   CreateWorkspaceInput,
+  UpdateWorkspaceError,
+  UpdateWorkspaceInput,
 } from '@chat-hub/application/workspace';
 import {
   patchState,
@@ -24,6 +26,7 @@ export const WorkspaceNavigationStore = signalStore(
   withComputed((store) => ({
     isLoading: computed(() => store.loadStatus() === 'loading'),
     isCreating: computed(() => store.creationStatus() === 'creating'),
+    isUpdating: computed(() => store.updateStatus() === 'updating'),
     hasWorkspaces: computed(() => store.workspaces().length > 0),
     selectedWorkspace: computed(() => {
       const selectedWorkspaceId = store.selectedWorkspaceId();
@@ -39,6 +42,7 @@ export const WorkspaceNavigationStore = signalStore(
   withMethods(
     (store, workspaceApplication = inject(WorkspaceApplicationService)) => {
       let loading: Promise<void> | null = null;
+      let selectionVersion = 0;
 
       return {
         /**
@@ -59,6 +63,8 @@ export const WorkspaceNavigationStore = signalStore(
             error: null,
             creationStatus: 'idle',
             creationError: null,
+            updateStatus: 'idle',
+            updateError: null,
           });
 
           loading = workspaceApplication
@@ -66,6 +72,7 @@ export const WorkspaceNavigationStore = signalStore(
             .then((result) => {
               Either.match(result, {
                 onLeft: () => {
+                  selectionVersion += 1;
                   patchState(store, {
                     workspaces: [],
                     selectedWorkspaceId: null,
@@ -77,6 +84,7 @@ export const WorkspaceNavigationStore = signalStore(
                   });
                 },
                 onRight: (workspaces) => {
+                  selectionVersion += 1;
                   patchState(store, {
                     workspaces,
                     selectedWorkspaceId: null,
@@ -105,8 +113,17 @@ export const WorkspaceNavigationStore = signalStore(
             return false;
           }
 
+          const selectionChanged = store.selectedWorkspaceId() !== workspaceId;
+
+          if (selectionChanged) {
+            selectionVersion += 1;
+          }
+
           patchState(store, {
             selectedWorkspaceId: workspaceId,
+            ...(selectionChanged
+              ? { updateStatus: 'idle' as const, updateError: null }
+              : {}),
           });
 
           return true;
@@ -116,8 +133,14 @@ export const WorkspaceNavigationStore = signalStore(
          * Clears presentation selection without reloading the collection.
          */
         clearSelection(): void {
+          if (store.selectedWorkspaceId() !== null) {
+            selectionVersion += 1;
+          }
+
           patchState(store, {
             selectedWorkspaceId: null,
+            updateStatus: 'idle',
+            updateError: null,
           });
         },
 
@@ -129,7 +152,8 @@ export const WorkspaceNavigationStore = signalStore(
         ): Promise<Workspace | null> {
           if (
             store.loadStatus() !== 'loaded' ||
-            store.creationStatus() === 'creating'
+            store.creationStatus() === 'creating' ||
+            store.updateStatus() === 'updating'
           ) {
             return null;
           }
@@ -152,7 +176,7 @@ export const WorkspaceNavigationStore = signalStore(
             },
             onRight: (workspace) => {
               patchState(store, {
-                workspaces: insertWorkspace(store.workspaces(), workspace),
+                workspaces: upsertWorkspace(store.workspaces(), workspace),
                 creationStatus: 'idle',
                 creationError: null,
               });
@@ -168,12 +192,79 @@ export const WorkspaceNavigationStore = signalStore(
             creationError: null,
           });
         },
+
+        /**
+         * Replaces the selected workspace with the canonical application
+         * result. A selection generation prevents a late response from
+         * updating a workspace after navigation moved elsewhere and back.
+         */
+        async updateSelectedWorkspace(
+          details: Omit<UpdateWorkspaceInput, 'workspaceId'>
+        ): Promise<Workspace | null> {
+          const workspaceId = store.selectedWorkspaceId();
+
+          if (
+            workspaceId === null ||
+            store.loadStatus() !== 'loaded' ||
+            store.updateStatus() === 'updating' ||
+            store.creationStatus() === 'creating'
+          ) {
+            return null;
+          }
+
+          const version = selectionVersion;
+          patchState(store, {
+            updateStatus: 'updating',
+            updateError: null,
+          });
+
+          const result = await workspaceApplication.updateWorkspace({
+            workspaceId,
+            ...details,
+          });
+
+          if (
+            version !== selectionVersion ||
+            store.selectedWorkspaceId() !== workspaceId
+          ) {
+            return null;
+          }
+
+          return Either.match(result, {
+            onLeft: (error) => {
+              patchState(store, {
+                updateStatus: 'failed',
+                updateError: toWorkspaceUpdateError(error),
+              });
+
+              return null;
+            },
+            onRight: (workspace) => {
+              patchState(store, {
+                workspaces: upsertWorkspace(store.workspaces(), workspace),
+                updateStatus: 'idle',
+                updateError: null,
+              });
+
+              return workspace;
+            },
+          });
+        },
+
+        clearUpdateError(): void {
+          if (store.updateStatus() !== 'updating') {
+            patchState(store, {
+              updateStatus: 'idle',
+              updateError: null,
+            });
+          }
+        },
       };
     }
   )
 );
 
-const insertWorkspace = (
+const upsertWorkspace = (
   workspaces: readonly Workspace[],
   created: Workspace
 ): readonly Workspace[] =>
@@ -207,6 +298,35 @@ const toWorkspaceCreationError = (
     default:
       return {
         message: 'The workspace could not be created. Please try again.',
+      };
+  }
+};
+
+const toWorkspaceUpdateError = (
+  error: UpdateWorkspaceError
+): { readonly message: string } => {
+  switch (error._tag) {
+    case 'InvalidWorkspaceUpdateInputError':
+      return {
+        message:
+          error.field === 'name'
+            ? 'Enter a workspace name.'
+            : error.field === 'slug'
+              ? 'Use lowercase letters, numbers, and single hyphens for the workspace URL.'
+              : error.field === 'description'
+                ? 'Check the workspace description and try again.'
+                : 'The selected workspace is invalid.',
+      };
+    case 'WorkspaceSlugUnavailableError':
+      return { message: 'That workspace URL is already in use.' };
+    case 'WorkspaceUpdateNotAllowedError':
+      return {
+        message: 'You no longer have permission to edit this workspace.',
+      };
+    case 'InvalidWorkspaceDataError':
+    case 'WorkspaceRepositoryUnavailableError':
+      return {
+        message: 'The workspace could not be updated. Please try again.',
       };
   }
 };

@@ -4,6 +4,7 @@ import {
   changeWorkspaceMemberRole,
   createWorkspace,
   removeWorkspaceMember,
+  updateWorkspace,
 } from './commands';
 import { listAccessibleWorkspaces, listWorkspaceMembers } from './queries';
 import type { SupabaseWorkspaceClient } from './supabase-workspace-client';
@@ -17,4 +18,5 @@ export const makeSupabaseWorkspaceRepository = (
   create: (command) => createWorkspace(client, command),
   changeMemberRole: (command) => changeWorkspaceMemberRole(client, command),
   removeMember: (command) => removeWorkspaceMember(client, command),
+  update: (command) => updateWorkspace(client, command),
 });

@@ -7,6 +7,7 @@ import {
   listAccessibleWorkspaces,
   listWorkspaceMembers,
   removeWorkspaceMember,
+  updateWorkspace,
   type AddedWorkspaceMember,
   type AddWorkspaceMemberByUsernameError,
   type AddWorkspaceMemberByUsernameInput,
@@ -18,6 +19,8 @@ import {
   type RemoveWorkspaceMemberInput,
   type WorkspaceMemberRepositoryReadError,
   type WorkspaceRepositoryReadError,
+  type UpdateWorkspaceError,
+  type UpdateWorkspaceInput,
 } from '@chat-hub/application/workspace';
 import type {
   Workspace,
@@ -108,6 +111,17 @@ export class WorkspaceApplicationService {
   ): Promise<Either.Either<Workspace, CreateWorkspaceError>> {
     return applicationRuntime.runPromise(
       createWorkspace(input).pipe(Effect.either)
+    );
+  }
+
+  /**
+   * Replaces one active workspace's mutable details using session authorization.
+   */
+  updateWorkspace(
+    input: UpdateWorkspaceInput
+  ): Promise<Either.Either<Workspace, UpdateWorkspaceError>> {
+    return applicationRuntime.runPromise(
+      updateWorkspace(input).pipe(Effect.either)
     );
   }
 }

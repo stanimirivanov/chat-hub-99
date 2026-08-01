@@ -5,6 +5,7 @@ export {
   currentWorkspaceMemberRow,
   currentWorkspaceRow,
   removedWorkspaceMemberRow,
+  updatedWorkspaceRow,
 } from './workspace-fixtures';
 export { makeWorkspaceCommandClientStub } from './supabase-workspace-command-client.stub';
 export {

@@ -4,7 +4,9 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   WorkspaceRepositoryUnavailableError,
   WorkspaceSlugUnavailableError,
+  WorkspaceUpdateNotAllowedError,
   type CreateWorkspaceError,
+  type UpdateWorkspaceError,
   type WorkspaceRepositoryReadError,
 } from '@chat-hub/application/workspace';
 import { WorkspaceIdSchema, type Workspace } from '@chat-hub/domain/workspace';
@@ -35,6 +37,20 @@ const createdWorkspace: Workspace = {
   description: 'Design collaboration',
 };
 
+const updatedWorkspace: Workspace = {
+  ...workspace,
+  name: 'Chat Hub Community',
+  slug: 'chat-hub-community',
+  description: 'Updated collaboration space',
+};
+
+const otherWorkspace: Workspace = {
+  id: inaccessibleWorkspaceId,
+  name: 'Other Workspace',
+  slug: 'other-workspace',
+  description: null,
+};
+
 const configureStore = (
   result: Either.Either<
     readonly Workspace[],
@@ -42,11 +58,15 @@ const configureStore = (
   > = Either.right([workspace]),
   creationResult: Either.Either<Workspace, CreateWorkspaceError> = Either.right(
     createdWorkspace
+  ),
+  updateResult: Either.Either<Workspace, UpdateWorkspaceError> = Either.right(
+    updatedWorkspace
   )
 ) => {
   const service = {
     listAccessibleWorkspaces: vi.fn().mockResolvedValue(result),
     createWorkspace: vi.fn().mockResolvedValue(creationResult),
+    updateWorkspace: vi.fn().mockResolvedValue(updateResult),
   };
 
   TestBed.configureTestingModule({
@@ -173,5 +193,95 @@ describe('WorkspaceNavigationStore', () => {
 
     expect(store.creationStatus()).toBe('idle');
     expect(store.creationError()).toBeNull();
+  });
+
+  it('replaces the selected workspace with the canonical update result', async () => {
+    const { store, service } = configureStore();
+    await store.load();
+    store.select(workspace.id);
+
+    const update = store.updateSelectedWorkspace({
+      name: ' Chat Hub Community ',
+      slug: ' Chat-Hub-Community ',
+      description: ' Updated collaboration space ',
+    });
+
+    expect(store.isUpdating()).toBe(true);
+    await expect(update).resolves.toBe(updatedWorkspace);
+    expect(service.updateWorkspace).toHaveBeenCalledExactlyOnceWith({
+      workspaceId: workspace.id,
+      name: ' Chat Hub Community ',
+      slug: ' Chat-Hub-Community ',
+      description: ' Updated collaboration space ',
+    });
+    expect(store.workspaces()).toEqual([updatedWorkspace]);
+    expect(store.selectedWorkspace()).toBe(updatedWorkspace);
+    expect(store.updateStatus()).toBe('idle');
+    expect(store.updateError()).toBeNull();
+  });
+
+  it.each([
+    [
+      new WorkspaceSlugUnavailableError({ slug: updatedWorkspace.slug }),
+      'That workspace URL is already in use.',
+    ],
+    [
+      new WorkspaceUpdateNotAllowedError({ workspaceId: workspace.id }),
+      'You no longer have permission to edit this workspace.',
+    ],
+  ])('retains navigation and presents $._tag', async (failure, message) => {
+    const { store } = configureStore(
+      Either.right([workspace]),
+      undefined,
+      Either.left(failure)
+    );
+    await store.load();
+    store.select(workspace.id);
+
+    await expect(
+      store.updateSelectedWorkspace({
+        name: updatedWorkspace.name,
+        slug: updatedWorkspace.slug,
+        description: updatedWorkspace.description,
+      })
+    ).resolves.toBeNull();
+
+    expect(store.workspaces()).toEqual([workspace]);
+    expect(store.updateStatus()).toBe('failed');
+    expect(store.updateError()).toEqual({ message });
+
+    store.clearUpdateError();
+    expect(store.updateStatus()).toBe('idle');
+    expect(store.updateError()).toBeNull();
+  });
+
+  it('ignores an update result after selection moves elsewhere and back', async () => {
+    let resolveUpdate:
+      | ((result: Either.Either<Workspace, never>) => void)
+      | undefined;
+    const updateResult = new Promise<Either.Either<Workspace, never>>(
+      (resolve) => {
+        resolveUpdate = resolve;
+      }
+    );
+    const { store, service } = configureStore(
+      Either.right([workspace, otherWorkspace])
+    );
+    service.updateWorkspace.mockReturnValue(updateResult);
+    await store.load();
+    store.select(workspace.id);
+
+    const staleUpdate = store.updateSelectedWorkspace({
+      name: updatedWorkspace.name,
+      slug: updatedWorkspace.slug,
+      description: updatedWorkspace.description,
+    });
+    store.select(otherWorkspace.id);
+    store.select(workspace.id);
+    resolveUpdate?.(Either.right(updatedWorkspace));
+
+    await expect(staleUpdate).resolves.toBeNull();
+    expect(store.workspaces()).toEqual([workspace, otherWorkspace]);
+    expect(store.updateStatus()).toBe('idle');
   });
 });

@@ -28,6 +28,8 @@ export const makeWorkspaceRepositoryStub = (
     Effect.dieMessage(
       'Unexpected WorkspaceRepository.removeMember call in test'
     ),
+  update: () =>
+    Effect.dieMessage('Unexpected WorkspaceRepository.update call in test'),
   ...overrides,
 });
 
@@ -66,6 +68,17 @@ export const makeCreateWorkspaceRepository = (
   return {
     create,
     repositoryLayer: makeWorkspaceRepositoryLayer({ create }),
+  };
+};
+
+export const makeUpdateWorkspaceRepository = (
+  implementation: WorkspaceRepository['update']
+) => {
+  const update = vi.fn(implementation);
+
+  return {
+    update,
+    repositoryLayer: makeWorkspaceRepositoryLayer({ update }),
   };
 };
 

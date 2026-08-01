@@ -77,18 +77,24 @@ const renderComponent = async (currentProfileId: ProfileId) => {
   }).compileComponents();
 
   const fixture = TestBed.createComponent(WorkspaceMemberDirectoryComponent);
+  const managementChanges: boolean[] = [];
+  fixture.componentInstance.canManageMembersChange.subscribe((canManage) => {
+    managementChanges.push(canManage);
+  });
   fixture.componentRef.setInput('workspaceId', workspaceId);
   fixture.detectChanges();
   await fixture.whenStable();
 
-  return { fixture, store };
+  return { fixture, managementChanges, store };
 };
 
 describe('WorkspaceMemberDirectoryComponent', () => {
   it('loads the workspace and lets the current owner request a role change', async () => {
-    const { fixture, store } = await renderComponent(ownerId);
+    const { fixture, managementChanges, store } =
+      await renderComponent(ownerId);
 
     expect(store.load).toHaveBeenCalledExactlyOnceWith(workspaceId);
+    expect(managementChanges).toContain(true);
     expect(fixture.nativeElement.textContent).toContain(
       'Workspace Owner (you) — Owner'
     );
@@ -105,11 +111,12 @@ describe('WorkspaceMemberDirectoryComponent', () => {
   });
 
   it('does not offer role controls to a non-owner member', async () => {
-    const { fixture } = await renderComponent(memberId);
+    const { fixture, managementChanges } = await renderComponent(memberId);
 
     expect(fixture.nativeElement.textContent).toContain(
       'Workspace Member (you) — Member'
     );
+    expect(managementChanges).toContain(false);
     expect(
       fixture.nativeElement.querySelectorAll('button[aria-label^="Make "]')
     ).toHaveLength(0);

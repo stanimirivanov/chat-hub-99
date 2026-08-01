@@ -1,6 +1,8 @@
 <section
   aria-labelledby="workspace-navigation-heading"
-  [attr.aria-busy]="store.isLoading() || store.isCreating()"
+  [attr.aria-busy]="
+    store.isLoading() || store.isCreating() || store.isUpdating()
+  "
 >
   <h1 id="workspace-navigation-heading">Workspaces</h1>
 
@@ -66,7 +68,11 @@
         </button>
       </form>
     } @else {
-      <button type="button" (click)="beginWorkspaceCreation()">
+      <button
+        type="button"
+        [disabled]="isEditingWorkspace()"
+        (click)="beginWorkspaceCreation()"
+      >
         Create workspace
       </button>
     }
@@ -107,7 +113,87 @@
             <p>{{ workspace.description }}</p>
           }
 
-          <app-workspace-member-directory [workspaceId]="workspace.id" />
+          @if (canManageSelectedWorkspace()) {
+            @if (isEditingWorkspace()) {
+              <form
+                (submit)="
+                  $event.preventDefault();
+                  saveWorkspaceChanges(
+                    workspace,
+                    editNameInput,
+                    editSlugInput,
+                    editDescriptionInput
+                  )
+                "
+              >
+                <label for="workspace-edit-name">Workspace name</label>
+                <input
+                  #editNameInput
+                  id="workspace-edit-name"
+                  name="workspace-edit-name"
+                  type="text"
+                  required
+                  [value]="workspace.name"
+                  [disabled]="store.isUpdating()"
+                />
+
+                <label for="workspace-edit-slug">Workspace URL</label>
+                <input
+                  #editSlugInput
+                  id="workspace-edit-slug"
+                  name="workspace-edit-slug"
+                  type="text"
+                  required
+                  aria-describedby="workspace-edit-slug-help"
+                  [value]="workspace.slug"
+                  [disabled]="store.isUpdating()"
+                />
+                <small id="workspace-edit-slug-help">
+                  Lowercase letters, numbers, and single hyphens.
+                </small>
+
+                <label for="workspace-edit-description">Description</label>
+                <textarea
+                  #editDescriptionInput
+                  id="workspace-edit-description"
+                  name="workspace-edit-description"
+                  [value]="workspace.description ?? ''"
+                  [disabled]="store.isUpdating()"
+                ></textarea>
+
+                <button type="submit" [disabled]="store.isUpdating()">
+                  @if (store.isUpdating()) {
+                    Saving&hellip;
+                  } @else {
+                    Save changes
+                  }
+                </button>
+                <button
+                  type="button"
+                  [disabled]="store.isUpdating()"
+                  (click)="cancelWorkspaceEditing()"
+                >
+                  Cancel
+                </button>
+              </form>
+            } @else {
+              <button type="button" (click)="beginWorkspaceEditing()">
+                Edit workspace
+              </button>
+            }
+          }
+
+          @if (store.updateError(); as error) {
+            <p role="alert">{{ error.message }}</p>
+            <button type="button" (click)="store.clearUpdateError()">
+              Dismiss
+            </button>
+          }
+
+          <app-workspace-member-directory
+            [workspaceId]="workspace.id"
+            (canManageMembersChange)="canManageSelectedWorkspace.set($event)"
+          />
 
           <app-channel-navigation [workspaceId]="workspace.id" />
         </section>

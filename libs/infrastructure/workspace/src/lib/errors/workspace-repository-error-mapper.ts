@@ -11,6 +11,7 @@ import {
   WorkspaceMemberRoleUnchangedError,
   WorkspaceRepositoryUnavailableError,
   WorkspaceSlugUnavailableError,
+  WorkspaceUpdateNotAllowedError,
   type ChangeWorkspaceMemberRoleCommand,
   type CreateWorkspaceCommand,
   type AddWorkspaceMemberCommand,
@@ -19,6 +20,8 @@ import {
   type WorkspaceMemberRemovalRepositoryError,
   type WorkspaceMemberRoleChangeRepositoryError,
   type WorkspaceRepositoryCreateError,
+  type UpdateWorkspaceCommand,
+  type WorkspaceRepositoryUpdateError,
 } from '@chat-hub/application/workspace';
 
 interface PostgrestErrorLike {
@@ -28,6 +31,15 @@ interface PostgrestErrorLike {
 }
 
 const WORKSPACE_SLUG_UNIQUE_CONSTRAINT = 'workspace_heads_current_slug_unique';
+
+const isWorkspaceSlugConflict = (error: PostgrestErrorLike): boolean => {
+  const description = `${error.message} ${error.details ?? ''}`;
+
+  return (
+    error.code === '23505' &&
+    description.includes(WORKSPACE_SLUG_UNIQUE_CONSTRAINT)
+  );
+};
 
 const isWorkspaceCommandNotAllowed = (
   error: PostgrestErrorLike,
@@ -53,14 +65,37 @@ export const mapWorkspaceCreateError = (
   command: CreateWorkspaceCommand,
   error: PostgrestErrorLike
 ): WorkspaceRepositoryCreateError => {
-  const description = `${error.message} ${error.details ?? ''}`;
-
-  if (
-    error.code === '23505' &&
-    description.includes(WORKSPACE_SLUG_UNIQUE_CONSTRAINT)
-  ) {
+  if (isWorkspaceSlugConflict(error)) {
     return new WorkspaceSlugUnavailableError({
       slug: command.slug,
+    });
+  }
+
+  return mapWorkspaceRepositoryError(error);
+};
+
+/**
+ * Preserves actionable update outcomes from the stable RPC error contract.
+ */
+export const mapWorkspaceUpdateError = (
+  command: UpdateWorkspaceCommand,
+  error: PostgrestErrorLike
+): WorkspaceRepositoryUpdateError => {
+  if (isWorkspaceSlugConflict(error)) {
+    return new WorkspaceSlugUnavailableError({ slug: command.slug });
+  }
+
+  const message = error.message.toLowerCase();
+
+  if (
+    error.code === '28000' ||
+    error.code === '42501' ||
+    (error.code === 'P0002' && message.includes('workspace not found')) ||
+    (error.code === '55000' &&
+      message.includes('archived workspaces cannot be updated'))
+  ) {
+    return new WorkspaceUpdateNotAllowedError({
+      workspaceId: command.workspaceId,
     });
   }
 

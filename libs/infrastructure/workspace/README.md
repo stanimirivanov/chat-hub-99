@@ -2,8 +2,9 @@
 
 `@chat-hub/infrastructure/workspace` implements workspace and active-membership
 discovery with RLS-protected Supabase views, creation with the transactional
-`create_workspace` RPC, role changes with `change_workspace_member_role`, and
-member addition with `add_workspace_member`, and member removal with
+`create_workspace` RPC, detail replacement with `update_workspace`, member
+addition with `add_workspace_member`, role changes with
+`change_workspace_member_role`, and member removal with
 `remove_workspace_member`.
 
 ## Responsibilities
@@ -11,6 +12,7 @@ member addition with `add_workspace_member`, and member removal with
 - Query active workspaces visible to the authenticated user.
 - Query active members visible in one selected workspace.
 - Execute workspace creation without exposing owner identity as an argument.
+- Execute workspace updates without exposing actor identity as an argument.
 - Execute member addition without exposing actor identity or role as arguments.
 - Execute member role changes without exposing actor identity as an argument.
 - Execute member removal without exposing actor identity as an argument.
@@ -39,6 +41,12 @@ createWorkspace use case
   -> SupabaseWorkspaceRepositoryLayer
   -> create_workspace RPC
   -> WorkspaceSchema decoding of the canonical result
+
+updateWorkspace use case
+  -> WorkspaceRepositoryTag
+  -> SupabaseWorkspaceRepositoryLayer
+  -> update_workspace RPC
+  -> active-status/identity checks + WorkspaceSchema decoding
 
 listWorkspaceMembers use case
   -> WorkspaceRepositoryTag
@@ -76,6 +84,13 @@ them. A removed membership is validated and acknowledged as `void` rather than
 being misrepresented as an active `WorkspaceMember`. The focused client
 projection contains only operations needed by implemented slices. Testing
 support provides fresh query doubles and canonical generated rows.
+
+Workspace updates replace the complete mutable snapshot and append an immutable
+database version. Owner authorization, active-workspace status, concurrent head
+advancement, and current-slug uniqueness remain transactional RPC concerns. The
+adapter validates the returned identity and active state, translates actionable
+authorization and slug-conflict outcomes, and exposes only the canonical domain
+workspace.
 
 ## Public API
 

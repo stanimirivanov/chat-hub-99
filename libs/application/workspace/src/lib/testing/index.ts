@@ -6,6 +6,7 @@ export {
   makeListAccessibleWorkspaceRepository,
   makeListWorkspaceMembersRepository,
   makeRemoveWorkspaceMemberRepository,
+  makeUpdateWorkspaceRepository,
   makeWorkspaceRepositoryLayer,
   makeWorkspaceRepositoryStub,
 } from './workspace-repository.stub';

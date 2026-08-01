@@ -31,11 +31,19 @@ export {
   type WorkspaceMemberRemovalField,
 } from './lib/remove-workspace-member';
 export {
+  InvalidWorkspaceUpdateInputError,
+  updateWorkspace,
+  type UpdateWorkspaceError,
+  type UpdateWorkspaceInput,
+  type WorkspaceUpdateField,
+} from './lib/update-workspace';
+export {
   WorkspaceRepositoryTag,
   type AddWorkspaceMemberCommand,
   type ChangeWorkspaceMemberRoleCommand,
   type CreateWorkspaceCommand,
   type RemoveWorkspaceMemberCommand,
+  type UpdateWorkspaceCommand,
   type WorkspaceRepository,
 } from './lib/repository';
 export {
@@ -53,10 +61,12 @@ export {
   WorkspaceMembershipHistoryExistsError,
   WorkspaceRepositoryUnavailableError,
   WorkspaceSlugUnavailableError,
+  WorkspaceUpdateNotAllowedError,
   type WorkspaceMemberRepositoryReadError,
   type WorkspaceMemberAddRepositoryError,
   type WorkspaceMemberRemovalRepositoryError,
   type WorkspaceMemberRoleChangeRepositoryError,
   type WorkspaceRepositoryCreateError,
   type WorkspaceRepositoryReadError,
+  type WorkspaceRepositoryUpdateError,
 } from './lib/repository';

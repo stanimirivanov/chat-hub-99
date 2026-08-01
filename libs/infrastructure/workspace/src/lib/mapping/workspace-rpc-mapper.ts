@@ -3,12 +3,14 @@ import type {
   ChangeWorkspaceMemberRoleCommand,
   CreateWorkspaceCommand,
   RemoveWorkspaceMemberCommand,
+  UpdateWorkspaceCommand,
 } from '@chat-hub/application/workspace';
 import type {
   AddWorkspaceMemberArgs,
   ChangeWorkspaceMemberRoleArgs,
   CreateWorkspaceArgs,
   RemoveWorkspaceMemberArgs,
+  UpdateWorkspaceArgs,
 } from '@chat-hub/shared/database';
 
 /**
@@ -27,6 +29,20 @@ export const toAddWorkspaceMemberArgs = (
 export const toCreateWorkspaceArgs = (
   command: CreateWorkspaceCommand
 ): CreateWorkspaceArgs => ({
+  p_name: command.name,
+  p_slug: command.slug,
+  ...(command.description === null
+    ? {}
+    : { p_description: command.description }),
+});
+
+/**
+ * Maps a validated update command to generated Supabase RPC arguments.
+ */
+export const toUpdateWorkspaceArgs = (
+  command: UpdateWorkspaceCommand
+): UpdateWorkspaceArgs => ({
+  p_workspace_id: command.workspaceId,
   p_name: command.name,
   p_slug: command.slug,
   ...(command.description === null
