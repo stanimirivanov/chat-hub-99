@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { ProfileRepositoryUnavailableError } from '@chat-hub/application/profile';
 import {
   WorkspaceLastOwnerDemotionError,
+  WorkspaceLastOwnerRemovalError,
   WorkspaceRepositoryUnavailableError,
 } from '@chat-hub/application/workspace';
 import { ProfileIdSchema, type Profile } from '@chat-hub/domain/profile';
@@ -62,14 +63,19 @@ const configureStore = (
   listCurrentProfiles = vi.fn().mockResolvedValue(Either.right(profiles)),
   changeWorkspaceMemberRole = vi
     .fn()
-    .mockResolvedValue(Either.right({ ...member, role: 'owner' as const }))
+    .mockResolvedValue(Either.right({ ...member, role: 'owner' as const })),
+  removeWorkspaceMember = vi.fn().mockResolvedValue(Either.right(undefined))
 ) => {
   TestBed.configureTestingModule({
     providers: [
       WorkspaceMemberDirectoryStore,
       {
         provide: WorkspaceApplicationService,
-        useValue: { listWorkspaceMembers, changeWorkspaceMemberRole },
+        useValue: {
+          listWorkspaceMembers,
+          changeWorkspaceMemberRole,
+          removeWorkspaceMember,
+        },
       },
       {
         provide: ProfileApplicationService,
@@ -83,6 +89,7 @@ const configureStore = (
     listWorkspaceMembers,
     listCurrentProfiles,
     changeWorkspaceMemberRole,
+    removeWorkspaceMember,
   };
 };
 
@@ -210,7 +217,7 @@ describe('WorkspaceMemberDirectoryStore', () => {
     const change = store.changeMemberRole(memberId, 'owner');
 
     expect(store.isChangingRole()).toBe(true);
-    expect(store.changingProfileId()).toBe(memberId);
+    expect(store.mutatingProfileId()).toBe(memberId);
     await expect(change).resolves.toBe(true);
     expect(changeWorkspaceMemberRole).toHaveBeenCalledExactlyOnceWith({
       workspaceId,
@@ -218,8 +225,8 @@ describe('WorkspaceMemberDirectoryStore', () => {
       role: 'owner',
     });
     expect(store.members()).toEqual([changedMember, owner]);
-    expect(store.roleChangeStatus()).toBe('idle');
-    expect(store.roleChangeError()).toBeNull();
+    expect(store.mutationStatus()).toBe('idle');
+    expect(store.mutationError()).toBeNull();
   });
 
   it('presents the protected last-owner rule and permits dismissal', async () => {
@@ -241,15 +248,15 @@ describe('WorkspaceMemberDirectoryStore', () => {
       false
     );
 
-    expect(store.roleChangeStatus()).toBe('failed');
-    expect(store.roleChangeError()).toEqual({
+    expect(store.mutationStatus()).toBe('failed');
+    expect(store.mutationError()).toEqual({
       message:
         'Assign another owner before changing the last owner to a member.',
     });
 
-    store.clearRoleChangeError();
-    expect(store.roleChangeStatus()).toBe('idle');
-    expect(store.roleChangeError()).toBeNull();
+    store.clearMemberMutationError();
+    expect(store.mutationStatus()).toBe('idle');
+    expect(store.mutationError()).toBeNull();
   });
 
   it('ignores a role-change result after the selected workspace changes', async () => {
@@ -284,6 +291,91 @@ describe('WorkspaceMemberDirectoryStore', () => {
 
     expect(store.workspaceId()).toBe(nextWorkspaceId);
     expect(store.members()).toEqual([nextMember]);
-    expect(store.roleChangeStatus()).toBe('idle');
+    expect(store.mutationStatus()).toBe('idle');
+  });
+
+  it('removes membership and profile projections after command success', async () => {
+    const removeWorkspaceMember = vi
+      .fn()
+      .mockResolvedValue(Either.right(undefined));
+    const { store } = configureStore(
+      undefined,
+      undefined,
+      undefined,
+      removeWorkspaceMember
+    );
+    await store.load(workspaceId);
+
+    const removal = store.removeMember(memberId, 'No longer participating');
+
+    expect(store.isRemovingMember()).toBe(true);
+    expect(store.mutatingProfileId()).toBe(memberId);
+    await expect(removal).resolves.toBe(true);
+    expect(removeWorkspaceMember).toHaveBeenCalledExactlyOnceWith({
+      workspaceId,
+      profileId: memberId,
+      reason: 'No longer participating',
+    });
+    expect(store.members()).toEqual([owner]);
+    expect(store.profiles()).toEqual([profiles[1]]);
+    expect(store.mutationStatus()).toBe('idle');
+  });
+
+  it('presents the protected last-owner removal rule', async () => {
+    const failure = new WorkspaceLastOwnerRemovalError({
+      workspaceId,
+      profileId: ownerId,
+    });
+    const removeWorkspaceMember = vi
+      .fn()
+      .mockResolvedValue(Either.left(failure));
+    const { store } = configureStore(
+      vi.fn().mockResolvedValue(Either.right([owner])),
+      undefined,
+      undefined,
+      removeWorkspaceMember
+    );
+    await store.load(workspaceId);
+
+    await expect(store.removeMember(ownerId)).resolves.toBe(false);
+
+    expect(store.mutationStatus()).toBe('failed');
+    expect(store.mutationError()).toEqual({
+      message: 'The last active workspace owner cannot be removed.',
+    });
+  });
+
+  it('ignores a removal result after the selected workspace changes', async () => {
+    let resolveRemoval:
+      | ((result: Either.Either<void, never>) => void)
+      | undefined;
+    const removalResult = new Promise<Either.Either<void, never>>((resolve) => {
+      resolveRemoval = resolve;
+    });
+    const nextMember: WorkspaceMember = {
+      workspaceId: nextWorkspaceId,
+      profileId: memberId,
+      role: 'member',
+    };
+    const listWorkspaceMembers = vi
+      .fn()
+      .mockResolvedValueOnce(Either.right([member]))
+      .mockResolvedValueOnce(Either.right([nextMember]));
+    const { store } = configureStore(
+      listWorkspaceMembers,
+      undefined,
+      undefined,
+      vi.fn().mockReturnValue(removalResult)
+    );
+    await store.load(workspaceId);
+
+    const oldRemoval = store.removeMember(memberId);
+    await store.load(nextWorkspaceId);
+    resolveRemoval?.(Either.right(undefined));
+    await oldRemoval;
+
+    expect(store.workspaceId()).toBe(nextWorkspaceId);
+    expect(store.members()).toEqual([nextMember]);
+    expect(store.mutationStatus()).toBe('idle');
   });
 });

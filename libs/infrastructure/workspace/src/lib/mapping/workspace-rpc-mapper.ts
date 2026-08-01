@@ -1,10 +1,12 @@
 import type {
   ChangeWorkspaceMemberRoleCommand,
   CreateWorkspaceCommand,
+  RemoveWorkspaceMemberCommand,
 } from '@chat-hub/application/workspace';
 import type {
   ChangeWorkspaceMemberRoleArgs,
   CreateWorkspaceArgs,
+  RemoveWorkspaceMemberArgs,
 } from '@chat-hub/shared/database';
 
 /**
@@ -29,4 +31,15 @@ export const toChangeWorkspaceMemberRoleArgs = (
   p_workspace_id: command.workspaceId,
   p_user_id: command.profileId,
   p_role: command.role,
+});
+
+/**
+ * Maps a validated removal command to generated Supabase RPC arguments.
+ */
+export const toRemoveWorkspaceMemberArgs = (
+  command: RemoveWorkspaceMemberCommand
+): RemoveWorkspaceMemberArgs => ({
+  p_workspace_id: command.workspaceId,
+  p_user_id: command.profileId,
+  ...(command.reason === null ? {} : { p_reason: command.reason }),
 });

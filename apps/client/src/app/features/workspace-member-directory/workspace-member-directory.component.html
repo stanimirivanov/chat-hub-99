@@ -1,12 +1,12 @@
 <section
   aria-labelledby="workspace-member-directory-heading"
-  [attr.aria-busy]="store.isLoading() || store.isChangingRole()"
+  [attr.aria-busy]="store.isLoading() || store.isMutatingMember()"
 >
   <h3 id="workspace-member-directory-heading">Members</h3>
 
-  @if (store.roleChangeError(); as error) {
+  @if (store.mutationError(); as error) {
     <p role="alert">{{ error.message }}</p>
-    <button type="button" (click)="store.clearRoleChangeError()">
+    <button type="button" (click)="store.clearMemberMutationError()">
       Dismiss
     </button>
   }
@@ -29,10 +29,10 @@
           <span>
             &mdash; {{ entry.role === 'owner' ? 'Owner' : 'Member' }}</span
           >
-          @if (canChangeRoles()) {
+          @if (canManageMembers()) {
             <button
               type="button"
-              [disabled]="store.isChangingRole()"
+              [disabled]="store.isMutatingMember()"
               [attr.aria-label]="
                 (entry.role === 'owner' ? 'Make member: ' : 'Make owner: ') +
                 entry.displayName
@@ -41,13 +41,44 @@
             >
               @if (
                 store.isChangingRole() &&
-                store.changingProfileId() === entry.profileId
+                store.mutatingProfileId() === entry.profileId
               ) {
                 Changing&hellip;
               } @else {
                 {{ entry.role === 'owner' ? 'Make member' : 'Make owner' }}
               }
             </button>
+
+            @if (!isCurrentUser(entry.profileId)) {
+              @if (pendingRemovalProfileId() === entry.profileId) {
+                <span>Remove {{ entry.displayName }} from this workspace?</span>
+                <button
+                  type="button"
+                  [disabled]="store.isMutatingMember()"
+                  [attr.aria-label]="'Confirm removal: ' + entry.displayName"
+                  (click)="confirmRemoval(entry.profileId)"
+                >
+                  Confirm remove
+                </button>
+                <button type="button" (click)="cancelRemoval()">Cancel</button>
+              } @else {
+                <button
+                  type="button"
+                  [disabled]="store.isMutatingMember()"
+                  [attr.aria-label]="'Remove: ' + entry.displayName"
+                  (click)="requestRemoval(entry.profileId)"
+                >
+                  @if (
+                    store.isRemovingMember() &&
+                    store.mutatingProfileId() === entry.profileId
+                  ) {
+                    Removing&hellip;
+                  } @else {
+                    Remove
+                  }
+                </button>
+              }
+            }
           }
         </li>
       }

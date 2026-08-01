@@ -8,6 +8,7 @@ import type {
 } from '@chat-hub/domain/workspace';
 import type {
   WorkspaceMemberRepositoryReadError,
+  WorkspaceMemberRemovalRepositoryError,
   WorkspaceMemberRoleChangeRepositoryError,
   WorkspaceRepositoryCreateError,
   WorkspaceRepositoryReadError,
@@ -32,8 +33,17 @@ export interface ChangeWorkspaceMemberRoleCommand {
 }
 
 /**
- * Outbound port for workspace discovery, membership discovery, creation, and
- * role changes.
+ * Validated target and optional audit reason used to remove a member.
+ */
+export interface RemoveWorkspaceMemberCommand {
+  readonly workspaceId: WorkspaceId;
+  readonly profileId: ProfileId;
+  readonly reason: string | null;
+}
+
+/**
+ * Outbound port for workspace discovery, membership discovery, creation, role
+ * changes, and member removal.
  *
  * Implementations return active workspaces visible to the current
  * authenticated user and must validate external rows before returning them.
@@ -70,6 +80,16 @@ export interface WorkspaceRepository {
   readonly changeMemberRole: (
     command: ChangeWorkspaceMemberRoleCommand
   ) => Effect.Effect<WorkspaceMember, WorkspaceMemberRoleChangeRepositoryError>;
+
+  /**
+   * Removes one active member using provider-session authorization.
+   *
+   * The adapter validates the canonical removed membership before succeeding,
+   * so no inactive membership is returned as an active domain value.
+   */
+  readonly removeMember: (
+    command: RemoveWorkspaceMemberCommand
+  ) => Effect.Effect<void, WorkspaceMemberRemovalRepositoryError>;
 }
 
 /**

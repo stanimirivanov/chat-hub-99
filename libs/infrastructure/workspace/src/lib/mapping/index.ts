@@ -3,4 +3,5 @@ export { mapCurrentWorkspace } from './map-current-workspace';
 export {
   toChangeWorkspaceMemberRoleArgs,
   toCreateWorkspaceArgs,
+  toRemoveWorkspaceMemberArgs,
 } from './workspace-rpc-mapper';
