@@ -33,6 +33,19 @@ const otherMessage = makeMessage(
   otherUserId,
   'Another message'
 );
+const editedAt = new Date('2026-07-31T09:15:00.000Z');
+const editedMessage = Schema.decodeUnknownSync(MessageSchema)({
+  ...otherMessage,
+  content: 'Edited message',
+  editedAt,
+});
+const deletedAt = new Date('2026-07-31T10:30:00.000Z');
+const deletedMessage = Schema.decodeUnknownSync(MessageSchema)({
+  ...otherMessage,
+  status: 'deleted',
+  content: null,
+  deletedAt,
+});
 const otherProfile = Schema.decodeUnknownSync(ProfileSchema)({
   id: otherUserId,
   username: 'workspace-member',
@@ -109,6 +122,41 @@ const findButton = (
 };
 
 describe('ChannelMessageHistoryComponent', () => {
+  it('renders an accessible machine-readable creation time', async () => {
+    const { fixture } = await configureComponent([ownMessage]);
+    const time = fixture.nativeElement.querySelector('time') as HTMLTimeElement;
+
+    expect(time.dateTime).toBe(ownMessage.createdAt.toISOString());
+    expect(time.getAttribute('aria-label')).toMatch(/^Sent /);
+    expect(time.textContent?.trim()).not.toBe('');
+    expect(fixture.nativeElement.textContent).not.toContain('Edited');
+  });
+
+  it('renders edited metadata only when an edit timestamp exists', async () => {
+    const { fixture } = await configureComponent([editedMessage]);
+    const item = fixture.nativeElement.querySelector('li') as HTMLLIElement;
+    const editedTime = [...item.querySelectorAll('time')].find(
+      (time) => time.dateTime === editedAt.toISOString()
+    );
+
+    expect(item.textContent).toContain('Edited');
+    expect(editedTime).toBeDefined();
+    expect(editedTime?.getAttribute('aria-label')).toMatch(/^Edited /);
+  });
+
+  it('renders deleted state with its machine-readable deletion time', async () => {
+    const { fixture } = await configureComponent([deletedMessage]);
+    const item = fixture.nativeElement.querySelector('li') as HTMLLIElement;
+    const deletedTime = [...item.querySelectorAll('time')].find(
+      (time) => time.dateTime === deletedAt.toISOString()
+    );
+
+    expect(item.textContent).toContain('Message deleted');
+    expect(deletedTime).toBeDefined();
+    expect(deletedTime?.getAttribute('aria-label')).toMatch(/^Deleted /);
+    expect(item.querySelector('button')).toBeNull();
+  });
+
   it('offers mutation controls only for the current user message', async () => {
     const { fixture } = await configureComponent();
     const items: NodeListOf<HTMLLIElement> =

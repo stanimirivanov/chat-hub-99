@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -10,14 +11,16 @@ import { AuthenticationStore } from '@client/features/authentication/store/authe
 import { ChannelMessagesStore } from '../channel-messages.store';
 
 /**
- * Renders channel history with author editing and owner moderation affordances.
+ * Renders channel history, lifecycle metadata, and mutation affordances.
  *
- * The browser checks improve presentation correctness. Supabase command
- * authorization remains the security boundary for both authors and owners.
+ * Validated domain dates are formatted only for display while their ISO values
+ * remain in semantic `time` elements. Browser authorization checks improve
+ * presentation correctness; Supabase remains the security boundary.
  */
 @Component({
   selector: 'app-channel-message-history',
   standalone: true,
+  imports: [DatePipe],
   templateUrl: './channel-message-history.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
