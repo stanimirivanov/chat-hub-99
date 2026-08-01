@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { Schema } from 'effect';
 
+import { ChannelIdSchema } from '@chat-hub/domain/channel';
 import { MessageIdSchema } from '@chat-hub/domain/message';
 import {
+  mapCreateMessagePostgrestError,
   mapEditMessagePostgrestError,
   mapMessageCommandPostgrestError,
   mapPostgrestError,
@@ -60,8 +62,42 @@ describe('message repository error mapper', () => {
 const messageId = Schema.decodeUnknownSync(MessageIdSchema)(
   '00000000-0000-4000-8000-000000000030'
 );
+const channelId = Schema.decodeUnknownSync(ChannelIdSchema)(
+  '00000000-0000-4000-8000-000000000020'
+);
 
 describe('message command error mapping', () => {
+  it('maps a create lifecycle rejection to MessageCreationNotAllowedError', () => {
+    const result = mapCreateMessagePostgrestError(channelId, {
+      code: '55000',
+      message: `Channel ${channelId} is archived`,
+      details: '',
+      hint: '',
+    });
+
+    expect(result).toMatchObject({
+      _tag: 'MessageCreationNotAllowedError',
+      channelId,
+    });
+  });
+
+  it('keeps unrelated create failures in the common repository vocabulary', () => {
+    const error = {
+      code: 'XX000',
+      message: 'unexpected database failure',
+      details: '',
+      hint: '',
+    };
+
+    const result = mapCreateMessagePostgrestError(channelId, error);
+
+    expect(result).toMatchObject({
+      _tag: 'MessageRepositoryUnavailableError',
+      operation: 'create',
+      cause: error,
+    });
+  });
+
   it.each(['edit', 'delete'] as const)(
     'maps a %s lifecycle rejection to MessageMutationNotAllowedError',
     (operation) => {

@@ -1,10 +1,13 @@
+import type { ChannelId } from '@chat-hub/domain/channel';
 import type { MessageId } from '@chat-hub/domain/message';
 import {
   MessageAccessDeniedError,
   MessageContentUnchangedError,
+  MessageCreationNotAllowedError,
   MessageMutationNotAllowedError,
   MessageNotFoundError,
   MessageRepositoryUnavailableError,
+  type MessageRepositoryCreateError,
   type MessageRepositoryEditError,
   type MessageRepositoryError,
 } from '@chat-hub/application/message';
@@ -24,6 +27,24 @@ export interface PostgrestErrorLike {
 
 const unchangedMessageContentErrorMessage =
   'Edited message content must differ from the current content';
+
+/**
+ * Maps failures from the create-message RPC into its precise vocabulary.
+ *
+ * Within this command, PostgreSQL `55000` is the stable contract for an
+ * archived channel or workspace. Other failures retain the common repository
+ * translation used by create operations.
+ */
+export const mapCreateMessagePostgrestError = (
+  channelId: ChannelId,
+  error: PostgrestErrorLike
+): MessageRepositoryCreateError => {
+  if (error.code === '55000') {
+    return new MessageCreationNotAllowedError({ channelId });
+  }
+
+  return mapPostgrestError('create', error);
+};
 
 /**
  * Maps failures from the edit-message RPC into its precise application

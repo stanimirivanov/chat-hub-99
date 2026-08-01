@@ -29,6 +29,12 @@ export const toChannelMessagesError = (
         message: 'The message content is invalid.',
       };
 
+    case 'MessageCreationNotAllowedError':
+      return {
+        tag: error._tag,
+        message: 'Messages can no longer be sent to this channel.',
+      };
+
     case 'InvalidEditedMessageContentError':
       return {
         tag: error._tag,

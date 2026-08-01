@@ -73,6 +73,10 @@ store retains the current history projection and exposes action-specific safe
 feedback. The active edit form or deletion confirmation remains open so the
 user can acknowledge or cancel it; raw database lifecycle details are not
 rendered.
+If message creation loses a race with workspace or channel archival, the store
+retains the existing history and reports that the channel no longer accepts
+messages. The composer clears its draft only after successful creation, so the
+rejected text remains available without another client-side lifecycle rule.
 For other authors, the channel-message store batch-loads RLS-visible current
 profiles for each new page and renders their display names. The enrichment is
 feature-local and best-effort: hidden or unavailable profiles retain the stable

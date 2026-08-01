@@ -74,8 +74,10 @@ message deletion. These repository-authoritative precondition failures become
 attempted `edit` or `delete` operation. The application intentionally does not
 expose which parent lifecycle caused the rejection: callers need the same safe
 response in each case, and infrastructure diagnostics remain behind the port.
-Message creation targets a channel rather than an existing message and is not
-part of this error contract.
+Message creation targets a channel rather than an existing message, so its
+corresponding archived-parent outcome is the separate
+`MessageCreationNotAllowedError`. That error carries the requested channel
+identity and is present only in the create operation's failure contract.
 
 ## Import policy
 

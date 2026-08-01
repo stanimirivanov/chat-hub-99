@@ -2,12 +2,12 @@ import { Effect, Schema } from 'effect';
 import {
   CreateMessageCommand,
   InvalidMessageDataError,
-  type MessageRepositoryError,
+  type MessageRepositoryCreateError,
 } from '@chat-hub/application/message';
 import { MessageIdSchema, type MessageId } from '@chat-hub/domain/message';
 import type { CreateMessageResult } from '@chat-hub/shared/database';
 import {
-  mapPostgrestError,
+  mapCreateMessagePostgrestError,
   mapThrownRepositoryError,
 } from '../errors';
 import { toCreateMessageArgs } from '../mapping';
@@ -21,7 +21,7 @@ const decodeMessageId = Schema.decodeUnknown(MessageIdSchema);
 export const createMessage = (
   client: ChatHubSupabaseClient,
   command: CreateMessageCommand
-): Effect.Effect<MessageId, MessageRepositoryError> =>
+): Effect.Effect<MessageId, MessageRepositoryCreateError> =>
   Effect.tryPromise({
     try: async () => client.rpc('create_message', toCreateMessageArgs(command)),
     catch: (cause) => mapThrownRepositoryError('create', cause),
@@ -29,7 +29,7 @@ export const createMessage = (
     Effect.flatMap(({ data, error }) =>
       error === null
         ? decodeCreatedMessageId(data)
-        : Effect.fail(mapPostgrestError('create', error))
+        : Effect.fail(mapCreateMessagePostgrestError(command.channelId, error))
     )
   );
 
