@@ -79,6 +79,11 @@ owner request deletion of another author's active message but never exposes
 editing for that message. This is a presentation affordance only: no membership
 query or workspace state is added to the message store, and the existing
 Supabase delete command remains the authorization boundary.
+Message history also renders the existing lifecycle timestamps without adding
+store state: every projection shows its creation time, edited projections show
+their latest edit time, and deleted projections show their deletion time.
+Angular formats visible values at the presentation boundary while semantic
+`time` elements retain machine-readable ISO values and contextual labels.
 If message creation loses a race with workspace or channel archival, the store
 retains the existing history and reports that the channel no longer accepts
 messages. The composer clears its draft only after successful creation, so the

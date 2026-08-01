@@ -13,6 +13,28 @@
           {{ authorLabel(message) }}
         </strong>
 
+        <span>
+          Sent
+          <time
+            [attr.datetime]="message.createdAt.toISOString()"
+            [attr.aria-label]="'Sent ' + (message.createdAt | date: 'long')"
+          >
+            {{ message.createdAt | date: 'medium' }}
+          </time>
+        </span>
+
+        @if (message.editedAt; as editedAt) {
+          <span>
+            Edited
+            <time
+              [attr.datetime]="editedAt.toISOString()"
+              [attr.aria-label]="'Edited ' + (editedAt | date: 'long')"
+            >
+              {{ editedAt | date: 'medium' }}
+            </time>
+          </span>
+        }
+
         @if (message.status === 'active') {
           @if (
             isAuthoredByCurrentUser(message) &&
@@ -99,6 +121,17 @@
           }
         } @else {
           <em>Message deleted</em>
+          <span>
+            Deleted
+            <time
+              [attr.datetime]="message.deletedAt.toISOString()"
+              [attr.aria-label]="
+                'Deleted ' + (message.deletedAt | date: 'long')
+              "
+            >
+              {{ message.deletedAt | date: 'medium' }}
+            </time>
+          </span>
         }
       </li>
     }
