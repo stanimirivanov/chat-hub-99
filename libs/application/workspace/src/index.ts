@@ -1,4 +1,13 @@
 export {
+  addWorkspaceMemberByUsername,
+  InvalidWorkspaceMemberAdditionInputError,
+  WorkspaceMemberCandidateNotFoundError,
+  type AddedWorkspaceMember,
+  type AddWorkspaceMemberByUsernameError,
+  type AddWorkspaceMemberByUsernameInput,
+  type WorkspaceMemberAdditionField,
+} from './lib/add-workspace-member-by-username';
+export {
   changeWorkspaceMemberRole,
   InvalidWorkspaceMemberRoleChangeInputError,
   type ChangeWorkspaceMemberRoleError,
@@ -23,6 +32,7 @@ export {
 } from './lib/remove-workspace-member';
 export {
   WorkspaceRepositoryTag,
+  type AddWorkspaceMemberCommand,
   type ChangeWorkspaceMemberRoleCommand,
   type CreateWorkspaceCommand,
   type RemoveWorkspaceMemberCommand,
@@ -33,14 +43,18 @@ export {
   InvalidWorkspaceDataError,
   WorkspaceLastOwnerDemotionError,
   WorkspaceLastOwnerRemovalError,
+  WorkspaceMemberAdditionNotAllowedError,
   WorkspaceMemberNotActiveError,
   WorkspaceMemberNotFoundError,
   WorkspaceMemberRemovalNotAllowedError,
   WorkspaceMemberRoleChangeNotAllowedError,
   WorkspaceMemberRoleUnchangedError,
+  WorkspaceMemberProfileNotActiveError,
+  WorkspaceMembershipHistoryExistsError,
   WorkspaceRepositoryUnavailableError,
   WorkspaceSlugUnavailableError,
   type WorkspaceMemberRepositoryReadError,
+  type WorkspaceMemberAddRepositoryError,
   type WorkspaceMemberRemovalRepositoryError,
   type WorkspaceMemberRoleChangeRepositoryError,
   type WorkspaceRepositoryCreateError,

@@ -1,4 +1,5 @@
 import type {
+  AddWorkspaceMemberResult,
   ChangeWorkspaceMemberRoleResult,
   CreateWorkspaceResult,
   RemoveWorkspaceMemberResult,
@@ -8,6 +9,7 @@ import type { SupabaseWorkspaceClient } from '../supabase-workspace-client';
 
 interface WorkspaceCommandResult {
   readonly data:
+    | AddWorkspaceMemberResult
     | CreateWorkspaceResult
     | ChangeWorkspaceMemberRoleResult
     | RemoveWorkspaceMemberResult

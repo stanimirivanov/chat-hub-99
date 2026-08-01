@@ -1,5 +1,6 @@
 export { workspace, workspaceMember } from './workspace-application-fixtures';
 export {
+  makeAddWorkspaceMemberRepository,
   makeChangeWorkspaceMemberRoleRepository,
   makeCreateWorkspaceRepository,
   makeListAccessibleWorkspaceRepository,

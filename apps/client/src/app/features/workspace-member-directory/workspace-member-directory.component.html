@@ -1,8 +1,35 @@
 <section
   aria-labelledby="workspace-member-directory-heading"
-  [attr.aria-busy]="store.isLoading() || store.isMutatingMember()"
+  [attr.aria-busy]="
+    store.isLoading() || store.isMutatingMember() || store.isAddingMember()
+  "
 >
   <h3 id="workspace-member-directory-heading">Members</h3>
+
+  @if (canManageMembers()) {
+    <form (submit)="addMember($event, usernameInput)">
+      <label for="workspace-member-username">Add member by username</label>
+      <input
+        #usernameInput
+        id="workspace-member-username"
+        name="username"
+        type="text"
+        autocomplete="off"
+        required
+        [disabled]="store.isAddingMember()"
+      />
+      <button type="submit" [disabled]="store.isAddingMember()">
+        {{ store.isAddingMember() ? 'Adding…' : 'Add member' }}
+      </button>
+    </form>
+  }
+
+  @if (store.additionError(); as error) {
+    <p role="alert">{{ error.message }}</p>
+    <button type="button" (click)="store.clearMemberAdditionError()">
+      Dismiss
+    </button>
+  }
 
   @if (store.mutationError(); as error) {
     <p role="alert">{{ error.message }}</p>

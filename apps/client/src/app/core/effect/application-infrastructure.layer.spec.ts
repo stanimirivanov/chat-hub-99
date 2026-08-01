@@ -58,6 +58,10 @@ describe('makeApplicationInfrastructureLayer', () => {
 
     expect(repository.profileRepository.findCurrentById).toBeTypeOf('function');
 
+    expect(repository.profileRepository.findActiveByUsername).toBeTypeOf(
+      'function'
+    );
+
     expect(repository.profileRepository.updateCurrent).toBeTypeOf('function');
 
     expect(repository.profileRepository.listCurrentByIds).toBeTypeOf(
@@ -79,5 +83,7 @@ describe('makeApplicationInfrastructureLayer', () => {
     );
 
     expect(repository.workspaceRepository.removeMember).toBeTypeOf('function');
+
+    expect(repository.workspaceRepository.addMember).toBeTypeOf('function');
   });
 });

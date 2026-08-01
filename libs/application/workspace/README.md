@@ -2,29 +2,37 @@
 
 `@chat-hub/application/workspace` owns provider-independent workflows for
 discovering accessible workspaces and active members, creating a workspace,
-changing active member roles, and removing active members.
+adding active profiles as members, changing active member roles, and removing
+active members.
 
 ## Responsibilities
 
 - Define the `WorkspaceRepository` outbound port.
-- Define typed read, creation, role-change, removal, and expected command
-  failures.
+- Define typed read, creation, member-addition, role-change, removal, and
+  expected command failures.
 - List active, accessible workspaces through an Effect use case.
 - List active, RLS-visible members for one selected workspace.
 - Normalize and validate workspace creation input before repository access.
 - Create a workspace without accepting client-supplied owner identity.
+- Resolve an exact active username through the profile port and add that stable
+  profile identity with the default member role.
 - Normalize and validate role-change targets and roles before repository access.
 - Change roles without accepting client-supplied actor identity.
 - Normalize removal targets and optional audit reasons before repository access.
 - Remove members without accepting client-supplied actor identity.
 
 It does not know about Supabase, generated database rows, Angular, selection
-state, profile display data, channels, or workspace update/archive/member-add
-commands.
+state, profile persistence, channels, or workspace update/archive commands.
 
 ## Runtime flow
 
 ```text
+Angular caller
+  -> addWorkspaceMemberByUsername(input)
+  -> ProfileRepositoryTag exact active-profile lookup
+  -> WorkspaceRepositoryTag.addMember
+  -> canonical WorkspaceMember + Profile
+
 Angular caller
   -> listAccessibleWorkspaces
   -> WorkspaceRepositoryTag
@@ -62,6 +70,7 @@ other application libraries.
 - `listAccessibleWorkspaces`
 - `listWorkspaceMembers`
 - `createWorkspace` and its input/error contracts
+- `addWorkspaceMemberByUsername` and its input/result/error contracts
 - `changeWorkspaceMemberRole` and its input/error contracts
 - `removeWorkspaceMember` and its input/error contracts
 - `WorkspaceRepositoryTag` and `WorkspaceRepository`

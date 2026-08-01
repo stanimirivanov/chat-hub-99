@@ -43,6 +43,35 @@ export class WorkspaceSlugUnavailableError extends Data.TaggedError(
 }> {}
 
 /**
+ * Indicates that the current session or workspace state forbids member addition.
+ */
+export class WorkspaceMemberAdditionNotAllowedError extends Data.TaggedError(
+  'WorkspaceMemberAdditionNotAllowedError'
+)<{
+  readonly workspaceId: WorkspaceId;
+}> {}
+
+/**
+ * Indicates that the selected profile became inactive before member creation.
+ */
+export class WorkspaceMemberProfileNotActiveError extends Data.TaggedError(
+  'WorkspaceMemberProfileNotActiveError'
+)<{
+  readonly workspaceId: WorkspaceId;
+  readonly profileId: ProfileId;
+}> {}
+
+/**
+ * Indicates that the profile already has immutable membership history.
+ */
+export class WorkspaceMembershipHistoryExistsError extends Data.TaggedError(
+  'WorkspaceMembershipHistoryExistsError'
+)<{
+  readonly workspaceId: WorkspaceId;
+  readonly profileId: ProfileId;
+}> {}
+
+/**
  * Indicates that the current session cannot change roles in this workspace.
  */
 export class WorkspaceMemberRoleChangeNotAllowedError extends Data.TaggedError(
@@ -122,6 +151,13 @@ export type WorkspaceMemberRepositoryReadError =
 export type WorkspaceRepositoryCreateError =
   | WorkspaceRepositoryReadError
   | WorkspaceSlugUnavailableError;
+
+export type WorkspaceMemberAddRepositoryError =
+  | WorkspaceRepositoryUnavailableError
+  | InvalidWorkspaceMemberDataError
+  | WorkspaceMemberAdditionNotAllowedError
+  | WorkspaceMemberProfileNotActiveError
+  | WorkspaceMembershipHistoryExistsError;
 
 export type WorkspaceMemberRoleChangeRepositoryError =
   | WorkspaceRepositoryUnavailableError

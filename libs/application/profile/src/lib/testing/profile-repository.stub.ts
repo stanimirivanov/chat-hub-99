@@ -5,6 +5,10 @@ import { ProfileRepositoryTag, type ProfileRepository } from '../repository';
 export const makeProfileRepositoryStub = (
   overrides: Partial<ProfileRepository> = {}
 ): ProfileRepository => ({
+  findActiveByUsername: () =>
+    Effect.dieMessage(
+      'Unexpected ProfileRepository.findActiveByUsername call in test'
+    ),
   findCurrentById: () =>
     Effect.dieMessage(
       'Unexpected ProfileRepository.findCurrentById call in test'
@@ -19,6 +23,18 @@ export const makeProfileRepositoryStub = (
     ),
   ...overrides,
 });
+
+export const makeFindActiveProfileByUsernameRepository = (
+  implementation: ProfileRepository['findActiveByUsername']
+) => {
+  const findActiveByUsername = vi.fn(implementation);
+  const repository = makeProfileRepositoryStub({ findActiveByUsername });
+
+  return {
+    findActiveByUsername,
+    repositoryLayer: Layer.succeed(ProfileRepositoryTag, repository),
+  };
+};
 
 export const makeFindCurrentProfileRepository = (
   implementation: ProfileRepository['findCurrentById']

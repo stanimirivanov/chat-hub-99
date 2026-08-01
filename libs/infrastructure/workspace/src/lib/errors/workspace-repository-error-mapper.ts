@@ -1,4 +1,7 @@
 import {
+  WorkspaceMemberAdditionNotAllowedError,
+  WorkspaceMemberProfileNotActiveError,
+  WorkspaceMembershipHistoryExistsError,
   WorkspaceLastOwnerDemotionError,
   WorkspaceLastOwnerRemovalError,
   WorkspaceMemberNotActiveError,
@@ -10,6 +13,8 @@ import {
   WorkspaceSlugUnavailableError,
   type ChangeWorkspaceMemberRoleCommand,
   type CreateWorkspaceCommand,
+  type AddWorkspaceMemberCommand,
+  type WorkspaceMemberAddRepositoryError,
   type RemoveWorkspaceMemberCommand,
   type WorkspaceMemberRemovalRepositoryError,
   type WorkspaceMemberRoleChangeRepositoryError,
@@ -56,6 +61,44 @@ export const mapWorkspaceCreateError = (
   ) {
     return new WorkspaceSlugUnavailableError({
       slug: command.slug,
+    });
+  }
+
+  return mapWorkspaceRepositoryError(error);
+};
+
+/**
+ * Translates the stable SQL-state/message contract of the add-member RPC.
+ */
+export const mapWorkspaceMemberAdditionError = (
+  command: AddWorkspaceMemberCommand,
+  error: PostgrestErrorLike
+): WorkspaceMemberAddRepositoryError => {
+  const message = error.message.toLowerCase();
+
+  if (isWorkspaceCommandNotAllowed(error, message)) {
+    return new WorkspaceMemberAdditionNotAllowedError({
+      workspaceId: command.workspaceId,
+    });
+  }
+
+  if (
+    error.code === '55000' &&
+    message.includes('does not have an active profile')
+  ) {
+    return new WorkspaceMemberProfileNotActiveError({
+      workspaceId: command.workspaceId,
+      profileId: command.profileId,
+    });
+  }
+
+  if (
+    error.code === '23505' &&
+    message.includes('already has a membership history')
+  ) {
+    return new WorkspaceMembershipHistoryExistsError({
+      workspaceId: command.workspaceId,
+      profileId: command.profileId,
     });
   }
 

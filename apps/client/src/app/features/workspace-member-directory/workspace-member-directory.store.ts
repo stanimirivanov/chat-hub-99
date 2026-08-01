@@ -8,6 +8,7 @@ import {
   withState,
 } from '@ngrx/signals';
 import type {
+  AddWorkspaceMemberByUsernameError,
   ChangeWorkspaceMemberRoleError,
   RemoveWorkspaceMemberError,
 } from '@chat-hub/application/workspace';
@@ -44,6 +45,7 @@ export const WorkspaceMemberDirectoryStore = signalStore(
         store.mutationStatus() === 'pending' &&
         store.mutationKind() === 'removal'
     ),
+    isAddingMember: computed(() => store.additionStatus() === 'pending'),
     hasMembers: computed(() => store.members().length > 0),
     entries: computed(() =>
       toDirectoryEntries(store.members(), store.profiles())
@@ -92,6 +94,8 @@ export const WorkspaceMemberDirectoryStore = signalStore(
             mutationKind: null,
             mutatingProfileId: null,
             mutationError: null,
+            additionStatus: 'idle',
+            additionError: null,
           });
 
           const promise = (async () => {
@@ -140,6 +144,70 @@ export const WorkspaceMemberDirectoryStore = signalStore(
 
           activeRequest = { workspaceId, promise };
           return promise;
+        },
+
+        /**
+         * Adds one active profile by exact username. The application result
+         * carries both canonical projections, so the directory can update
+         * without a second membership or profile query.
+         */
+        async addMemberByUsername(username: string): Promise<boolean> {
+          const workspaceId = store.workspaceId();
+
+          if (
+            workspaceId === null ||
+            store.loadStatus() !== 'loaded' ||
+            store.additionStatus() === 'pending'
+          ) {
+            return false;
+          }
+
+          const version = requestVersion;
+          patchState(store, {
+            additionStatus: 'pending',
+            additionError: null,
+          });
+
+          const result =
+            await workspaceApplication.addWorkspaceMemberByUsername({
+              workspaceId,
+              username,
+            });
+
+          if (
+            version !== requestVersion ||
+            store.workspaceId() !== workspaceId
+          ) {
+            return false;
+          }
+
+          if (Either.isLeft(result)) {
+            patchState(store, {
+              additionStatus: 'failed',
+              additionError: presentMemberAdditionError(result.left),
+            });
+            return false;
+          }
+
+          patchState(store, {
+            members: [
+              ...store
+                .members()
+                .filter(
+                  (member) => member.profileId !== result.right.member.profileId
+                ),
+              result.right.member,
+            ],
+            profiles: [
+              ...store
+                .profiles()
+                .filter((profile) => profile.id !== result.right.profile.id),
+              result.right.profile,
+            ],
+            additionStatus: 'idle',
+            additionError: null,
+          });
+          return true;
         },
 
         /**
@@ -282,6 +350,15 @@ export const WorkspaceMemberDirectoryStore = signalStore(
             });
           }
         },
+
+        clearMemberAdditionError(): void {
+          if (store.additionStatus() !== 'pending') {
+            patchState(store, {
+              additionStatus: 'idle',
+              additionError: null,
+            });
+          }
+        },
       };
     }
   )
@@ -351,6 +428,44 @@ const presentMemberMutationError = (
           kind === 'role-change'
             ? 'The member role could not be changed. Please try again.'
             : 'The workspace member could not be removed. Please try again.',
+      };
+  }
+};
+
+const presentMemberAdditionError = (
+  error: AddWorkspaceMemberByUsernameError
+): { readonly message: string } => {
+  switch (error._tag) {
+    case 'InvalidWorkspaceMemberAdditionInputError':
+      return {
+        message:
+          error.field === 'username'
+            ? 'Enter an exact username.'
+            : 'The selected workspace is invalid.',
+      };
+    case 'WorkspaceMemberCandidateNotFoundError':
+      return {
+        message: 'No active profile was found for that username.',
+      };
+    case 'WorkspaceMemberAdditionNotAllowedError':
+      return {
+        message: 'You no longer have permission to add workspace members.',
+      };
+    case 'WorkspaceMemberProfileNotActiveError':
+      return {
+        message: 'That profile is no longer active.',
+      };
+    case 'WorkspaceMembershipHistoryExistsError':
+      return {
+        message:
+          'That user already belongs, or previously belonged, to this workspace and cannot be added again.',
+      };
+    case 'InvalidProfileDataError':
+    case 'ProfileRepositoryUnavailableError':
+    case 'InvalidWorkspaceMemberDataError':
+    case 'WorkspaceRepositoryUnavailableError':
+      return {
+        message: 'The workspace member could not be added. Please try again.',
       };
   }
 };

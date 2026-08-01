@@ -15,6 +15,8 @@ export type WorkspaceMemberMutationStatus = 'idle' | 'pending' | 'failed';
 
 export type WorkspaceMemberMutationKind = 'role-change' | 'removal';
 
+export type WorkspaceMemberAdditionStatus = 'idle' | 'pending' | 'failed';
+
 export interface WorkspaceMemberDirectoryError {
   readonly message: string;
 }
@@ -41,6 +43,8 @@ export interface WorkspaceMemberDirectoryState {
   readonly mutationKind: WorkspaceMemberMutationKind | null;
   readonly mutatingProfileId: ProfileId | null;
   readonly mutationError: WorkspaceMemberDirectoryError | null;
+  readonly additionStatus: WorkspaceMemberAdditionStatus;
+  readonly additionError: WorkspaceMemberDirectoryError | null;
 }
 
 export const initialWorkspaceMemberDirectoryState: WorkspaceMemberDirectoryState =
@@ -54,4 +58,6 @@ export const initialWorkspaceMemberDirectoryState: WorkspaceMemberDirectoryState
     mutationKind: null,
     mutatingProfileId: null,
     mutationError: null,
+    additionStatus: 'idle',
+    additionError: null,
   };

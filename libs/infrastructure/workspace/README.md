@@ -3,13 +3,15 @@
 `@chat-hub/infrastructure/workspace` implements workspace and active-membership
 discovery with RLS-protected Supabase views, creation with the transactional
 `create_workspace` RPC, role changes with `change_workspace_member_role`, and
-member removal with `remove_workspace_member`.
+member addition with `add_workspace_member`, and member removal with
+`remove_workspace_member`.
 
 ## Responsibilities
 
 - Query active workspaces visible to the authenticated user.
 - Query active members visible in one selected workspace.
 - Execute workspace creation without exposing owner identity as an argument.
+- Execute member addition without exposing actor identity or role as arguments.
 - Execute member role changes without exposing actor identity as an argument.
 - Execute member removal without exposing actor identity as an argument.
 - Apply stable name/identity ordering.
@@ -50,6 +52,12 @@ changeWorkspaceMemberRole use case
   -> change_workspace_member_role RPC
   -> active target/identity checks + WorkspaceMemberSchema decoding
 
+addWorkspaceMemberByUsername use case
+  -> WorkspaceRepositoryTag.addMember
+  -> SupabaseWorkspaceRepositoryLayer
+  -> add_workspace_member RPC
+  -> default-role/active-target/identity checks + WorkspaceMemberSchema decoding
+
 removeWorkspaceMember use case
   -> WorkspaceRepositoryTag
   -> SupabaseWorkspaceRepositoryLayer
@@ -59,9 +67,11 @@ removeWorkspaceMember use case
 
 The membership query returns stable identities and roles only. Profile
 enrichment remains a separate application capability, preventing the workspace
-adapter from depending on profile persistence. Role-change/removal authorization,
-self-removal prevention, and last-owner invariants remain transactional database
-concerns; the adapter translates their stable outcomes without reimplementing
+adapter from depending on profile persistence. Member-addition authorization,
+default role assignment, active-profile validation, and immutable membership
+history remain transactional database concerns. Role-change/removal
+authorization, self-removal prevention, and last-owner invariants are likewise
+enforced there; the adapter translates stable outcomes without reimplementing
 them. A removed membership is validated and acknowledged as `void` rather than
 being misrepresented as an active `WorkspaceMember`. The focused client
 projection contains only operations needed by implemented slices. Testing

@@ -14,8 +14,8 @@ profile.
   self-service update.
 - `listCurrentProfiles` validates and deduplicates an identity collection for
   batched discovery.
-- `ProfileRepository` defines single and batched discovery plus self-service
-  update operations.
+- `ProfileRepository` defines single and batched discovery, exact active
+  username lookup, and self-service update operations.
 - Tagged errors represent invalid input, missing projections, provider
   unavailability, malformed external data, and username conflicts.
 
@@ -30,6 +30,9 @@ caller -> profile use case -> ProfileRepositoryTag
 
 message feature -> listCurrentProfiles -> ProfileRepositoryTag
                 -> supplied repository -> visible Profile[]
+
+workspace member addition -> ProfileRepositoryTag.findActiveByUsername
+                          -> active Profile or absence
 ```
 
 The Tag is the typed service key requested by the lazy Effect. An outer Layer
@@ -38,6 +41,10 @@ supplies its implementation before the Angular runtime executes the program.
 The batch use case returns the visible subset rather than treating missing
 profiles as an error: RLS or lifecycle state may legitimately hide an author
 profile while the associated message remains readable.
+
+Exact username lookup is a profile capability consumed by the workspace
+application workflow. Keeping lookup behind the profile port prevents the
+workspace repository from learning how profiles are stored or queried.
 
 ## Extension
 

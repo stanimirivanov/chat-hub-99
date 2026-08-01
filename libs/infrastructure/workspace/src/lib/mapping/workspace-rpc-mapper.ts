@@ -1,13 +1,25 @@
 import type {
+  AddWorkspaceMemberCommand,
   ChangeWorkspaceMemberRoleCommand,
   CreateWorkspaceCommand,
   RemoveWorkspaceMemberCommand,
 } from '@chat-hub/application/workspace';
 import type {
+  AddWorkspaceMemberArgs,
   ChangeWorkspaceMemberRoleArgs,
   CreateWorkspaceArgs,
   RemoveWorkspaceMemberArgs,
 } from '@chat-hub/shared/database';
+
+/**
+ * Maps a validated addition command to generated Supabase RPC arguments.
+ */
+export const toAddWorkspaceMemberArgs = (
+  command: AddWorkspaceMemberCommand
+): AddWorkspaceMemberArgs => ({
+  p_workspace_id: command.workspaceId,
+  p_user_id: command.profileId,
+});
 
 /**
  * Maps a validated creation command to generated Supabase RPC arguments.

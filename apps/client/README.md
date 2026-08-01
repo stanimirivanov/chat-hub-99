@@ -103,6 +103,15 @@ commands reconcile only their validated canonical outcomes, and late results
 after workspace navigation are ignored. The database independently authorizes
 the actor and protects last-owner invariants.
 
+Owners can also add an existing active profile by exact username. Addition has
+its own form state because there is no target directory member yet. The
+application workflow returns the canonical profile and membership together, so
+the store updates both local projections without a follow-up query. Exact lookup
+does not introduce broad user search, invitations, or reactivation of immutable
+membership history. Late additions after workspace navigation are ignored, and
+the database independently authorizes the owner and assigns the default member
+role.
+
 The nested `channel-navigation` slice reacts to that selected workspace, loads
 only its active RLS-visible channels, and owns a separate feature-scoped
 selection store. Its request generation prevents a late response for a

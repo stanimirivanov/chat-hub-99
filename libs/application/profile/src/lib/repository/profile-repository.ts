@@ -19,6 +19,16 @@ export interface UpdateCurrentProfileCommand {
  */
 export interface ProfileRepository {
   /**
+   * Finds one active RLS-visible current profile by exact username.
+   *
+   * Username matching is case-insensitive at the adapter boundary and succeeds
+   * with explicit absence when no active profile owns the username.
+   */
+  readonly findActiveByUsername: (
+    username: string
+  ) => Effect.Effect<Profile | null, ProfileRepositoryReadError>;
+
+  /**
    * Finds the RLS-visible current projection for one stable profile identity.
    *
    * The Effect succeeds with a profile or explicit absence, fails with read or

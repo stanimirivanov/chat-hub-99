@@ -1,4 +1,5 @@
 export {
+  mapWorkspaceMemberAdditionError,
   mapWorkspaceCreateError,
   mapWorkspaceMemberRoleChangeError,
   mapWorkspaceMemberRemovalError,

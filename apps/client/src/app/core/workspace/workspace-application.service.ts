@@ -1,11 +1,15 @@
 import { Injectable } from '@angular/core';
 import { Effect, Either } from 'effect';
 import {
+  addWorkspaceMemberByUsername,
   changeWorkspaceMemberRole,
   createWorkspace,
   listAccessibleWorkspaces,
   listWorkspaceMembers,
   removeWorkspaceMember,
+  type AddedWorkspaceMember,
+  type AddWorkspaceMemberByUsernameError,
+  type AddWorkspaceMemberByUsernameInput,
   type ChangeWorkspaceMemberRoleError,
   type ChangeWorkspaceMemberRoleInput,
   type CreateWorkspaceError,
@@ -58,6 +62,19 @@ export class WorkspaceApplicationService {
   > {
     return applicationRuntime.runPromise(
       listWorkspaceMembers(workspaceId).pipe(Effect.either)
+    );
+  }
+
+  /**
+   * Resolves one active profile by exact username and adds it as a member.
+   */
+  addWorkspaceMemberByUsername(
+    input: AddWorkspaceMemberByUsernameInput
+  ): Promise<
+    Either.Either<AddedWorkspaceMember, AddWorkspaceMemberByUsernameError>
+  > {
+    return applicationRuntime.runPromise(
+      addWorkspaceMemberByUsername(input).pipe(Effect.either)
     );
   }
 

@@ -7,6 +7,7 @@ import type {
   WorkspaceMemberRole,
 } from '@chat-hub/domain/workspace';
 import type {
+  WorkspaceMemberAddRepositoryError,
   WorkspaceMemberRepositoryReadError,
   WorkspaceMemberRemovalRepositoryError,
   WorkspaceMemberRoleChangeRepositoryError,
@@ -21,6 +22,14 @@ export interface CreateWorkspaceCommand {
   readonly name: string;
   readonly slug: string;
   readonly description: string | null;
+}
+
+/**
+ * Validated workspace and profile identities used to add a default member.
+ */
+export interface AddWorkspaceMemberCommand {
+  readonly workspaceId: WorkspaceId;
+  readonly profileId: ProfileId;
 }
 
 /**
@@ -49,6 +58,13 @@ export interface RemoveWorkspaceMemberCommand {
  * authenticated user and must validate external rows before returning them.
  */
 export interface WorkspaceRepository {
+  /**
+   * Adds one active profile as a default member using session authorization.
+   */
+  readonly addMember: (
+    command: AddWorkspaceMemberCommand
+  ) => Effect.Effect<WorkspaceMember, WorkspaceMemberAddRepositoryError>;
+
   /**
    * Returns active workspaces visible to the current authenticated user.
    */

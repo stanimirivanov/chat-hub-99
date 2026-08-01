@@ -18,6 +18,10 @@ interface ProfileQueryClientStub {
   readonly maybeSingle: () => Promise<ProfileQueryResult>;
 }
 
+interface ProfileUsernameQueryClientStub extends ProfileQueryClientStub {
+  readonly ilike: (column: string, value: string) => unknown;
+}
+
 interface ProfileListQueryResult {
   readonly data: readonly CurrentProfile[] | null;
   readonly error: {
@@ -41,6 +45,24 @@ export const makeProfileQueryClientStub = (
   const client = { from } as unknown as SupabaseProfileClient;
 
   return { client, from, select, eq, maybeSingle };
+};
+
+export const makeProfileUsernameQueryClientStub = (
+  result: ProfileQueryResult
+): ProfileUsernameQueryClientStub => {
+  const maybeSingle = vi.fn().mockResolvedValue(result);
+  const eq = vi.fn(() => ({ maybeSingle }));
+  const ilike = vi.fn(() => ({ eq }));
+  const select = vi.fn(() => ({ ilike }));
+  const from = vi.fn(() => ({ select }));
+
+  /*
+   * This deliberate external test boundary avoids constructing the complete
+   * third-party client for one focused fluent query.
+   */
+  const client = { from } as unknown as SupabaseProfileClient;
+
+  return { client, from, select, ilike, eq, maybeSingle };
 };
 
 export const makeProfileListClientStub = (result: ProfileListQueryResult) => {

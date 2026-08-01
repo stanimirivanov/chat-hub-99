@@ -9,6 +9,7 @@ the `update_my_profile` RPC.
 ## Responsibilities
 
 - Query one profile by stable authenticated-user identity.
+- Query one active profile by exact case-insensitive username.
 - Execute `update_my_profile` without exposing lifecycle-status mutation.
 - Query multiple author profiles in one identity-filtered request.
 - Decode generated nullable view data into a profile domain projection.
@@ -36,6 +37,12 @@ listCurrentProfiles use case
   -> one current_profiles `in` query + RLS
   -> ProfileSchema decoding for every returned row
 
+addWorkspaceMemberByUsername use case
+  -> ProfileRepositoryTag
+  -> SupabaseProfileRepositoryLayer
+  -> escaped exact `current_profiles` username query + active-status filter
+  -> ProfileSchema decoding or absence
+
 updateCurrentProfile use case
   -> ProfileRepositoryTag
   -> SupabaseProfileRepositoryLayer
@@ -46,6 +53,10 @@ updateCurrentProfile use case
 A Tag is the typed key through which the application requests a capability. A
 Layer constructs and supplies that capability from the configured Supabase
 client.
+
+The username query escapes PostgreSQL `ILIKE` wildcard characters before the
+request, so user input remains an exact case-insensitive lookup rather than
+silently expanding into profile search.
 
 ## Public API
 

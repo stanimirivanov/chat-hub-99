@@ -1,10 +1,20 @@
 import type {
+  AddWorkspaceMemberResult,
   ChangeWorkspaceMemberRoleResult,
   CreateWorkspaceResult,
   CurrentWorkspaceMembership,
   CurrentWorkspace,
   RemoveWorkspaceMemberResult,
 } from '@chat-hub/shared/database';
+
+export const addedWorkspaceMemberRow: AddWorkspaceMemberResult = {
+  workspace_membership_id: '00000000-0000-4000-8000-000000000015',
+  workspace_id: '00000000-0000-4000-8000-000000000001',
+  user_id: '00000000-0000-4000-8000-000000000016',
+  membership_role: 'member',
+  membership_status: 'active',
+  latest_event_id: '00000000-0000-4000-8000-000000000017',
+};
 
 export const currentWorkspaceRow: CurrentWorkspace = {
   workspace_id: '00000000-0000-4000-8000-000000000001',
