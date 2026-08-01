@@ -22,6 +22,19 @@ export class MessageContentUnchangedError extends Data.TaggedError(
   readonly messageId: MessageId;
 }> {}
 
+/**
+ * Indicates that current message or parent lifecycle state forbids a command.
+ *
+ * The operation identifies the attempted user action without exposing whether
+ * an archived parent or an already-deleted message caused the rejection.
+ */
+export class MessageMutationNotAllowedError extends Data.TaggedError(
+  'MessageMutationNotAllowedError'
+)<{
+  readonly messageId: MessageId;
+  readonly operation: 'edit' | 'delete';
+}> {}
+
 export class MessageAccessDeniedError extends Data.TaggedError(
   'MessageAccessDeniedError'
 )<{
@@ -50,4 +63,10 @@ export type MessageRepositoryError =
 /** Failures specific to appending a new version of an existing message. */
 export type MessageRepositoryEditError =
   | MessageRepositoryError
-  | MessageContentUnchangedError;
+  | MessageContentUnchangedError
+  | MessageMutationNotAllowedError;
+
+/** Failures specific to soft-deleting an existing message. */
+export type MessageRepositoryDeleteError =
+  | MessageRepositoryError
+  | MessageMutationNotAllowedError;

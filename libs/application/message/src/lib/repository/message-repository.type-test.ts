@@ -12,6 +12,7 @@ import {
   MessageRepository,
 } from './message-repository';
 import {
+  MessageRepositoryDeleteError,
   MessageRepositoryEditError,
   MessageRepositoryError,
 } from './message-repository-error';
@@ -32,7 +33,7 @@ const createResult: Effect.Effect<MessageId, MessageRepositoryError> =
 const editResult: Effect.Effect<void, MessageRepositoryEditError> =
   repository.edit(editCommand);
 
-const deleteResult: Effect.Effect<void, MessageRepositoryError> =
+const deleteResult: Effect.Effect<void, MessageRepositoryDeleteError> =
   repository.delete(deleteCommand);
 
 const findResult: Effect.Effect<Message, MessageRepositoryError> =

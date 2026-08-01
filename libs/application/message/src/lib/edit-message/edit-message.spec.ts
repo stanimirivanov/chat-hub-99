@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { editMessage } from './edit-message';
 import {
   MessageContentUnchangedError,
+  MessageMutationNotAllowedError,
   type MessageRepository,
 } from '../repository';
 import {
@@ -69,6 +70,32 @@ describe('editMessage', () => {
       left: {
         _tag: 'MessageContentUnchangedError',
         messageId,
+      },
+    });
+    expect(findById).not.toHaveBeenCalled();
+  });
+
+  it('preserves an authoritative lifecycle rejection', async () => {
+    const error = new MessageMutationNotAllowedError({
+      messageId,
+      operation: 'edit',
+    });
+    const edit: MessageRepository['edit'] = vi.fn(() => Effect.fail(error));
+    const findById: MessageRepository['findById'] = vi.fn();
+
+    const result = await Effect.runPromise(
+      editMessage({ messageId, content: messageContent }).pipe(
+        Effect.provide(makeMessageRepositoryLayer({ edit, findById })),
+        Effect.either
+      )
+    );
+
+    expect(result).toMatchObject({
+      _tag: 'Left',
+      left: {
+        _tag: 'MessageMutationNotAllowedError',
+        messageId,
+        operation: 'edit',
       },
     });
     expect(findById).not.toHaveBeenCalled();

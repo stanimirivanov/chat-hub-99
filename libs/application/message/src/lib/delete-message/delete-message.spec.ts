@@ -2,6 +2,7 @@ import { Effect, Either } from 'effect';
 import { describe, expect, it, vi } from 'vitest';
 import {
   MessageAccessDeniedError,
+  MessageMutationNotAllowedError,
   type MessageRepository,
 } from '../repository';
 import {
@@ -73,6 +74,39 @@ describe('deleteMessage', () => {
       },
     });
 
+    expect(findById).not.toHaveBeenCalled();
+  });
+
+  it('preserves an authoritative lifecycle rejection', async () => {
+    const repositoryError = new MessageMutationNotAllowedError({
+      messageId,
+      operation: 'delete',
+    });
+    const deleteRepositoryMessage: MessageRepository['delete'] = vi.fn(() =>
+      Effect.fail(repositoryError)
+    );
+    const findById: MessageRepository['findById'] = vi.fn();
+
+    const result = await Effect.runPromise(
+      deleteMessage({ messageId }).pipe(
+        Effect.provide(
+          makeMessageRepositoryLayer({
+            delete: deleteRepositoryMessage,
+            findById,
+          })
+        ),
+        Effect.either
+      )
+    );
+
+    expect(result).toMatchObject({
+      _tag: 'Left',
+      left: {
+        _tag: 'MessageMutationNotAllowedError',
+        messageId,
+        operation: 'delete',
+      },
+    });
     expect(findById).not.toHaveBeenCalled();
   });
 });

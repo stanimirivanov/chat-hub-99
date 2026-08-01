@@ -1,6 +1,8 @@
 import { Effect } from 'effect';
-import type { MessageRepositoryError } from '@chat-hub/application/message';
-import type { DeleteMessageCommand } from '@chat-hub/application/message';
+import type {
+  DeleteMessageCommand,
+  MessageRepositoryDeleteError,
+} from '@chat-hub/application/message';
 import {
   mapMessageCommandPostgrestError,
   mapThrownRepositoryError,
@@ -14,7 +16,7 @@ import type { ChatHubSupabaseClient } from '../supabase-message-client';
 export const deleteMessage = (
   client: ChatHubSupabaseClient,
   command: DeleteMessageCommand
-): Effect.Effect<void, MessageRepositoryError> =>
+): Effect.Effect<void, MessageRepositoryDeleteError> =>
   Effect.tryPromise({
     try: async () => client.rpc('delete_message', toDeleteMessageArgs(command)),
     catch: (cause) => mapThrownRepositoryError('delete', cause),

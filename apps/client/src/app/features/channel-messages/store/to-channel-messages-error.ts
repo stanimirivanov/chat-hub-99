@@ -41,6 +41,15 @@ export const toChannelMessagesError = (
         message: 'Change the message before saving.',
       };
 
+    case 'MessageMutationNotAllowedError':
+      return {
+        tag: error._tag,
+        message:
+          error.operation === 'edit'
+            ? 'This message can no longer be edited.'
+            : 'This message can no longer be deleted.',
+      };
+
     case 'MessageNotFoundError':
       return {
         tag: error._tag,

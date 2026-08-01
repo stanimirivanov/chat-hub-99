@@ -7,6 +7,7 @@ import {
   InvalidMessagePageLimitError,
   MessageAccessDeniedError,
   MessageContentUnchangedError,
+  MessageMutationNotAllowedError,
   MessageNotFoundError,
   MessageRepositoryUnavailableError,
 } from '@chat-hub/application/message';
@@ -31,6 +32,20 @@ describe('toChannelMessagesError', () => {
     [
       new MessageContentUnchangedError({ messageId }),
       'Change the message before saving.',
+    ],
+    [
+      new MessageMutationNotAllowedError({
+        messageId,
+        operation: 'edit',
+      }),
+      'This message can no longer be edited.',
+    ],
+    [
+      new MessageMutationNotAllowedError({
+        messageId,
+        operation: 'delete',
+      }),
+      'This message can no longer be deleted.',
     ],
     [
       new MessageNotFoundError({ messageId }),

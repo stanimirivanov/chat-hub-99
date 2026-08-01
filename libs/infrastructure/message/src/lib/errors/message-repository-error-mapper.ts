@@ -2,11 +2,16 @@ import type { MessageId } from '@chat-hub/domain/message';
 import {
   MessageAccessDeniedError,
   MessageContentUnchangedError,
+  MessageMutationNotAllowedError,
   MessageNotFoundError,
   MessageRepositoryUnavailableError,
   type MessageRepositoryEditError,
   type MessageRepositoryError,
 } from '@chat-hub/application/message';
+
+type MessageCommandRepositoryError =
+  | MessageRepositoryError
+  | MessageMutationNotAllowedError;
 
 export type MessageRepositoryOperation = 'create' | 'edit' | 'delete' | 'read';
 
@@ -49,13 +54,16 @@ export const mapMessageCommandPostgrestError = (
   operation: 'edit' | 'delete',
   messageId: MessageId,
   error: PostgrestErrorLike
-): MessageRepositoryError => {
+): MessageCommandRepositoryError => {
   switch (error.code) {
     case '42501':
       return new MessageAccessDeniedError({ operation });
 
     case 'P0002':
       return new MessageNotFoundError({ messageId });
+
+    case '55000':
+      return new MessageMutationNotAllowedError({ messageId, operation });
 
     default:
       return mapThrownRepositoryError(operation, error);
