@@ -2,8 +2,8 @@
 
 `@chat-hub/infrastructure/workspace` implements workspace and active-membership
 discovery with RLS-protected Supabase views, creation with the transactional
-`create_workspace` RPC, and role changes with the transactional
-`change_workspace_member_role` RPC.
+`create_workspace` RPC, role changes with `change_workspace_member_role`, and
+member removal with `remove_workspace_member`.
 
 ## Responsibilities
 
@@ -11,6 +11,7 @@ discovery with RLS-protected Supabase views, creation with the transactional
 - Query active members visible in one selected workspace.
 - Execute workspace creation without exposing owner identity as an argument.
 - Execute member role changes without exposing actor identity as an argument.
+- Execute member removal without exposing actor identity as an argument.
 - Apply stable name/identity ordering.
 - Map generated view and RPC rows into validated domain projections.
 - Preserve actionable current-slug conflicts as a typed application failure.
@@ -48,13 +49,21 @@ changeWorkspaceMemberRole use case
   -> SupabaseWorkspaceRepositoryLayer
   -> change_workspace_member_role RPC
   -> active target/identity checks + WorkspaceMemberSchema decoding
+
+removeWorkspaceMember use case
+  -> WorkspaceRepositoryTag
+  -> SupabaseWorkspaceRepositoryLayer
+  -> remove_workspace_member RPC
+  -> removed target/identity validation
 ```
 
 The membership query returns stable identities and roles only. Profile
 enrichment remains a separate application capability, preventing the workspace
-adapter from depending on profile persistence. Role-change authorization and
-the last-owner invariant remain transactional database concerns; the adapter
-translates their stable outcomes without reimplementing them. The focused client
+adapter from depending on profile persistence. Role-change/removal authorization,
+self-removal prevention, and last-owner invariants remain transactional database
+concerns; the adapter translates their stable outcomes without reimplementing
+them. A removed membership is validated and acknowledged as `void` rather than
+being misrepresented as an active `WorkspaceMember`. The focused client
 projection contains only operations needed by implemented slices. Testing
 support provides fresh query doubles and canonical generated rows.
 

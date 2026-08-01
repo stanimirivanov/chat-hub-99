@@ -3,6 +3,7 @@ export {
   createdWorkspaceRow,
   currentWorkspaceMemberRow,
   currentWorkspaceRow,
+  removedWorkspaceMemberRow,
 } from './workspace-fixtures';
 export { makeWorkspaceCommandClientStub } from './supabase-workspace-command-client.stub';
 export {

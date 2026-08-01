@@ -5,6 +5,7 @@ import {
   effect,
   inject,
   input,
+  signal,
 } from '@angular/core';
 import type { ProfileId } from '@chat-hub/domain/profile';
 import type {
@@ -30,10 +31,10 @@ export class WorkspaceMemberDirectoryComponent {
   private readonly authenticationStore = inject(AuthenticationStore);
 
   /**
-   * Owner status is a presentation affordance only. The RPC independently
-   * authorizes the current provider session before changing a role.
+   * Owner status is a presentation affordance only. Membership RPCs
+   * independently authorize the current provider session.
    */
-  protected readonly canChangeRoles = computed(() => {
+  protected readonly canManageMembers = computed(() => {
     const currentProfileId = this.authenticationStore.session()?.userId;
 
     return this.store
@@ -43,10 +44,13 @@ export class WorkspaceMemberDirectoryComponent {
           entry.profileId === currentProfileId && entry.role === 'owner'
       );
   });
+  protected readonly pendingRemovalProfileId = signal<ProfileId | null>(null);
 
   constructor() {
     effect(() => {
-      void this.store.load(this.workspaceId());
+      const workspaceId = this.workspaceId();
+      this.pendingRemovalProfileId.set(null);
+      void this.store.load(workspaceId);
     });
   }
 
@@ -62,5 +66,18 @@ export class WorkspaceMemberDirectoryComponent {
       profileId,
       currentRole === 'owner' ? 'member' : 'owner'
     );
+  }
+
+  protected requestRemoval(profileId: ProfileId): void {
+    this.pendingRemovalProfileId.set(profileId);
+  }
+
+  protected cancelRemoval(): void {
+    this.pendingRemovalProfileId.set(null);
+  }
+
+  protected confirmRemoval(profileId: ProfileId): void {
+    this.pendingRemovalProfileId.set(null);
+    void this.store.removeMember(profileId);
   }
 }

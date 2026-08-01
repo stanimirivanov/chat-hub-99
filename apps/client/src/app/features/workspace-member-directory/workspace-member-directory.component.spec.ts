@@ -35,12 +35,15 @@ const renderComponent = async (currentProfileId: ProfileId) => {
     isLoading: signal(false),
     hasMembers: signal(true),
     error: signal(null),
-    roleChangeError: signal(null),
+    mutationError: signal(null),
+    isMutatingMember: signal(false),
     isChangingRole: signal(false),
-    changingProfileId: signal(null),
+    isRemovingMember: signal(false),
+    mutatingProfileId: signal(null),
     load: vi.fn().mockResolvedValue(undefined),
     changeMemberRole: vi.fn().mockResolvedValue(true),
-    clearRoleChangeError: vi.fn(),
+    removeMember: vi.fn().mockResolvedValue(true),
+    clearMemberMutationError: vi.fn(),
   };
 
   TestBed.overrideComponent(WorkspaceMemberDirectoryComponent, {
@@ -106,5 +109,30 @@ describe('WorkspaceMemberDirectoryComponent', () => {
     expect(
       fixture.nativeElement.querySelectorAll('button[aria-label^="Make "]')
     ).toHaveLength(0);
+    expect(
+      fixture.nativeElement.querySelectorAll('button[aria-label^="Remove:"]')
+    ).toHaveLength(0);
+  });
+
+  it('requires owner confirmation before requesting member removal', async () => {
+    const { fixture, store } = await renderComponent(ownerId);
+    const removeButton = fixture.nativeElement.querySelector(
+      'button[aria-label="Remove: Workspace Member"]'
+    ) as HTMLButtonElement;
+
+    removeButton.click();
+    fixture.detectChanges();
+
+    expect(store.removeMember).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.textContent).toContain(
+      'Remove Workspace Member from this workspace?'
+    );
+
+    const confirmButton = fixture.nativeElement.querySelector(
+      'button[aria-label="Confirm removal: Workspace Member"]'
+    ) as HTMLButtonElement;
+    confirmButton.click();
+
+    expect(store.removeMember).toHaveBeenCalledExactlyOnceWith(memberId);
   });
 });

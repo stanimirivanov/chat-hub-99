@@ -94,11 +94,14 @@ identities. Owners are displayed before members and the authenticated user is
 labelled locally. Profile enrichment is best-effort: valid roles remain visible
 with a neutral fallback name if profiles are unavailable. Displayed roles are
 not an authorization decision; database policies and commands remain the
-security boundary. An authenticated owner can request promotion or demotion
-from the same directory. Role mutation has state independent from directory
-loading, applies only the canonical RPC result, and ignores a late result after
-workspace navigation. The database independently authorizes the actor and
-protects the last active owner from demotion.
+security boundary. An authenticated owner can request promotion, demotion, or
+another member's removal from the same directory. Removal requires an explicit
+inline confirmation and is not offered for the current owner because the
+database command forbids self-removal. Role changes and removals share one
+serialized member-mutation state independent from directory loading. Successful
+commands reconcile only their validated canonical outcomes, and late results
+after workspace navigation are ignored. The database independently authorizes
+the actor and protects last-owner invariants.
 
 The nested `channel-navigation` slice reacts to that selected workspace, loads
 only its active RLS-visible channels, and owns a separate feature-scoped

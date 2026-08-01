@@ -3,6 +3,7 @@ import type {
   CreateWorkspaceResult,
   CurrentWorkspaceMembership,
   CurrentWorkspace,
+  RemoveWorkspaceMemberResult,
 } from '@chat-hub/shared/database';
 
 export const currentWorkspaceRow: CurrentWorkspace = {
@@ -25,6 +26,15 @@ export const changedWorkspaceMemberRoleRow: ChangeWorkspaceMemberRoleResult = {
   membership_role: 'owner',
   membership_status: 'active',
   latest_event_id: '00000000-0000-4000-8000-000000000013',
+};
+
+export const removedWorkspaceMemberRow: RemoveWorkspaceMemberResult = {
+  workspace_membership_id: '00000000-0000-4000-8000-000000000010',
+  workspace_id: '00000000-0000-4000-8000-000000000001',
+  user_id: '00000000-0000-4000-8000-000000000012',
+  membership_role: 'member',
+  membership_status: 'removed',
+  latest_event_id: '00000000-0000-4000-8000-000000000014',
 };
 
 export const currentWorkspaceMemberRow: CurrentWorkspaceMembership = {

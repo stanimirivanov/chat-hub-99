@@ -1,13 +1,17 @@
 import {
   WorkspaceLastOwnerDemotionError,
+  WorkspaceLastOwnerRemovalError,
   WorkspaceMemberNotActiveError,
   WorkspaceMemberNotFoundError,
+  WorkspaceMemberRemovalNotAllowedError,
   WorkspaceMemberRoleChangeNotAllowedError,
   WorkspaceMemberRoleUnchangedError,
   WorkspaceRepositoryUnavailableError,
   WorkspaceSlugUnavailableError,
   type ChangeWorkspaceMemberRoleCommand,
   type CreateWorkspaceCommand,
+  type RemoveWorkspaceMemberCommand,
+  type WorkspaceMemberRemovalRepositoryError,
   type WorkspaceMemberRoleChangeRepositoryError,
   type WorkspaceRepositoryCreateError,
 } from '@chat-hub/application/workspace';
@@ -19,6 +23,17 @@ interface PostgrestErrorLike {
 }
 
 const WORKSPACE_SLUG_UNIQUE_CONSTRAINT = 'workspace_heads_current_slug_unique';
+
+const isWorkspaceCommandNotAllowed = (
+  error: PostgrestErrorLike,
+  normalizedMessage: string
+): boolean =>
+  error.code === '28000' ||
+  error.code === '42501' ||
+  (error.code === 'P0002' && normalizedMessage.startsWith('workspace ')) ||
+  (error.code === '55000' &&
+    normalizedMessage.includes('workspace') &&
+    normalizedMessage.includes('not active'));
 
 export const mapWorkspaceRepositoryError = (
   cause: unknown
@@ -57,14 +72,7 @@ export const mapWorkspaceMemberRoleChangeError = (
 ): WorkspaceMemberRoleChangeRepositoryError => {
   const message = error.message.toLowerCase();
 
-  if (
-    error.code === '28000' ||
-    error.code === '42501' ||
-    (error.code === 'P0002' && message.startsWith('workspace ')) ||
-    (error.code === '55000' &&
-      message.includes('workspace') &&
-      message.includes('not active'))
-  ) {
+  if (isWorkspaceCommandNotAllowed(error, message)) {
     return new WorkspaceMemberRoleChangeNotAllowedError({
       workspaceId: command.workspaceId,
     });
@@ -100,6 +108,55 @@ export const mapWorkspaceMemberRoleChangeError = (
     message.includes('last active workspace owner')
   ) {
     return new WorkspaceLastOwnerDemotionError({
+      workspaceId: command.workspaceId,
+      profileId: command.profileId,
+    });
+  }
+
+  return mapWorkspaceRepositoryError(error);
+};
+
+/**
+ * Translates the stable SQL-state/message contract of the removal RPC into
+ * provider-independent failures that the application and UI can act on.
+ */
+export const mapWorkspaceMemberRemovalError = (
+  command: RemoveWorkspaceMemberCommand,
+  error: PostgrestErrorLike
+): WorkspaceMemberRemovalRepositoryError => {
+  const message = error.message.toLowerCase();
+
+  if (
+    isWorkspaceCommandNotAllowed(error, message) ||
+    (error.code === '55000' && message.includes('cannot remove themselves'))
+  ) {
+    return new WorkspaceMemberRemovalNotAllowedError({
+      workspaceId: command.workspaceId,
+    });
+  }
+
+  if (error.code === 'P0002' && message.includes('is not a member')) {
+    return new WorkspaceMemberNotFoundError({
+      workspaceId: command.workspaceId,
+      profileId: command.profileId,
+    });
+  }
+
+  if (
+    error.code === '55000' &&
+    message.includes('active workspace member may be removed')
+  ) {
+    return new WorkspaceMemberNotActiveError({
+      workspaceId: command.workspaceId,
+      profileId: command.profileId,
+    });
+  }
+
+  if (
+    error.code === '55000' &&
+    message.includes('last active workspace owner')
+  ) {
+    return new WorkspaceLastOwnerRemovalError({
       workspaceId: command.workspaceId,
       profileId: command.profileId,
     });

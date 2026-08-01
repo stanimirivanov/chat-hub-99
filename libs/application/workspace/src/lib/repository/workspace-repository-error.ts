@@ -92,6 +92,25 @@ export class WorkspaceLastOwnerDemotionError extends Data.TaggedError(
   readonly profileId: ProfileId;
 }> {}
 
+/**
+ * Indicates that the current session or workspace state forbids removal.
+ */
+export class WorkspaceMemberRemovalNotAllowedError extends Data.TaggedError(
+  'WorkspaceMemberRemovalNotAllowedError'
+)<{
+  readonly workspaceId: WorkspaceId;
+}> {}
+
+/**
+ * Indicates that removal would leave no active workspace owner.
+ */
+export class WorkspaceLastOwnerRemovalError extends Data.TaggedError(
+  'WorkspaceLastOwnerRemovalError'
+)<{
+  readonly workspaceId: WorkspaceId;
+  readonly profileId: ProfileId;
+}> {}
+
 export type WorkspaceRepositoryReadError =
   | WorkspaceRepositoryUnavailableError
   | InvalidWorkspaceDataError;
@@ -112,3 +131,11 @@ export type WorkspaceMemberRoleChangeRepositoryError =
   | WorkspaceMemberNotActiveError
   | WorkspaceMemberRoleUnchangedError
   | WorkspaceLastOwnerDemotionError;
+
+export type WorkspaceMemberRemovalRepositoryError =
+  | WorkspaceRepositoryUnavailableError
+  | InvalidWorkspaceMemberDataError
+  | WorkspaceMemberRemovalNotAllowedError
+  | WorkspaceMemberNotFoundError
+  | WorkspaceMemberNotActiveError
+  | WorkspaceLastOwnerRemovalError;

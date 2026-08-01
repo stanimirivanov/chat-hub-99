@@ -5,10 +5,13 @@ import {
   createWorkspace,
   listAccessibleWorkspaces,
   listWorkspaceMembers,
+  removeWorkspaceMember,
   type ChangeWorkspaceMemberRoleError,
   type ChangeWorkspaceMemberRoleInput,
   type CreateWorkspaceError,
   type CreateWorkspaceInput,
+  type RemoveWorkspaceMemberError,
+  type RemoveWorkspaceMemberInput,
   type WorkspaceMemberRepositoryReadError,
   type WorkspaceRepositoryReadError,
 } from '@chat-hub/application/workspace';
@@ -66,6 +69,17 @@ export class WorkspaceApplicationService {
   ): Promise<Either.Either<WorkspaceMember, ChangeWorkspaceMemberRoleError>> {
     return applicationRuntime.runPromise(
       changeWorkspaceMemberRole(input).pipe(Effect.either)
+    );
+  }
+
+  /**
+   * Removes one active workspace member using session authorization.
+   */
+  removeWorkspaceMember(
+    input: RemoveWorkspaceMemberInput
+  ): Promise<Either.Either<void, RemoveWorkspaceMemberError>> {
+    return applicationRuntime.runPromise(
+      removeWorkspaceMember(input).pipe(Effect.either)
     );
   }
 

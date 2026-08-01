@@ -7,7 +7,10 @@ import {
   withMethods,
   withState,
 } from '@ngrx/signals';
-import type { ChangeWorkspaceMemberRoleError } from '@chat-hub/application/workspace';
+import type {
+  ChangeWorkspaceMemberRoleError,
+  RemoveWorkspaceMemberError,
+} from '@chat-hub/application/workspace';
 import type { Profile, ProfileId } from '@chat-hub/domain/profile';
 import type {
   WorkspaceId,
@@ -30,7 +33,17 @@ export const WorkspaceMemberDirectoryStore = signalStore(
 
   withComputed((store) => ({
     isLoading: computed(() => store.loadStatus() === 'loading'),
-    isChangingRole: computed(() => store.roleChangeStatus() === 'changing'),
+    isMutatingMember: computed(() => store.mutationStatus() === 'pending'),
+    isChangingRole: computed(
+      () =>
+        store.mutationStatus() === 'pending' &&
+        store.mutationKind() === 'role-change'
+    ),
+    isRemovingMember: computed(
+      () =>
+        store.mutationStatus() === 'pending' &&
+        store.mutationKind() === 'removal'
+    ),
     hasMembers: computed(() => store.members().length > 0),
     entries: computed(() =>
       toDirectoryEntries(store.members(), store.profiles())
@@ -75,9 +88,10 @@ export const WorkspaceMemberDirectoryStore = signalStore(
             profiles: [],
             loadStatus: 'loading',
             error: null,
-            roleChangeStatus: 'idle',
-            changingProfileId: null,
-            roleChangeError: null,
+            mutationStatus: 'idle',
+            mutationKind: null,
+            mutatingProfileId: null,
+            mutationError: null,
           });
 
           const promise = (async () => {
@@ -142,16 +156,17 @@ export const WorkspaceMemberDirectoryStore = signalStore(
           if (
             workspaceId === null ||
             store.loadStatus() !== 'loaded' ||
-            store.roleChangeStatus() === 'changing'
+            store.mutationStatus() === 'pending'
           ) {
             return false;
           }
 
           const version = requestVersion;
           patchState(store, {
-            roleChangeStatus: 'changing',
-            changingProfileId: profileId,
-            roleChangeError: null,
+            mutationStatus: 'pending',
+            mutationKind: 'role-change',
+            mutatingProfileId: profileId,
+            mutationError: null,
           });
 
           const result = await workspaceApplication.changeWorkspaceMemberRole({
@@ -169,9 +184,12 @@ export const WorkspaceMemberDirectoryStore = signalStore(
 
           if (Either.isLeft(result)) {
             patchState(store, {
-              roleChangeStatus: 'failed',
-              changingProfileId: null,
-              roleChangeError: presentRoleChangeError(result.left),
+              mutationStatus: 'failed',
+              mutatingProfileId: null,
+              mutationError: presentMemberMutationError(
+                result.left,
+                'role-change'
+              ),
             });
             return false;
           }
@@ -182,19 +200,85 @@ export const WorkspaceMemberDirectoryStore = signalStore(
               .map((member) =>
                 member.profileId === profileId ? result.right : member
               ),
-            roleChangeStatus: 'idle',
-            changingProfileId: null,
-            roleChangeError: null,
+            mutationStatus: 'idle',
+            mutationKind: null,
+            mutatingProfileId: null,
+            mutationError: null,
           });
           return true;
         },
 
-        clearRoleChangeError(): void {
-          if (store.roleChangeStatus() !== 'changing') {
+        /**
+         * Removes one member only after the application command confirms the
+         * canonical removed state. Profiles are presentation enrichment and
+         * are discarded with the removed membership.
+         */
+        async removeMember(
+          profileId: ProfileId,
+          reason: string | null = null
+        ): Promise<boolean> {
+          const workspaceId = store.workspaceId();
+
+          if (
+            workspaceId === null ||
+            store.loadStatus() !== 'loaded' ||
+            store.mutationStatus() === 'pending'
+          ) {
+            return false;
+          }
+
+          const version = requestVersion;
+          patchState(store, {
+            mutationStatus: 'pending',
+            mutationKind: 'removal',
+            mutatingProfileId: profileId,
+            mutationError: null,
+          });
+
+          const result = await workspaceApplication.removeWorkspaceMember({
+            workspaceId,
+            profileId,
+            reason,
+          });
+
+          if (
+            version !== requestVersion ||
+            store.workspaceId() !== workspaceId
+          ) {
+            return false;
+          }
+
+          if (Either.isLeft(result)) {
             patchState(store, {
-              roleChangeStatus: 'idle',
-              changingProfileId: null,
-              roleChangeError: null,
+              mutationStatus: 'failed',
+              mutatingProfileId: null,
+              mutationError: presentMemberMutationError(result.left, 'removal'),
+            });
+            return false;
+          }
+
+          patchState(store, {
+            members: store
+              .members()
+              .filter((member) => member.profileId !== profileId),
+            profiles: store
+              .profiles()
+              .filter((profile) => profile.id !== profileId),
+            mutationStatus: 'idle',
+            mutationKind: null,
+            mutatingProfileId: null,
+            mutationError: null,
+          });
+          return true;
+        },
+
+        clearMemberMutationError(): void {
+          if (store.mutationStatus() !== 'pending') {
+            patchState(store, {
+              mutationStatus: 'idle',
+              mutationKind: null,
+              mutatingProfileId: null,
+              mutationError: null,
             });
           }
         },
@@ -229,8 +313,9 @@ const toDirectoryEntries = (
 const roleOrder = (role: WorkspaceMemberDirectoryEntry['role']): number =>
   role === 'owner' ? 0 : 1;
 
-const presentRoleChangeError = (
-  error: ChangeWorkspaceMemberRoleError
+const presentMemberMutationError = (
+  error: ChangeWorkspaceMemberRoleError | RemoveWorkspaceMemberError,
+  kind: 'role-change' | 'removal'
 ): { readonly message: string } => {
   switch (error._tag) {
     case 'WorkspaceLastOwnerDemotionError':
@@ -242,6 +327,14 @@ const presentRoleChangeError = (
       return {
         message: 'You no longer have permission to change member roles.',
       };
+    case 'WorkspaceLastOwnerRemovalError':
+      return {
+        message: 'The last active workspace owner cannot be removed.',
+      };
+    case 'WorkspaceMemberRemovalNotAllowedError':
+      return {
+        message: 'You no longer have permission to remove workspace members.',
+      };
     case 'WorkspaceMemberNotFoundError':
     case 'WorkspaceMemberNotActiveError':
       return {
@@ -250,10 +343,14 @@ const presentRoleChangeError = (
     case 'WorkspaceMemberRoleUnchangedError':
       return { message: 'This member already has the requested role.' };
     case 'InvalidWorkspaceMemberRoleChangeInputError':
+    case 'InvalidWorkspaceMemberRemovalInputError':
     case 'InvalidWorkspaceMemberDataError':
     case 'WorkspaceRepositoryUnavailableError':
       return {
-        message: 'The member role could not be changed. Please try again.',
+        message:
+          kind === 'role-change'
+            ? 'The member role could not be changed. Please try again.'
+            : 'The workspace member could not be removed. Please try again.',
       };
   }
 };
