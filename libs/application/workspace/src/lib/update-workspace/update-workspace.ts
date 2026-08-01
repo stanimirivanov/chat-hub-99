@@ -1,36 +1,23 @@
-import { Effect, Schema } from 'effect';
-import { WorkspaceIdSchema, type Workspace } from '@chat-hub/domain/workspace';
+import { Effect } from 'effect';
+import type { Workspace } from '@chat-hub/domain/workspace';
 import {
   WorkspaceRepositoryTag,
   type UpdateWorkspaceCommand,
   type WorkspaceRepository,
 } from '../repository';
 import { decodeWorkspaceDetails } from '../workspace-details/decode-workspace-details';
+import { decodeWorkspaceId } from '../workspace-identity/decode-workspace-id';
 import {
   InvalidWorkspaceUpdateInputError,
   type UpdateWorkspaceError,
   type WorkspaceUpdateField,
 } from './update-workspace-error';
 
-const decodeString = Schema.decodeUnknown(Schema.String);
-
-const readWorkspaceId = (input: unknown): unknown =>
-  typeof input === 'object' && input !== null
-    ? Reflect.get(input, 'workspaceId')
-    : undefined;
-
 const invalidField = (
   field: WorkspaceUpdateField,
   cause: unknown
 ): InvalidWorkspaceUpdateInputError =>
   new InvalidWorkspaceUpdateInputError({ field, cause });
-
-const decodeWorkspaceId = (input: unknown) =>
-  decodeString(readWorkspaceId(input)).pipe(
-    Effect.map((value) => value.trim()),
-    Effect.flatMap(Schema.decodeUnknown(WorkspaceIdSchema)),
-    Effect.mapError((cause) => invalidField('workspaceId', cause))
-  );
 
 /**
  * Replaces the mutable details of one active workspace.
@@ -43,7 +30,9 @@ export const updateWorkspace = (
   input: unknown
 ): Effect.Effect<Workspace, UpdateWorkspaceError, WorkspaceRepository> =>
   Effect.gen(function* () {
-    const workspaceId = yield* decodeWorkspaceId(input);
+    const workspaceId = yield* decodeWorkspaceId(input, (cause) =>
+      invalidField('workspaceId', cause)
+    );
     const details = yield* decodeWorkspaceDetails(input, invalidField);
     const command: UpdateWorkspaceCommand = { workspaceId, ...details };
     const repository = yield* WorkspaceRepositoryTag;

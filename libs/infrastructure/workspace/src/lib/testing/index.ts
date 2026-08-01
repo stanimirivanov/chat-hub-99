@@ -1,5 +1,6 @@
 export {
   addedWorkspaceMemberRow,
+  archivedWorkspaceRow,
   changedWorkspaceMemberRoleRow,
   createdWorkspaceRow,
   currentWorkspaceMemberRow,

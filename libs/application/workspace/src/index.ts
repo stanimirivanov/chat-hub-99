@@ -8,6 +8,12 @@ export {
   type WorkspaceMemberAdditionField,
 } from './lib/add-workspace-member-by-username';
 export {
+  archiveWorkspace,
+  InvalidWorkspaceArchiveInputError,
+  type ArchiveWorkspaceError,
+  type ArchiveWorkspaceInput,
+} from './lib/archive-workspace';
+export {
   changeWorkspaceMemberRole,
   InvalidWorkspaceMemberRoleChangeInputError,
   type ChangeWorkspaceMemberRoleError,
@@ -49,6 +55,7 @@ export {
 export {
   InvalidWorkspaceMemberDataError,
   InvalidWorkspaceDataError,
+  WorkspaceArchiveNotAllowedError,
   WorkspaceLastOwnerDemotionError,
   WorkspaceLastOwnerRemovalError,
   WorkspaceMemberAdditionNotAllowedError,
@@ -67,6 +74,7 @@ export {
   type WorkspaceMemberRemovalRepositoryError,
   type WorkspaceMemberRoleChangeRepositoryError,
   type WorkspaceRepositoryCreateError,
+  type WorkspaceRepositoryArchiveError,
   type WorkspaceRepositoryReadError,
   type WorkspaceRepositoryUpdateError,
 } from './lib/repository';

@@ -1,7 +1,10 @@
 <section
   aria-labelledby="workspace-navigation-heading"
   [attr.aria-busy]="
-    store.isLoading() || store.isCreating() || store.isUpdating()
+    store.isLoading() ||
+    store.isCreating() ||
+    store.isUpdating() ||
+    store.isArchiving()
   "
 >
   <h1 id="workspace-navigation-heading">Workspaces</h1>
@@ -70,7 +73,7 @@
     } @else {
       <button
         type="button"
-        [disabled]="isEditingWorkspace()"
+        [disabled]="isEditingWorkspace() || store.isArchiving()"
         (click)="beginWorkspaceCreation()"
       >
         Create workspace
@@ -134,7 +137,7 @@
                   type="text"
                   required
                   [value]="workspace.name"
-                  [disabled]="store.isUpdating()"
+                  [disabled]="store.isUpdating() || store.isArchiving()"
                 />
 
                 <label for="workspace-edit-slug">Workspace URL</label>
@@ -146,7 +149,7 @@
                   required
                   aria-describedby="workspace-edit-slug-help"
                   [value]="workspace.slug"
-                  [disabled]="store.isUpdating()"
+                  [disabled]="store.isUpdating() || store.isArchiving()"
                 />
                 <small id="workspace-edit-slug-help">
                   Lowercase letters, numbers, and single hyphens.
@@ -158,10 +161,13 @@
                   id="workspace-edit-description"
                   name="workspace-edit-description"
                   [value]="workspace.description ?? ''"
-                  [disabled]="store.isUpdating()"
+                  [disabled]="store.isUpdating() || store.isArchiving()"
                 ></textarea>
 
-                <button type="submit" [disabled]="store.isUpdating()">
+                <button
+                  type="submit"
+                  [disabled]="store.isUpdating() || store.isArchiving()"
+                >
                   @if (store.isUpdating()) {
                     Saving&hellip;
                   } @else {
@@ -170,16 +176,56 @@
                 </button>
                 <button
                   type="button"
-                  [disabled]="store.isUpdating()"
+                  [disabled]="store.isUpdating() || store.isArchiving()"
                   (click)="cancelWorkspaceEditing()"
                 >
                   Cancel
                 </button>
               </form>
             } @else {
-              <button type="button" (click)="beginWorkspaceEditing()">
-                Edit workspace
-              </button>
+              @if (isConfirmingWorkspaceArchive()) {
+                <p>
+                  Archive {{ workspace.name }}? It will be removed from active
+                  navigation, while its history is preserved.
+                </p>
+                <button
+                  type="button"
+                  [disabled]="store.isArchiving()"
+                  (click)="confirmWorkspaceArchive(workspace)"
+                >
+                  @if (store.isArchiving()) {
+                    Archiving&hellip;
+                  } @else {
+                    Confirm archive
+                  }
+                </button>
+                <button
+                  type="button"
+                  [disabled]="store.isArchiving()"
+                  (click)="cancelWorkspaceArchive()"
+                >
+                  Cancel
+                </button>
+              } @else {
+                <button
+                  type="button"
+                  [disabled]="store.isCreating() || store.isArchiving()"
+                  (click)="beginWorkspaceEditing()"
+                >
+                  Edit workspace
+                </button>
+                <button
+                  type="button"
+                  [disabled]="
+                    store.isCreating() ||
+                    store.isUpdating() ||
+                    store.isArchiving()
+                  "
+                  (click)="beginWorkspaceArchive()"
+                >
+                  Archive workspace
+                </button>
+              }
             }
           }
 
@@ -190,9 +236,16 @@
             </button>
           }
 
+          @if (store.archiveError(); as error) {
+            <p role="alert">{{ error.message }}</p>
+            <button type="button" (click)="store.clearArchiveError()">
+              Dismiss
+            </button>
+          }
+
           <app-workspace-member-directory
             [workspaceId]="workspace.id"
-            (canManageMembersChange)="canManageSelectedWorkspace.set($event)"
+            (canManageMembersChange)="handleCanManageMembersChange($event)"
           />
 
           <app-channel-navigation [workspaceId]="workspace.id" />

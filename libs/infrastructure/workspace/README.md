@@ -3,7 +3,8 @@
 `@chat-hub/infrastructure/workspace` implements workspace and active-membership
 discovery with RLS-protected Supabase views, creation with the transactional
 `create_workspace` RPC, detail replacement with `update_workspace`, member
-addition with `add_workspace_member`, role changes with
+archiving with `archive_workspace`, member addition with
+`add_workspace_member`, role changes with
 `change_workspace_member_role`, and member removal with
 `remove_workspace_member`.
 
@@ -13,12 +14,15 @@ addition with `add_workspace_member`, role changes with
 - Query active members visible in one selected workspace.
 - Execute workspace creation without exposing owner identity as an argument.
 - Execute workspace updates without exposing actor identity as an argument.
+- Execute workspace archiving without exposing actor identity as an argument.
 - Execute member addition without exposing actor identity or role as arguments.
 - Execute member role changes without exposing actor identity as an argument.
 - Execute member removal without exposing actor identity as an argument.
 - Apply stable name/identity ordering.
 - Map generated view and RPC rows into validated domain projections.
 - Preserve actionable current-slug conflicts as a typed application failure.
+- Preserve expected archive authorization and lifecycle rejections as a typed
+  application failure.
 - Preserve authorization, stale-membership, unchanged-role, and last-owner
   outcomes as typed application failures.
 - Translate all other transport and row-validation failures.
@@ -47,6 +51,12 @@ updateWorkspace use case
   -> SupabaseWorkspaceRepositoryLayer
   -> update_workspace RPC
   -> active-status/identity checks + WorkspaceSchema decoding
+
+archiveWorkspace use case
+  -> WorkspaceRepositoryTag
+  -> SupabaseWorkspaceRepositoryLayer
+  -> archive_workspace RPC
+  -> archived-status/identity validation + void acknowledgment
 
 listWorkspaceMembers use case
   -> WorkspaceRepositoryTag
@@ -91,6 +101,14 @@ advancement, and current-slug uniqueness remain transactional RPC concerns. The
 adapter validates the returned identity and active state, translates actionable
 authorization and slug-conflict outcomes, and exposes only the canonical domain
 workspace.
+
+Workspace archiving appends an immutable archived version and advances the
+workspace head transactionally. Owner authorization, active-workspace status,
+and concurrent head advancement remain database concerns. The adapter validates
+that the RPC acknowledged the requested identity in the archived state, then
+returns `void`: an archived row must not cross the application boundary as an
+active `Workspace`. Restoration and hard deletion are intentionally outside
+this slice.
 
 ## Public API
 

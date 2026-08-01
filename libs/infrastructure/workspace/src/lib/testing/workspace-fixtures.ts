@@ -1,5 +1,6 @@
 import type {
   AddWorkspaceMemberResult,
+  ArchiveWorkspaceResult,
   ChangeWorkspaceMemberRoleResult,
   CreateWorkspaceResult,
   CurrentWorkspaceMembership,
@@ -15,6 +16,19 @@ export const addedWorkspaceMemberRow: AddWorkspaceMemberResult = {
   membership_role: 'member',
   membership_status: 'active',
   latest_event_id: '00000000-0000-4000-8000-000000000017',
+};
+
+export const archivedWorkspaceRow: ArchiveWorkspaceResult = {
+  workspace_id: '00000000-0000-4000-8000-000000000001',
+  workspace_version_id: '00000000-0000-4000-8000-000000000020',
+  version_number: 3,
+  name: 'Chat Hub Community',
+  slug: 'chat-hub-community',
+  description: 'Updated collaboration space',
+  status: 'archived',
+  supersedes_workspace_version_id: '00000000-0000-4000-8000-000000000018',
+  created_at: '2026-08-01T09:00:00.000Z',
+  created_by: '00000000-0000-4000-8000-000000000002',
 };
 
 export const currentWorkspaceRow: CurrentWorkspace = {

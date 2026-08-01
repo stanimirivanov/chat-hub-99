@@ -12,6 +12,7 @@ import type {
   WorkspaceMemberRemovalRepositoryError,
   WorkspaceMemberRoleChangeRepositoryError,
   WorkspaceRepositoryCreateError,
+  WorkspaceRepositoryArchiveError,
   WorkspaceRepositoryReadError,
   WorkspaceRepositoryUpdateError,
 } from './workspace-repository-error';
@@ -66,6 +67,16 @@ export interface RemoveWorkspaceMemberCommand {
  * authenticated user and must validate external rows before returning them.
  */
 export interface WorkspaceRepository {
+  /**
+   * Archives one active workspace using provider-session authorization.
+   *
+   * The implementation validates the archived provider result before
+   * acknowledging success, so no archived row crosses as an active workspace.
+   */
+  readonly archive: (
+    workspaceId: WorkspaceId
+  ) => Effect.Effect<void, WorkspaceRepositoryArchiveError>;
+
   /**
    * Adds one active profile as a default member using session authorization.
    */

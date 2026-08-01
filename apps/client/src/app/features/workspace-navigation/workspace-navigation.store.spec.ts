@@ -2,10 +2,12 @@ import { Either, Schema } from 'effect';
 import { TestBed } from '@angular/core/testing';
 import { describe, expect, it, vi } from 'vitest';
 import {
+  WorkspaceArchiveNotAllowedError,
   WorkspaceRepositoryUnavailableError,
   WorkspaceSlugUnavailableError,
   WorkspaceUpdateNotAllowedError,
   type CreateWorkspaceError,
+  type ArchiveWorkspaceError,
   type UpdateWorkspaceError,
   type WorkspaceRepositoryReadError,
 } from '@chat-hub/application/workspace';
@@ -61,12 +63,16 @@ const configureStore = (
   ),
   updateResult: Either.Either<Workspace, UpdateWorkspaceError> = Either.right(
     updatedWorkspace
+  ),
+  archiveResult: Either.Either<void, ArchiveWorkspaceError> = Either.right(
+    undefined
   )
 ) => {
   const service = {
     listAccessibleWorkspaces: vi.fn().mockResolvedValue(result),
     createWorkspace: vi.fn().mockResolvedValue(creationResult),
     updateWorkspace: vi.fn().mockResolvedValue(updateResult),
+    archiveWorkspace: vi.fn().mockResolvedValue(archiveResult),
   };
 
   TestBed.configureTestingModule({
@@ -283,5 +289,107 @@ describe('WorkspaceNavigationStore', () => {
     await expect(staleUpdate).resolves.toBeNull();
     expect(store.workspaces()).toEqual([workspace, otherWorkspace]);
     expect(store.updateStatus()).toBe('idle');
+  });
+
+  it('removes an archived workspace and clears its selection', async () => {
+    const { store, service } = configureStore(
+      Either.right([workspace, otherWorkspace])
+    );
+    await store.load();
+    store.select(workspace.id);
+
+    const archive = store.archiveSelectedWorkspace();
+
+    expect(store.isArchiving()).toBe(true);
+    expect(store.archivingWorkspaceId()).toBe(workspace.id);
+    await expect(archive).resolves.toBe(workspace.id);
+    expect(service.archiveWorkspace).toHaveBeenCalledExactlyOnceWith({
+      workspaceId: workspace.id,
+    });
+    expect(store.workspaces()).toEqual([otherWorkspace]);
+    expect(store.selectedWorkspace()).toBeNull();
+    expect(store.archiveStatus()).toBe('idle');
+    expect(store.archiveError()).toBeNull();
+  });
+
+  it('retains navigation and presents a forbidden archive', async () => {
+    const failure = new WorkspaceArchiveNotAllowedError({
+      workspaceId: workspace.id,
+    });
+    const { store } = configureStore(
+      Either.right([workspace]),
+      undefined,
+      undefined,
+      Either.left(failure)
+    );
+    await store.load();
+    store.select(workspace.id);
+
+    await expect(store.archiveSelectedWorkspace()).resolves.toBeNull();
+
+    expect(store.workspaces()).toEqual([workspace]);
+    expect(store.selectedWorkspace()).toBe(workspace);
+    expect(store.archiveStatus()).toBe('failed');
+    expect(store.archiveError()).toEqual({
+      message: 'You no longer have permission to archive this workspace.',
+    });
+
+    store.clearArchiveError();
+    expect(store.archiveStatus()).toBe('idle');
+    expect(store.archiveError()).toBeNull();
+  });
+
+  it('reconciles a successful archive without disturbing a newer selection', async () => {
+    let resolveArchive:
+      | ((result: Either.Either<void, never>) => void)
+      | undefined;
+    const archiveResult = new Promise<Either.Either<void, never>>((resolve) => {
+      resolveArchive = resolve;
+    });
+    const { store, service } = configureStore(
+      Either.right([workspace, otherWorkspace])
+    );
+    service.archiveWorkspace.mockReturnValue(archiveResult);
+    await store.load();
+    store.select(workspace.id);
+
+    const archive = store.archiveSelectedWorkspace();
+    store.select(otherWorkspace.id);
+    resolveArchive?.(Either.right(undefined));
+
+    await expect(archive).resolves.toBe(workspace.id);
+    expect(store.workspaces()).toEqual([otherWorkspace]);
+    expect(store.selectedWorkspace()).toBe(otherWorkspace);
+    expect(store.archiveStatus()).toBe('idle');
+  });
+
+  it('discards an archive failure after selection changes', async () => {
+    const failure = new WorkspaceArchiveNotAllowedError({
+      workspaceId: workspace.id,
+    });
+    let resolveArchive:
+      | ((result: Either.Either<void, ArchiveWorkspaceError>) => void)
+      | undefined;
+    const archiveResult = new Promise<
+      Either.Either<void, ArchiveWorkspaceError>
+    >((resolve) => {
+      resolveArchive = resolve;
+    });
+    const { store, service } = configureStore(
+      Either.right([workspace, otherWorkspace])
+    );
+    service.archiveWorkspace.mockReturnValue(archiveResult);
+    await store.load();
+    store.select(workspace.id);
+
+    const archive = store.archiveSelectedWorkspace();
+    store.select(otherWorkspace.id);
+    resolveArchive?.(Either.left(failure));
+
+    await expect(archive).resolves.toBeNull();
+    expect(store.workspaces()).toEqual([workspace, otherWorkspace]);
+    expect(store.selectedWorkspace()).toBe(otherWorkspace);
+    expect(store.archiveStatus()).toBe('idle');
+    expect(store.archiveError()).toBeNull();
   });
 });

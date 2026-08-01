@@ -16,6 +16,11 @@ export type WorkspaceCreationStatus = 'idle' | 'creating' | 'failed';
 export type WorkspaceUpdateStatus = 'idle' | 'updating' | 'failed';
 
 /**
+ * Lifecycle of the serialized workspace archive operation.
+ */
+export type WorkspaceArchiveStatus = 'idle' | 'archiving' | 'failed';
+
+/**
  * Safe failure information rendered by workspace navigation.
  */
 export interface WorkspaceNavigationError {
@@ -34,6 +39,9 @@ export interface WorkspaceNavigationState {
   readonly creationError: WorkspaceNavigationError | null;
   readonly updateStatus: WorkspaceUpdateStatus;
   readonly updateError: WorkspaceNavigationError | null;
+  readonly archiveStatus: WorkspaceArchiveStatus;
+  readonly archivingWorkspaceId: WorkspaceId | null;
+  readonly archiveError: WorkspaceNavigationError | null;
 }
 
 /**
@@ -48,4 +56,7 @@ export const initialWorkspaceNavigationState: WorkspaceNavigationState = {
   creationError: null,
   updateStatus: 'idle',
   updateError: null,
+  archiveStatus: 'idle',
+  archivingWorkspaceId: null,
+  archiveError: null,
 };
