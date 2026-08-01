@@ -2,10 +2,12 @@ import { Either, Schema } from 'effect';
 import { TestBed } from '@angular/core/testing';
 import { describe, expect, it, vi } from 'vitest';
 import {
+  ChannelArchiveNotAllowedError,
   ChannelUpdateNotAllowedError,
   ChannelRepositoryUnavailableError,
   ChannelSlugUnavailableError,
   type UpdatedChannelDetails,
+  type ArchiveChannelError,
   type UpdateChannelError,
 } from '@chat-hub/application/channel';
 import { ChannelIdSchema, type Channel } from '@chat-hub/domain/channel';
@@ -57,14 +59,20 @@ const updatedDetails: UpdatedChannelDetails = {
 const configureStore = (
   listWorkspaceChannels = vi.fn().mockResolvedValue(Either.right([channel])),
   createChannel = vi.fn().mockResolvedValue(Either.right(createdChannel)),
-  updateChannel = vi.fn().mockResolvedValue(Either.right(updatedDetails))
+  updateChannel = vi.fn().mockResolvedValue(Either.right(updatedDetails)),
+  archiveChannel = vi.fn().mockResolvedValue(Either.right(undefined))
 ) => {
   TestBed.configureTestingModule({
     providers: [
       ChannelNavigationStore,
       {
         provide: ChannelApplicationService,
-        useValue: { createChannel, listWorkspaceChannels, updateChannel },
+        useValue: {
+          archiveChannel,
+          createChannel,
+          listWorkspaceChannels,
+          updateChannel,
+        },
       },
     ],
   });
@@ -72,6 +80,7 @@ const configureStore = (
   return {
     store: TestBed.inject(ChannelNavigationStore),
     createChannel,
+    archiveChannel,
     listWorkspaceChannels,
     updateChannel,
   };
@@ -306,5 +315,157 @@ describe('ChannelNavigationStore', () => {
     expect(store.selectedChannel()).toEqual(channel);
     expect(store.updateStatus()).toBe('idle');
     expect(store.updateError()).toBeNull();
+  });
+
+  it('removes an archived channel and clears its selection', async () => {
+    const { store, archiveChannel } = configureStore(
+      vi.fn().mockResolvedValue(Either.right([channel, createdChannel]))
+    );
+    await store.load(workspaceId);
+    store.select(channelId);
+
+    const archive = store.archiveSelectedChannel();
+
+    expect(store.isArchiving()).toBe(true);
+    expect(store.archivingChannelId()).toBe(channelId);
+    await expect(archive).resolves.toBe(channelId);
+    expect(archiveChannel).toHaveBeenCalledExactlyOnceWith({ channelId });
+    expect(store.channels()).toEqual([createdChannel]);
+    expect(store.selectedChannel()).toBeNull();
+    expect(store.archiveStatus()).toBe('idle');
+    expect(store.archiveError()).toBeNull();
+  });
+
+  it('retains navigation and presents a forbidden archive', async () => {
+    const failure = new ChannelArchiveNotAllowedError({ channelId });
+    const archiveResult: Either.Either<void, ArchiveChannelError> =
+      Either.left(failure);
+    const archiveChannel = vi.fn().mockResolvedValue(archiveResult);
+    const { store } = configureStore(
+      undefined,
+      undefined,
+      undefined,
+      archiveChannel
+    );
+    await store.load(workspaceId);
+    store.select(channelId);
+
+    await expect(store.archiveSelectedChannel()).resolves.toBeNull();
+
+    expect(store.channels()).toEqual([channel]);
+    expect(store.selectedChannel()).toEqual(channel);
+    expect(store.archiveStatus()).toBe('failed');
+    expect(store.archiveError()).toEqual({
+      message: 'You no longer have permission to archive this channel.',
+    });
+
+    store.clearArchiveError();
+    expect(store.archiveStatus()).toBe('idle');
+    expect(store.archiveError()).toBeNull();
+  });
+
+  it('reconciles archive success without disturbing a newer selection', async () => {
+    let resolveArchive:
+      | ((result: Either.Either<void, ArchiveChannelError>) => void)
+      | undefined;
+    const archiveResult = new Promise<Either.Either<void, ArchiveChannelError>>(
+      (resolve) => {
+        resolveArchive = resolve;
+      }
+    );
+    const archiveChannel = vi.fn().mockReturnValue(archiveResult);
+    const { store } = configureStore(
+      vi.fn().mockResolvedValue(Either.right([channel, createdChannel])),
+      undefined,
+      undefined,
+      archiveChannel
+    );
+    await store.load(workspaceId);
+    store.select(channelId);
+
+    const archive = store.archiveSelectedChannel();
+    store.select(createdChannelId);
+    resolveArchive?.(Either.right(undefined));
+
+    await expect(archive).resolves.toBe(channelId);
+    expect(store.channels()).toEqual([createdChannel]);
+    expect(store.selectedChannel()).toEqual(createdChannel);
+    expect(store.archiveStatus()).toBe('idle');
+  });
+
+  it('discards an archive failure after selection changes', async () => {
+    const failure = new ChannelArchiveNotAllowedError({ channelId });
+    let resolveArchive:
+      | ((result: Either.Either<void, ArchiveChannelError>) => void)
+      | undefined;
+    const archiveResult = new Promise<Either.Either<void, ArchiveChannelError>>(
+      (resolve) => {
+        resolveArchive = resolve;
+      }
+    );
+    const archiveChannel = vi.fn().mockReturnValue(archiveResult);
+    const { store } = configureStore(
+      vi.fn().mockResolvedValue(Either.right([channel, createdChannel])),
+      undefined,
+      undefined,
+      archiveChannel
+    );
+    await store.load(workspaceId);
+    store.select(channelId);
+
+    const archive = store.archiveSelectedChannel();
+    store.select(createdChannelId);
+    resolveArchive?.(Either.left(failure));
+
+    await expect(archive).resolves.toBeNull();
+    expect(store.channels()).toEqual([channel, createdChannel]);
+    expect(store.selectedChannel()).toEqual(createdChannel);
+    expect(store.archiveStatus()).toBe('idle');
+    expect(store.archiveError()).toBeNull();
+  });
+
+  it('prevents an older reload from restoring an archived channel', async () => {
+    let resolveArchive:
+      | ((result: Either.Either<void, ArchiveChannelError>) => void)
+      | undefined;
+    let resolveReload:
+      | ((result: Either.Either<readonly Channel[], never>) => void)
+      | undefined;
+    const archiveResult = new Promise<Either.Either<void, ArchiveChannelError>>(
+      (resolve) => {
+        resolveArchive = resolve;
+      }
+    );
+    const reloadResult = new Promise<Either.Either<readonly Channel[], never>>(
+      (resolve) => {
+        resolveReload = resolve;
+      }
+    );
+    const listWorkspaceChannels = vi
+      .fn()
+      .mockResolvedValueOnce(Either.right([channel, createdChannel]))
+      .mockResolvedValueOnce(Either.right([]))
+      .mockReturnValueOnce(reloadResult);
+    const archiveChannel = vi.fn().mockReturnValue(archiveResult);
+    const { store } = configureStore(
+      listWorkspaceChannels,
+      undefined,
+      undefined,
+      archiveChannel
+    );
+    await store.load(workspaceId);
+    store.select(channelId);
+
+    const archive = store.archiveSelectedChannel();
+    await store.load(nextWorkspaceId);
+    const reload = store.load(workspaceId);
+    resolveArchive?.(Either.right(undefined));
+    await archive;
+    resolveReload?.(Either.right([channel, createdChannel]));
+    await reload;
+
+    expect(store.workspaceId()).toBe(workspaceId);
+    expect(store.channels()).toEqual([createdChannel]);
+    expect(store.archiveStatus()).toBe('idle');
   });
 });

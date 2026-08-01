@@ -1,12 +1,15 @@
 import { Injectable } from '@angular/core';
 import { Effect, Either } from 'effect';
 import {
+  archiveChannel,
   createChannel,
   listWorkspaceChannels,
   updateChannel,
   type CreateChannelError,
   type CreateChannelInput,
   type ChannelRepositoryReadError,
+  type ArchiveChannelError,
+  type ArchiveChannelInput,
   type UpdatedChannelDetails,
   type UpdateChannelError,
   type UpdateChannelInput,
@@ -25,6 +28,17 @@ import { applicationRuntime } from '../effect/application-runtime';
   providedIn: 'root',
 })
 export class ChannelApplicationService {
+  /**
+   * Archives one channel using provider-session authorization.
+   */
+  archiveChannel(
+    input: ArchiveChannelInput
+  ): Promise<Either.Either<void, ArchiveChannelError>> {
+    return applicationRuntime.runPromise(
+      archiveChannel(input).pipe(Effect.either)
+    );
+  }
+
   /**
    * Lists active channels visible in one selected workspace.
    */

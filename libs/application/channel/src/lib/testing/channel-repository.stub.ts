@@ -5,6 +5,8 @@ import { ChannelRepositoryTag, type ChannelRepository } from '../repository';
 export const makeChannelRepositoryStub = (
   overrides: Partial<ChannelRepository> = {}
 ): ChannelRepository => ({
+  archive: () =>
+    Effect.dieMessage('Unexpected ChannelRepository.archive call in test'),
   listByWorkspace: () =>
     Effect.dieMessage(
       'Unexpected ChannelRepository.listByWorkspace call in test'
@@ -40,6 +42,17 @@ export const makeCreateChannelRepository = (
   return {
     create,
     repositoryLayer: makeChannelRepositoryLayer({ create }),
+  };
+};
+
+export const makeArchiveChannelRepository = (
+  implementation: ChannelRepository['archive']
+) => {
+  const archive = vi.fn(implementation);
+
+  return {
+    archive,
+    repositoryLayer: makeChannelRepositoryLayer({ archive }),
   };
 };
 

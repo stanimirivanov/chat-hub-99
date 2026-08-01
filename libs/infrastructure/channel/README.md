@@ -2,9 +2,9 @@
 
 ## Purpose
 
-Implements channel discovery, creation, and detail updates with Supabase while
-keeping generated database types and provider failures outside the application
-boundary.
+Implements channel discovery, creation, detail updates, and archiving with
+Supabase while keeping generated database types and provider failures outside
+the application boundary.
 
 ## Responsibilities and non-responsibilities
 
@@ -12,6 +12,7 @@ boundary.
   `current_channels` view.
 - Execute the transactional `create_channel` RPC.
 - Execute the transactional `update_channel` RPC.
+- Execute the transactional `archive_channel` RPC.
 - Map validated application commands to generated RPC arguments.
 - Decode external rows and validate returned channel/version UUIDs.
 - Translate provider failures into application-owned errors.
@@ -50,12 +51,19 @@ ownership, appends a version, and returns that version UUID. The adapter
 validates the UUID and acknowledges success as `void`; database version
 identities do not cross the application boundary.
 
+Archiving sends only the stable channel identity. The RPC verifies active
+workspace ownership and changes the mutable channel head status without
+deleting the channel, messages, or history. Its `void` success remains a `void`
+repository acknowledgment; no inactive channel projection is manufactured.
+
 PostgreSQL code `23505` is translated to a slug conflict only when the RPC's
 channel-slug message is also present; unrelated uniqueness failures remain
 repository-unavailable errors. Code `42501` becomes the stable creation-not-
 allowed error. Stable update authorization and archived-lifecycle rejections
 become `ChannelUpdateNotAllowedError`; unrelated provider failures remain
-repository-unavailable. Raw PostgREST values never escape this library.
+repository-unavailable. Archive authorization and stable archived-lifecycle
+failures receive the parallel `ChannelArchiveNotAllowedError` translation. Raw
+PostgREST values never escape this library.
 
 ## Runtime flow
 
@@ -72,6 +80,12 @@ updateChannel use case
   -> SupabaseChannelRepositoryLayer
   -> update_channel RPC (authenticated session + owner authorization)
   -> version UUID validation
+  -> void repository acknowledgment
+
+archiveChannel use case
+  -> ChannelRepositoryTag
+  -> SupabaseChannelRepositoryLayer
+  -> archive_channel RPC (authenticated session + owner authorization)
   -> void repository acknowledgment
 ```
 

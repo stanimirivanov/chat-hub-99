@@ -13,6 +13,11 @@ export type ChannelCreationStatus = 'idle' | 'creating' | 'failed';
  */
 export type ChannelUpdateStatus = 'idle' | 'updating' | 'failed';
 
+/**
+ * Lifecycle of the serialized channel archive operation.
+ */
+export type ChannelArchiveStatus = 'idle' | 'archiving' | 'failed';
+
 export interface ChannelNavigationError {
   readonly message: string;
 }
@@ -30,6 +35,9 @@ export interface ChannelNavigationState {
   readonly creationError: ChannelNavigationError | null;
   readonly updateStatus: ChannelUpdateStatus;
   readonly updateError: ChannelNavigationError | null;
+  readonly archiveStatus: ChannelArchiveStatus;
+  readonly archivingChannelId: ChannelId | null;
+  readonly archiveError: ChannelNavigationError | null;
 }
 
 export const initialChannelNavigationState: ChannelNavigationState = {
@@ -42,4 +50,7 @@ export const initialChannelNavigationState: ChannelNavigationState = {
   creationError: null,
   updateStatus: 'idle',
   updateError: null,
+  archiveStatus: 'idle',
+  archivingChannelId: null,
+  archiveError: null,
 };

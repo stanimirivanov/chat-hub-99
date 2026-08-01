@@ -1,7 +1,10 @@
 <section
   aria-labelledby="channel-navigation-heading"
   [attr.aria-busy]="
-    store.isLoading() || store.isCreating() || store.isUpdating()
+    store.isLoading() ||
+    store.isCreating() ||
+    store.isUpdating() ||
+    store.isArchiving()
   "
 >
   <h3 id="channel-navigation-heading">Channels</h3>
@@ -26,7 +29,9 @@
           name="channel-name"
           type="text"
           required
-          [disabled]="store.isCreating() || store.isUpdating()"
+          [disabled]="
+            store.isCreating() || store.isUpdating() || store.isArchiving()
+          "
         />
 
         <label for="channel-slug">Channel URL</label>
@@ -37,7 +42,9 @@
           type="text"
           required
           aria-describedby="channel-slug-help"
-          [disabled]="store.isCreating() || store.isUpdating()"
+          [disabled]="
+            store.isCreating() || store.isUpdating() || store.isArchiving()
+          "
         />
         <small id="channel-slug-help">
           Lowercase letters, numbers, and single hyphens.
@@ -48,12 +55,16 @@
           #descriptionInput
           id="channel-description"
           name="channel-description"
-          [disabled]="store.isCreating() || store.isUpdating()"
+          [disabled]="
+            store.isCreating() || store.isUpdating() || store.isArchiving()
+          "
         ></textarea>
 
         <button
           type="submit"
-          [disabled]="store.isCreating() || store.isUpdating()"
+          [disabled]="
+            store.isCreating() || store.isUpdating() || store.isArchiving()
+          "
         >
           @if (store.isCreating()) {
             Creating&hellip;
@@ -64,7 +75,9 @@
 
         <button
           type="button"
-          [disabled]="store.isCreating() || store.isUpdating()"
+          [disabled]="
+            store.isCreating() || store.isUpdating() || store.isArchiving()
+          "
           (click)="cancelChannelCreation()"
         >
           Cancel
@@ -73,7 +86,7 @@
     } @else {
       <button
         type="button"
-        [disabled]="store.isUpdating()"
+        [disabled]="store.isUpdating() || store.isArchiving()"
         (click)="beginChannelCreation()"
       >
         Create channel
@@ -130,7 +143,7 @@
                   type="text"
                   required
                   [value]="channel.name"
-                  [disabled]="store.isUpdating()"
+                  [disabled]="store.isUpdating() || store.isArchiving()"
                 />
 
                 <label for="channel-edit-description">Description</label>
@@ -139,10 +152,13 @@
                   id="channel-edit-description"
                   name="channel-edit-description"
                   [value]="channel.description ?? ''"
-                  [disabled]="store.isUpdating()"
+                  [disabled]="store.isUpdating() || store.isArchiving()"
                 ></textarea>
 
-                <button type="submit" [disabled]="store.isUpdating()">
+                <button
+                  type="submit"
+                  [disabled]="store.isUpdating() || store.isArchiving()"
+                >
                   @if (store.isUpdating()) {
                     Saving&hellip;
                   } @else {
@@ -151,19 +167,53 @@
                 </button>
                 <button
                   type="button"
-                  [disabled]="store.isUpdating()"
+                  [disabled]="store.isUpdating() || store.isArchiving()"
                   (click)="cancelChannelEditing()"
                 >
                   Cancel
                 </button>
               </form>
+            } @else if (isConfirmingChannelArchive()) {
+              <p>
+                Archive {{ channel.name }}? It will be removed from active
+                navigation, while its message history is preserved.
+              </p>
+              <button
+                type="button"
+                [disabled]="store.isArchiving()"
+                (click)="confirmChannelArchive(channel)"
+              >
+                @if (store.isArchiving()) {
+                  Archiving&hellip;
+                } @else {
+                  Confirm archive
+                }
+              </button>
+              <button
+                type="button"
+                [disabled]="store.isArchiving()"
+                (click)="cancelChannelArchive()"
+              >
+                Cancel
+              </button>
             } @else {
               <button
                 type="button"
-                [disabled]="store.isCreating()"
+                [disabled]="store.isCreating() || store.isArchiving()"
                 (click)="beginChannelEditing()"
               >
                 Edit channel
+              </button>
+              <button
+                type="button"
+                [disabled]="
+                  store.isCreating() ||
+                  store.isUpdating() ||
+                  store.isArchiving()
+                "
+                (click)="beginChannelArchive()"
+              >
+                Archive channel
               </button>
             }
           }
@@ -171,6 +221,13 @@
           @if (store.updateError(); as error) {
             <p role="alert">{{ error.message }}</p>
             <button type="button" (click)="store.clearUpdateError()">
+              Dismiss
+            </button>
+          }
+
+          @if (store.archiveError(); as error) {
+            <p role="alert">{{ error.message }}</p>
+            <button type="button" (click)="store.clearArchiveError()">
               Dismiss
             </button>
           }

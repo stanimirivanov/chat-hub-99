@@ -152,6 +152,15 @@ creation, the normalized result replaces only mutable fields, and a selection
 generation rejects late responses after navigating away and back. Because the
 slug cannot change, a successful edit does not rewrite browser history.
 
+Owners can also archive a selected channel after explicit inline confirmation.
+The successful stable identity is removed from active navigation even if the
+user moved elsewhere while the command ran; failures from obsolete selections
+are hidden. A store-local tombstone prevents an older workspace reload from
+reintroducing the archived channel. Selection, message rendering, and the
+channel query parameter are cleared only when they still refer to the archived
+target, including a workspace-identity check for same-slug channels. Restoration
+and hard deletion remain outside this slice.
+
 The `current-profile` slice enriches the authenticated header with the
 RLS-visible profile belonging to the session identity. It keeps the
 authentication session email as a reliable fallback while profile data loads

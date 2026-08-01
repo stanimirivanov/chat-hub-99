@@ -5,6 +5,7 @@ export {
 } from './channel-application-fixtures';
 export {
   makeChannelRepositoryStub,
+  makeArchiveChannelRepository,
   makeChannelRepositoryLayer,
   makeCreateChannelRepository,
   makeListByWorkspaceChannelRepository,

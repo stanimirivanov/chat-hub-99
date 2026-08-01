@@ -18,6 +18,9 @@ import { ChannelNavigationStore } from './channel-navigation.store';
 const workspaceId = Schema.decodeUnknownSync(WorkspaceIdSchema)(
   '00000000-0000-4000-8000-000000000001'
 );
+const nextWorkspaceId = Schema.decodeUnknownSync(WorkspaceIdSchema)(
+  '00000000-0000-4000-8000-000000000003'
+);
 const channelId = Schema.decodeUnknownSync(ChannelIdSchema)(
   '00000000-0000-4000-8000-000000000002'
 );
@@ -74,18 +77,22 @@ const configureComponent = async ({
     isLoading: signal(false),
     isCreating: signal(false),
     isUpdating: signal(false),
+    isArchiving: signal(false),
     hasChannels: signal(channels.length > 0),
     loadStatus: signal('loaded'),
     error: signal(null),
     creationError: signal(null),
     updateError: signal(null),
+    archiveError: signal(null),
     load: vi.fn().mockResolvedValue(undefined),
     createChannel: vi.fn().mockResolvedValue(channel),
     updateSelectedChannel: vi.fn().mockResolvedValue(updatedChannel),
+    archiveSelectedChannel: vi.fn().mockResolvedValue(channel.id),
     select: vi.fn().mockReturnValue(true),
     clearSelection: vi.fn(),
     clearCreationError: vi.fn(),
     clearUpdateError: vi.fn(),
+    clearArchiveError: vi.fn(),
   };
 
   TestBed.overrideComponent(ChannelNavigationComponent, {
@@ -266,6 +273,84 @@ describe('ChannelNavigationComponent', () => {
       name: updatedChannel.name,
       description: updatedChannel.description,
     });
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
+
+  it('requires owner confirmation before archiving and clears its route', async () => {
+    const { fixture, route, router, store } = await configureComponent({
+      queryParams: {
+        workspace: workspaceSlug,
+        channel: channel.slug,
+      },
+      selectedChannel: channel,
+      canManageChannels: true,
+    });
+
+    const archiveButton = Array.from(
+      fixture.nativeElement.querySelectorAll(
+        'button'
+      ) as NodeListOf<HTMLButtonElement>
+    ).find((button) => button.textContent?.trim() === 'Archive channel');
+    archiveButton?.click();
+    fixture.detectChanges();
+
+    expect(store.archiveSelectedChannel).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.textContent).toContain(
+      `Archive ${channel.name}?`
+    );
+
+    const confirmButton = Array.from(
+      fixture.nativeElement.querySelectorAll(
+        'button'
+      ) as NodeListOf<HTMLButtonElement>
+    ).find((button) => button.textContent?.trim() === 'Confirm archive');
+    confirmButton?.click();
+
+    await fixture.whenStable();
+
+    expect(store.archiveSelectedChannel).toHaveBeenCalledOnce();
+    expect(router.navigate).toHaveBeenCalledExactlyOnceWith([], {
+      relativeTo: route,
+      queryParams: { channel: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  });
+
+  it('does not clear a same-slug channel after the workspace changes', async () => {
+    let resolveArchive: ((channelId: typeof channel.id) => void) | undefined;
+    const archiveResult = new Promise<typeof channel.id>((resolve) => {
+      resolveArchive = resolve;
+    });
+    const { fixture, router, store } = await configureComponent({
+      queryParams: {
+        workspace: workspaceSlug,
+        channel: channel.slug,
+      },
+      selectedChannel: channel,
+      canManageChannels: true,
+    });
+    store.archiveSelectedChannel.mockReturnValue(archiveResult);
+
+    const archiveButton = Array.from(
+      fixture.nativeElement.querySelectorAll(
+        'button'
+      ) as NodeListOf<HTMLButtonElement>
+    ).find((button) => button.textContent?.trim() === 'Archive channel');
+    archiveButton?.click();
+    fixture.detectChanges();
+    const confirmButton = Array.from(
+      fixture.nativeElement.querySelectorAll(
+        'button'
+      ) as NodeListOf<HTMLButtonElement>
+    ).find((button) => button.textContent?.trim() === 'Confirm archive');
+    confirmButton?.click();
+
+    fixture.componentRef.setInput('workspaceId', nextWorkspaceId);
+    fixture.detectChanges();
+    resolveArchive?.(channel.id);
+    await fixture.whenStable();
+
     expect(router.navigate).not.toHaveBeenCalled();
   });
 });

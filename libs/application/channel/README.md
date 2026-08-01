@@ -11,19 +11,24 @@ and mutating workspace channels.
 - `createChannel` normalizes and validates untrusted creation input.
 - `updateChannel` normalizes and validates mutable channel details while
   excluding the immutable workspace association and slug.
-- `ChannelRepository` defines only the read, create, and update capabilities
-  required by those use cases.
+- `archiveChannel` validates a stable channel identity and acknowledges the
+  inactive transition without producing an active projection.
+- `ChannelRepository` defines only the read, create, update, and archive
+  capabilities required by those use cases.
 - Tagged errors distinguish invalid input, unavailable providers, invalid
   external data, slug conflicts, and authorization failures.
 
-This library does not query Supabase, run Effects, inspect sessions, or own
-Angular state. It depends only on domain and Effect contracts.
+This library does not query Supabase, run Effects, inspect sessions, own Angular
+state, or define restoration/hard deletion. It depends only on domain and Effect
+contracts.
 
 ## Structure
 
 ```text
+archive-channel/            archive workflow, input, and errors
 create-channel/             creation workflow, input, and errors
 channel-details/            shared mutable-detail decoding
+channel-identity/           shared command identity decoding
 list-workspace-channels/    workspace-scoped discovery workflow
 repository/                 outbound port and technology-neutral failures
 testing/                    isolated repository Layers and fixtures
@@ -34,9 +39,10 @@ update-channel/             update workflow, input, result, and errors
 
 - `createChannel` and its input/error contracts
 - `updateChannel` and its input/result/error contracts
+- `archiveChannel` and its input/error contracts
 - `listWorkspaceChannels`
 - `ChannelRepositoryTag`, `ChannelRepository`, and command contracts
-- channel repository read/create/update errors
+- channel repository read/create/update/archive errors
 
 ## Design decisions
 
@@ -55,6 +61,11 @@ The use case returns its normalized channel identity, name, and description so
 the caller can reconcile those mutable fields with its already validated
 workspace and slug projection. Actor identity is absent from both commands.
 
+Archiving returns `void` throughout the application boundary because the
+database command returns no projection and archived channels must not be
+represented as active `Channel` values. The shared channel-ID decoder exists
+only because update and archive now enforce the same unknown-input boundary.
+
 ## Runtime flow
 
 ```text
@@ -66,6 +77,10 @@ Angular caller -> updateChannel -> validate identity, name, and description
                -> ChannelRepositoryTag -> repository.update
                -> validated provider acknowledgment
                -> normalized UpdatedChannelDetails
+
+Angular caller -> archiveChannel -> validate channel identity
+               -> ChannelRepositoryTag -> repository.archive
+               -> void acknowledgment
 ```
 
 In Effect, a Tag is the typed key used to request the repository. The use cases
