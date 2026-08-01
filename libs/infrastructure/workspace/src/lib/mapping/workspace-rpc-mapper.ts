@@ -5,13 +5,24 @@ import type {
   RemoveWorkspaceMemberCommand,
   UpdateWorkspaceCommand,
 } from '@chat-hub/application/workspace';
+import type { WorkspaceId } from '@chat-hub/domain/workspace';
 import type {
   AddWorkspaceMemberArgs,
+  ArchiveWorkspaceArgs,
   ChangeWorkspaceMemberRoleArgs,
   CreateWorkspaceArgs,
   RemoveWorkspaceMemberArgs,
   UpdateWorkspaceArgs,
 } from '@chat-hub/shared/database';
+
+/**
+ * Maps a validated workspace identity to generated archive RPC arguments.
+ */
+export const toArchiveWorkspaceArgs = (
+  workspaceId: WorkspaceId
+): ArchiveWorkspaceArgs => ({
+  p_workspace_id: workspaceId,
+});
 
 /**
  * Maps a validated addition command to generated Supabase RPC arguments.

@@ -10,6 +10,7 @@ export {
 export {
   InvalidWorkspaceMemberDataError,
   InvalidWorkspaceDataError,
+  WorkspaceArchiveNotAllowedError,
   WorkspaceLastOwnerDemotionError,
   WorkspaceLastOwnerRemovalError,
   WorkspaceMemberAdditionNotAllowedError,
@@ -28,6 +29,7 @@ export {
   type WorkspaceMemberRemovalRepositoryError,
   type WorkspaceMemberRoleChangeRepositoryError,
   type WorkspaceRepositoryCreateError,
+  type WorkspaceRepositoryArchiveError,
   type WorkspaceRepositoryReadError,
   type WorkspaceRepositoryUpdateError,
 } from './workspace-repository-error';

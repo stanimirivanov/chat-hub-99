@@ -13,6 +13,7 @@ describe('makeSupabaseWorkspaceRepository', () => {
 
     expect(Object.keys(repository).sort()).toEqual([
       'addMember',
+      'archive',
       'changeMemberRole',
       'create',
       'listAccessible',
@@ -21,6 +22,7 @@ describe('makeSupabaseWorkspaceRepository', () => {
       'update',
     ]);
     expect(repository.addMember).toBeTypeOf('function');
+    expect(repository.archive).toBeTypeOf('function');
     expect(repository.create).toBeTypeOf('function');
     expect(repository.changeMemberRole).toBeTypeOf('function');
     expect(repository.removeMember).toBeTypeOf('function');

@@ -1,6 +1,7 @@
 import type { WorkspaceRepository } from '@chat-hub/application/workspace';
 import {
   addWorkspaceMember,
+  archiveWorkspace,
   changeWorkspaceMemberRole,
   createWorkspace,
   removeWorkspaceMember,
@@ -12,6 +13,7 @@ import type { SupabaseWorkspaceClient } from './supabase-workspace-client';
 export const makeSupabaseWorkspaceRepository = (
   client: SupabaseWorkspaceClient
 ): WorkspaceRepository => ({
+  archive: (workspaceId) => archiveWorkspace(client, workspaceId),
   addMember: (command) => addWorkspaceMember(client, command),
   listAccessible: () => listAccessibleWorkspaces(client),
   listActiveMembers: (workspaceId) => listWorkspaceMembers(client, workspaceId),

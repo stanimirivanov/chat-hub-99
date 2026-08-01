@@ -98,6 +98,16 @@ back. When the slug changes, the component replaces only the workspace query
 parameter, preserving the selected channel while avoiding an invalid historical
 URL.
 
+Owners can archive the selected workspace after an explicit inline
+confirmation. Archive command state is independent from creation and editing,
+and only one workspace command can mutate navigation at a time. A successful
+command removes its stable identity from the active collection even if the user
+navigated elsewhere while it ran. Selection and the workspace/channel URL are
+cleared only when they still refer to that archived target; obsolete failures
+are not shown against a newer selection. The database remains responsible for
+owner authorization and the immutable archived version. The client does not
+offer restoration or hard deletion.
+
 The nested `workspace-member-directory` slice loads active RLS-visible
 memberships for the selected workspace and batch-enriches their stable profile
 identities. Owners are displayed before members and the authenticated user is

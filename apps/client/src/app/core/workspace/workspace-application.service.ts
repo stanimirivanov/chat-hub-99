@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Effect, Either } from 'effect';
 import {
   addWorkspaceMemberByUsername,
+  archiveWorkspace,
   changeWorkspaceMemberRole,
   createWorkspace,
   listAccessibleWorkspaces,
@@ -11,6 +12,8 @@ import {
   type AddedWorkspaceMember,
   type AddWorkspaceMemberByUsernameError,
   type AddWorkspaceMemberByUsernameInput,
+  type ArchiveWorkspaceError,
+  type ArchiveWorkspaceInput,
   type ChangeWorkspaceMemberRoleError,
   type ChangeWorkspaceMemberRoleInput,
   type CreateWorkspaceError,
@@ -41,6 +44,17 @@ import { applicationRuntime } from '../effect/application-runtime';
   providedIn: 'root',
 })
 export class WorkspaceApplicationService {
+  /**
+   * Archives one workspace using provider-session authorization.
+   */
+  archiveWorkspace(
+    input: ArchiveWorkspaceInput
+  ): Promise<Either.Either<void, ArchiveWorkspaceError>> {
+    return applicationRuntime.runPromise(
+      archiveWorkspace(input).pipe(Effect.either)
+    );
+  }
+
   /**
    * Lists active workspaces visible to the authenticated user.
    */

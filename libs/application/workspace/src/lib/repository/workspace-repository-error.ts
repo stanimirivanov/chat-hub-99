@@ -52,6 +52,15 @@ export class WorkspaceUpdateNotAllowedError extends Data.TaggedError(
 }> {}
 
 /**
+ * Indicates that the current session or workspace state forbids archiving.
+ */
+export class WorkspaceArchiveNotAllowedError extends Data.TaggedError(
+  'WorkspaceArchiveNotAllowedError'
+)<{
+  readonly workspaceId: WorkspaceId;
+}> {}
+
+/**
  * Indicates that the current session or workspace state forbids member addition.
  */
 export class WorkspaceMemberAdditionNotAllowedError extends Data.TaggedError(
@@ -165,6 +174,11 @@ export type WorkspaceRepositoryUpdateError =
   | WorkspaceRepositoryReadError
   | WorkspaceSlugUnavailableError
   | WorkspaceUpdateNotAllowedError;
+
+export type WorkspaceRepositoryArchiveError =
+  | WorkspaceRepositoryUnavailableError
+  | InvalidWorkspaceDataError
+  | WorkspaceArchiveNotAllowedError;
 
 export type WorkspaceMemberAddRepositoryError =
   | WorkspaceRepositoryUnavailableError

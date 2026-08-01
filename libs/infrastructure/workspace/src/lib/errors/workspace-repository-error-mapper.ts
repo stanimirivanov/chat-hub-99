@@ -1,4 +1,5 @@
 import {
+  WorkspaceArchiveNotAllowedError,
   WorkspaceMemberAdditionNotAllowedError,
   WorkspaceMemberProfileNotActiveError,
   WorkspaceMembershipHistoryExistsError,
@@ -19,10 +20,12 @@ import {
   type RemoveWorkspaceMemberCommand,
   type WorkspaceMemberRemovalRepositoryError,
   type WorkspaceMemberRoleChangeRepositoryError,
+  type WorkspaceRepositoryArchiveError,
   type WorkspaceRepositoryCreateError,
   type UpdateWorkspaceCommand,
   type WorkspaceRepositoryUpdateError,
 } from '@chat-hub/application/workspace';
+import type { WorkspaceId } from '@chat-hub/domain/workspace';
 
 interface PostgrestErrorLike {
   readonly code: string;
@@ -97,6 +100,27 @@ export const mapWorkspaceUpdateError = (
     return new WorkspaceUpdateNotAllowedError({
       workspaceId: command.workspaceId,
     });
+  }
+
+  return mapWorkspaceRepositoryError(error);
+};
+
+/**
+ * Translates stable archive authorization and lifecycle failures.
+ */
+export const mapWorkspaceArchiveError = (
+  workspaceId: WorkspaceId,
+  error: PostgrestErrorLike
+): WorkspaceRepositoryArchiveError => {
+  const message = error.message.toLowerCase();
+
+  if (
+    error.code === '28000' ||
+    error.code === '42501' ||
+    (error.code === 'P0002' && message.includes('workspace not found')) ||
+    (error.code === '55000' && message.includes('already archived'))
+  ) {
+    return new WorkspaceArchiveNotAllowedError({ workspaceId });
   }
 
   return mapWorkspaceRepositoryError(error);

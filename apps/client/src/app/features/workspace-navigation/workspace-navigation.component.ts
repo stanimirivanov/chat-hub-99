@@ -27,6 +27,7 @@ export class WorkspaceNavigationComponent {
   protected readonly store = inject(WorkspaceNavigationStore);
   protected readonly isCreatingWorkspace = signal(false);
   protected readonly isEditingWorkspace = signal(false);
+  protected readonly isConfirmingWorkspaceArchive = signal(false);
   protected readonly canManageSelectedWorkspace = signal(false);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -61,7 +62,9 @@ export class WorkspaceNavigationComponent {
   protected beginWorkspaceCreation(): void {
     this.store.clearCreationError();
     this.store.clearUpdateError();
+    this.store.clearArchiveError();
     this.isEditingWorkspace.set(false);
+    this.isConfirmingWorkspaceArchive.set(false);
     this.isCreatingWorkspace.set(true);
   }
 
@@ -90,7 +93,9 @@ export class WorkspaceNavigationComponent {
   protected beginWorkspaceEditing(): void {
     this.store.clearCreationError();
     this.store.clearUpdateError();
+    this.store.clearArchiveError();
     this.isCreatingWorkspace.set(false);
+    this.isConfirmingWorkspaceArchive.set(false);
     this.isEditingWorkspace.set(true);
   }
 
@@ -127,6 +132,56 @@ export class WorkspaceNavigationComponent {
     }
   }
 
+  protected beginWorkspaceArchive(): void {
+    this.store.clearArchiveError();
+    this.isEditingWorkspace.set(false);
+    this.isConfirmingWorkspaceArchive.set(true);
+  }
+
+  protected cancelWorkspaceArchive(): void {
+    this.store.clearArchiveError();
+    this.isConfirmingWorkspaceArchive.set(false);
+  }
+
+  /**
+   * Archives the selected workspace after an explicit owner confirmation.
+   *
+   * The store returns the stable identity it archived. The URL is cleared
+   * only when it still names that workspace, so a late command completion
+   * cannot replace navigation that moved elsewhere while the request ran.
+   */
+  protected async confirmWorkspaceArchive(workspace: Workspace): Promise<void> {
+    this.isConfirmingWorkspaceArchive.set(false);
+
+    const archivedWorkspaceId = await this.store.archiveSelectedWorkspace();
+
+    if (
+      archivedWorkspaceId !== workspace.id ||
+      this.queryParamMap().get('workspace') !== workspace.slug
+    ) {
+      return;
+    }
+
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        workspace: null,
+        channel: null,
+      },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
+
+  protected handleCanManageMembersChange(canManage: boolean): void {
+    this.canManageSelectedWorkspace.set(canManage);
+
+    if (!canManage) {
+      this.isEditingWorkspace.set(false);
+      this.isConfirmingWorkspaceArchive.set(false);
+    }
+  }
+
   private async selectWorkspaceFromRoute(
     workspaceSlug: string | null
   ): Promise<void> {
@@ -139,6 +194,7 @@ export class WorkspaceNavigationComponent {
     if (this.store.selectedWorkspace()?.slug !== workspaceSlug) {
       this.canManageSelectedWorkspace.set(false);
       this.isEditingWorkspace.set(false);
+      this.isConfirmingWorkspaceArchive.set(false);
     }
 
     if (workspaceSlug === null) {

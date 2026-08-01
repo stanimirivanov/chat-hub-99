@@ -2,14 +2,14 @@
 
 `@chat-hub/application/workspace` owns provider-independent workflows for
 discovering accessible workspaces and active members, creating and editing
-workspaces, adding active profiles as members, changing active member roles,
-and removing active members.
+workspaces, archiving workspaces, adding active profiles as members, changing
+active member roles, and removing active members.
 
 ## Responsibilities
 
 - Define the `WorkspaceRepository` outbound port.
-- Define typed read, creation, update, member-addition, role-change, removal,
-  and expected command failures.
+- Define typed read, creation, update, archive, member-addition, role-change,
+  removal, and expected command failures.
 - List active, accessible workspaces through an Effect use case.
 - List active, RLS-visible members for one selected workspace.
 - Normalize and validate workspace creation input before repository access.
@@ -17,6 +17,9 @@ and removing active members.
 - Normalize and validate complete workspace replacement details through the
   same private decoder used by creation.
 - Update a workspace without accepting client-supplied actor identity.
+- Normalize and validate the workspace identity before archiving.
+- Archive a workspace without accepting client-supplied actor identity or
+  representing the archived version as an active domain workspace.
 - Resolve an exact active username through the profile port and add that stable
   profile identity with the default member role.
 - Normalize and validate role-change targets and roles before repository access.
@@ -25,7 +28,7 @@ and removing active members.
 - Remove members without accepting client-supplied actor identity.
 
 It does not know about Supabase, generated database rows, Angular, selection
-state, profile persistence, channels, or workspace archive commands.
+state, profile persistence, channels, or workspace restoration/deletion.
 
 ## Runtime flow
 
@@ -54,6 +57,12 @@ Angular caller
   -> canonical Workspace
 
 Angular caller
+  -> archiveWorkspace
+  -> validated WorkspaceId
+  -> WorkspaceRepositoryTag
+  -> void acknowledgment
+
+Angular caller
   -> listWorkspaceMembers(workspaceId)
   -> WorkspaceRepositoryTag
   -> validated WorkspaceMember values
@@ -80,6 +89,7 @@ other application libraries.
 - `listWorkspaceMembers`
 - `createWorkspace` and its input/error contracts
 - `updateWorkspace` and its input/error contracts
+- `archiveWorkspace` and its input/error contracts
 - `addWorkspaceMemberByUsername` and its input/result/error contracts
 - `changeWorkspaceMemberRole` and its input/error contracts
 - `removeWorkspaceMember` and its input/error contracts

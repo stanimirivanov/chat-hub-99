@@ -77,18 +77,22 @@ const configureComponent = async ({
     isLoading: signal(false),
     isCreating: signal(false),
     isUpdating: signal(false),
+    isArchiving: signal(false),
     hasWorkspaces: signal(workspaces.length > 0),
     loadStatus: signal('loaded'),
     error: signal(null),
     creationError: signal(null),
     updateError: signal(null),
+    archiveError: signal(null),
     load: vi.fn().mockResolvedValue(undefined),
     createWorkspace: vi.fn().mockResolvedValue(workspace),
     updateSelectedWorkspace: vi.fn().mockResolvedValue(updatedWorkspace),
+    archiveSelectedWorkspace: vi.fn().mockResolvedValue(workspace.id),
     select: vi.fn().mockReturnValue(true),
     clearSelection: vi.fn(),
     clearCreationError: vi.fn(),
     clearUpdateError: vi.fn(),
+    clearArchiveError: vi.fn(),
   };
 
   TestBed.overrideComponent(WorkspaceNavigationComponent, {
@@ -281,6 +285,58 @@ describe('WorkspaceNavigationComponent', () => {
     expect(router.navigate).toHaveBeenCalledExactlyOnceWith([], {
       relativeTo: route,
       queryParams: { workspace: updatedWorkspace.slug },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  });
+
+  it('requires owner confirmation before archiving and clears its route', async () => {
+    const { fixture, route, router, store } = await configureComponent({
+      queryParams: {
+        workspace: workspace.slug,
+        channel: 'general',
+      },
+      selectedWorkspace: workspace,
+    });
+    const directory = fixture.debugElement.query(
+      By.directive(WorkspaceMemberDirectoryStubComponent)
+    ).componentInstance as WorkspaceMemberDirectoryStubComponent;
+
+    expect(fixture.nativeElement.textContent).not.toContain(
+      'Archive workspace'
+    );
+    directory.canManageMembersChange.emit(true);
+    fixture.detectChanges();
+
+    const archiveButton = Array.from(
+      fixture.nativeElement.querySelectorAll(
+        'button'
+      ) as NodeListOf<HTMLButtonElement>
+    ).find((button) => button.textContent?.trim() === 'Archive workspace');
+    archiveButton?.click();
+    fixture.detectChanges();
+
+    expect(store.archiveSelectedWorkspace).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.textContent).toContain(
+      `Archive ${workspace.name}?`
+    );
+
+    const confirmButton = Array.from(
+      fixture.nativeElement.querySelectorAll(
+        'button'
+      ) as NodeListOf<HTMLButtonElement>
+    ).find((button) => button.textContent?.trim() === 'Confirm archive');
+    confirmButton?.click();
+
+    await fixture.whenStable();
+
+    expect(store.archiveSelectedWorkspace).toHaveBeenCalledOnce();
+    expect(router.navigate).toHaveBeenCalledExactlyOnceWith([], {
+      relativeTo: route,
+      queryParams: {
+        workspace: null,
+        channel: null,
+      },
       queryParamsHandling: 'merge',
       replaceUrl: true,
     });

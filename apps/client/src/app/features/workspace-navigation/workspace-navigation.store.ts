@@ -1,6 +1,7 @@
 import { computed, inject } from '@angular/core';
 import { Either } from 'effect';
 import type {
+  ArchiveWorkspaceError,
   CreateWorkspaceError,
   CreateWorkspaceInput,
   UpdateWorkspaceError,
@@ -27,6 +28,7 @@ export const WorkspaceNavigationStore = signalStore(
     isLoading: computed(() => store.loadStatus() === 'loading'),
     isCreating: computed(() => store.creationStatus() === 'creating'),
     isUpdating: computed(() => store.updateStatus() === 'updating'),
+    isArchiving: computed(() => store.archiveStatus() === 'archiving'),
     hasWorkspaces: computed(() => store.workspaces().length > 0),
     selectedWorkspace: computed(() => {
       const selectedWorkspaceId = store.selectedWorkspaceId();
@@ -65,6 +67,9 @@ export const WorkspaceNavigationStore = signalStore(
             creationError: null,
             updateStatus: 'idle',
             updateError: null,
+            archiveStatus: 'idle',
+            archivingWorkspaceId: null,
+            archiveError: null,
           });
 
           loading = workspaceApplication
@@ -124,6 +129,13 @@ export const WorkspaceNavigationStore = signalStore(
             ...(selectionChanged
               ? { updateStatus: 'idle' as const, updateError: null }
               : {}),
+            ...(selectionChanged && store.archiveStatus() !== 'archiving'
+              ? {
+                  archiveStatus: 'idle' as const,
+                  archivingWorkspaceId: null,
+                  archiveError: null,
+                }
+              : {}),
           });
 
           return true;
@@ -141,6 +153,13 @@ export const WorkspaceNavigationStore = signalStore(
             selectedWorkspaceId: null,
             updateStatus: 'idle',
             updateError: null,
+            ...(store.archiveStatus() === 'archiving'
+              ? {}
+              : {
+                  archiveStatus: 'idle' as const,
+                  archivingWorkspaceId: null,
+                  archiveError: null,
+                }),
           });
         },
 
@@ -153,7 +172,8 @@ export const WorkspaceNavigationStore = signalStore(
           if (
             store.loadStatus() !== 'loaded' ||
             store.creationStatus() === 'creating' ||
-            store.updateStatus() === 'updating'
+            store.updateStatus() === 'updating' ||
+            store.archiveStatus() === 'archiving'
           ) {
             return null;
           }
@@ -207,7 +227,8 @@ export const WorkspaceNavigationStore = signalStore(
             workspaceId === null ||
             store.loadStatus() !== 'loaded' ||
             store.updateStatus() === 'updating' ||
-            store.creationStatus() === 'creating'
+            store.creationStatus() === 'creating' ||
+            store.archiveStatus() === 'archiving'
           ) {
             return null;
           }
@@ -256,6 +277,88 @@ export const WorkspaceNavigationStore = signalStore(
             patchState(store, {
               updateStatus: 'idle',
               updateError: null,
+            });
+          }
+        },
+
+        /**
+         * Archives the selected workspace through one serialized command.
+         *
+         * A successful provider mutation is reconciled by stable identity even
+         * after navigation changes. Selection is cleared only when the target
+         * is still selected; failures from an obsolete selection are hidden.
+         */
+        async archiveSelectedWorkspace(): Promise<WorkspaceId | null> {
+          const workspaceId = store.selectedWorkspaceId();
+
+          if (
+            workspaceId === null ||
+            store.loadStatus() !== 'loaded' ||
+            store.creationStatus() === 'creating' ||
+            store.updateStatus() === 'updating' ||
+            store.archiveStatus() === 'archiving'
+          ) {
+            return null;
+          }
+
+          const version = selectionVersion;
+          patchState(store, {
+            archiveStatus: 'archiving',
+            archivingWorkspaceId: workspaceId,
+            archiveError: null,
+          });
+
+          const result = await workspaceApplication.archiveWorkspace({
+            workspaceId,
+          });
+
+          if (Either.isLeft(result)) {
+            if (
+              version !== selectionVersion ||
+              store.selectedWorkspaceId() !== workspaceId
+            ) {
+              patchState(store, {
+                archiveStatus: 'idle',
+                archivingWorkspaceId: null,
+                archiveError: null,
+              });
+              return null;
+            }
+
+            patchState(store, {
+              archiveStatus: 'failed',
+              archivingWorkspaceId: null,
+              archiveError: toWorkspaceArchiveError(result.left),
+            });
+            return null;
+          }
+
+          const targetStillSelected =
+            store.selectedWorkspaceId() === workspaceId;
+
+          if (targetStillSelected) {
+            selectionVersion += 1;
+          }
+
+          patchState(store, {
+            workspaces: store
+              .workspaces()
+              .filter((workspace) => workspace.id !== workspaceId),
+            ...(targetStillSelected ? { selectedWorkspaceId: null } : {}),
+            archiveStatus: 'idle',
+            archivingWorkspaceId: null,
+            archiveError: null,
+          });
+
+          return workspaceId;
+        },
+
+        clearArchiveError(): void {
+          if (store.archiveStatus() !== 'archiving') {
+            patchState(store, {
+              archiveStatus: 'idle',
+              archivingWorkspaceId: null,
+              archiveError: null,
             });
           }
         },
@@ -327,6 +430,23 @@ const toWorkspaceUpdateError = (
     case 'WorkspaceRepositoryUnavailableError':
       return {
         message: 'The workspace could not be updated. Please try again.',
+      };
+  }
+};
+
+const toWorkspaceArchiveError = (
+  error: ArchiveWorkspaceError
+): { readonly message: string } => {
+  switch (error._tag) {
+    case 'WorkspaceArchiveNotAllowedError':
+      return {
+        message: 'You no longer have permission to archive this workspace.',
+      };
+    case 'InvalidWorkspaceArchiveInputError':
+    case 'InvalidWorkspaceDataError':
+    case 'WorkspaceRepositoryUnavailableError':
+      return {
+        message: 'The workspace could not be archived. Please try again.',
       };
   }
 };

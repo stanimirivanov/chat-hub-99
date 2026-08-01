@@ -8,6 +8,8 @@ import {
 export const makeWorkspaceRepositoryStub = (
   overrides: Partial<WorkspaceRepository> = {}
 ): WorkspaceRepository => ({
+  archive: () =>
+    Effect.dieMessage('Unexpected WorkspaceRepository.archive call in test'),
   addMember: () =>
     Effect.dieMessage('Unexpected WorkspaceRepository.addMember call in test'),
   listAccessible: () =>
@@ -46,6 +48,17 @@ export const makeAddWorkspaceMemberRepository = (
   return {
     addMember,
     repositoryLayer: makeWorkspaceRepositoryLayer({ addMember }),
+  };
+};
+
+export const makeArchiveWorkspaceRepository = (
+  implementation: WorkspaceRepository['archive']
+) => {
+  const archive = vi.fn(implementation);
+
+  return {
+    archive,
+    repositoryLayer: makeWorkspaceRepositoryLayer({ archive }),
   };
 };
 
