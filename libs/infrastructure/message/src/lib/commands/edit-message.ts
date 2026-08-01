@@ -1,12 +1,12 @@
 import { Effect, Schema } from 'effect';
 import {
   InvalidMessageDataError,
-  type MessageRepositoryError,
+  type MessageRepositoryEditError,
 } from '@chat-hub/application/message';
 import type { EditMessageResult } from '@chat-hub/shared/database';
 import type { EditMessageCommand } from '@chat-hub/application/message';
 import {
-  mapMessageCommandPostgrestError,
+  mapEditMessagePostgrestError,
   mapThrownRepositoryError,
 } from '../errors';
 import { toEditMessageArgs } from '../mapping';
@@ -18,7 +18,7 @@ const decodeMessageVersionId = Schema.decodeUnknown(Schema.UUID);
 export const editMessage = (
   client: ChatHubSupabaseClient,
   command: EditMessageCommand
-): Effect.Effect<void, MessageRepositoryError> =>
+): Effect.Effect<void, MessageRepositoryEditError> =>
   Effect.tryPromise({
     try: async () => client.rpc('edit_message', toEditMessageArgs(command)),
     catch: (cause) => mapThrownRepositoryError('edit', cause),
@@ -26,9 +26,7 @@ export const editMessage = (
     Effect.flatMap(({ data, error }) =>
       error === null
         ? validateEditResult(data)
-        : Effect.fail(
-            mapMessageCommandPostgrestError('edit', command.messageId, error)
-          )
+        : Effect.fail(mapEditMessagePostgrestError(command.messageId, error))
     )
   );
 

@@ -63,6 +63,11 @@ Message history retains the stable profile identity of each author. It uses
 the root authentication store only to label the current user's messages and
 show Edit/Delete controls for those messages. This is presentation behavior,
 not authorization: Supabase command policies remain the security boundary.
+An edit that normalizes to the current database value is reported as an
+actionable unchanged-content failure. The existing projection and edit form
+remain visible so the author can change or cancel the edit. The client does not
+duplicate the comparison rule because only the database can evaluate it safely
+against the authoritative value.
 For other authors, the channel-message store batch-loads RLS-visible current
 profiles for each new page and renders their display names. The enrichment is
 feature-local and best-effort: hidden or unavailable profiles retain the stable

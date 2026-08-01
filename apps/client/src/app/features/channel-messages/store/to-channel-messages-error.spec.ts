@@ -6,6 +6,7 @@ import {
   InvalidMessageDataError,
   InvalidMessagePageLimitError,
   MessageAccessDeniedError,
+  MessageContentUnchangedError,
   MessageNotFoundError,
   MessageRepositoryUnavailableError,
 } from '@chat-hub/application/message';
@@ -26,6 +27,10 @@ describe('toChannelMessagesError', () => {
     [
       new InvalidEditedMessageContentError({ cause }),
       'The edited message content is invalid.',
+    ],
+    [
+      new MessageContentUnchangedError({ messageId }),
+      'Change the message before saving.',
     ],
     [
       new MessageNotFoundError({ messageId }),

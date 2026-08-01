@@ -5,6 +5,7 @@ import {
   InvalidEditedMessageContentError,
   InvalidMessageContentError,
   MessageAccessDeniedError,
+  MessageContentUnchangedError,
   MessageRepositoryUnavailableError,
   type MessageChange,
   type MessageCursor,
@@ -663,6 +664,43 @@ describe('ChannelMessagesStore message editing', () => {
       message: 'The edited message content is invalid.',
     });
     expect(store.messages()).toEqual([message]);
+  });
+
+  it('keeps the projection unchanged when normalized content is unchanged', async () => {
+    const message: Message = {
+      id: '00000000-0000-4000-8000-000000000002' as MessageId,
+      channelId,
+      authorId,
+      status: 'active',
+      content: 'Before' as MessageContent,
+      createdAt: new Date('2026-07-27T08:00:00.000Z'),
+      editedAt: null,
+    };
+    const listChannelMessages = vi.fn().mockResolvedValue(
+      Either.right({
+        messages: [message],
+        nextCursor: null,
+      })
+    );
+    const editMessage = vi
+      .fn()
+      .mockResolvedValue(
+        Either.left(new MessageContentUnchangedError({ messageId: message.id }))
+      );
+    const { store } = configureStore({
+      listChannelMessages,
+      editMessage,
+    });
+    await store.selectChannel(channelId);
+
+    await expect(store.edit(message.id, ' Before ')).resolves.toBe(false);
+
+    expect(store.messages()).toEqual([message]);
+    expect(store.editMessageStatus()).toBe('failed');
+    expect(store.editError()).toEqual({
+      tag: 'MessageContentUnchangedError',
+      message: 'Change the message before saving.',
+    });
   });
 });
 

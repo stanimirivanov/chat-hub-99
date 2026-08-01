@@ -65,6 +65,16 @@ one repository object but does not re-export those internal functions.
 
 `src/index.ts` is the only public entry point, while internal capability barrels are private implementation conveniences.
 
+## Edit error translation
+
+The database `edit_message` command is the concurrency-safe authority for
+detecting an edit that normalizes to the current content. PostgreSQL error code
+`22023` is not unique to that rule, so the adapter requires both that code and
+the command's exact stable error message before returning
+`MessageContentUnchangedError`. Any other `22023` failure remains a repository
+availability error with its diagnostic cause retained inside the application
+boundary. Raw PostgREST errors never reach Angular.
+
 ## Realtime lifecycle
 
 `message_heads` is the single mutable row in a message aggregate and is

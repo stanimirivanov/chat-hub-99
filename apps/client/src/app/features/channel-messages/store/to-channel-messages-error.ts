@@ -35,6 +35,12 @@ export const toChannelMessagesError = (
         message: 'The edited message content is invalid.',
       };
 
+    case 'MessageContentUnchangedError':
+      return {
+        tag: error._tag,
+        message: 'Change the message before saving.',
+      };
+
     case 'MessageNotFoundError':
       return {
         tag: error._tag,

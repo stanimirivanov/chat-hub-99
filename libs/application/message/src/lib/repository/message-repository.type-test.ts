@@ -11,7 +11,10 @@ import {
   ListChannelMessagesQuery,
   MessageRepository,
 } from './message-repository';
-import { MessageRepositoryError } from './message-repository-error';
+import {
+  MessageRepositoryEditError,
+  MessageRepositoryError,
+} from './message-repository-error';
 import type { MessageChangeNotification } from './message-change-notification';
 import type { MessagePage } from '../pagination';
 
@@ -26,7 +29,7 @@ declare const channelId: ChannelId;
 const createResult: Effect.Effect<MessageId, MessageRepositoryError> =
   repository.create(createCommand);
 
-const editResult: Effect.Effect<void, MessageRepositoryError> =
+const editResult: Effect.Effect<void, MessageRepositoryEditError> =
   repository.edit(editCommand);
 
 const deleteResult: Effect.Effect<void, MessageRepositoryError> =

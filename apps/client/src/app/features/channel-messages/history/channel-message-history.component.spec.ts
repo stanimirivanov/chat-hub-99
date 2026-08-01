@@ -162,4 +162,30 @@ describe('ChannelMessageHistoryComponent', () => {
 
     expect(store.retryRealtime).toHaveBeenCalledOnce();
   });
+
+  it('keeps the edit form open when saving is rejected', async () => {
+    const { fixture, store } = await configureComponent([ownMessage]);
+    store.edit.mockResolvedValueOnce(false);
+
+    const editButton = [
+      ...(fixture.nativeElement.querySelectorAll(
+        'button'
+      ) as NodeListOf<HTMLButtonElement>),
+    ].find((button) => button.textContent?.trim() === 'Edit');
+
+    expect(editButton).toBeDefined();
+    editButton?.click();
+    fixture.detectChanges();
+
+    const form = fixture.nativeElement.querySelector('form') as HTMLFormElement;
+    form.dispatchEvent(new Event('submit'));
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(store.edit).toHaveBeenCalledExactlyOnceWith(
+      ownMessage.id,
+      ownMessage.content
+    );
+    expect(fixture.nativeElement.querySelector('form')).not.toBeNull();
+  });
 });

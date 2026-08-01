@@ -6,7 +6,10 @@ import type {
   DeleteMessageCommand,
   EditMessageCommand,
 } from './message-repository-command';
-import type { MessageRepositoryError } from './message-repository-error';
+import type {
+  MessageRepositoryEditError,
+  MessageRepositoryError,
+} from './message-repository-error';
 import type { MessageChangeNotification } from './message-change-notification';
 import type {
   MessageCursor,
@@ -40,10 +43,16 @@ export interface MessageRepository {
     command: CreateMessageCommand
   ) => Effect.Effect<MessageId, MessageRepositoryError>;
 
-  /** Appends a new version to an existing active message. */
+  /**
+   * Appends a new version to an existing active message.
+   *
+   * Implementations compare normalized content with the authoritative current
+   * projection and fail with `MessageContentUnchangedError` rather than
+   * appending a no-op version.
+   */
   readonly edit: (
     command: EditMessageCommand
-  ) => Effect.Effect<void, MessageRepositoryError>;
+  ) => Effect.Effect<void, MessageRepositoryEditError>;
 
   /** Transitions an active message to the soft-deleted state. */
   readonly delete: (

@@ -14,8 +14,10 @@ export type {
 export {
   InvalidMessageDataError,
   MessageAccessDeniedError,
+  MessageContentUnchangedError,
   MessageNotFoundError,
   MessageRepositoryUnavailableError,
+  type MessageRepositoryEditError,
   type MessageRepositoryOperation,
   type MessageRepositoryError,
 } from './message-repository-error';

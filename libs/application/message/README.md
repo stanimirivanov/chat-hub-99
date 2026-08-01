@@ -58,6 +58,16 @@ Cross-use-case contracts remain near the package root:
 - `testing/` contains private fixtures and repository doubles used only by this
   library's tests.
 
+## Edit outcome ownership
+
+Message content is normalized by the domain contract before an edit reaches the
+repository. Whether that normalized value still differs from the current
+message is decided by the authoritative repository operation, not by Angular.
+This avoids a stale client-side comparison when another edit completes
+concurrently. A no-op edit is exposed as `MessageContentUnchangedError`, an
+edit-specific application failure carrying only the stable message identity.
+It is deliberately absent from the create, delete, and read port contracts.
+
 ## Import policy
 
 Imports communicate architectural boundaries:

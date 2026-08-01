@@ -9,6 +9,19 @@ export class MessageNotFoundError extends Data.TaggedError(
   readonly messageId: MessageId;
 }> {}
 
+/**
+ * Indicates that an edit normalizes to the message's current content.
+ *
+ * The repository owns this outcome because only the authoritative persisted
+ * projection can make the comparison safely when concurrent edits are
+ * possible.
+ */
+export class MessageContentUnchangedError extends Data.TaggedError(
+  'MessageContentUnchangedError'
+)<{
+  readonly messageId: MessageId;
+}> {}
+
 export class MessageAccessDeniedError extends Data.TaggedError(
   'MessageAccessDeniedError'
 )<{
@@ -33,3 +46,8 @@ export type MessageRepositoryError =
   | MessageAccessDeniedError
   | MessageRepositoryUnavailableError
   | InvalidMessageDataError;
+
+/** Failures specific to appending a new version of an existing message. */
+export type MessageRepositoryEditError =
+  | MessageRepositoryError
+  | MessageContentUnchangedError;
