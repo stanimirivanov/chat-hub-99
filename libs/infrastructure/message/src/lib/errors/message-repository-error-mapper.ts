@@ -1,8 +1,10 @@
 import type { MessageId } from '@chat-hub/domain/message';
 import {
   MessageAccessDeniedError,
+  MessageContentUnchangedError,
   MessageNotFoundError,
   MessageRepositoryUnavailableError,
+  type MessageRepositoryEditError,
   type MessageRepositoryError,
 } from '@chat-hub/application/message';
 
@@ -14,6 +16,31 @@ export interface PostgrestErrorLike {
   readonly details?: string;
   readonly hint?: string;
 }
+
+const unchangedMessageContentErrorMessage =
+  'Edited message content must differ from the current content';
+
+/**
+ * Maps failures from the edit-message RPC into its precise application
+ * vocabulary.
+ *
+ * PostgreSQL code `22023` is shared by unrelated invalid-parameter failures,
+ * so both the stable code and the database command's exact message are needed
+ * before classifying the failure as unchanged content.
+ */
+export const mapEditMessagePostgrestError = (
+  messageId: MessageId,
+  error: PostgrestErrorLike
+): MessageRepositoryEditError => {
+  if (
+    error.code === '22023' &&
+    error.message === unchangedMessageContentErrorMessage
+  ) {
+    return new MessageContentUnchangedError({ messageId });
+  }
+
+  return mapMessageCommandPostgrestError('edit', messageId, error);
+};
 
 /**
  * Maps errors for operations that target a specific existing message.

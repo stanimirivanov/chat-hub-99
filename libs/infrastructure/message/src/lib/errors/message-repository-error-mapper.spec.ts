@@ -3,6 +3,7 @@ import { Schema } from 'effect';
 
 import { MessageIdSchema } from '@chat-hub/domain/message';
 import {
+  mapEditMessagePostgrestError,
   mapMessageCommandPostgrestError,
   mapPostgrestError,
   mapThrownRepositoryError,
@@ -61,6 +62,37 @@ const messageId = Schema.decodeUnknownSync(MessageIdSchema)(
 );
 
 describe('message command error mapping', () => {
+  it('maps only the stable edit no-op rejection to unchanged content', () => {
+    const result = mapEditMessagePostgrestError(messageId, {
+      code: '22023',
+      message: 'Edited message content must differ from the current content',
+      details: '',
+      hint: '',
+    });
+
+    expect(result).toMatchObject({
+      _tag: 'MessageContentUnchangedError',
+      messageId,
+    });
+  });
+
+  it('keeps unrelated invalid edit parameters as provider failures', () => {
+    const error = {
+      code: '22023',
+      message: 'Another edit parameter is invalid',
+      details: '',
+      hint: '',
+    };
+
+    const result = mapEditMessagePostgrestError(messageId, error);
+
+    expect(result).toMatchObject({
+      _tag: 'MessageRepositoryUnavailableError',
+      operation: 'edit',
+      cause: error,
+    });
+  });
+
   it('maps a missing message to MessageNotFoundError', () => {
     const result = mapMessageCommandPostgrestError('edit', messageId, {
       code: 'P0002',

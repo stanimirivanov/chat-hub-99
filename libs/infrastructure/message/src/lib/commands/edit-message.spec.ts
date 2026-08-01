@@ -112,9 +112,7 @@ describe('editMessage', () => {
     });
   });
 
-  // TODO: Replace the fallback error when unchanged content receives a
-  // dedicated application error type.
-  it('maps an unchanged-content rejection to the current fallback error', async () => {
+  it('maps the database no-op rejection to MessageContentUnchangedError', async () => {
     const error = {
       code: '22023',
       message: 'Edited message content must differ from the current content',
@@ -122,6 +120,31 @@ describe('editMessage', () => {
       hint: '',
     };
 
+    const { client } = makeRpcClientStub({
+      data: null,
+      error,
+    });
+
+    const result = await Effect.runPromise(
+      Effect.either(editMessage(client, editMessageCommand))
+    );
+
+    expect(result).toMatchObject({
+      _tag: 'Left',
+      left: {
+        _tag: 'MessageContentUnchangedError',
+        messageId,
+      },
+    });
+  });
+
+  it('does not misclassify another invalid-parameter failure', async () => {
+    const error = {
+      code: '22023',
+      message: 'Another edit parameter is invalid',
+      details: '',
+      hint: '',
+    };
     const { client } = makeRpcClientStub({
       data: null,
       error,

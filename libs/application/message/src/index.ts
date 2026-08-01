@@ -43,6 +43,7 @@ export {
   MessageRepositoryTag,
   MessageNotFoundError,
   MessageAccessDeniedError,
+  MessageContentUnchangedError,
   MessageRepositoryUnavailableError,
   InvalidMessageDataError,
   type ListChannelMessagesQuery,
@@ -50,6 +51,7 @@ export {
   type DeleteMessageCommand,
   type EditMessageCommand,
   type MessageRepository,
+  type MessageRepositoryEditError,
   type MessageRepositoryError,
   type MessageChangeNotification,
 } from './lib/repository';
