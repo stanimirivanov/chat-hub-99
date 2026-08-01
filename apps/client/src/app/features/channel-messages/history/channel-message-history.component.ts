@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   inject,
+  input,
   signal,
 } from '@angular/core';
 import type { Message, MessageId } from '@chat-hub/domain/message';
@@ -9,10 +10,10 @@ import { AuthenticationStore } from '@client/features/authentication/store/authe
 import { ChannelMessagesStore } from '../channel-messages.store';
 
 /**
- * Renders channel history and exposes author-only mutation controls.
+ * Renders channel history with author editing and owner moderation affordances.
  *
- * The browser check improves presentation correctness; Supabase command
- * authorization remains the security boundary.
+ * The browser checks improve presentation correctness. Supabase command
+ * authorization remains the security boundary for both authors and owners.
  */
 @Component({
   selector: 'app-channel-message-history',
@@ -21,6 +22,9 @@ import { ChannelMessagesStore } from '../channel-messages.store';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChannelMessageHistoryComponent {
+  /** Presentation affordance derived from the selected workspace owner role. */
+  readonly canModerateMessages = input(false);
+
   protected readonly store = inject(ChannelMessagesStore);
 
   private readonly authenticationStore = inject(AuthenticationStore);
@@ -31,6 +35,10 @@ export class ChannelMessageHistoryComponent {
 
   protected isAuthoredByCurrentUser(message: Message): boolean {
     return message.authorId === this.authenticationStore.session()?.userId;
+  }
+
+  protected canDeleteMessage(message: Message): boolean {
+    return this.isAuthoredByCurrentUser(message) || this.canModerateMessages();
   }
 
   protected authorLabel(message: Message): string {

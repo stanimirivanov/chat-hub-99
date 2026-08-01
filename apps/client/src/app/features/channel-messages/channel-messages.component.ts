@@ -10,6 +10,7 @@ import { ChannelMessageComposerComponent } from './composer/channel-message-comp
 import { ChannelMessageHistoryComponent } from './history/channel-message-history.component';
 import { ChannelMessagesStore } from './channel-messages.store';
 
+/** Coordinates one selected channel's message store and child views. */
 @Component({
   selector: 'app-channel-messages',
   standalone: true,
@@ -20,6 +21,7 @@ import { ChannelMessagesStore } from './channel-messages.store';
 })
 export class ChannelMessagesComponent {
   readonly channelId = input.required<ChannelId>();
+  readonly canModerateMessages = input(false);
 
   private readonly store = inject(ChannelMessagesStore);
 

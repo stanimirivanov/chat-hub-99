@@ -1,5 +1,6 @@
 import { Component, input, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import {
   ActivatedRoute,
   convertToParamMap,
@@ -46,6 +47,7 @@ const updatedChannel: Channel = {
 })
 class ChannelMessagesStubComponent {
   readonly channelId = input.required<typeof channel.id>();
+  readonly canModerateMessages = input(false);
 }
 
 const configureComponent = async ({
@@ -53,11 +55,13 @@ const configureComponent = async ({
   channels = [channel],
   selectedChannel = null,
   canManageChannels = false,
+  canModerateMessages = false,
 }: {
   readonly queryParams: Params;
   readonly channels?: readonly Channel[];
   readonly selectedChannel?: Channel | null;
   readonly canManageChannels?: boolean;
+  readonly canModerateMessages?: boolean;
 }) => {
   const queryParamMap = new BehaviorSubject(convertToParamMap(queryParams));
   const route = {
@@ -132,6 +136,7 @@ const configureComponent = async ({
   const fixture = TestBed.createComponent(ChannelNavigationComponent);
   fixture.componentRef.setInput('workspaceId', workspaceId);
   fixture.componentRef.setInput('canManageChannels', canManageChannels);
+  fixture.componentRef.setInput('canModerateMessages', canModerateMessages);
   fixture.detectChanges();
   await fixture.whenStable();
 
@@ -139,6 +144,24 @@ const configureComponent = async ({
 };
 
 describe('ChannelNavigationComponent', () => {
+  it('forwards message moderation capability to the selected channel', async () => {
+    const { fixture } = await configureComponent({
+      queryParams: {
+        workspace: workspaceSlug,
+        channel: channel.slug,
+      },
+      selectedChannel: channel,
+      canModerateMessages: true,
+    });
+
+    const messages = fixture.debugElement.query(
+      By.directive(ChannelMessagesStubComponent)
+    ).componentInstance as ChannelMessagesStubComponent;
+
+    expect(messages.channelId()).toBe(channel.id);
+    expect(messages.canModerateMessages()).toBe(true);
+  });
+
   it('restores route selection and writes user selection to history', async () => {
     const { fixture, route, router, store } = await configureComponent({
       queryParams: {

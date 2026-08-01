@@ -15,6 +15,10 @@ import { ChannelNavigationStore } from './channel-navigation.store';
 
 /**
  * Lists selectable channels for the workspace supplied by its parent.
+ *
+ * Workspace-owned capabilities arrive as explicit inputs and are forwarded to
+ * the feature that owns each affordance; this component does not query or
+ * infer membership policy itself.
  */
 @Component({
   selector: 'app-channel-navigation',
@@ -27,6 +31,7 @@ import { ChannelNavigationStore } from './channel-navigation.store';
 export class ChannelNavigationComponent {
   readonly workspaceId = input.required<WorkspaceId>();
   readonly canManageChannels = input(false);
+  readonly canModerateMessages = input(false);
   protected readonly store = inject(ChannelNavigationStore);
   protected readonly isCreatingChannel = signal(false);
   protected readonly isEditingChannel = signal(false);

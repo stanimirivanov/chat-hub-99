@@ -47,7 +47,8 @@ const configureComponent = async (
   realtimeError: {
     readonly tag: string;
     readonly message: string;
-  } | null = null
+  } | null = null,
+  canModerateMessages = false
 ) => {
   const session = signal<AuthenticationSession | null>({
     userId: currentUserId,
@@ -91,6 +92,7 @@ const configureComponent = async (
 
   const fixture: ComponentFixture<ChannelMessageHistoryComponent> =
     TestBed.createComponent(ChannelMessageHistoryComponent);
+  fixture.componentRef.setInput('canModerateMessages', canModerateMessages);
   fixture.detectChanges();
 
   return { fixture, session, store };
@@ -119,6 +121,26 @@ describe('ChannelMessageHistoryComponent', () => {
     expect(items[1].textContent).toContain('Another user');
     expect(items[1].textContent).not.toContain('Edit');
     expect(items[1].textContent).not.toContain('Delete');
+  });
+
+  it('lets an owner delete another author message without offering edit', async () => {
+    const { fixture, store } = await configureComponent(
+      [otherMessage],
+      [],
+      null,
+      true
+    );
+    const item = fixture.nativeElement.querySelector('li') as HTMLLIElement;
+
+    expect(item.textContent).not.toContain('Edit');
+    expect(item.textContent).toContain('Delete');
+
+    findButton(fixture, 'Delete')?.click();
+    fixture.detectChanges();
+    findButton(fixture, 'Confirm')?.click();
+    await fixture.whenStable();
+
+    expect(store.delete).toHaveBeenCalledExactlyOnceWith(otherMessage.id);
   });
 
   it('reacts to an authoritative session identity change', async () => {

@@ -73,6 +73,12 @@ store retains the current history projection and exposes action-specific safe
 feedback. The active edit form or deletion confirmation remains open so the
 user can acknowledge or cancel it; raw database lifecycle details are not
 rendered.
+The workspace-owner capability already derived by the member directory is
+forwarded through explicit navigation and message-component inputs. It lets an
+owner request deletion of another author's active message but never exposes
+editing for that message. This is a presentation affordance only: no membership
+query or workspace state is added to the message store, and the existing
+Supabase delete command remains the authorization boundary.
 If message creation loses a race with workspace or channel archival, the store
 retains the existing history and reports that the channel no longer accepts
 messages. The composer clears its draft only after successful creation, so the
