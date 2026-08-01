@@ -7,6 +7,7 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
+import type { Workspace } from '@chat-hub/domain/workspace';
 import { ChannelNavigationComponent } from '@client/features/channel-navigation/channel-navigation.component';
 import { WorkspaceMemberDirectoryComponent } from '@client/features/workspace-member-directory/workspace-member-directory.component';
 import { WorkspaceNavigationStore } from './workspace-navigation.store';
@@ -25,6 +26,8 @@ import { WorkspaceNavigationStore } from './workspace-navigation.store';
 export class WorkspaceNavigationComponent {
   protected readonly store = inject(WorkspaceNavigationStore);
   protected readonly isCreatingWorkspace = signal(false);
+  protected readonly isEditingWorkspace = signal(false);
+  protected readonly canManageSelectedWorkspace = signal(false);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly queryParamMap = toSignal(this.route.queryParamMap, {
@@ -57,6 +60,8 @@ export class WorkspaceNavigationComponent {
 
   protected beginWorkspaceCreation(): void {
     this.store.clearCreationError();
+    this.store.clearUpdateError();
+    this.isEditingWorkspace.set(false);
     this.isCreatingWorkspace.set(true);
   }
 
@@ -82,6 +87,46 @@ export class WorkspaceNavigationComponent {
     }
   }
 
+  protected beginWorkspaceEditing(): void {
+    this.store.clearCreationError();
+    this.store.clearUpdateError();
+    this.isCreatingWorkspace.set(false);
+    this.isEditingWorkspace.set(true);
+  }
+
+  protected cancelWorkspaceEditing(): void {
+    this.store.clearUpdateError();
+    this.isEditingWorkspace.set(false);
+  }
+
+  protected async saveWorkspaceChanges(
+    workspace: Workspace,
+    nameInput: HTMLInputElement,
+    slugInput: HTMLInputElement,
+    descriptionInput: HTMLTextAreaElement
+  ): Promise<void> {
+    const updatedWorkspace = await this.store.updateSelectedWorkspace({
+      name: nameInput.value,
+      slug: slugInput.value,
+      description: descriptionInput.value,
+    });
+
+    if (updatedWorkspace === null) {
+      return;
+    }
+
+    this.isEditingWorkspace.set(false);
+
+    if (updatedWorkspace.slug !== workspace.slug) {
+      void this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { workspace: updatedWorkspace.slug },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      });
+    }
+  }
+
   private async selectWorkspaceFromRoute(
     workspaceSlug: string | null
   ): Promise<void> {
@@ -89,6 +134,11 @@ export class WorkspaceNavigationComponent {
 
     if (this.queryParamMap().get('workspace') !== workspaceSlug) {
       return;
+    }
+
+    if (this.store.selectedWorkspace()?.slug !== workspaceSlug) {
+      this.canManageSelectedWorkspace.set(false);
+      this.isEditingWorkspace.set(false);
     }
 
     if (workspaceSlug === null) {

@@ -43,6 +43,15 @@ export class WorkspaceSlugUnavailableError extends Data.TaggedError(
 }> {}
 
 /**
+ * Indicates that the current session or workspace state forbids an update.
+ */
+export class WorkspaceUpdateNotAllowedError extends Data.TaggedError(
+  'WorkspaceUpdateNotAllowedError'
+)<{
+  readonly workspaceId: WorkspaceId;
+}> {}
+
+/**
  * Indicates that the current session or workspace state forbids member addition.
  */
 export class WorkspaceMemberAdditionNotAllowedError extends Data.TaggedError(
@@ -151,6 +160,11 @@ export type WorkspaceMemberRepositoryReadError =
 export type WorkspaceRepositoryCreateError =
   | WorkspaceRepositoryReadError
   | WorkspaceSlugUnavailableError;
+
+export type WorkspaceRepositoryUpdateError =
+  | WorkspaceRepositoryReadError
+  | WorkspaceSlugUnavailableError
+  | WorkspaceUpdateNotAllowedError;
 
 export type WorkspaceMemberAddRepositoryError =
   | WorkspaceRepositoryUnavailableError

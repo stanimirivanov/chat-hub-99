@@ -5,6 +5,7 @@ import {
   effect,
   inject,
   input,
+  output,
   signal,
 } from '@angular/core';
 import type { ProfileId } from '@chat-hub/domain/profile';
@@ -27,6 +28,12 @@ import { WorkspaceMemberDirectoryStore } from './workspace-member-directory.stor
 })
 export class WorkspaceMemberDirectoryComponent {
   readonly workspaceId = input.required<WorkspaceId>();
+
+  /**
+   * Shares the directory's derived owner affordance without exposing its store.
+   * Database commands still authorize every management action independently.
+   */
+  readonly canManageMembersChange = output<boolean>();
   protected readonly store = inject(WorkspaceMemberDirectoryStore);
   private readonly authenticationStore = inject(AuthenticationStore);
 
@@ -51,6 +58,10 @@ export class WorkspaceMemberDirectoryComponent {
       const workspaceId = this.workspaceId();
       this.pendingRemovalProfileId.set(null);
       void this.store.load(workspaceId);
+    });
+
+    effect(() => {
+      this.canManageMembersChange.emit(this.canManageMembers());
     });
   }
 

@@ -4,4 +4,5 @@ export {
   mapWorkspaceMemberRoleChangeError,
   mapWorkspaceMemberRemovalError,
   mapWorkspaceRepositoryError,
+  mapWorkspaceUpdateError,
 } from './workspace-repository-error-mapper';

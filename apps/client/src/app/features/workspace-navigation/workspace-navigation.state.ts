@@ -11,6 +11,11 @@ export type WorkspaceLoadStatus = 'idle' | 'loading' | 'loaded' | 'failed';
 export type WorkspaceCreationStatus = 'idle' | 'creating' | 'failed';
 
 /**
+ * Lifecycle of the selected-workspace update operation.
+ */
+export type WorkspaceUpdateStatus = 'idle' | 'updating' | 'failed';
+
+/**
  * Safe failure information rendered by workspace navigation.
  */
 export interface WorkspaceNavigationError {
@@ -27,6 +32,8 @@ export interface WorkspaceNavigationState {
   readonly error: WorkspaceNavigationError | null;
   readonly creationStatus: WorkspaceCreationStatus;
   readonly creationError: WorkspaceNavigationError | null;
+  readonly updateStatus: WorkspaceUpdateStatus;
+  readonly updateError: WorkspaceNavigationError | null;
 }
 
 /**
@@ -39,4 +46,6 @@ export const initialWorkspaceNavigationState: WorkspaceNavigationState = {
   error: null,
   creationStatus: 'idle',
   creationError: null,
+  updateStatus: 'idle',
+  updateError: null,
 };

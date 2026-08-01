@@ -4,6 +4,7 @@ export {
   type ChangeWorkspaceMemberRoleCommand,
   type CreateWorkspaceCommand,
   type RemoveWorkspaceMemberCommand,
+  type UpdateWorkspaceCommand,
   type WorkspaceRepository,
 } from './workspace-repository';
 export {
@@ -21,10 +22,12 @@ export {
   WorkspaceMembershipHistoryExistsError,
   WorkspaceRepositoryUnavailableError,
   WorkspaceSlugUnavailableError,
+  WorkspaceUpdateNotAllowedError,
   type WorkspaceMemberRepositoryReadError,
   type WorkspaceMemberAddRepositoryError,
   type WorkspaceMemberRemovalRepositoryError,
   type WorkspaceMemberRoleChangeRepositoryError,
   type WorkspaceRepositoryCreateError,
   type WorkspaceRepositoryReadError,
+  type WorkspaceRepositoryUpdateError,
 } from './workspace-repository-error';

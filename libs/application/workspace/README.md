@@ -1,19 +1,22 @@
 # Workspace Application
 
 `@chat-hub/application/workspace` owns provider-independent workflows for
-discovering accessible workspaces and active members, creating a workspace,
-adding active profiles as members, changing active member roles, and removing
-active members.
+discovering accessible workspaces and active members, creating and editing
+workspaces, adding active profiles as members, changing active member roles,
+and removing active members.
 
 ## Responsibilities
 
 - Define the `WorkspaceRepository` outbound port.
-- Define typed read, creation, member-addition, role-change, removal, and
-  expected command failures.
+- Define typed read, creation, update, member-addition, role-change, removal,
+  and expected command failures.
 - List active, accessible workspaces through an Effect use case.
 - List active, RLS-visible members for one selected workspace.
 - Normalize and validate workspace creation input before repository access.
 - Create a workspace without accepting client-supplied owner identity.
+- Normalize and validate complete workspace replacement details through the
+  same private decoder used by creation.
+- Update a workspace without accepting client-supplied actor identity.
 - Resolve an exact active username through the profile port and add that stable
   profile identity with the default member role.
 - Normalize and validate role-change targets and roles before repository access.
@@ -22,7 +25,7 @@ active members.
 - Remove members without accepting client-supplied actor identity.
 
 It does not know about Supabase, generated database rows, Angular, selection
-state, profile persistence, channels, or workspace update/archive commands.
+state, profile persistence, channels, or workspace archive commands.
 
 ## Runtime flow
 
@@ -41,6 +44,12 @@ Angular caller
 Angular caller
   -> createWorkspace
   -> validated CreateWorkspaceCommand
+  -> WorkspaceRepositoryTag
+  -> canonical Workspace
+
+Angular caller
+  -> updateWorkspace
+  -> validated UpdateWorkspaceCommand
   -> WorkspaceRepositoryTag
   -> canonical Workspace
 
@@ -70,6 +79,7 @@ other application libraries.
 - `listAccessibleWorkspaces`
 - `listWorkspaceMembers`
 - `createWorkspace` and its input/error contracts
+- `updateWorkspace` and its input/error contracts
 - `addWorkspaceMemberByUsername` and its input/result/error contracts
 - `changeWorkspaceMemberRole` and its input/error contracts
 - `removeWorkspaceMember` and its input/error contracts

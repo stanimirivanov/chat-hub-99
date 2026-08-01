@@ -13,6 +13,7 @@ import type {
   WorkspaceMemberRoleChangeRepositoryError,
   WorkspaceRepositoryCreateError,
   WorkspaceRepositoryReadError,
+  WorkspaceRepositoryUpdateError,
 } from './workspace-repository-error';
 
 /**
@@ -22,6 +23,13 @@ export interface CreateWorkspaceCommand {
   readonly name: string;
   readonly slug: string;
   readonly description: string | null;
+}
+
+/**
+ * Validated replacement details for one existing workspace.
+ */
+export interface UpdateWorkspaceCommand extends CreateWorkspaceCommand {
+  readonly workspaceId: WorkspaceId;
 }
 
 /**
@@ -51,8 +59,8 @@ export interface RemoveWorkspaceMemberCommand {
 }
 
 /**
- * Outbound port for workspace discovery, membership discovery, creation, role
- * changes, and member removal.
+ * Outbound port for workspace discovery, workspace commands, and membership
+ * administration.
  *
  * Implementations return active workspaces visible to the current
  * authenticated user and must validate external rows before returning them.
@@ -89,6 +97,13 @@ export interface WorkspaceRepository {
   readonly create: (
     command: CreateWorkspaceCommand
   ) => Effect.Effect<Workspace, WorkspaceRepositoryCreateError>;
+
+  /**
+   * Replaces an active workspace's mutable details using session authorization.
+   */
+  readonly update: (
+    command: UpdateWorkspaceCommand
+  ) => Effect.Effect<Workspace, WorkspaceRepositoryUpdateError>;
 
   /**
    * Changes one active member's role using provider-session authorization.

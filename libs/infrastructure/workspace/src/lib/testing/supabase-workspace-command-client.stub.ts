@@ -3,6 +3,7 @@ import type {
   ChangeWorkspaceMemberRoleResult,
   CreateWorkspaceResult,
   RemoveWorkspaceMemberResult,
+  UpdateWorkspaceResult,
 } from '@chat-hub/shared/database';
 import { vi } from 'vitest';
 import type { SupabaseWorkspaceClient } from '../supabase-workspace-client';
@@ -13,6 +14,7 @@ interface WorkspaceCommandResult {
     | CreateWorkspaceResult
     | ChangeWorkspaceMemberRoleResult
     | RemoveWorkspaceMemberResult
+    | UpdateWorkspaceResult
     | null;
   readonly error: {
     readonly code: string;

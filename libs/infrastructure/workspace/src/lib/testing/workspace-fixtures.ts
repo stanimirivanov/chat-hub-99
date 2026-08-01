@@ -5,6 +5,7 @@ import type {
   CurrentWorkspaceMembership,
   CurrentWorkspace,
   RemoveWorkspaceMemberResult,
+  UpdateWorkspaceResult,
 } from '@chat-hub/shared/database';
 
 export const addedWorkspaceMemberRow: AddWorkspaceMemberResult = {
@@ -72,5 +73,18 @@ export const createdWorkspaceRow: CreateWorkspaceResult = {
   status: 'active',
   supersedes_workspace_version_id: null,
   created_at: '2026-07-31T12:00:00.000Z',
+  created_by: '00000000-0000-4000-8000-000000000002',
+};
+
+export const updatedWorkspaceRow: UpdateWorkspaceResult = {
+  workspace_id: '00000000-0000-4000-8000-000000000001',
+  workspace_version_id: '00000000-0000-4000-8000-000000000018',
+  version_number: 2,
+  name: 'Chat Hub Community',
+  slug: 'chat-hub-community',
+  description: 'Updated collaboration space',
+  status: 'active',
+  supersedes_workspace_version_id: '00000000-0000-4000-8000-000000000019',
+  created_at: '2026-08-01T08:00:00.000Z',
   created_by: '00000000-0000-4000-8000-000000000002',
 };
