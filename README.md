@@ -57,7 +57,7 @@ libs/domain/message/            Message domain model and invariants
 libs/domain/profile/            Profile identity, current projection, and invariants
 libs/domain/workspace/          Workspace and active-membership invariants
 libs/application/authentication/ Provider-independent authentication workflows
-libs/application/channel/       Workspace-scoped channel discovery/creation workflows
+libs/application/channel/       Workspace-scoped channel lifecycle workflows
 libs/application/message/       Message use cases, queries, errors, and repository port
 libs/application/profile/       Current-profile discovery/update port and use cases
 libs/application/workspace/     Workspace lifecycle and membership administration workflows

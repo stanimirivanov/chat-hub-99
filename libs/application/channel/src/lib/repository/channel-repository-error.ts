@@ -1,4 +1,5 @@
 import { Data } from 'effect';
+import type { ChannelId } from '@chat-hub/domain/channel';
 import type { WorkspaceId } from '@chat-hub/domain/workspace';
 
 /**
@@ -38,6 +39,15 @@ export class ChannelCreationNotAllowedError extends Data.TaggedError(
   readonly workspaceId: WorkspaceId;
 }> {}
 
+/**
+ * Indicates that the current session or channel lifecycle forbids updating.
+ */
+export class ChannelUpdateNotAllowedError extends Data.TaggedError(
+  'ChannelUpdateNotAllowedError'
+)<{
+  readonly channelId: ChannelId;
+}> {}
+
 export type ChannelRepositoryReadError =
   | ChannelRepositoryUnavailableError
   | InvalidChannelDataError;
@@ -46,3 +56,7 @@ export type ChannelRepositoryCreateError =
   | ChannelRepositoryReadError
   | ChannelSlugUnavailableError
   | ChannelCreationNotAllowedError;
+
+export type ChannelRepositoryUpdateError =
+  | ChannelRepositoryReadError
+  | ChannelUpdateNotAllowedError;

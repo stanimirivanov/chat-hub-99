@@ -2,8 +2,11 @@ import { Either, Schema } from 'effect';
 import { TestBed } from '@angular/core/testing';
 import { describe, expect, it, vi } from 'vitest';
 import {
+  ChannelUpdateNotAllowedError,
   ChannelRepositoryUnavailableError,
   ChannelSlugUnavailableError,
+  type UpdatedChannelDetails,
+  type UpdateChannelError,
 } from '@chat-hub/application/channel';
 import { ChannelIdSchema, type Channel } from '@chat-hub/domain/channel';
 import { WorkspaceIdSchema } from '@chat-hub/domain/workspace';
@@ -39,16 +42,29 @@ const createdChannel: Channel = {
   description: 'Design collaboration',
 };
 
+const updatedChannel: Channel = {
+  ...channel,
+  name: 'Product Design',
+  description: 'Design collaboration',
+};
+
+const updatedDetails: UpdatedChannelDetails = {
+  channelId,
+  name: updatedChannel.name,
+  description: updatedChannel.description,
+};
+
 const configureStore = (
   listWorkspaceChannels = vi.fn().mockResolvedValue(Either.right([channel])),
-  createChannel = vi.fn().mockResolvedValue(Either.right(createdChannel))
+  createChannel = vi.fn().mockResolvedValue(Either.right(createdChannel)),
+  updateChannel = vi.fn().mockResolvedValue(Either.right(updatedDetails))
 ) => {
   TestBed.configureTestingModule({
     providers: [
       ChannelNavigationStore,
       {
         provide: ChannelApplicationService,
-        useValue: { createChannel, listWorkspaceChannels },
+        useValue: { createChannel, listWorkspaceChannels, updateChannel },
       },
     ],
   });
@@ -57,6 +73,7 @@ const configureStore = (
     store: TestBed.inject(ChannelNavigationStore),
     createChannel,
     listWorkspaceChannels,
+    updateChannel,
   };
 };
 
@@ -208,5 +225,86 @@ describe('ChannelNavigationStore', () => {
     expect(store.workspaceId()).toBe(nextWorkspaceId);
     expect(store.channels()).toEqual([]);
     expect(store.creationStatus()).toBe('idle');
+  });
+
+  it('updates and reorders the selected channel from normalized details', async () => {
+    const { store, updateChannel } = configureStore(
+      vi.fn().mockResolvedValue(Either.right([channel, createdChannel]))
+    );
+    await store.load(workspaceId);
+    store.select(channelId);
+
+    const result = await store.updateSelectedChannel({
+      name: '  Product Design  ',
+      description: '  Design collaboration  ',
+    });
+
+    expect(updateChannel).toHaveBeenCalledExactlyOnceWith({
+      channelId,
+      name: '  Product Design  ',
+      description: '  Design collaboration  ',
+    });
+    expect(result).toEqual(updatedChannel);
+    expect(store.channels()).toEqual([createdChannel, updatedChannel]);
+    expect(store.selectedChannel()).toEqual(updatedChannel);
+    expect(store.updateStatus()).toBe('idle');
+    expect(store.updateError()).toBeNull();
+  });
+
+  it('keeps update failure separate from the selected channel', async () => {
+    const failure = new ChannelUpdateNotAllowedError({ channelId });
+    const updateResult: Either.Either<
+      UpdatedChannelDetails,
+      UpdateChannelError
+    > = Either.left(failure);
+    const updateChannel = vi.fn().mockResolvedValue(updateResult);
+    const { store } = configureStore(undefined, undefined, updateChannel);
+    await store.load(workspaceId);
+    store.select(channelId);
+
+    await expect(
+      store.updateSelectedChannel({ name: 'Product Design' })
+    ).resolves.toBeNull();
+
+    expect(store.channels()).toEqual([channel]);
+    expect(store.selectedChannel()).toEqual(channel);
+    expect(store.updateStatus()).toBe('failed');
+    expect(store.updateError()).toEqual({
+      message: 'You no longer have permission to edit this channel.',
+    });
+
+    store.clearUpdateError();
+    expect(store.updateStatus()).toBe('idle');
+    expect(store.updateError()).toBeNull();
+  });
+
+  it('ignores an update after navigation moves away and back', async () => {
+    let resolveUpdate:
+      | ((result: Either.Either<UpdatedChannelDetails, never>) => void)
+      | undefined;
+    const updateResult = new Promise<
+      Either.Either<UpdatedChannelDetails, never>
+    >((resolve) => {
+      resolveUpdate = resolve;
+    });
+    const updateChannel = vi.fn().mockReturnValue(updateResult);
+    const { store } = configureStore(
+      vi.fn().mockResolvedValue(Either.right([channel, createdChannel])),
+      undefined,
+      updateChannel
+    );
+    await store.load(workspaceId);
+    store.select(channelId);
+
+    const update = store.updateSelectedChannel({ name: 'Product Design' });
+    store.select(createdChannelId);
+    store.select(channelId);
+    resolveUpdate?.(Either.right(updatedDetails));
+
+    await expect(update).resolves.toBeNull();
+    expect(store.channels()).toEqual([channel, createdChannel]);
+    expect(store.selectedChannel()).toEqual(channel);
+    expect(store.updateStatus()).toBe('idle');
+    expect(store.updateError()).toBeNull();
   });
 });

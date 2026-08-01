@@ -56,6 +56,8 @@ describe('makeApplicationInfrastructureLayer', () => {
 
     expect(repository.channelRepository.create).toBeTypeOf('function');
 
+    expect(repository.channelRepository.update).toBeTypeOf('function');
+
     expect(repository.profileRepository.findCurrentById).toBeTypeOf('function');
 
     expect(repository.profileRepository.findActiveByUsername).toBeTypeOf(

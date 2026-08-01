@@ -1,4 +1,10 @@
-import type { CurrentChannel } from '@chat-hub/shared/database';
+import type {
+  CurrentChannel,
+  UpdateChannelResult,
+} from '@chat-hub/shared/database';
+
+export const updatedChannelVersionId: UpdateChannelResult =
+  '00000000-0000-4000-8000-000000000005';
 
 export const currentChannelRow: CurrentChannel = {
   channel_id: '00000000-0000-4000-8000-000000000001',

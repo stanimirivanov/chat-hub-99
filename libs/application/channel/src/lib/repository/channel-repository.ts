@@ -4,6 +4,7 @@ import type { WorkspaceId } from '@chat-hub/domain/workspace';
 import type {
   ChannelRepositoryCreateError,
   ChannelRepositoryReadError,
+  ChannelRepositoryUpdateError,
 } from './channel-repository-error';
 
 /**
@@ -13,6 +14,15 @@ export interface CreateChannelCommand {
   readonly workspaceId: WorkspaceId;
   readonly name: string;
   readonly slug: string;
+  readonly description: string | null;
+}
+
+/**
+ * Validated mutable values used to append a channel version.
+ */
+export interface UpdateChannelCommand {
+  readonly channelId: ChannelId;
+  readonly name: string;
   readonly description: string | null;
 }
 
@@ -37,6 +47,16 @@ export interface ChannelRepository {
   readonly create: (
     command: CreateChannelCommand
   ) => Effect.Effect<ChannelId, ChannelRepositoryCreateError>;
+
+  /**
+   * Updates one active channel using provider-session authorization.
+   *
+   * The implementation validates the immutable version identity returned by
+   * the provider before acknowledging success.
+   */
+  readonly update: (
+    command: UpdateChannelCommand
+  ) => Effect.Effect<void, ChannelRepositoryUpdateError>;
 }
 
 /**

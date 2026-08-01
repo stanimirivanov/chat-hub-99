@@ -1,6 +1,8 @@
 <section
   aria-labelledby="channel-navigation-heading"
-  [attr.aria-busy]="store.isLoading() || store.isCreating()"
+  [attr.aria-busy]="
+    store.isLoading() || store.isCreating() || store.isUpdating()
+  "
 >
   <h3 id="channel-navigation-heading">Channels</h3>
 
@@ -24,7 +26,7 @@
           name="channel-name"
           type="text"
           required
-          [disabled]="store.isCreating()"
+          [disabled]="store.isCreating() || store.isUpdating()"
         />
 
         <label for="channel-slug">Channel URL</label>
@@ -35,7 +37,7 @@
           type="text"
           required
           aria-describedby="channel-slug-help"
-          [disabled]="store.isCreating()"
+          [disabled]="store.isCreating() || store.isUpdating()"
         />
         <small id="channel-slug-help">
           Lowercase letters, numbers, and single hyphens.
@@ -46,10 +48,13 @@
           #descriptionInput
           id="channel-description"
           name="channel-description"
-          [disabled]="store.isCreating()"
+          [disabled]="store.isCreating() || store.isUpdating()"
         ></textarea>
 
-        <button type="submit" [disabled]="store.isCreating()">
+        <button
+          type="submit"
+          [disabled]="store.isCreating() || store.isUpdating()"
+        >
           @if (store.isCreating()) {
             Creating&hellip;
           } @else {
@@ -59,14 +64,18 @@
 
         <button
           type="button"
-          [disabled]="store.isCreating()"
+          [disabled]="store.isCreating() || store.isUpdating()"
           (click)="cancelChannelCreation()"
         >
           Cancel
         </button>
       </form>
     } @else {
-      <button type="button" (click)="beginChannelCreation()">
+      <button
+        type="button"
+        [disabled]="store.isUpdating()"
+        (click)="beginChannelCreation()"
+      >
         Create channel
       </button>
     }
@@ -103,6 +112,67 @@
         <section [attr.aria-label]="channel.name + ' messages'">
           @if (channel.description) {
             <p>{{ channel.description }}</p>
+          }
+
+          @if (canManageChannels()) {
+            @if (isEditingChannel()) {
+              <form
+                (submit)="
+                  $event.preventDefault();
+                  saveChannelChanges(editNameInput, editDescriptionInput)
+                "
+              >
+                <label for="channel-edit-name">Channel name</label>
+                <input
+                  #editNameInput
+                  id="channel-edit-name"
+                  name="channel-edit-name"
+                  type="text"
+                  required
+                  [value]="channel.name"
+                  [disabled]="store.isUpdating()"
+                />
+
+                <label for="channel-edit-description">Description</label>
+                <textarea
+                  #editDescriptionInput
+                  id="channel-edit-description"
+                  name="channel-edit-description"
+                  [value]="channel.description ?? ''"
+                  [disabled]="store.isUpdating()"
+                ></textarea>
+
+                <button type="submit" [disabled]="store.isUpdating()">
+                  @if (store.isUpdating()) {
+                    Saving&hellip;
+                  } @else {
+                    Save changes
+                  }
+                </button>
+                <button
+                  type="button"
+                  [disabled]="store.isUpdating()"
+                  (click)="cancelChannelEditing()"
+                >
+                  Cancel
+                </button>
+              </form>
+            } @else {
+              <button
+                type="button"
+                [disabled]="store.isCreating()"
+                (click)="beginChannelEditing()"
+              >
+                Edit channel
+              </button>
+            }
+          }
+
+          @if (store.updateError(); as error) {
+            <p role="alert">{{ error.message }}</p>
+            <button type="button" (click)="store.clearUpdateError()">
+              Dismiss
+            </button>
           }
 
           <app-channel-messages [channelId]="channel.id" />

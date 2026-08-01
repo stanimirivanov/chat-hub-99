@@ -3,9 +3,13 @@ import { Effect, Either } from 'effect';
 import {
   createChannel,
   listWorkspaceChannels,
+  updateChannel,
   type CreateChannelError,
   type CreateChannelInput,
   type ChannelRepositoryReadError,
+  type UpdatedChannelDetails,
+  type UpdateChannelError,
+  type UpdateChannelInput,
 } from '@chat-hub/application/channel';
 import type { Channel } from '@chat-hub/domain/channel';
 import type { WorkspaceId } from '@chat-hub/domain/workspace';
@@ -40,6 +44,17 @@ export class ChannelApplicationService {
   ): Promise<Either.Either<Channel, CreateChannelError>> {
     return applicationRuntime.runPromise(
       createChannel(input).pipe(Effect.either)
+    );
+  }
+
+  /**
+   * Updates mutable details for one channel using session authorization.
+   */
+  updateChannel(
+    input: UpdateChannelInput
+  ): Promise<Either.Either<UpdatedChannelDetails, UpdateChannelError>> {
+    return applicationRuntime.runPromise(
+      updateChannel(input).pipe(Effect.either)
     );
   }
 }

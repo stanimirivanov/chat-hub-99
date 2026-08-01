@@ -1,4 +1,4 @@
-import { signal } from '@angular/core';
+import { Component, input, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import {
   ActivatedRoute,
@@ -11,6 +11,7 @@ import { BehaviorSubject } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
 import { ChannelIdSchema, type Channel } from '@chat-hub/domain/channel';
 import { WorkspaceIdSchema } from '@chat-hub/domain/workspace';
+import { ChannelMessagesComponent } from '@client/features/channel-messages/channel-messages.component';
 import { ChannelNavigationComponent } from './channel-navigation.component';
 import { ChannelNavigationStore } from './channel-navigation.store';
 
@@ -29,12 +30,31 @@ const channel: Channel = {
   description: null,
 };
 
+const updatedChannel: Channel = {
+  ...channel,
+  name: 'Product Design',
+  description: 'Design collaboration',
+};
+
+@Component({
+  selector: 'app-channel-messages',
+  standalone: true,
+  template: '',
+})
+class ChannelMessagesStubComponent {
+  readonly channelId = input.required<typeof channel.id>();
+}
+
 const configureComponent = async ({
   queryParams,
   channels = [channel],
+  selectedChannel = null,
+  canManageChannels = false,
 }: {
   readonly queryParams: Params;
   readonly channels?: readonly Channel[];
+  readonly selectedChannel?: Channel | null;
+  readonly canManageChannels?: boolean;
 }) => {
   const queryParamMap = new BehaviorSubject(convertToParamMap(queryParams));
   const route = {
@@ -49,20 +69,33 @@ const configureComponent = async ({
   const store = {
     workspaceId: signal(workspaceId),
     channels: signal(channels),
-    selectedChannelId: signal(null),
-    selectedChannel: signal(null),
+    selectedChannelId: signal(selectedChannel?.id ?? null),
+    selectedChannel: signal(selectedChannel),
     isLoading: signal(false),
     isCreating: signal(false),
+    isUpdating: signal(false),
     hasChannels: signal(channels.length > 0),
     loadStatus: signal('loaded'),
     error: signal(null),
     creationError: signal(null),
+    updateError: signal(null),
     load: vi.fn().mockResolvedValue(undefined),
     createChannel: vi.fn().mockResolvedValue(channel),
+    updateSelectedChannel: vi.fn().mockResolvedValue(updatedChannel),
     select: vi.fn().mockReturnValue(true),
     clearSelection: vi.fn(),
     clearCreationError: vi.fn(),
+    clearUpdateError: vi.fn(),
   };
+
+  TestBed.overrideComponent(ChannelNavigationComponent, {
+    remove: {
+      imports: [ChannelMessagesComponent],
+    },
+    add: {
+      imports: [ChannelMessagesStubComponent],
+    },
+  });
 
   TestBed.overrideComponent(ChannelNavigationComponent, {
     set: {
@@ -91,6 +124,7 @@ const configureComponent = async ({
 
   const fixture = TestBed.createComponent(ChannelNavigationComponent);
   fixture.componentRef.setInput('workspaceId', workspaceId);
+  fixture.componentRef.setInput('canManageChannels', canManageChannels);
   fixture.detectChanges();
   await fixture.whenStable();
 
@@ -190,5 +224,48 @@ describe('ChannelNavigationComponent', () => {
       },
       queryParamsHandling: 'merge',
     });
+  });
+
+  it('lets an owner edit mutable details without changing the route', async () => {
+    const { fixture, router, store } = await configureComponent({
+      queryParams: {
+        workspace: workspaceSlug,
+        channel: channel.slug,
+      },
+      selectedChannel: channel,
+    });
+
+    expect(fixture.nativeElement.textContent).not.toContain('Edit channel');
+    fixture.componentRef.setInput('canManageChannels', true);
+    fixture.detectChanges();
+
+    const editButton = Array.from(
+      fixture.nativeElement.querySelectorAll(
+        'button'
+      ) as NodeListOf<HTMLButtonElement>
+    ).find((button) => button.textContent?.trim() === 'Edit channel');
+    editButton?.click();
+    fixture.detectChanges();
+
+    const nameInput = fixture.nativeElement.querySelector(
+      '#channel-edit-name'
+    ) as HTMLInputElement;
+    const descriptionInput = fixture.nativeElement.querySelector(
+      '#channel-edit-description'
+    ) as HTMLTextAreaElement;
+    const form = nameInput.closest('form') as HTMLFormElement;
+    nameInput.value = updatedChannel.name;
+    descriptionInput.value = updatedChannel.description ?? '';
+    form.dispatchEvent(
+      new Event('submit', { bubbles: true, cancelable: true })
+    );
+
+    await fixture.whenStable();
+
+    expect(store.updateSelectedChannel).toHaveBeenCalledExactlyOnceWith({
+      name: updatedChannel.name,
+      description: updatedChannel.description,
+    });
+    expect(router.navigate).not.toHaveBeenCalled();
   });
 });

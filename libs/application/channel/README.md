@@ -3,14 +3,16 @@
 ## Purpose
 
 Defines technology-independent workflows and the outbound port for discovering
-and creating workspace channels.
+and mutating workspace channels.
 
 ## Responsibilities and non-responsibilities
 
 - `listWorkspaceChannels` orchestrates workspace-scoped discovery.
 - `createChannel` normalizes and validates untrusted creation input.
-- `ChannelRepository` defines only the read and create capabilities required by
-  those use cases.
+- `updateChannel` normalizes and validates mutable channel details while
+  excluding the immutable workspace association and slug.
+- `ChannelRepository` defines only the read, create, and update capabilities
+  required by those use cases.
 - Tagged errors distinguish invalid input, unavailable providers, invalid
   external data, slug conflicts, and authorization failures.
 
@@ -21,17 +23,20 @@ Angular state. It depends only on domain and Effect contracts.
 
 ```text
 create-channel/             creation workflow, input, and errors
+channel-details/            shared mutable-detail decoding
 list-workspace-channels/    workspace-scoped discovery workflow
 repository/                 outbound port and technology-neutral failures
 testing/                    isolated repository Layers and fixtures
+update-channel/             update workflow, input, result, and errors
 ```
 
 ## Public API
 
 - `createChannel` and its input/error contracts
+- `updateChannel` and its input/result/error contracts
 - `listWorkspaceChannels`
-- `ChannelRepositoryTag`, `ChannelRepository`, and `CreateChannelCommand`
-- channel repository read/create errors
+- `ChannelRepositoryTag`, `ChannelRepository`, and command contracts
+- channel repository read/create/update errors
 
 ## Design decisions
 
@@ -44,12 +49,23 @@ validates that identity, the use case combines it with the already validated and
 normalized command to produce the channel projection. This avoids adding a
 second query or a `findById` port that no implemented use case otherwise needs.
 
+Channel updates follow the same acknowledgment model. The database returns the
+new immutable version UUID, which infrastructure validates without exposing it.
+The use case returns its normalized channel identity, name, and description so
+the caller can reconcile those mutable fields with its already validated
+workspace and slug projection. Actor identity is absent from both commands.
+
 ## Runtime flow
 
 ```text
 Angular caller -> createChannel -> validate and normalize input
                -> ChannelRepositoryTag -> repository.create
                -> provider-issued ChannelId -> validated Channel
+
+Angular caller -> updateChannel -> validate identity, name, and description
+               -> ChannelRepositoryTag -> repository.update
+               -> validated provider acknowledgment
+               -> normalized UpdatedChannelDetails
 ```
 
 In Effect, a Tag is the typed key used to request the repository. The use cases

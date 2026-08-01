@@ -3,6 +3,8 @@ import { Either } from 'effect';
 import type {
   CreateChannelError,
   CreateChannelInput,
+  UpdateChannelError,
+  UpdateChannelInput,
 } from '@chat-hub/application/channel';
 import {
   patchState,
@@ -25,6 +27,7 @@ export const ChannelNavigationStore = signalStore(
   withComputed((store) => ({
     isLoading: computed(() => store.loadStatus() === 'loading'),
     isCreating: computed(() => store.creationStatus() === 'creating'),
+    isUpdating: computed(() => store.updateStatus() === 'updating'),
     hasChannels: computed(() => store.channels().length > 0),
     selectedChannel: computed(() => {
       const selectedChannelId = store.selectedChannelId();
@@ -39,6 +42,7 @@ export const ChannelNavigationStore = signalStore(
   withMethods(
     (store, channelApplication = inject(ChannelApplicationService)) => {
       let requestVersion = 0;
+      let selectionVersion = 0;
       let activeRequest: {
         readonly workspaceId: WorkspaceId;
         readonly promise: Promise<void>;
@@ -66,6 +70,7 @@ export const ChannelNavigationStore = signalStore(
 
           const version = ++requestVersion;
           const workspaceChanged = store.workspaceId() !== workspaceId;
+          selectionVersion += 1;
 
           patchState(store, {
             workspaceId,
@@ -74,7 +79,12 @@ export const ChannelNavigationStore = signalStore(
             loadStatus: 'loading',
             error: null,
             ...(workspaceChanged
-              ? { creationStatus: 'idle', creationError: null }
+              ? {
+                  creationStatus: 'idle',
+                  creationError: null,
+                  updateStatus: 'idle',
+                  updateError: null,
+                }
               : {}),
           });
 
@@ -125,7 +135,18 @@ export const ChannelNavigationStore = signalStore(
             return false;
           }
 
-          patchState(store, { selectedChannelId: channelId });
+          const selectionChanged = store.selectedChannelId() !== channelId;
+
+          if (selectionChanged) {
+            selectionVersion += 1;
+          }
+
+          patchState(store, {
+            selectedChannelId: channelId,
+            ...(selectionChanged
+              ? { updateStatus: 'idle' as const, updateError: null }
+              : {}),
+          });
           return true;
         },
 
@@ -133,8 +154,14 @@ export const ChannelNavigationStore = signalStore(
          * Clears presentation selection without reloading the collection.
          */
         clearSelection(): void {
+          if (store.selectedChannelId() !== null) {
+            selectionVersion += 1;
+          }
+
           patchState(store, {
             selectedChannelId: null,
+            updateStatus: 'idle',
+            updateError: null,
           });
         },
 
@@ -151,7 +178,8 @@ export const ChannelNavigationStore = signalStore(
           if (
             workspaceId === null ||
             store.loadStatus() !== 'loaded' ||
-            store.creationStatus() === 'creating'
+            store.creationStatus() === 'creating' ||
+            store.updateStatus() === 'updating'
           ) {
             return null;
           }
@@ -181,7 +209,7 @@ export const ChannelNavigationStore = signalStore(
             },
             onRight: (channel) => {
               patchState(store, {
-                channels: insertChannel(store.channels(), channel),
+                channels: upsertChannel(store.channels(), channel),
                 creationStatus: 'idle',
                 creationError: null,
               });
@@ -197,16 +225,98 @@ export const ChannelNavigationStore = signalStore(
             creationError: null,
           });
         },
+
+        /**
+         * Replaces mutable details for the selected channel.
+         *
+         * A selection generation prevents a late result from changing a
+         * channel after navigation moved elsewhere and back. Stable workspace
+         * and slug fields remain sourced from the loaded domain projection.
+         */
+        async updateSelectedChannel(
+          details: Omit<UpdateChannelInput, 'channelId'>
+        ): Promise<Channel | null> {
+          const workspaceId = store.workspaceId();
+          const selectedChannel = store.selectedChannel();
+
+          if (
+            workspaceId === null ||
+            selectedChannel === null ||
+            store.loadStatus() !== 'loaded' ||
+            store.creationStatus() === 'creating' ||
+            store.updateStatus() === 'updating'
+          ) {
+            return null;
+          }
+
+          const channelId = selectedChannel.id;
+          const version = selectionVersion;
+          patchState(store, {
+            updateStatus: 'updating',
+            updateError: null,
+          });
+
+          const result = await channelApplication.updateChannel({
+            channelId,
+            ...details,
+          });
+
+          if (
+            store.workspaceId() !== workspaceId ||
+            store.selectedChannelId() !== channelId ||
+            selectionVersion !== version
+          ) {
+            return null;
+          }
+
+          return Either.match(result, {
+            onLeft: (error) => {
+              patchState(store, {
+                updateStatus: 'failed',
+                updateError: toChannelUpdateError(error),
+              });
+
+              return null;
+            },
+            onRight: (updatedDetails) => {
+              const updatedChannel: Channel = {
+                ...selectedChannel,
+                name: updatedDetails.name,
+                description: updatedDetails.description,
+              };
+
+              patchState(store, {
+                channels: upsertChannel(store.channels(), updatedChannel),
+                updateStatus: 'idle',
+                updateError: null,
+              });
+
+              return updatedChannel;
+            },
+          });
+        },
+
+        clearUpdateError(): void {
+          if (store.updateStatus() !== 'updating') {
+            patchState(store, {
+              updateStatus: 'idle',
+              updateError: null,
+            });
+          }
+        },
       };
     }
   )
 );
 
-const insertChannel = (
+const upsertChannel = (
   channels: readonly Channel[],
-  created: Channel
+  channel: Channel
 ): readonly Channel[] =>
-  [...channels.filter((channel) => channel.id !== created.id), created].sort(
+  [
+    ...channels.filter((candidate) => candidate.id !== channel.id),
+    channel,
+  ].sort(
     (left, right) =>
       left.name.localeCompare(right.name) || left.id.localeCompare(right.id)
   );
@@ -240,6 +350,31 @@ const toChannelCreationError = (
     default:
       return {
         message: 'The channel could not be created. Please try again.',
+      };
+  }
+};
+
+const toChannelUpdateError = (
+  error: UpdateChannelError
+): { readonly message: string } => {
+  switch (error._tag) {
+    case 'InvalidChannelUpdateInputError':
+      return {
+        message:
+          error.field === 'name'
+            ? 'Enter a channel name.'
+            : error.field === 'description'
+              ? 'Check the channel description and try again.'
+              : 'The selected channel is invalid.',
+      };
+    case 'ChannelUpdateNotAllowedError':
+      return {
+        message: 'You no longer have permission to edit this channel.',
+      };
+    case 'InvalidChannelDataError':
+    case 'ChannelRepositoryUnavailableError':
+      return {
+        message: 'The channel could not be updated. Please try again.',
       };
   }
 };

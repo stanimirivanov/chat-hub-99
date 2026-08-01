@@ -11,9 +11,20 @@ export {
   ChannelRepositoryTag,
   ChannelRepositoryUnavailableError,
   ChannelSlugUnavailableError,
+  ChannelUpdateNotAllowedError,
   InvalidChannelDataError,
   type ChannelRepository,
   type ChannelRepositoryCreateError,
   type ChannelRepositoryReadError,
+  type ChannelRepositoryUpdateError,
   type CreateChannelCommand,
+  type UpdateChannelCommand,
 } from './lib/repository';
+export {
+  updateChannel,
+  InvalidChannelUpdateInputError,
+  type ChannelUpdateField,
+  type UpdatedChannelDetails,
+  type UpdateChannelError,
+  type UpdateChannelInput,
+} from './lib/update-channel';

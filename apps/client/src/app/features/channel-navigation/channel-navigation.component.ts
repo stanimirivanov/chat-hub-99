@@ -25,8 +25,10 @@ import { ChannelNavigationStore } from './channel-navigation.store';
 })
 export class ChannelNavigationComponent {
   readonly workspaceId = input.required<WorkspaceId>();
+  readonly canManageChannels = input(false);
   protected readonly store = inject(ChannelNavigationStore);
   protected readonly isCreatingChannel = signal(false);
+  protected readonly isEditingChannel = signal(false);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly queryParamMap = toSignal(this.route.queryParamMap, {
@@ -38,6 +40,12 @@ export class ChannelNavigationComponent {
       const workspaceId = this.workspaceId();
       const channelSlug = this.queryParamMap().get('channel');
       void this.selectChannelFromRoute(workspaceId, channelSlug);
+    });
+
+    effect(() => {
+      if (!this.canManageChannels()) {
+        this.isEditingChannel.set(false);
+      }
     });
   }
 
@@ -56,6 +64,8 @@ export class ChannelNavigationComponent {
 
   protected beginChannelCreation(): void {
     this.store.clearCreationError();
+    this.store.clearUpdateError();
+    this.isEditingChannel.set(false);
     this.isCreatingChannel.set(true);
   }
 
@@ -81,12 +91,39 @@ export class ChannelNavigationComponent {
     }
   }
 
+  protected beginChannelEditing(): void {
+    this.store.clearCreationError();
+    this.store.clearUpdateError();
+    this.isCreatingChannel.set(false);
+    this.isEditingChannel.set(true);
+  }
+
+  protected cancelChannelEditing(): void {
+    this.store.clearUpdateError();
+    this.isEditingChannel.set(false);
+  }
+
+  protected async saveChannelChanges(
+    nameInput: HTMLInputElement,
+    descriptionInput: HTMLTextAreaElement
+  ): Promise<void> {
+    const updatedChannel = await this.store.updateSelectedChannel({
+      name: nameInput.value,
+      description: descriptionInput.value,
+    });
+
+    if (updatedChannel !== null) {
+      this.isEditingChannel.set(false);
+    }
+  }
+
   private async selectChannelFromRoute(
     workspaceId: WorkspaceId,
     channelSlug: string | null
   ): Promise<void> {
     if (this.store.workspaceId() !== workspaceId) {
       this.isCreatingChannel.set(false);
+      this.isEditingChannel.set(false);
     }
 
     await this.store.load(workspaceId);
@@ -96,6 +133,10 @@ export class ChannelNavigationComponent {
       this.queryParamMap().get('channel') !== channelSlug
     ) {
       return;
+    }
+
+    if (this.store.selectedChannel()?.slug !== channelSlug) {
+      this.isEditingChannel.set(false);
     }
 
     if (channelSlug === null) {

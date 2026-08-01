@@ -143,6 +143,15 @@ pending/error state, inserts the validated result in stable navigation order,
 and then writes its normalized slug to the URL so the existing route effect
 remains the selection authority.
 
+The workspace owner capability already derived by the parent member directory
+is passed into channel navigation as a presentation affordance; this avoids a
+duplicate membership query while Supabase remains the authorization boundary.
+Owners can edit a selected channel's name and description, while its workspace
+and slug remain immutable. Update state is independent from loading and
+creation, the normalized result replaces only mutable fields, and a selection
+generation rejects late responses after navigating away and back. Because the
+slug cannot change, a successful edit does not rewrite browser history.
+
 The `current-profile` slice enriches the authenticated header with the
 RLS-visible profile belonging to the session identity. It keeps the
 authentication session email as a reliable fallback while profile data loads
