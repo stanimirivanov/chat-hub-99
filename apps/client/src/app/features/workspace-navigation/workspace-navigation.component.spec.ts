@@ -39,6 +39,7 @@ const updatedWorkspace: Workspace = {
 })
 class ChannelNavigationStubComponent {
   readonly workspaceId = input.required<typeof workspace.id>();
+  readonly canManageChannels = input(false);
 }
 
 @Component({
@@ -249,6 +250,11 @@ describe('WorkspaceNavigationComponent', () => {
     expect(fixture.nativeElement.textContent).not.toContain('Edit workspace');
     directory.canManageMembersChange.emit(true);
     fixture.detectChanges();
+
+    const channelNavigation = fixture.debugElement.query(
+      By.directive(ChannelNavigationStubComponent)
+    ).componentInstance as ChannelNavigationStubComponent;
+    expect(channelNavigation.canManageChannels()).toBe(true);
 
     const editButton = Array.from(
       fixture.nativeElement.querySelectorAll(

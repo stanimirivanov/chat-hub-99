@@ -11,6 +11,8 @@ export const makeChannelRepositoryStub = (
     ),
   create: () =>
     Effect.dieMessage('Unexpected ChannelRepository.create call in test'),
+  update: () =>
+    Effect.dieMessage('Unexpected ChannelRepository.update call in test'),
   ...overrides,
 });
 
@@ -38,5 +40,16 @@ export const makeCreateChannelRepository = (
   return {
     create,
     repositoryLayer: makeChannelRepositoryLayer({ create }),
+  };
+};
+
+export const makeUpdateChannelRepository = (
+  implementation: ChannelRepository['update']
+) => {
+  const update = vi.fn(implementation);
+
+  return {
+    update,
+    repositoryLayer: makeChannelRepositoryLayer({ update }),
   };
 };

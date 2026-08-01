@@ -1,15 +1,12 @@
 import { Effect, Schema } from 'effect';
-import {
-  ChannelNameSchema,
-  ChannelSlugSchema,
-  type Channel,
-} from '@chat-hub/domain/channel';
+import { ChannelSlugSchema, type Channel } from '@chat-hub/domain/channel';
 import { WorkspaceIdSchema } from '@chat-hub/domain/workspace';
 import {
   ChannelRepositoryTag,
   type ChannelRepository,
   type CreateChannelCommand,
 } from '../repository';
+import { decodeChannelDetails } from '../channel-details/decode-channel-details';
 import {
   InvalidChannelCreationInputError,
   type ChannelCreationField,
@@ -18,7 +15,6 @@ import {
 
 const decodeString = Schema.decodeUnknown(Schema.String);
 const decodeWorkspaceId = Schema.decodeUnknown(WorkspaceIdSchema);
-const decodeChannelName = Schema.decodeUnknown(ChannelNameSchema);
 const decodeChannelSlug = Schema.decodeUnknown(ChannelSlugSchema);
 
 const readInputField = (
@@ -40,15 +36,6 @@ const decodeWorkspace = (input: unknown) =>
     Effect.mapError((cause) => invalidField('workspaceId', cause))
   );
 
-const decodeName = (
-  input: unknown
-): Effect.Effect<string, InvalidChannelCreationInputError> =>
-  decodeString(readInputField(input, 'name')).pipe(
-    Effect.map((value) => value.trim()),
-    Effect.flatMap(decodeChannelName),
-    Effect.mapError((cause) => invalidField('name', cause))
-  );
-
 const decodeSlug = (
   input: unknown
 ): Effect.Effect<string, InvalidChannelCreationInputError> =>
@@ -56,15 +43,6 @@ const decodeSlug = (
     Effect.map((value) => value.trim().toLowerCase()),
     Effect.flatMap(decodeChannelSlug),
     Effect.mapError((cause) => invalidField('slug', cause))
-  );
-
-const decodeDescription = (
-  input: unknown
-): Effect.Effect<string | null, InvalidChannelCreationInputError> =>
-  decodeString(readInputField(input, 'description') ?? '').pipe(
-    Effect.map((value) => value.trim()),
-    Effect.map((value) => (value.length === 0 ? null : value)),
-    Effect.mapError((cause) => invalidField('description', cause))
   );
 
 /**
@@ -80,11 +58,12 @@ export const createChannel = (
   input: unknown
 ): Effect.Effect<Channel, CreateChannelError, ChannelRepository> =>
   Effect.gen(function* () {
+    const workspaceId = yield* decodeWorkspace(input);
+    const details = yield* decodeChannelDetails(input, invalidField);
     const command: CreateChannelCommand = {
-      workspaceId: yield* decodeWorkspace(input),
-      name: yield* decodeName(input),
+      workspaceId,
       slug: yield* decodeSlug(input),
-      description: yield* decodeDescription(input),
+      ...details,
     };
 
     const repository = yield* ChannelRepositoryTag;

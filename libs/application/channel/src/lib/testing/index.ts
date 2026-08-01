@@ -8,4 +8,5 @@ export {
   makeChannelRepositoryLayer,
   makeCreateChannelRepository,
   makeListByWorkspaceChannelRepository,
+  makeUpdateChannelRepository,
 } from './channel-repository.stub';

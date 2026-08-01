@@ -1,6 +1,7 @@
 import type {
   CreateChannelResult,
   CurrentChannel,
+  UpdateChannelResult,
 } from '@chat-hub/shared/database';
 import { vi } from 'vitest';
 import type { SupabaseChannelClient } from '../supabase-channel-client';
@@ -14,7 +15,7 @@ interface ChannelQueryResult {
 }
 
 interface ChannelCommandResult {
-  readonly data: CreateChannelResult | null;
+  readonly data: CreateChannelResult | UpdateChannelResult | null;
   readonly error: {
     readonly code: string;
     readonly message: string;

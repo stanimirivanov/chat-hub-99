@@ -248,7 +248,10 @@
             (canManageMembersChange)="handleCanManageMembersChange($event)"
           />
 
-          <app-channel-navigation [workspaceId]="workspace.id" />
+          <app-channel-navigation
+            [workspaceId]="workspace.id"
+            [canManageChannels]="canManageSelectedWorkspace()"
+          />
         </section>
       } @else {
         <p>Select a workspace to continue.</p>

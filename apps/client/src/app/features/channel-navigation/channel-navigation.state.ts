@@ -8,6 +8,11 @@ export type ChannelLoadStatus = 'idle' | 'loading' | 'loaded' | 'failed';
  */
 export type ChannelCreationStatus = 'idle' | 'creating' | 'failed';
 
+/**
+ * Lifecycle of the single selected-channel update operation.
+ */
+export type ChannelUpdateStatus = 'idle' | 'updating' | 'failed';
+
 export interface ChannelNavigationError {
   readonly message: string;
 }
@@ -23,6 +28,8 @@ export interface ChannelNavigationState {
   readonly error: ChannelNavigationError | null;
   readonly creationStatus: ChannelCreationStatus;
   readonly creationError: ChannelNavigationError | null;
+  readonly updateStatus: ChannelUpdateStatus;
+  readonly updateError: ChannelNavigationError | null;
 }
 
 export const initialChannelNavigationState: ChannelNavigationState = {
@@ -33,4 +40,6 @@ export const initialChannelNavigationState: ChannelNavigationState = {
   error: null,
   creationStatus: 'idle',
   creationError: null,
+  updateStatus: 'idle',
+  updateError: null,
 };
