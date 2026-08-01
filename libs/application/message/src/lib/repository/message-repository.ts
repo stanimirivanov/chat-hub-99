@@ -7,6 +7,7 @@ import type {
   EditMessageCommand,
 } from './message-repository-command';
 import type {
+  MessageRepositoryCreateError,
   MessageRepositoryDeleteError,
   MessageRepositoryEditError,
   MessageRepositoryError,
@@ -39,10 +40,14 @@ export interface ListChannelMessagesQuery {
  * the operation's documented repository failure vocabulary.
  */
 export interface MessageRepository {
-  /** Persists a new message identity and returns its stable identifier. */
+  /**
+   * Persists a new message identity and returns its stable identifier.
+   *
+   * An archived target fails with `MessageCreationNotAllowedError`.
+   */
   readonly create: (
     command: CreateMessageCommand
-  ) => Effect.Effect<MessageId, MessageRepositoryError>;
+  ) => Effect.Effect<MessageId, MessageRepositoryCreateError>;
 
   /**
    * Appends a new version to an existing active message.

@@ -1,4 +1,5 @@
 export {
+  mapCreateMessagePostgrestError,
   mapEditMessagePostgrestError,
   mapMessageCommandPostgrestError,
   mapPostgrestError,

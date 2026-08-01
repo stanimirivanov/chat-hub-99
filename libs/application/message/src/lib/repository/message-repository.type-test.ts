@@ -12,6 +12,7 @@ import {
   MessageRepository,
 } from './message-repository';
 import {
+  MessageRepositoryCreateError,
   MessageRepositoryDeleteError,
   MessageRepositoryEditError,
   MessageRepositoryError,
@@ -27,7 +28,7 @@ declare const messageId: MessageId;
 declare const query: ListChannelMessagesQuery;
 declare const channelId: ChannelId;
 
-const createResult: Effect.Effect<MessageId, MessageRepositoryError> =
+const createResult: Effect.Effect<MessageId, MessageRepositoryCreateError> =
   repository.create(createCommand);
 
 const editResult: Effect.Effect<void, MessageRepositoryEditError> =

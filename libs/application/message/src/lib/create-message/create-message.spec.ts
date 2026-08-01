@@ -2,7 +2,10 @@ import { Effect } from 'effect';
 import { describe, expect, it, vi } from 'vitest';
 
 import { createMessage } from './create-message';
-import type { MessageRepository } from '../repository';
+import {
+  MessageCreationNotAllowedError,
+  type MessageRepository,
+} from '../repository';
 import {
   activeMessage,
   channelId,
@@ -76,4 +79,26 @@ describe('createMessage', () => {
       expect(findById).not.toHaveBeenCalled();
     }
   );
+
+  it('preserves an authoritative target lifecycle rejection', async () => {
+    const error = new MessageCreationNotAllowedError({ channelId });
+    const create: MessageRepository['create'] = vi.fn(() => Effect.fail(error));
+    const findById: MessageRepository['findById'] = vi.fn();
+
+    const result = await Effect.runPromise(
+      createMessage({ channelId, content: 'Keep this draft' }).pipe(
+        Effect.provide(makeMessageRepositoryLayer({ create, findById })),
+        Effect.either
+      )
+    );
+
+    expect(result).toMatchObject({
+      _tag: 'Left',
+      left: {
+        _tag: 'MessageCreationNotAllowedError',
+        channelId,
+      },
+    });
+    expect(findById).not.toHaveBeenCalled();
+  });
 });

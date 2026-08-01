@@ -1,4 +1,5 @@
 import { Data } from 'effect';
+import type { ChannelId } from '@chat-hub/domain/channel';
 import type { MessageId } from '@chat-hub/domain/message';
 
 export type MessageRepositoryOperation = 'create' | 'edit' | 'delete' | 'read';
@@ -20,6 +21,19 @@ export class MessageContentUnchangedError extends Data.TaggedError(
   'MessageContentUnchangedError'
 )<{
   readonly messageId: MessageId;
+}> {}
+
+/**
+ * Indicates that the target channel or its workspace no longer accepts
+ * messages.
+ *
+ * The stable channel identity is sufficient for callers; infrastructure keeps
+ * the specific archived-parent diagnostic behind the repository boundary.
+ */
+export class MessageCreationNotAllowedError extends Data.TaggedError(
+  'MessageCreationNotAllowedError'
+)<{
+  readonly channelId: ChannelId;
 }> {}
 
 /**
@@ -59,6 +73,11 @@ export type MessageRepositoryError =
   | MessageAccessDeniedError
   | MessageRepositoryUnavailableError
   | InvalidMessageDataError;
+
+/** Failures specific to creating a message in a channel. */
+export type MessageRepositoryCreateError =
+  | MessageRepositoryError
+  | MessageCreationNotAllowedError;
 
 /** Failures specific to appending a new version of an existing message. */
 export type MessageRepositoryEditError =

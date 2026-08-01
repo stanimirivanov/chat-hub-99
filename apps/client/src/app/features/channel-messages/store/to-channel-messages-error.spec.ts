@@ -7,10 +7,12 @@ import {
   InvalidMessagePageLimitError,
   MessageAccessDeniedError,
   MessageContentUnchangedError,
+  MessageCreationNotAllowedError,
   MessageMutationNotAllowedError,
   MessageNotFoundError,
   MessageRepositoryUnavailableError,
 } from '@chat-hub/application/message';
+import { ChannelIdSchema } from '@chat-hub/domain/channel';
 import { MessageIdSchema } from '@chat-hub/domain/message';
 import { toChannelMessagesError } from './to-channel-messages-error';
 
@@ -18,12 +20,19 @@ const cause = new Error('Sensitive provider detail');
 const messageId = Schema.decodeUnknownSync(MessageIdSchema)(
   '00000000-0000-4000-8000-000000000001'
 );
+const channelId = Schema.decodeUnknownSync(ChannelIdSchema)(
+  '00000000-0000-4000-8000-000000000020'
+);
 
 describe('toChannelMessagesError', () => {
   it.each([
     [
       new InvalidMessageContentError({ cause }),
       'The message content is invalid.',
+    ],
+    [
+      new MessageCreationNotAllowedError({ channelId }),
+      'Messages can no longer be sent to this channel.',
     ],
     [
       new InvalidEditedMessageContentError({ cause }),

@@ -5,6 +5,7 @@ import {
   InvalidEditedMessageContentError,
   InvalidMessageContentError,
   MessageContentUnchangedError,
+  MessageCreationNotAllowedError,
   MessageMutationNotAllowedError,
   MessageRepositoryUnavailableError,
   type MessageChange,
@@ -497,6 +498,43 @@ describe('ChannelMessagesStore', () => {
     expect(store.sendError()).toEqual({
       tag: 'InvalidMessageContentError',
       message: 'The message content is invalid.',
+    });
+  });
+
+  it('preserves messages when the selected channel no longer accepts creation', async () => {
+    const message: Message = {
+      id: '00000000-0000-4000-8000-000000000002' as MessageId,
+      channelId,
+      authorId,
+      status: 'active',
+      content: 'Existing message' as MessageContent,
+      createdAt: new Date('2026-07-27T08:00:00.000Z'),
+      editedAt: null,
+    };
+    const listChannelMessages = vi.fn().mockResolvedValue(
+      Either.right({
+        messages: [message],
+        nextCursor: null,
+      })
+    );
+    const createMessage = vi
+      .fn()
+      .mockResolvedValue(
+        Either.left(new MessageCreationNotAllowedError({ channelId }))
+      );
+    const { store } = configureStore({
+      listChannelMessages,
+      createMessage,
+    });
+    await store.selectChannel(channelId);
+
+    await expect(store.send('Keep this draft')).resolves.toBe(false);
+
+    expect(store.messages()).toEqual([message]);
+    expect(store.sendMessageStatus()).toBe('failed');
+    expect(store.sendError()).toEqual({
+      tag: 'MessageCreationNotAllowedError',
+      message: 'Messages can no longer be sent to this channel.',
     });
   });
 });

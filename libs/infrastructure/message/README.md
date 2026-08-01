@@ -79,9 +79,10 @@ For edit and delete RPCs, PostgreSQL `55000` means the command's lifecycle
 precondition no longer holds: its workspace or channel was archived, or its
 message was already deleted. The adapter translates those database-specific
 causes into `MessageMutationNotAllowedError` with the requested message ID and
-operation. The generic create mapper remains separate because creation targets
-a channel and therefore requires a different application contract if that
-fallback is refined later.
+operation. Creation uses a dedicated mapper because it targets a channel rather
+than an existing message. Its `55000` archived-workspace or archived-channel
+rejection becomes `MessageCreationNotAllowedError` carrying that channel ID.
+Other create failures continue through the common repository translation.
 
 ## Realtime lifecycle
 

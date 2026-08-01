@@ -51,6 +51,30 @@ describe('createMessage', () => {
     });
   });
 
+  it('maps an archived target to MessageCreationNotAllowedError', async () => {
+    const { client } = makeRpcClientStub({
+      data: null,
+      error: {
+        code: '55000',
+        message: `Channel ${createMessageCommand.channelId} is archived`,
+        details: '',
+        hint: '',
+      },
+    });
+
+    const result = await Effect.runPromise(
+      Effect.either(createMessage(client, createMessageCommand))
+    );
+
+    expect(result).toMatchObject({
+      _tag: 'Left',
+      left: {
+        _tag: 'MessageCreationNotAllowedError',
+        channelId: createMessageCommand.channelId,
+      },
+    });
+  });
+
   it.each([null, 'not-a-message-id'])(
     'rejects an invalid RPC result: %j',
     async (data) => {
