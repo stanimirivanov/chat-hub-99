@@ -138,6 +138,31 @@ describe('editMessage', () => {
     });
   });
 
+  it('maps a lifecycle rejection to MessageMutationNotAllowedError', async () => {
+    const { client } = makeRpcClientStub({
+      data: null,
+      error: {
+        code: '55000',
+        message: `Message ${messageId} is deleted`,
+        details: '',
+        hint: '',
+      },
+    });
+
+    const result = await Effect.runPromise(
+      Effect.either(editMessage(client, editMessageCommand))
+    );
+
+    expect(result).toMatchObject({
+      _tag: 'Left',
+      left: {
+        _tag: 'MessageMutationNotAllowedError',
+        messageId,
+        operation: 'edit',
+      },
+    });
+  });
+
   it('does not misclassify another invalid-parameter failure', async () => {
     const error = {
       code: '22023',

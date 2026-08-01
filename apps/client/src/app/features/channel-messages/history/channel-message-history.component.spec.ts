@@ -96,6 +96,16 @@ const configureComponent = async (
   return { fixture, session, store };
 };
 
+const findButton = (
+  fixture: ComponentFixture<ChannelMessageHistoryComponent>,
+  label: string
+): HTMLButtonElement | undefined => {
+  const buttons: NodeListOf<HTMLButtonElement> =
+    fixture.nativeElement.querySelectorAll('button');
+
+  return [...buttons].find((button) => button.textContent?.trim() === label);
+};
+
 describe('ChannelMessageHistoryComponent', () => {
   it('offers mutation controls only for the current user message', async () => {
     const { fixture } = await configureComponent();
@@ -152,11 +162,7 @@ describe('ChannelMessageHistoryComponent', () => {
       'Live message updates are unavailable.'
     );
 
-    const buttons: NodeListOf<HTMLButtonElement> =
-      fixture.nativeElement.querySelectorAll('button');
-    const retryButton = [...buttons].find((button) =>
-      button.textContent?.includes('Retry live updates')
-    );
+    const retryButton = findButton(fixture, 'Retry live updates');
     expect(retryButton).toBeDefined();
     retryButton?.click();
 
@@ -167,11 +173,7 @@ describe('ChannelMessageHistoryComponent', () => {
     const { fixture, store } = await configureComponent([ownMessage]);
     store.edit.mockResolvedValueOnce(false);
 
-    const editButton = [
-      ...(fixture.nativeElement.querySelectorAll(
-        'button'
-      ) as NodeListOf<HTMLButtonElement>),
-    ].find((button) => button.textContent?.trim() === 'Edit');
+    const editButton = findButton(fixture, 'Edit');
 
     expect(editButton).toBeDefined();
     editButton?.click();
@@ -187,5 +189,25 @@ describe('ChannelMessageHistoryComponent', () => {
       ownMessage.content
     );
     expect(fixture.nativeElement.querySelector('form')).not.toBeNull();
+  });
+
+  it('keeps delete confirmation open when deletion is rejected', async () => {
+    const { fixture, store } = await configureComponent([ownMessage]);
+    store.delete.mockResolvedValueOnce(false);
+
+    const deleteButton = findButton(fixture, 'Delete');
+    expect(deleteButton).toBeDefined();
+    deleteButton?.click();
+    fixture.detectChanges();
+
+    const confirmButton = findButton(fixture, 'Confirm');
+    expect(confirmButton).toBeDefined();
+    confirmButton?.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(store.delete).toHaveBeenCalledExactlyOnceWith(ownMessage.id);
+    expect(fixture.nativeElement.textContent).toContain('Delete this message?');
+    expect(findButton(fixture, 'Confirm')).toBeDefined();
   });
 });

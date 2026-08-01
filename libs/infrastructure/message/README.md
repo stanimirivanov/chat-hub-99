@@ -65,7 +65,7 @@ one repository object but does not re-export those internal functions.
 
 `src/index.ts` is the only public entry point, while internal capability barrels are private implementation conveniences.
 
-## Edit error translation
+## Command error translation
 
 The database `edit_message` command is the concurrency-safe authority for
 detecting an edit that normalizes to the current content. PostgreSQL error code
@@ -74,6 +74,14 @@ the command's exact stable error message before returning
 `MessageContentUnchangedError`. Any other `22023` failure remains a repository
 availability error with its diagnostic cause retained inside the application
 boundary. Raw PostgREST errors never reach Angular.
+
+For edit and delete RPCs, PostgreSQL `55000` means the command's lifecycle
+precondition no longer holds: its workspace or channel was archived, or its
+message was already deleted. The adapter translates those database-specific
+causes into `MessageMutationNotAllowedError` with the requested message ID and
+operation. The generic create mapper remains separate because creation targets
+a channel and therefore requires a different application contract if that
+fallback is refined later.
 
 ## Realtime lifecycle
 

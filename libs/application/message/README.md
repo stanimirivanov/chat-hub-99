@@ -58,7 +58,7 @@ Cross-use-case contracts remain near the package root:
 - `testing/` contains private fixtures and repository doubles used only by this
   library's tests.
 
-## Edit outcome ownership
+## Command outcome ownership
 
 Message content is normalized by the domain contract before an edit reaches the
 repository. Whether that normalized value still differs from the current
@@ -67,6 +67,15 @@ This avoids a stale client-side comparison when another edit completes
 concurrently. A no-op edit is exposed as `MessageContentUnchangedError`, an
 edit-specific application failure carrying only the stable message identity.
 It is deliberately absent from the create, delete, and read port contracts.
+
+Editing and deleting can also lose a race with workspace/channel archival or
+message deletion. These repository-authoritative precondition failures become
+`MessageMutationNotAllowedError`, carrying the stable message identity and the
+attempted `edit` or `delete` operation. The application intentionally does not
+expose which parent lifecycle caused the rejection: callers need the same safe
+response in each case, and infrastructure diagnostics remain behind the port.
+Message creation targets a channel rather than an existing message and is not
+part of this error contract.
 
 ## Import policy
 

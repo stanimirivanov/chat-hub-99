@@ -62,6 +62,24 @@ const messageId = Schema.decodeUnknownSync(MessageIdSchema)(
 );
 
 describe('message command error mapping', () => {
+  it.each(['edit', 'delete'] as const)(
+    'maps a %s lifecycle rejection to MessageMutationNotAllowedError',
+    (operation) => {
+      const result = mapMessageCommandPostgrestError(operation, messageId, {
+        code: '55000',
+        message: `Message ${messageId} is deleted`,
+        details: '',
+        hint: '',
+      });
+
+      expect(result).toMatchObject({
+        _tag: 'MessageMutationNotAllowedError',
+        messageId,
+        operation,
+      });
+    }
+  );
+
   it('maps only the stable edit no-op rejection to unchanged content', () => {
     const result = mapEditMessagePostgrestError(messageId, {
       code: '22023',

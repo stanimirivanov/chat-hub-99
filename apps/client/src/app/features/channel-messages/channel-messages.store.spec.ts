@@ -4,8 +4,8 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   InvalidEditedMessageContentError,
   InvalidMessageContentError,
-  MessageAccessDeniedError,
   MessageContentUnchangedError,
+  MessageMutationNotAllowedError,
   MessageRepositoryUnavailableError,
   type MessageChange,
   type MessageCursor,
@@ -756,7 +756,7 @@ describe('ChannelMessagesStore message deletion', () => {
     expect(store.deleteError()).toBeNull();
   });
 
-  it('keeps deletion failure separate from other feature state', async () => {
+  it('keeps a deletion lifecycle rejection separate from other feature state', async () => {
     const message: Message = {
       id: '00000000-0000-4000-8000-000000000002' as MessageId,
       channelId,
@@ -776,7 +776,8 @@ describe('ChannelMessagesStore message deletion', () => {
 
     const deleteMessage = vi.fn().mockResolvedValue(
       Either.left(
-        new MessageAccessDeniedError({
+        new MessageMutationNotAllowedError({
+          messageId: message.id,
           operation: 'delete',
         })
       )
@@ -797,8 +798,8 @@ describe('ChannelMessagesStore message deletion', () => {
     expect(store.deleteMessageStatus()).toBe('failed');
 
     expect(store.deleteError()).toEqual({
-      tag: 'MessageAccessDeniedError',
-      message: 'You do not have permission to perform this message action.',
+      tag: 'MessageMutationNotAllowedError',
+      message: 'This message can no longer be deleted.',
     });
 
     expect(store.messages()).toEqual([message]);

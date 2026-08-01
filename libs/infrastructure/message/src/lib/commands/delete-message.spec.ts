@@ -75,17 +75,15 @@ describe('deleteMessage', () => {
     });
   });
 
-  it('maps an already-deleted message to the current fallback error', async () => {
-    const error = {
-      code: '55000',
-      message: `Message ${messageId} is already deleted`,
-      details: '',
-      hint: '',
-    };
-
+  it('maps an already-deleted message to MessageMutationNotAllowedError', async () => {
     const { client } = makeRpcClientStub({
       data: null,
-      error,
+      error: {
+        code: '55000',
+        message: `Message ${messageId} is already deleted`,
+        details: '',
+        hint: '',
+      },
     });
 
     const result = await Effect.runPromise(
@@ -95,9 +93,9 @@ describe('deleteMessage', () => {
     expect(result).toMatchObject({
       _tag: 'Left',
       left: {
-        _tag: 'MessageRepositoryUnavailableError',
+        _tag: 'MessageMutationNotAllowedError',
+        messageId,
         operation: 'delete',
-        cause: error,
       },
     });
   });

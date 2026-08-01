@@ -68,6 +68,11 @@ actionable unchanged-content failure. The existing projection and edit form
 remain visible so the author can change or cancel the edit. The client does not
 duplicate the comparison rule because only the database can evaluate it safely
 against the authoritative value.
+When an edit or deletion loses a race with archival or prior deletion, the
+store retains the current history projection and exposes action-specific safe
+feedback. The active edit form or deletion confirmation remains open so the
+user can acknowledge or cancel it; raw database lifecycle details are not
+rendered.
 For other authors, the channel-message store batch-loads RLS-visible current
 profiles for each new page and renders their display names. The enrichment is
 feature-local and best-effort: hidden or unavailable profiles retain the stable

@@ -7,6 +7,7 @@ import type {
   EditMessageCommand,
 } from './message-repository-command';
 import type {
+  MessageRepositoryDeleteError,
   MessageRepositoryEditError,
   MessageRepositoryError,
 } from './message-repository-error';
@@ -35,7 +36,7 @@ export interface ListChannelMessagesQuery {
  *
  * Implementations must validate external data before returning `Message`
  * values and must translate technology-specific failures into
- * `MessageRepositoryError`.
+ * the operation's documented repository failure vocabulary.
  */
 export interface MessageRepository {
   /** Persists a new message identity and returns its stable identifier. */
@@ -48,16 +49,21 @@ export interface MessageRepository {
    *
    * Implementations compare normalized content with the authoritative current
    * projection and fail with `MessageContentUnchangedError` rather than
-   * appending a no-op version.
+   * appending a no-op version. Lifecycle conflicts fail with
+   * `MessageMutationNotAllowedError`.
    */
   readonly edit: (
     command: EditMessageCommand
   ) => Effect.Effect<void, MessageRepositoryEditError>;
 
-  /** Transitions an active message to the soft-deleted state. */
+  /**
+   * Transitions an active message to the soft-deleted state.
+   *
+   * Lifecycle conflicts fail with `MessageMutationNotAllowedError`.
+   */
   readonly delete: (
     command: DeleteMessageCommand
-  ) => Effect.Effect<void, MessageRepositoryError>;
+  ) => Effect.Effect<void, MessageRepositoryDeleteError>;
 
   /** Returns the current projection for a stable message identity. */
   readonly findById: (
