@@ -1,4 +1,5 @@
 import type {
+  ArchiveChannelResult,
   CreateChannelResult,
   CurrentChannel,
   UpdateChannelResult,
@@ -15,7 +16,11 @@ interface ChannelQueryResult {
 }
 
 interface ChannelCommandResult {
-  readonly data: CreateChannelResult | UpdateChannelResult | null;
+  readonly data:
+    | ArchiveChannelResult
+    | CreateChannelResult
+    | UpdateChannelResult
+    | null;
   readonly error: {
     readonly code: string;
     readonly message: string;

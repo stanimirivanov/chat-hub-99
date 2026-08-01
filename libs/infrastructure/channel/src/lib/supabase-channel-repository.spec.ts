@@ -9,10 +9,12 @@ describe('makeSupabaseChannelRepository', () => {
     const repository = makeSupabaseChannelRepository(client);
 
     expect(Object.keys(repository).sort()).toEqual([
+      'archive',
       'create',
       'listByWorkspace',
       'update',
     ]);
+    expect(repository.archive).toBeTypeOf('function');
     expect(repository.create).toBeTypeOf('function');
     expect(repository.listByWorkspace).toBeTypeOf('function');
     expect(repository.update).toBeTypeOf('function');

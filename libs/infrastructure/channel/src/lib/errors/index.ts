@@ -1,4 +1,5 @@
 export {
+  mapChannelArchiveError,
   mapChannelCreateError,
   mapChannelRepositoryError,
   mapChannelUpdateError,

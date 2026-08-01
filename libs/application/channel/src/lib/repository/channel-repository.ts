@@ -2,6 +2,7 @@ import { Context, type Effect } from 'effect';
 import type { Channel, ChannelId } from '@chat-hub/domain/channel';
 import type { WorkspaceId } from '@chat-hub/domain/workspace';
 import type {
+  ChannelRepositoryArchiveError,
   ChannelRepositoryCreateError,
   ChannelRepositoryReadError,
   ChannelRepositoryUpdateError,
@@ -27,13 +28,20 @@ export interface UpdateChannelCommand {
 }
 
 /**
- * Outbound port for workspace-scoped channel discovery and creation.
+ * Outbound port for workspace-scoped channel discovery and lifecycle commands.
  *
  * Implementations return active channels visible to the current authenticated
- * user, validate external data, and derive the creation actor from the
+ * user, validate external data, and derive command actors from the
  * provider-authenticated session.
  */
 export interface ChannelRepository {
+  /**
+   * Archives one active channel using provider-session authorization.
+   */
+  readonly archive: (
+    channelId: ChannelId
+  ) => Effect.Effect<void, ChannelRepositoryArchiveError>;
+
   /**
    * Returns active RLS-visible channels belonging to one workspace.
    */
@@ -60,7 +68,7 @@ export interface ChannelRepository {
 }
 
 /**
- * Typed Effect service key used to request channel discovery and creation.
+ * Typed Effect service key used to request channel persistence capabilities.
  *
  * Application programs request this key without knowing which persistence
  * technology supplies its implementation.

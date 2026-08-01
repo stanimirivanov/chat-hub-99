@@ -2,10 +2,21 @@ import type {
   CreateChannelCommand,
   UpdateChannelCommand,
 } from '@chat-hub/application/channel';
+import type { ChannelId } from '@chat-hub/domain/channel';
 import type {
+  ArchiveChannelArgs,
   CreateChannelArgs,
   UpdateChannelArgs,
 } from '@chat-hub/shared/database';
+
+/**
+ * Maps a validated channel identity to generated archive RPC arguments.
+ */
+export const toArchiveChannelArgs = (
+  channelId: ChannelId
+): ArchiveChannelArgs => ({
+  p_channel_id: channelId,
+});
 
 /**
  * Maps a validated creation command to generated Supabase RPC arguments.

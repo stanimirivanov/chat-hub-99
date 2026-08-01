@@ -1,6 +1,7 @@
 import { computed, inject } from '@angular/core';
 import { Either } from 'effect';
 import type {
+  ArchiveChannelError,
   CreateChannelError,
   CreateChannelInput,
   UpdateChannelError,
@@ -28,6 +29,7 @@ export const ChannelNavigationStore = signalStore(
     isLoading: computed(() => store.loadStatus() === 'loading'),
     isCreating: computed(() => store.creationStatus() === 'creating'),
     isUpdating: computed(() => store.updateStatus() === 'updating'),
+    isArchiving: computed(() => store.archiveStatus() === 'archiving'),
     hasChannels: computed(() => store.channels().length > 0),
     selectedChannel: computed(() => {
       const selectedChannelId = store.selectedChannelId();
@@ -43,6 +45,7 @@ export const ChannelNavigationStore = signalStore(
     (store, channelApplication = inject(ChannelApplicationService)) => {
       let requestVersion = 0;
       let selectionVersion = 0;
+      const archivedChannelIds = new Set<ChannelId>();
       let activeRequest: {
         readonly workspaceId: WorkspaceId;
         readonly promise: Promise<void>;
@@ -84,6 +87,13 @@ export const ChannelNavigationStore = signalStore(
                   creationError: null,
                   updateStatus: 'idle',
                   updateError: null,
+                  ...(store.archiveStatus() === 'archiving'
+                    ? {}
+                    : {
+                        archiveStatus: 'idle' as const,
+                        archivingChannelId: null,
+                        archiveError: null,
+                      }),
                 }
               : {}),
           });
@@ -109,7 +119,9 @@ export const ChannelNavigationStore = signalStore(
                 },
                 onRight: (channels) => {
                   patchState(store, {
-                    channels,
+                    channels: channels.filter(
+                      (channel) => !archivedChannelIds.has(channel.id)
+                    ),
                     selectedChannelId: null,
                     loadStatus: 'loaded',
                     error: null,
@@ -146,6 +158,13 @@ export const ChannelNavigationStore = signalStore(
             ...(selectionChanged
               ? { updateStatus: 'idle' as const, updateError: null }
               : {}),
+            ...(selectionChanged && store.archiveStatus() !== 'archiving'
+              ? {
+                  archiveStatus: 'idle' as const,
+                  archivingChannelId: null,
+                  archiveError: null,
+                }
+              : {}),
           });
           return true;
         },
@@ -162,6 +181,13 @@ export const ChannelNavigationStore = signalStore(
             selectedChannelId: null,
             updateStatus: 'idle',
             updateError: null,
+            ...(store.archiveStatus() === 'archiving'
+              ? {}
+              : {
+                  archiveStatus: 'idle' as const,
+                  archivingChannelId: null,
+                  archiveError: null,
+                }),
           });
         },
 
@@ -179,7 +205,8 @@ export const ChannelNavigationStore = signalStore(
             workspaceId === null ||
             store.loadStatus() !== 'loaded' ||
             store.creationStatus() === 'creating' ||
-            store.updateStatus() === 'updating'
+            store.updateStatus() === 'updating' ||
+            store.archiveStatus() === 'archiving'
           ) {
             return null;
           }
@@ -244,7 +271,8 @@ export const ChannelNavigationStore = signalStore(
             selectedChannel === null ||
             store.loadStatus() !== 'loaded' ||
             store.creationStatus() === 'creating' ||
-            store.updateStatus() === 'updating'
+            store.updateStatus() === 'updating' ||
+            store.archiveStatus() === 'archiving'
           ) {
             return null;
           }
@@ -301,6 +329,91 @@ export const ChannelNavigationStore = signalStore(
             patchState(store, {
               updateStatus: 'idle',
               updateError: null,
+            });
+          }
+        },
+
+        /**
+         * Archives the selected channel through one serialized command.
+         *
+         * Successful mutations reconcile by stable identity even after
+         * navigation changes. A local tombstone also prevents an older channel
+         * list response from reintroducing an archive that already succeeded.
+         */
+        async archiveSelectedChannel(): Promise<ChannelId | null> {
+          const workspaceId = store.workspaceId();
+          const channelId = store.selectedChannelId();
+
+          if (
+            workspaceId === null ||
+            channelId === null ||
+            store.loadStatus() !== 'loaded' ||
+            store.creationStatus() === 'creating' ||
+            store.updateStatus() === 'updating' ||
+            store.archiveStatus() === 'archiving'
+          ) {
+            return null;
+          }
+
+          const version = selectionVersion;
+          patchState(store, {
+            archiveStatus: 'archiving',
+            archivingChannelId: channelId,
+            archiveError: null,
+          });
+
+          const result = await channelApplication.archiveChannel({ channelId });
+
+          if (Either.isLeft(result)) {
+            if (
+              store.workspaceId() !== workspaceId ||
+              store.selectedChannelId() !== channelId ||
+              selectionVersion !== version
+            ) {
+              patchState(store, {
+                archiveStatus: 'idle',
+                archivingChannelId: null,
+                archiveError: null,
+              });
+              return null;
+            }
+
+            patchState(store, {
+              archiveStatus: 'failed',
+              archivingChannelId: null,
+              archiveError: toChannelArchiveError(result.left),
+            });
+            return null;
+          }
+
+          archivedChannelIds.add(channelId);
+          const targetStillSelected =
+            store.workspaceId() === workspaceId &&
+            store.selectedChannelId() === channelId;
+
+          if (targetStillSelected) {
+            selectionVersion += 1;
+          }
+
+          patchState(store, {
+            channels: store
+              .channels()
+              .filter((channel) => channel.id !== channelId),
+            ...(targetStillSelected ? { selectedChannelId: null } : {}),
+            archiveStatus: 'idle',
+            archivingChannelId: null,
+            archiveError: null,
+          });
+
+          return channelId;
+        },
+
+        clearArchiveError(): void {
+          if (store.archiveStatus() !== 'archiving') {
+            patchState(store, {
+              archiveStatus: 'idle',
+              archivingChannelId: null,
+              archiveError: null,
             });
           }
         },
@@ -375,6 +488,22 @@ const toChannelUpdateError = (
     case 'ChannelRepositoryUnavailableError':
       return {
         message: 'The channel could not be updated. Please try again.',
+      };
+  }
+};
+
+const toChannelArchiveError = (
+  error: ArchiveChannelError
+): { readonly message: string } => {
+  switch (error._tag) {
+    case 'ChannelArchiveNotAllowedError':
+      return {
+        message: 'You no longer have permission to archive this channel.',
+      };
+    case 'InvalidChannelArchiveInputError':
+    case 'ChannelRepositoryUnavailableError':
+      return {
+        message: 'The channel could not be archived. Please try again.',
       };
   }
 };

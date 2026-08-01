@@ -1,13 +1,16 @@
 import {
+  ChannelArchiveNotAllowedError,
   ChannelCreationNotAllowedError,
   ChannelRepositoryUnavailableError,
   ChannelSlugUnavailableError,
   ChannelUpdateNotAllowedError,
   type ChannelRepositoryCreateError,
+  type ChannelRepositoryArchiveError,
   type ChannelRepositoryUpdateError,
   type CreateChannelCommand,
   type UpdateChannelCommand,
 } from '@chat-hub/application/channel';
+import type { ChannelId } from '@chat-hub/domain/channel';
 
 interface PostgrestErrorLike {
   readonly code: string;
@@ -45,6 +48,26 @@ export const mapChannelCreateError = (
     return new ChannelCreationNotAllowedError({
       workspaceId: command.workspaceId,
     });
+  }
+
+  return mapChannelRepositoryError(error);
+};
+
+/**
+ * Translates stable owner-authorization and active-lifecycle archive failures.
+ */
+export const mapChannelArchiveError = (
+  channelId: ChannelId,
+  error: PostgrestErrorLike
+): ChannelRepositoryArchiveError => {
+  const message = error.message.toLowerCase();
+  const lifecycleRejected =
+    error.code === '55000' &&
+    (message.includes('does not exist or is already archived') ||
+      (message.includes('workspace') && message.includes('is archived')));
+
+  if (error.code === '42501' || lifecycleRejected) {
+    return new ChannelArchiveNotAllowedError({ channelId });
   }
 
   return mapChannelRepositoryError(error);

@@ -48,6 +48,15 @@ export class ChannelUpdateNotAllowedError extends Data.TaggedError(
   readonly channelId: ChannelId;
 }> {}
 
+/**
+ * Indicates that the current session or channel lifecycle forbids archiving.
+ */
+export class ChannelArchiveNotAllowedError extends Data.TaggedError(
+  'ChannelArchiveNotAllowedError'
+)<{
+  readonly channelId: ChannelId;
+}> {}
+
 export type ChannelRepositoryReadError =
   | ChannelRepositoryUnavailableError
   | InvalidChannelDataError;
@@ -60,3 +69,7 @@ export type ChannelRepositoryCreateError =
 export type ChannelRepositoryUpdateError =
   | ChannelRepositoryReadError
   | ChannelUpdateNotAllowedError;
+
+export type ChannelRepositoryArchiveError =
+  | ChannelRepositoryUnavailableError
+  | ChannelArchiveNotAllowedError;
