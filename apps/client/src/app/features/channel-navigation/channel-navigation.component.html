@@ -232,7 +232,10 @@
             </button>
           }
 
-          <app-channel-messages [channelId]="channel.id" />
+          <app-channel-messages
+            [channelId]="channel.id"
+            [canModerateMessages]="canModerateMessages()"
+          />
         </section>
       } @else {
         <p>Select a channel to view its messages.</p>

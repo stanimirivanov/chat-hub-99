@@ -40,6 +40,7 @@ const updatedWorkspace: Workspace = {
 class ChannelNavigationStubComponent {
   readonly workspaceId = input.required<typeof workspace.id>();
   readonly canManageChannels = input(false);
+  readonly canModerateMessages = input(false);
 }
 
 @Component({
@@ -255,6 +256,7 @@ describe('WorkspaceNavigationComponent', () => {
       By.directive(ChannelNavigationStubComponent)
     ).componentInstance as ChannelNavigationStubComponent;
     expect(channelNavigation.canManageChannels()).toBe(true);
+    expect(channelNavigation.canModerateMessages()).toBe(true);
 
     const editButton = Array.from(
       fixture.nativeElement.querySelectorAll(

@@ -53,7 +53,7 @@
           } @else {
             <span>{{ message.content }}</span>
 
-            @if (isAuthoredByCurrentUser(message)) {
+            @if (canDeleteMessage(message)) {
               @if (deletingMessageId() === message.id) {
                 <span>Delete this message?</span>
 
@@ -77,13 +77,15 @@
                   Cancel
                 </button>
               } @else {
-                <button
-                  type="button"
-                  [disabled]="store.isDeleting()"
-                  (click)="beginEdit(message.id)"
-                >
-                  Edit
-                </button>
+                @if (isAuthoredByCurrentUser(message)) {
+                  <button
+                    type="button"
+                    [disabled]="store.isDeleting()"
+                    (click)="beginEdit(message.id)"
+                  >
+                    Edit
+                  </button>
+                }
 
                 <button
                   type="button"
