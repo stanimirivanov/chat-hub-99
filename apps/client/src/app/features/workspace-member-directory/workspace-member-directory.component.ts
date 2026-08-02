@@ -54,11 +54,15 @@ export class WorkspaceMemberDirectoryComponent {
       );
   });
   protected readonly pendingRemovalProfileId = signal<ProfileId | null>(null);
+  protected readonly pendingSuspensionProfileId = signal<ProfileId | null>(
+    null
+  );
 
   constructor() {
     effect(() => {
       const workspaceId = this.workspaceId();
       this.pendingRemovalProfileId.set(null);
+      this.pendingSuspensionProfileId.set(null);
       void this.store.load(workspaceId);
     });
 
@@ -93,6 +97,7 @@ export class WorkspaceMemberDirectoryComponent {
   }
 
   protected requestRemoval(profileId: ProfileId): void {
+    this.pendingSuspensionProfileId.set(null);
     this.pendingRemovalProfileId.set(profileId);
   }
 
@@ -103,5 +108,19 @@ export class WorkspaceMemberDirectoryComponent {
   protected confirmRemoval(profileId: ProfileId): void {
     this.pendingRemovalProfileId.set(null);
     void this.store.removeMember(profileId);
+  }
+
+  protected requestSuspension(profileId: ProfileId): void {
+    this.pendingRemovalProfileId.set(null);
+    this.pendingSuspensionProfileId.set(profileId);
+  }
+
+  protected cancelSuspension(): void {
+    this.pendingSuspensionProfileId.set(null);
+  }
+
+  protected confirmSuspension(profileId: ProfileId): void {
+    this.pendingSuspensionProfileId.set(null);
+    void this.store.suspendMember(profileId);
   }
 }

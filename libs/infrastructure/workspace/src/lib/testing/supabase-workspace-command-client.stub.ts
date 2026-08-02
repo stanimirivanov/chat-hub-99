@@ -5,6 +5,7 @@ import type {
   CreateWorkspaceResult,
   LeaveWorkspaceResult,
   RemoveWorkspaceMemberResult,
+  SuspendWorkspaceMemberResult,
   UpdateWorkspaceResult,
 } from '@chat-hub/shared/database';
 import { vi } from 'vitest';
@@ -18,6 +19,7 @@ interface WorkspaceCommandResult {
     | ChangeWorkspaceMemberRoleResult
     | LeaveWorkspaceResult
     | RemoveWorkspaceMemberResult
+    | SuspendWorkspaceMemberResult
     | UpdateWorkspaceResult
     | null;
   readonly error: {

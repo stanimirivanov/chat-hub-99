@@ -3,14 +3,14 @@
 `@chat-hub/application/workspace` owns provider-independent workflows for
 discovering accessible workspaces and active members, creating and editing
 workspaces, archiving workspaces, adding active profiles as members, changing
-active member roles, reactivating former members, removing active members, and
-leaving a workspace.
+active member roles, suspending and reactivating members, removing active
+members, and leaving a workspace.
 
 ## Responsibilities
 
 - Define the `WorkspaceRepository` outbound port.
 - Define typed read, creation, update, archive, member-addition, role-change,
-  removal, and expected command failures.
+  removal, suspension, and expected command failures.
 - List active, accessible workspaces through an Effect use case.
 - List active, RLS-visible members for one selected workspace.
 - Normalize and validate workspace creation input before repository access.
@@ -23,11 +23,14 @@ leaving a workspace.
   representing the archived version as an active domain workspace.
 - Resolve an exact active username through the profile port and add that stable
   profile identity with the default member role, reactivating its preserved
-  left or removed history when present.
+  left, removed, or suspended history when present.
 - Normalize and validate role-change targets and roles before repository access.
 - Change roles without accepting client-supplied actor identity.
 - Normalize removal targets and optional audit reasons before repository access.
 - Remove members without accepting client-supplied actor identity.
+- Normalize suspension targets and optional audit reasons through the shared
+  owner-driven membership-mutation decoder.
+- Suspend members without accepting client-supplied actor identity.
 - Normalize and validate the workspace identity before self-departure.
 - Leave a workspace without accepting either client-supplied actor or target
   identity.
@@ -85,6 +88,12 @@ Angular caller
   -> validated removed membership acknowledgment
 
 Angular caller
+  -> suspendWorkspaceMember(input)
+  -> validated SuspendWorkspaceMemberCommand
+  -> WorkspaceRepositoryTag
+  -> validated suspended membership acknowledgment
+
+Angular caller
   -> leaveWorkspace(input)
   -> validated WorkspaceId
   -> WorkspaceRepositoryTag.leave
@@ -104,6 +113,7 @@ other application libraries.
 - `addWorkspaceMemberByUsername` and its input/result/error contracts
 - `changeWorkspaceMemberRole` and its input/error contracts
 - `removeWorkspaceMember` and its input/error contracts
+- `suspendWorkspaceMember` and its input/error contracts
 - `leaveWorkspace` and its input/error contracts
 - `WorkspaceRepositoryTag` and `WorkspaceRepository`
 - workspace repository error types

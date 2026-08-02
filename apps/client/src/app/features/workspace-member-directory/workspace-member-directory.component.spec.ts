@@ -50,10 +50,12 @@ const renderComponent = async (currentProfileId: ProfileId) => {
     isAddingMember: signal(false),
     isChangingRole: signal(false),
     isRemovingMember: signal(false),
+    isSuspendingMember: signal(false),
     mutatingProfileId: signal(null),
     load: vi.fn().mockResolvedValue(undefined),
     changeMemberRole: vi.fn().mockResolvedValue(true),
     removeMember: vi.fn().mockResolvedValue(true),
+    suspendMember: vi.fn().mockResolvedValue(true),
     addMemberByUsername: vi.fn().mockResolvedValue(true),
     clearMemberMutationError: vi.fn(),
     clearMemberAdditionError: vi.fn(),
@@ -139,6 +141,9 @@ describe('WorkspaceMemberDirectoryComponent', () => {
     expect(
       fixture.nativeElement.querySelectorAll('button[aria-label^="Remove:"]')
     ).toHaveLength(0);
+    expect(
+      fixture.nativeElement.querySelectorAll('button[aria-label^="Suspend:"]')
+    ).toHaveLength(0);
     expect(fixture.nativeElement.querySelector('form')).toBeNull();
   });
 
@@ -185,5 +190,27 @@ describe('WorkspaceMemberDirectoryComponent', () => {
     confirmButton.click();
 
     expect(store.removeMember).toHaveBeenCalledExactlyOnceWith(memberId);
+  });
+
+  it('requires owner confirmation before suspending a member', async () => {
+    const { fixture, store } = await renderComponent(ownerId);
+    const suspendButton = fixture.nativeElement.querySelector(
+      'button[aria-label="Suspend: Workspace Member"]'
+    ) as HTMLButtonElement;
+
+    suspendButton.click();
+    fixture.detectChanges();
+
+    expect(store.suspendMember).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.textContent).toContain(
+      'Suspend Workspace Member? They will lose workspace access until an owner reactivates them.'
+    );
+
+    const confirmButton = fixture.nativeElement.querySelector(
+      'button[aria-label="Confirm suspension: Workspace Member"]'
+    ) as HTMLButtonElement;
+    confirmButton.click();
+
+    expect(store.suspendMember).toHaveBeenCalledExactlyOnceWith(memberId);
   });
 });

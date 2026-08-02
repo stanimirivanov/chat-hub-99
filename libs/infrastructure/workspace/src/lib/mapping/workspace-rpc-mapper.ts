@@ -3,6 +3,7 @@ import type {
   ChangeWorkspaceMemberRoleCommand,
   CreateWorkspaceCommand,
   RemoveWorkspaceMemberCommand,
+  SuspendWorkspaceMemberCommand,
   UpdateWorkspaceCommand,
 } from '@chat-hub/application/workspace';
 import type { WorkspaceId } from '@chat-hub/domain/workspace';
@@ -13,6 +14,7 @@ import type {
   CreateWorkspaceArgs,
   LeaveWorkspaceArgs,
   RemoveWorkspaceMemberArgs,
+  SuspendWorkspaceMemberArgs,
   UpdateWorkspaceArgs,
 } from '@chat-hub/shared/database';
 
@@ -88,6 +90,17 @@ export const toChangeWorkspaceMemberRoleArgs = (
 export const toRemoveWorkspaceMemberArgs = (
   command: RemoveWorkspaceMemberCommand
 ): RemoveWorkspaceMemberArgs => ({
+  p_workspace_id: command.workspaceId,
+  p_user_id: command.profileId,
+  ...(command.reason === null ? {} : { p_reason: command.reason }),
+});
+
+/**
+ * Maps a validated suspension command to generated Supabase RPC arguments.
+ */
+export const toSuspendWorkspaceMemberArgs = (
+  command: SuspendWorkspaceMemberCommand
+): SuspendWorkspaceMemberArgs => ({
   p_workspace_id: command.workspaceId,
   p_user_id: command.profileId,
   ...(command.reason === null ? {} : { p_reason: command.reason }),

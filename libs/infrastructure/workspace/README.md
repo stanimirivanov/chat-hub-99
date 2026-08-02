@@ -5,9 +5,9 @@ discovery with RLS-protected Supabase views, creation with the transactional
 `create_workspace` RPC, detail replacement with `update_workspace`, member
 archiving with `archive_workspace`, member addition/reactivation with
 `add_workspace_member`, role changes with
-`change_workspace_member_role`, and member removal with
-`remove_workspace_member`. Self-service departure uses the separate
-`leave_workspace` command.
+`change_workspace_member_role`, member suspension with
+`suspend_workspace_member`, and member removal with `remove_workspace_member`.
+Self-service departure uses the separate `leave_workspace` command.
 
 ## Responsibilities
 
@@ -20,6 +20,8 @@ archiving with `archive_workspace`, member addition/reactivation with
   role as arguments.
 - Execute member role changes without exposing actor identity as an argument.
 - Execute member removal without exposing actor identity as an argument.
+- Execute reversible member suspension without exposing actor identity as an
+  argument.
 - Execute self-departure without exposing actor or target identity as an
   argument.
 - Apply stable name/identity ordering.
@@ -87,6 +89,12 @@ removeWorkspaceMember use case
   -> remove_workspace_member RPC
   -> removed target/identity validation
 
+suspendWorkspaceMember use case
+  -> WorkspaceRepositoryTag
+  -> SupabaseWorkspaceRepositoryLayer
+  -> suspend_workspace_member RPC
+  -> suspended target/identity validation
+
 leaveWorkspace use case
   -> WorkspaceRepositoryTag
   -> SupabaseWorkspaceRepositoryLayer
@@ -98,17 +106,17 @@ The membership query returns stable identities and roles only. Profile
 enrichment remains a separate application capability, preventing the workspace
 adapter from depending on profile persistence. Member-addition authorization,
 default role assignment, active-profile validation, and immutable membership
-reactivation remain transactional database concerns. A former member keeps the
-same stable membership identity; the command appends `reinstated` and advances
-its head, while an already-active member remains an actionable typed failure.
-Role-change/removal
-authorization and last-owner invariants are likewise enforced there;
-owner-driven removal cannot target the actor, while the separate departure
-command can target only the provider-authenticated actor. The adapter translates
-stable outcomes without reimplementing them. Owner-driven removal is validated
-as `removed`, while voluntary departure is validated as `left`; both are
-acknowledged as `void` rather than being misrepresented as active
-`WorkspaceMember` values. The focused client projection contains only
+reactivation remain transactional database concerns. A former or suspended
+member keeps the same stable membership identity; the command appends
+`reinstated` and advances its head as a default member, while an already-active
+member remains an actionable typed failure. Role-change, removal, and
+suspension authorization and last-owner invariants are likewise enforced there;
+owner-driven removal and suspension cannot target the actor, while the separate
+departure command can target only the provider-authenticated actor. The adapter
+translates stable outcomes without reimplementing them. Owner-driven removal is
+validated as `removed`, suspension as `suspended`, and voluntary departure as
+`left`; each is acknowledged as `void` rather than being misrepresented as an
+active `WorkspaceMember`. The focused client projection contains only
 operations needed by implemented slices. Testing support provides fresh query
 doubles and canonical generated rows.
 

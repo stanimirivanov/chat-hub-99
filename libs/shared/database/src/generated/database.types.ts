@@ -1216,6 +1216,23 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      suspend_workspace_member: {
+        Args: { p_reason?: string; p_user_id: string; p_workspace_id: string }
+        Returns: {
+          latest_event_id: string
+          membership_role: string
+          membership_status: string
+          user_id: string
+          workspace_id: string
+          workspace_membership_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "workspace_membership_heads"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       update_channel: {
         Args: { p_channel_id: string; p_description?: string; p_name: string }
         Returns: string

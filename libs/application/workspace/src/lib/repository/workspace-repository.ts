@@ -12,6 +12,7 @@ import type {
   WorkspaceMemberRepositoryReadError,
   WorkspaceMemberRemovalRepositoryError,
   WorkspaceMemberRoleChangeRepositoryError,
+  WorkspaceMemberSuspensionRepositoryError,
   WorkspaceRepositoryCreateError,
   WorkspaceRepositoryArchiveError,
   WorkspaceRepositoryReadError,
@@ -55,6 +56,15 @@ export interface ChangeWorkspaceMemberRoleCommand {
  * Validated target and optional audit reason used to remove a member.
  */
 export interface RemoveWorkspaceMemberCommand {
+  readonly workspaceId: WorkspaceId;
+  readonly profileId: ProfileId;
+  readonly reason: string | null;
+}
+
+/**
+ * Validated target and optional audit reason used to suspend a member.
+ */
+export interface SuspendWorkspaceMemberCommand {
   readonly workspaceId: WorkspaceId;
   readonly profileId: ProfileId;
   readonly reason: string | null;
@@ -144,6 +154,16 @@ export interface WorkspaceRepository {
   readonly removeMember: (
     command: RemoveWorkspaceMemberCommand
   ) => Effect.Effect<void, WorkspaceMemberRemovalRepositoryError>;
+
+  /**
+   * Suspends one active member using provider-session authorization.
+   *
+   * The adapter validates the canonical suspended membership before
+   * succeeding, so no inactive membership crosses as an active domain value.
+   */
+  readonly suspendMember: (
+    command: SuspendWorkspaceMemberCommand
+  ) => Effect.Effect<void, WorkspaceMemberSuspensionRepositoryError>;
 }
 
 /**

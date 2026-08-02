@@ -5,6 +5,7 @@ import { ProfileRepositoryUnavailableError } from '@chat-hub/application/profile
 import {
   WorkspaceLastOwnerDemotionError,
   WorkspaceLastOwnerRemovalError,
+  WorkspaceLastOwnerSuspensionError,
   WorkspaceMemberAlreadyActiveError,
   WorkspaceMemberReactivationNotAllowedError,
   WorkspaceRepositoryUnavailableError,
@@ -88,7 +89,8 @@ const configureStore = (
       member: addedMember,
       profile: candidateProfile,
     } satisfies AddedWorkspaceMember)
-  )
+  ),
+  suspendWorkspaceMember = vi.fn().mockResolvedValue(Either.right(undefined))
 ) => {
   TestBed.configureTestingModule({
     providers: [
@@ -99,6 +101,7 @@ const configureStore = (
           listWorkspaceMembers,
           changeWorkspaceMemberRole,
           removeWorkspaceMember,
+          suspendWorkspaceMember,
           addWorkspaceMemberByUsername,
         },
       },
@@ -116,6 +119,7 @@ const configureStore = (
     changeWorkspaceMemberRole,
     removeWorkspaceMember,
     addWorkspaceMemberByUsername,
+    suspendWorkspaceMember,
   };
 };
 
@@ -485,6 +489,61 @@ describe('WorkspaceMemberDirectoryStore', () => {
     expect(store.mutationStatus()).toBe('failed');
     expect(store.mutationError()).toEqual({
       message: 'The last active workspace owner cannot be removed.',
+    });
+  });
+
+  it('removes active projections after suspension succeeds', async () => {
+    const suspendWorkspaceMember = vi
+      .fn()
+      .mockResolvedValue(Either.right(undefined));
+    const { store } = configureStore(
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      suspendWorkspaceMember
+    );
+    await store.load(workspaceId);
+
+    const suspension = store.suspendMember(memberId, 'Temporary access hold');
+
+    expect(store.isSuspendingMember()).toBe(true);
+    expect(store.mutatingProfileId()).toBe(memberId);
+    await expect(suspension).resolves.toBe(true);
+    expect(suspendWorkspaceMember).toHaveBeenCalledExactlyOnceWith({
+      workspaceId,
+      profileId: memberId,
+      reason: 'Temporary access hold',
+    });
+    expect(store.members()).toEqual([owner]);
+    expect(store.profiles()).toEqual([profiles[1]]);
+    expect(store.mutationStatus()).toBe('idle');
+  });
+
+  it('presents the protected last-owner suspension rule', async () => {
+    const failure = new WorkspaceLastOwnerSuspensionError({
+      workspaceId,
+      profileId: ownerId,
+    });
+    const suspendWorkspaceMember = vi
+      .fn()
+      .mockResolvedValue(Either.left(failure));
+    const { store } = configureStore(
+      vi.fn().mockResolvedValue(Either.right([owner])),
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      suspendWorkspaceMember
+    );
+    await store.load(workspaceId);
+
+    await expect(store.suspendMember(ownerId)).resolves.toBe(false);
+
+    expect(store.mutationStatus()).toBe('failed');
+    expect(store.mutationError()).toEqual({
+      message: 'The last active workspace owner cannot be suspended.',
     });
   });
 

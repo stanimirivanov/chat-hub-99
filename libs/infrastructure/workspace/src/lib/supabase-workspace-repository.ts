@@ -6,6 +6,7 @@ import {
   createWorkspace,
   leaveWorkspace,
   removeWorkspaceMember,
+  suspendWorkspaceMember,
   updateWorkspace,
 } from './commands';
 import { listAccessibleWorkspaces, listWorkspaceMembers } from './queries';
@@ -22,5 +23,6 @@ export const makeSupabaseWorkspaceRepository = (
   create: (command) => createWorkspace(client, command),
   changeMemberRole: (command) => changeWorkspaceMemberRole(client, command),
   removeMember: (command) => removeWorkspaceMember(client, command),
+  suspendMember: (command) => suspendWorkspaceMember(client, command),
   update: (command) => updateWorkspace(client, command),
 });

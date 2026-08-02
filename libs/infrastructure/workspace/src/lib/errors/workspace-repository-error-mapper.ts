@@ -7,10 +7,12 @@ import {
   WorkspaceMemberReactivationNotAllowedError,
   WorkspaceLastOwnerDemotionError,
   WorkspaceLastOwnerRemovalError,
+  WorkspaceLastOwnerSuspensionError,
   WorkspaceLastOwnerDepartureError,
   WorkspaceMemberNotActiveError,
   WorkspaceMemberNotFoundError,
   WorkspaceMemberRemovalNotAllowedError,
+  WorkspaceMemberSuspensionNotAllowedError,
   WorkspaceMemberRoleChangeNotAllowedError,
   WorkspaceMemberRoleUnchangedError,
   WorkspaceRepositoryUnavailableError,
@@ -21,7 +23,9 @@ import {
   type AddWorkspaceMemberCommand,
   type WorkspaceMemberAddRepositoryError,
   type RemoveWorkspaceMemberCommand,
+  type SuspendWorkspaceMemberCommand,
   type WorkspaceMemberRemovalRepositoryError,
+  type WorkspaceMemberSuspensionRepositoryError,
   type WorkspaceMemberRoleChangeRepositoryError,
   type WorkspaceRepositoryArchiveError,
   type WorkspaceDepartureRepositoryError,
@@ -203,7 +207,7 @@ export const mapWorkspaceMemberAdditionError = (
 
   if (
     error.code === '55000' &&
-    message === 'only memberships that were left or removed may be reinstated'
+    message === 'only left, removed, or suspended memberships may be reinstated'
   ) {
     return new WorkspaceMemberReactivationNotAllowedError({
       workspaceId: command.workspaceId,
@@ -309,6 +313,55 @@ export const mapWorkspaceMemberRemovalError = (
     message.includes('last active workspace owner')
   ) {
     return new WorkspaceLastOwnerRemovalError({
+      workspaceId: command.workspaceId,
+      profileId: command.profileId,
+    });
+  }
+
+  return mapWorkspaceRepositoryError(error);
+};
+
+/**
+ * Translates the stable suspension RPC contract into provider-independent
+ * membership failures.
+ */
+export const mapWorkspaceMemberSuspensionError = (
+  command: SuspendWorkspaceMemberCommand,
+  error: PostgrestErrorLike
+): WorkspaceMemberSuspensionRepositoryError => {
+  const message = error.message.toLowerCase();
+
+  if (
+    error.code === '55000' &&
+    message.includes('last active workspace owner')
+  ) {
+    return new WorkspaceLastOwnerSuspensionError({
+      workspaceId: command.workspaceId,
+      profileId: command.profileId,
+    });
+  }
+
+  if (
+    isWorkspaceCommandNotAllowed(error, message) ||
+    (error.code === '55000' && message.includes('cannot suspend themselves'))
+  ) {
+    return new WorkspaceMemberSuspensionNotAllowedError({
+      workspaceId: command.workspaceId,
+    });
+  }
+
+  if (error.code === 'P0002' && message.includes('is not a member')) {
+    return new WorkspaceMemberNotFoundError({
+      workspaceId: command.workspaceId,
+      profileId: command.profileId,
+    });
+  }
+
+  if (
+    error.code === '55000' &&
+    message.includes('active workspace member may be suspended')
+  ) {
+    return new WorkspaceMemberNotActiveError({
       workspaceId: command.workspaceId,
       profileId: command.profileId,
     });

@@ -10,6 +10,8 @@
 --   - membership heads expose the resulting current state;
 --   - an already-active membership cannot be added again;
 --   - ordinary members cannot manage membership;
+--   - owners can suspend and reinstate active members;
+--   - suspended members lose access without losing stable history;
 --   - owners can promote and demote members;
 --   - role changes append immutable events;
 --   - a workspace cannot lose its final active owner;
@@ -29,7 +31,7 @@ BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap
 WITH SCHEMA extensions;
 
-SELECT plan(34);
+SELECT plan(45);
 
 
 -- ============================================================================
@@ -297,7 +299,213 @@ SELECT throws_ok(
 );
 
 
+SELECT throws_ok(
+    format(
+        $sql$
+            SELECT public.suspend_workspace_member(
+                p_workspace_id => %L::UUID,
+                p_user_id =>
+                    '30000000-0000-0000-0000-000000000001'::UUID
+            )
+        $sql$,
+        :'workspace_workspace_id'
+    ),
+    '42501',
+    NULL,
+    'An ordinary workspace member cannot suspend another member'
+);
+
+
 RESET ROLE;
+
+
+-- ============================================================================
+-- Suspend and reinstate a member
+-- ============================================================================
+
+SET LOCAL ROLE authenticated;
+
+SET LOCAL request.jwt.claim.sub =
+    '30000000-0000-0000-0000-000000000001';
+
+
+SELECT lives_ok(
+    format(
+        $sql$
+            SELECT public.suspend_workspace_member(
+                p_workspace_id => %L::UUID,
+                p_user_id =>
+                    '30000000-0000-0000-0000-000000000002'::UUID,
+                p_reason => ' Temporary access hold '
+            )
+        $sql$,
+        :'workspace_workspace_id'
+    ),
+    'An active owner can suspend another active workspace member'
+);
+
+
+RESET ROLE;
+
+
+SELECT results_eq(
+    format(
+        $sql$
+            SELECT
+                sequence_number,
+                event_type,
+                role,
+                performed_by,
+                reason
+            FROM public.workspace_membership_events
+            WHERE workspace_id = %L::UUID
+              AND user_id =
+                  '30000000-0000-0000-0000-000000000002'::UUID
+              AND sequence_number = 2
+        $sql$,
+        :'workspace_workspace_id'
+    ),
+    $$
+        VALUES (
+            2,
+            'suspended'::TEXT,
+            'member'::TEXT,
+            '30000000-0000-0000-0000-000000000001'::UUID,
+            'Temporary access hold'::TEXT
+        )
+    $$,
+    'Suspension appends an immutable event with the normalized audit reason'
+);
+
+
+SELECT results_eq(
+    format(
+        $sql$
+            SELECT
+                membership_role,
+                membership_status,
+                latest_event_sequence_number,
+                latest_event_type
+            FROM public.current_workspace_memberships
+            WHERE workspace_id = %L::UUID
+              AND user_id =
+                  '30000000-0000-0000-0000-000000000002'::UUID
+        $sql$,
+        :'workspace_workspace_id'
+    ),
+    $$
+        VALUES (
+            'member'::TEXT,
+            'suspended'::TEXT,
+            2,
+            'suspended'::TEXT
+        )
+    $$,
+    'Suspension advances the existing head without changing its role'
+);
+
+
+SET LOCAL ROLE authenticated;
+
+SET LOCAL request.jwt.claim.sub =
+    '30000000-0000-0000-0000-000000000002';
+
+
+SELECT is(
+    (
+        SELECT count(*)
+        FROM public.current_workspace_memberships
+        WHERE workspace_id =
+            :'workspace_workspace_id'::UUID
+    ),
+    0::BIGINT,
+    'A suspended member loses workspace membership directory access'
+);
+
+
+RESET ROLE;
+
+
+SET LOCAL ROLE authenticated;
+
+SET LOCAL request.jwt.claim.sub =
+    '30000000-0000-0000-0000-000000000001';
+
+
+SELECT throws_ok(
+    format(
+        $sql$
+            SELECT public.suspend_workspace_member(
+                p_workspace_id => %L::UUID,
+                p_user_id =>
+                    '30000000-0000-0000-0000-000000000002'::UUID
+            )
+        $sql$,
+        :'workspace_workspace_id'
+    ),
+    '55000',
+    NULL,
+    'An inactive workspace member cannot be suspended again'
+);
+
+
+SELECT lives_ok(
+    format(
+        $sql$
+            SELECT public.add_workspace_member(
+                p_workspace_id => %L::UUID,
+                p_user_id =>
+                    '30000000-0000-0000-0000-000000000002'::UUID
+            )
+        $sql$,
+        :'workspace_workspace_id'
+    ),
+    'An active owner can reinstate a suspended workspace member'
+);
+
+
+RESET ROLE;
+
+
+SELECT is(
+    (
+        SELECT count(*)
+        FROM public.workspace_memberships
+        WHERE workspace_id =
+            :'workspace_workspace_id'::UUID
+          AND user_id =
+            '30000000-0000-0000-0000-000000000002'::UUID
+    ),
+    1::BIGINT,
+    'Suspension and reinstatement preserve the stable membership identity'
+);
+
+
+SELECT results_eq(
+    format(
+        $sql$
+            SELECT
+                membership_role,
+                membership_status,
+                latest_event_sequence_number,
+                latest_event_type
+            FROM public.current_workspace_memberships
+            WHERE workspace_id = %L::UUID
+              AND user_id =
+                  '30000000-0000-0000-0000-000000000002'::UUID
+        $sql$,
+        :'workspace_workspace_id'
+    ),
+    $$
+        VALUES (
+            'member'::TEXT,
+            'active'::TEXT,
+            3,
+            'reinstated'::TEXT
+        )
+    $$,
+    'Reinstatement restores a suspended identity as a default active member'
+);
 
 
 -- ============================================================================
@@ -338,8 +546,8 @@ SELECT is(
           AND user_id =
             '30000000-0000-0000-0000-000000000002'::UUID
     ),
-    2::BIGINT,
-    'Promoting a member appends a second membership event'
+    4::BIGINT,
+    'Promoting a reinstated member appends a fourth membership event'
 );
 
 
@@ -362,7 +570,7 @@ SELECT results_eq(
         VALUES (
             'owner'::TEXT,
             'active'::TEXT,
-            2,
+            4,
             'role_changed'::TEXT
         )
     $$,
@@ -394,6 +602,32 @@ SELECT results_eq(
     $$,
     'Promoting a member leaves the original joined event unchanged'
 );
+
+
+SET LOCAL ROLE authenticated;
+
+SET LOCAL request.jwt.claim.sub =
+    '30000000-0000-0000-0000-000000000001';
+
+
+SELECT throws_ok(
+    format(
+        $sql$
+            SELECT public.suspend_workspace_member(
+                p_workspace_id => %L::UUID,
+                p_user_id =>
+                    '30000000-0000-0000-0000-000000000001'::UUID
+            )
+        $sql$,
+        :'workspace_workspace_id'
+    ),
+    '55000',
+    NULL,
+    'An owner cannot suspend themselves when another owner remains'
+);
+
+
+RESET ROLE;
 
 
 -- ============================================================================
@@ -472,6 +706,23 @@ SELECT throws_ok(
     '55000',
     NULL,
     'The last active workspace owner cannot be demoted'
+);
+
+
+SELECT throws_ok(
+    format(
+        $sql$
+            SELECT public.suspend_workspace_member(
+                p_workspace_id => %L::UUID,
+                p_user_id =>
+                    '30000000-0000-0000-0000-000000000002'::UUID
+            )
+        $sql$,
+        :'workspace_workspace_id'
+    ),
+    '55000',
+    NULL,
+    'The final active workspace owner cannot be suspended'
 );
 
 

@@ -9,6 +9,7 @@ import {
   listWorkspaceMembers,
   leaveWorkspace,
   removeWorkspaceMember,
+  suspendWorkspaceMember,
   updateWorkspace,
   type AddedWorkspaceMember,
   type AddWorkspaceMemberByUsernameError,
@@ -23,6 +24,8 @@ import {
   type LeaveWorkspaceInput,
   type RemoveWorkspaceMemberError,
   type RemoveWorkspaceMemberInput,
+  type SuspendWorkspaceMemberError,
+  type SuspendWorkspaceMemberInput,
   type WorkspaceMemberRepositoryReadError,
   type WorkspaceRepositoryReadError,
   type UpdateWorkspaceError,
@@ -128,6 +131,17 @@ export class WorkspaceApplicationService {
   ): Promise<Either.Either<void, RemoveWorkspaceMemberError>> {
     return applicationRuntime.runPromise(
       removeWorkspaceMember(input).pipe(Effect.either)
+    );
+  }
+
+  /**
+   * Suspends one active workspace member using session authorization.
+   */
+  suspendWorkspaceMember(
+    input: SuspendWorkspaceMemberInput
+  ): Promise<Either.Either<void, SuspendWorkspaceMemberError>> {
+    return applicationRuntime.runPromise(
+      suspendWorkspaceMember(input).pipe(Effect.either)
     );
   }
 

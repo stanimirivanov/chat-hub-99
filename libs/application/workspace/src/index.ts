@@ -43,6 +43,13 @@ export {
   type WorkspaceMemberRemovalField,
 } from './lib/remove-workspace-member';
 export {
+  InvalidWorkspaceMemberSuspensionInputError,
+  suspendWorkspaceMember,
+  type SuspendWorkspaceMemberError,
+  type SuspendWorkspaceMemberInput,
+  type WorkspaceMemberSuspensionField,
+} from './lib/suspend-workspace-member';
+export {
   InvalidWorkspaceUpdateInputError,
   updateWorkspace,
   type UpdateWorkspaceError,
@@ -55,6 +62,7 @@ export {
   type ChangeWorkspaceMemberRoleCommand,
   type CreateWorkspaceCommand,
   type RemoveWorkspaceMemberCommand,
+  type SuspendWorkspaceMemberCommand,
   type UpdateWorkspaceCommand,
   type WorkspaceRepository,
 } from './lib/repository';
@@ -65,12 +73,14 @@ export {
   WorkspaceDepartureNotAllowedError,
   WorkspaceLastOwnerDemotionError,
   WorkspaceLastOwnerRemovalError,
+  WorkspaceLastOwnerSuspensionError,
   WorkspaceLastOwnerDepartureError,
   WorkspaceMemberAdditionNotAllowedError,
   WorkspaceMemberAlreadyActiveError,
   WorkspaceMemberNotActiveError,
   WorkspaceMemberNotFoundError,
   WorkspaceMemberRemovalNotAllowedError,
+  WorkspaceMemberSuspensionNotAllowedError,
   WorkspaceMemberRoleChangeNotAllowedError,
   WorkspaceMemberRoleUnchangedError,
   WorkspaceMemberProfileNotActiveError,
@@ -82,6 +92,7 @@ export {
   type WorkspaceDepartureRepositoryError,
   type WorkspaceMemberAddRepositoryError,
   type WorkspaceMemberRemovalRepositoryError,
+  type WorkspaceMemberSuspensionRepositoryError,
   type WorkspaceMemberRoleChangeRepositoryError,
   type WorkspaceRepositoryCreateError,
   type WorkspaceRepositoryArchiveError,

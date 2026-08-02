@@ -62,6 +62,12 @@ export type RemoveWorkspaceMemberArgs =
 export type RemoveWorkspaceMemberResult =
   DatabaseFunctionReturns<'remove_workspace_member'>;
 
+export type SuspendWorkspaceMemberArgs =
+  DatabaseFunctionArgs<'suspend_workspace_member'>;
+
+export type SuspendWorkspaceMemberResult =
+  DatabaseFunctionReturns<'suspend_workspace_member'>;
+
 export type LeaveWorkspaceArgs = DatabaseFunctionArgs<'leave_workspace'>;
 
 export type LeaveWorkspaceResult = DatabaseFunctionReturns<'leave_workspace'>;

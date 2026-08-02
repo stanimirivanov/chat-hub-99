@@ -170,6 +170,25 @@ export class WorkspaceLastOwnerRemovalError extends Data.TaggedError(
 }> {}
 
 /**
+ * Indicates that the current session or workspace state forbids suspension.
+ */
+export class WorkspaceMemberSuspensionNotAllowedError extends Data.TaggedError(
+  'WorkspaceMemberSuspensionNotAllowedError'
+)<{
+  readonly workspaceId: WorkspaceId;
+}> {}
+
+/**
+ * Indicates that suspension would leave no active workspace owner.
+ */
+export class WorkspaceLastOwnerSuspensionError extends Data.TaggedError(
+  'WorkspaceLastOwnerSuspensionError'
+)<{
+  readonly workspaceId: WorkspaceId;
+  readonly profileId: ProfileId;
+}> {}
+
+/**
  * Indicates that the authenticated user or workspace cannot be departed from
  * its current provider state.
  */
@@ -234,6 +253,14 @@ export type WorkspaceMemberRemovalRepositoryError =
   | WorkspaceMemberNotFoundError
   | WorkspaceMemberNotActiveError
   | WorkspaceLastOwnerRemovalError;
+
+export type WorkspaceMemberSuspensionRepositoryError =
+  | WorkspaceRepositoryUnavailableError
+  | InvalidWorkspaceMemberDataError
+  | WorkspaceMemberSuspensionNotAllowedError
+  | WorkspaceMemberNotFoundError
+  | WorkspaceMemberNotActiveError
+  | WorkspaceLastOwnerSuspensionError;
 
 export type WorkspaceDepartureRepositoryError =
   | WorkspaceRepositoryUnavailableError

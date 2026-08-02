@@ -13,7 +13,10 @@ export type WorkspaceMemberLoadStatus =
 
 export type WorkspaceMemberMutationStatus = 'idle' | 'pending' | 'failed';
 
-export type WorkspaceMemberMutationKind = 'role-change' | 'removal';
+export type WorkspaceMemberMutationKind =
+  | 'role-change'
+  | 'removal'
+  | 'suspension';
 
 export type WorkspaceMemberAdditionStatus = 'idle' | 'pending' | 'failed';
 
