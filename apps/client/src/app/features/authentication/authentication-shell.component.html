@@ -38,5 +38,27 @@
     <button type="button" (click)="store.clearError()">Dismiss</button>
   }
 } @else {
-  <app-sign-in />
+  <nav aria-label="Account access">
+    <button
+      type="button"
+      [attr.aria-pressed]="anonymousView() === 'sign-in'"
+      (click)="showAnonymousView('sign-in')"
+    >
+      Sign in
+    </button>
+
+    <button
+      type="button"
+      [attr.aria-pressed]="anonymousView() === 'sign-up'"
+      (click)="showAnonymousView('sign-up')"
+    >
+      Create account
+    </button>
+  </nav>
+
+  @if (anonymousView() === 'sign-in') {
+    <app-sign-in />
+  } @else {
+    <app-sign-up />
+  }
 }

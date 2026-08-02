@@ -23,6 +23,14 @@ boundary for keeping Effect, Supabase, and authenticated feature code out of
 the small browser bootstrap bundle; query-parameter navigation does not destroy
 that shell after it has loaded.
 
+Anonymous users can choose sign-in or self-service email/password registration
+inside that shell. The root authentication store serializes those commands
+with sign-out and reconciles them against authoritative Supabase session
+events. Registration either enters the authenticated application immediately
+or renders an explicit email-confirmation completion. The existing Auth-user
+database trigger owns initial profile creation; the client adds no parallel
+profile-provisioning workflow.
+
 ## Angular boundary
 
 Effect use cases remain framework-independent. Services under `core` run

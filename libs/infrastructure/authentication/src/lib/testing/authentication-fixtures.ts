@@ -17,3 +17,10 @@ export const invalidCredentialsError = {
   status: 400,
   code: 'invalid_credentials',
 } as AuthError;
+
+export const accountAlreadyRegisteredError = {
+  name: 'AuthApiError',
+  message: 'User already registered',
+  status: 422,
+  code: 'user_already_exists',
+} as AuthError;

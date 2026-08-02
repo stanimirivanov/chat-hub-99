@@ -1,5 +1,11 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  signal,
+} from '@angular/core';
 import { SignInComponent } from './sign-in/sign-in.component';
+import { SignUpComponent } from './sign-up/sign-up.component';
 import { AuthenticationStore } from './store/authentication.store';
 import { CurrentProfileComponent } from '../current-profile/current-profile.component';
 import { WorkspaceNavigationComponent } from '../workspace-navigation/workspace-navigation.component';
@@ -8,13 +14,15 @@ import { WorkspaceNavigationComponent } from '../workspace-navigation/workspace-
  * Application entry shell selected by authentication state.
  *
  * The shell triggers explicit one-time store initialization and renders either
- * the sign-in feature or authenticated application content.
+ * anonymous account access or authenticated application content. Its local
+ * signal selects between sign-in and sign-up without duplicating command state.
  */
 @Component({
   selector: 'app-authentication-shell',
   standalone: true,
   imports: [
     SignInComponent,
+    SignUpComponent,
     CurrentProfileComponent,
     WorkspaceNavigationComponent,
   ],
@@ -24,11 +32,18 @@ import { WorkspaceNavigationComponent } from '../workspace-navigation/workspace-
 export class AuthenticationShellComponent {
   protected readonly store = inject(AuthenticationStore);
 
+  protected readonly anonymousView = signal<'sign-in' | 'sign-up'>('sign-in');
+
   constructor() {
     /*
      * Initialization is an explicit lifecycle action, not a reaction to a
      * signal dependency. Therefore an Angular effect() is unnecessary.
      */
     void this.store.initialize();
+  }
+
+  protected showAnonymousView(view: 'sign-in' | 'sign-up'): void {
+    this.store.clearError();
+    this.anonymousView.set(view);
   }
 }

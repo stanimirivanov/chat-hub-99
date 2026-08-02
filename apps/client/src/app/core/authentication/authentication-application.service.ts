@@ -4,10 +4,13 @@ import {
   observeSessionChanges,
   restoreSession,
   signIn,
+  signUp,
   signOut,
   type AuthenticationError,
   type AuthenticationSession,
   type SignInInput,
+  type SignUpInput,
+  type SignUpResult,
 } from '@chat-hub/application/authentication';
 import { applicationRuntime } from '../effect/application-runtime';
 import { logAuthenticationError } from './log-authentication-error';
@@ -52,6 +55,27 @@ export class AuthenticationApplicationService {
       Effect.tapError((error) =>
         Effect.sync(() => {
           logAuthenticationError('sign-in', error);
+        })
+      ),
+      Effect.either
+    );
+
+    return applicationRuntime.runPromise(program);
+  }
+
+  /**
+   * Executes email/password account registration.
+   *
+   * The result preserves whether the provider created an immediate session or
+   * requires email confirmation. Credentials never enter diagnostic output.
+   */
+  signUp(
+    input: SignUpInput
+  ): Promise<Either.Either<SignUpResult, AuthenticationError>> {
+    const program = signUp(input).pipe(
+      Effect.tapError((error) =>
+        Effect.sync(() => {
+          logAuthenticationError('sign-up', error);
         })
       ),
       Effect.either

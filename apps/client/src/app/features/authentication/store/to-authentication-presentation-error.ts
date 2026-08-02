@@ -23,6 +23,19 @@ export const toAuthenticationPresentationError = (
         message: 'The email or password is incorrect.',
       };
 
+    case 'InvalidSignUpInputError':
+      return {
+        message:
+          error.field === 'email'
+            ? 'Enter a valid email address.'
+            : 'Choose a stronger password.',
+      };
+
+    case 'AccountAlreadyRegisteredError':
+      return {
+        message: 'An account with this email already exists. Try signing in.',
+      };
+
     case 'AuthenticationUnavailableError':
       return {
         message: 'Authentication is currently unavailable. Please try again.',

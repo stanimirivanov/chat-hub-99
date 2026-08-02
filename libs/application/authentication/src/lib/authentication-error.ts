@@ -9,6 +9,7 @@ import { Data } from 'effect';
 export type AuthenticationOperation =
   | 'restore-session'
   | 'sign-in'
+  | 'sign-up'
   | 'sign-out'
   | 'observe-session';
 
@@ -30,6 +31,18 @@ export class InvalidSignInInputError extends Data.TaggedError(
   readonly field: 'email' | 'password';
 }> {}
 
+/** Indicates that registration was attempted without usable credentials. */
+export class InvalidSignUpInputError extends Data.TaggedError(
+  'InvalidSignUpInputError'
+)<{
+  readonly field: 'email' | 'password';
+}> {}
+
+/** Indicates that the provider rejected an already registered email address. */
+export class AccountAlreadyRegisteredError extends Data.TaggedError(
+  'AccountAlreadyRegisteredError'
+) {}
+
 /**
  * Indicates that authentication could not be completed for a reason other
  * than rejected credentials.
@@ -49,5 +62,7 @@ export class AuthenticationUnavailableError extends Data.TaggedError(
  */
 export type AuthenticationError =
   | InvalidSignInInputError
+  | InvalidSignUpInputError
   | InvalidCredentialsError
+  | AccountAlreadyRegisteredError
   | AuthenticationUnavailableError;

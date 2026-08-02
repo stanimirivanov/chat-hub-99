@@ -17,6 +17,7 @@ export const makeAuthenticationServiceStub = (
 ): AuthenticationService => ({
   getCurrentSession: () => unexpectedOperation('getCurrentSession'),
   signIn: () => unexpectedOperation('signIn'),
+  signUp: () => unexpectedOperation('signUp'),
   signOut: () => unexpectedOperation('signOut'),
   sessionChanges: Stream.die(
     new Error(
@@ -42,5 +43,16 @@ export const makeSignInAuthenticationService = (
   return {
     signIn,
     serviceLayer: makeAuthenticationServiceLayer({ signIn }),
+  };
+};
+
+export const makeSignUpAuthenticationService = (
+  implementation: AuthenticationService['signUp']
+) => {
+  const signUp = vi.fn(implementation);
+
+  return {
+    signUp,
+    serviceLayer: makeAuthenticationServiceLayer({ signUp }),
   };
 };

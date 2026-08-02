@@ -5,6 +5,7 @@ import {
   type AuthenticationOperation,
   type AuthenticationService,
   type AuthenticationSession,
+  type SignUpResult,
 } from '@chat-hub/application/authentication';
 import { mapAuthenticationError } from './errors';
 import { mapAuthenticationSession } from './mapping';
@@ -107,6 +108,51 @@ export const makeSupabaseAuthenticationService = (
           }
 
           return mapSession(data.session, 'sign-in');
+        }
+      )
+    ),
+
+  signUp: (credentials) =>
+    Effect.tryPromise({
+      try: () =>
+        client.auth.signUp({
+          email: credentials.email,
+          password: credentials.password,
+        }),
+
+      catch: (cause) =>
+        new AuthenticationUnavailableError({
+          operation: 'sign-up',
+          cause,
+        }),
+    }).pipe(
+      Effect.flatMap(
+        ({ data, error }): Effect.Effect<SignUpResult, AuthenticationError> => {
+          if (error !== null) {
+            return Effect.fail(mapAuthenticationError(error, 'sign-up'));
+          }
+
+          if (data.session !== null) {
+            return mapSession(data.session, 'sign-up').pipe(
+              Effect.map((session) => ({
+                status: 'authenticated' as const,
+                session,
+              }))
+            );
+          }
+
+          if (data.user !== null) {
+            return Effect.succeed({ status: 'confirmation-required' });
+          }
+
+          return Effect.fail(
+            new AuthenticationUnavailableError({
+              operation: 'sign-up',
+              cause: new Error(
+                'Sign-up completed without returning a user or session.'
+              ),
+            })
+          );
         }
       )
     ),

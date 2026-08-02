@@ -19,7 +19,7 @@ import { toAuthenticationPresentationError } from './to-authentication-presentat
  * Root-scoped authentication state for the browser application.
  *
  * The store restores the persisted session once, subscribes once to future
- * provider changes, and coordinates sign-in and sign-out presentation state.
+ * provider changes, and coordinates sign-in, sign-up, and sign-out state.
  */
 export const AuthenticationStore = signalStore(
   {
@@ -34,6 +34,12 @@ export const AuthenticationStore = signalStore(
     isAuthenticated: computed(() => store.status() === 'authenticated'),
 
     isSigningIn: computed(() => store.signInStatus() === 'pending'),
+
+    isSigningUp: computed(() => store.signUpStatus() === 'pending'),
+
+    requiresEmailConfirmation: computed(
+      () => store.signUpStatus() === 'confirmation-required'
+    ),
 
     isSigningOut: computed(() => store.signOutStatus() === 'pending'),
   })),
@@ -52,7 +58,7 @@ export const AuthenticationStore = signalStore(
 
       /**
        * Applies a current authentication session without completing an
-       * independently running sign-in or sign-out request.
+       * independently running authentication request.
        */
       const applySession = (session: AuthenticationSession | null): void => {
         if (session === null) {
@@ -68,8 +74,15 @@ export const AuthenticationStore = signalStore(
           status: 'authenticated',
           session,
           error: null,
+          signUpStatus:
+            store.signUpStatus() === 'pending' ? store.signUpStatus() : 'idle',
         });
       };
+
+      const isAuthenticationCommandPending = (): boolean =>
+        store.signInStatus() === 'pending' ||
+        store.signUpStatus() === 'pending' ||
+        store.signOutStatus() === 'pending';
 
       /**
        * Applies an authoritative provider notification and invalidates
@@ -166,10 +179,7 @@ export const AuthenticationStore = signalStore(
          * avoiding overlapping provider requests.
          */
         async signIn(email: string, password: string): Promise<boolean> {
-          if (
-            store.signInStatus() === 'pending' ||
-            store.signOutStatus() === 'pending'
-          ) {
+          if (isAuthenticationCommandPending()) {
             return false;
           }
 
@@ -218,15 +228,80 @@ export const AuthenticationStore = signalStore(
         },
 
         /**
+         * Attempts email/password account registration.
+         *
+         * Immediate-session results enter the authenticated shell. A
+         * confirmation-required result remains anonymous and exposes a stable
+         * completion state instead of treating the absent session as failure.
+         */
+        async signUp(email: string, password: string): Promise<boolean> {
+          if (isAuthenticationCommandPending()) {
+            return false;
+          }
+
+          const startedAtRevision = sessionRevision;
+
+          patchState(store, {
+            signUpStatus: 'pending',
+            error: null,
+          });
+
+          const result = await authenticationApplication.signUp({
+            email,
+            password,
+          });
+
+          return Either.match(result, {
+            onLeft: (error) => {
+              if (sessionRevision !== startedAtRevision) {
+                patchState(store, {
+                  signUpStatus: 'idle',
+                });
+
+                return false;
+              }
+
+              patchState(store, {
+                signUpStatus: 'failed',
+                error: toAuthenticationPresentationError(error),
+              });
+
+              return false;
+            },
+
+            onRight: (signUpResult) => {
+              if (sessionRevision !== startedAtRevision) {
+                patchState(store, {
+                  signUpStatus: 'idle',
+                });
+
+                return true;
+              }
+
+              if (signUpResult.status === 'authenticated') {
+                applySession(signUpResult.session);
+                patchState(store, {
+                  signUpStatus: 'idle',
+                });
+              } else {
+                patchState(store, {
+                  signUpStatus: 'confirmation-required',
+                  error: null,
+                });
+              }
+
+              return true;
+            },
+          });
+        },
+
+        /**
          * Attempts to end the current session.
          *
          * Returns `false` while another authentication command is pending.
          */
         async signOut(): Promise<boolean> {
-          if (
-            store.signOutStatus() === 'pending' ||
-            store.signInStatus() === 'pending'
-          ) {
+          if (isAuthenticationCommandPending()) {
             return false;
           }
 
@@ -282,11 +357,24 @@ export const AuthenticationStore = signalStore(
             signInStatus:
               store.signInStatus() === 'failed' ? 'idle' : store.signInStatus(),
 
+            signUpStatus:
+              store.signUpStatus() === 'failed' ? 'idle' : store.signUpStatus(),
+
             signOutStatus:
               store.signOutStatus() === 'failed'
                 ? 'idle'
                 : store.signOutStatus(),
           });
+        },
+
+        /** Clears a completed confirmation notice so another email can register. */
+        resetSignUp(): void {
+          if (store.signUpStatus() !== 'pending') {
+            patchState(store, {
+              signUpStatus: 'idle',
+              error: null,
+            });
+          }
         },
       };
     }
