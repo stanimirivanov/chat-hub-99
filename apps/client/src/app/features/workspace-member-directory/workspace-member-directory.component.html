@@ -83,7 +83,23 @@
             </button>
 
             @if (!isCurrentUser(entry.profileId)) {
-              @if (pendingRemovalProfileId() === entry.profileId) {
+              @if (pendingSuspensionProfileId() === entry.profileId) {
+                <span>
+                  Suspend {{ entry.displayName }}? They will lose workspace
+                  access until an owner reactivates them.
+                </span>
+                <button
+                  type="button"
+                  [disabled]="store.isMutatingMember()"
+                  [attr.aria-label]="'Confirm suspension: ' + entry.displayName"
+                  (click)="confirmSuspension(entry.profileId)"
+                >
+                  Confirm suspend
+                </button>
+                <button type="button" (click)="cancelSuspension()">
+                  Cancel
+                </button>
+              } @else if (pendingRemovalProfileId() === entry.profileId) {
                 <span>Remove {{ entry.displayName }} from this workspace?</span>
                 <button
                   type="button"
@@ -95,6 +111,21 @@
                 </button>
                 <button type="button" (click)="cancelRemoval()">Cancel</button>
               } @else {
+                <button
+                  type="button"
+                  [disabled]="store.isMutatingMember()"
+                  [attr.aria-label]="'Suspend: ' + entry.displayName"
+                  (click)="requestSuspension(entry.profileId)"
+                >
+                  @if (
+                    store.isSuspendingMember() &&
+                    store.mutatingProfileId() === entry.profileId
+                  ) {
+                    Suspending&hellip;
+                  } @else {
+                    Suspend
+                  }
+                </button>
                 <button
                   type="button"
                   [disabled]="store.isMutatingMember()"

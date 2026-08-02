@@ -68,7 +68,7 @@ describe('addWorkspaceMember', () => {
     [
       'non-reactivatable membership',
       '55000',
-      'Only memberships that were left or removed may be reinstated',
+      'Only left, removed, or suspended memberships may be reinstated',
       'WorkspaceMemberReactivationNotAllowedError',
     ],
   ])('maps %s to a typed failure', async (_label, code, message, tag) => {

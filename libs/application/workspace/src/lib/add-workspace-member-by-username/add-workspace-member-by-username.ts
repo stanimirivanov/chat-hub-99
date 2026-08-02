@@ -65,9 +65,9 @@ export interface AddedWorkspaceMember {
  *
  * The use case validates boundary input, resolves one active profile through
  * the profile port, and then asks the workspace port to produce an active
- * default-member projection. Existing left or removed history is preserved and
- * reactivated by the repository implementation. Its Effect requires both
- * repositories and preserves each capability's typed failures.
+ * default-member projection. Existing left, removed, or suspended history is
+ * preserved and reactivated by the repository implementation. Its Effect
+ * requires both repositories and preserves each capability's typed failures.
  */
 export const addWorkspaceMemberByUsername = (
   input: unknown

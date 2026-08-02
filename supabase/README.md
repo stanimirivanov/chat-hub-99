@@ -88,6 +88,7 @@ Migrations define:
 - database extensions and shared prerequisites;
 - immutable profile and workspace models;
 - workspace membership history;
+- owner-authorized workspace-member suspension with final-owner protection;
 - session-derived `left` workspace departure with final-owner protection;
 - owner-authorized reinstatement of preserved former-member history;
 - channel aggregates;

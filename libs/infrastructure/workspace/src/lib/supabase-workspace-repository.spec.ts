@@ -20,6 +20,7 @@ describe('makeSupabaseWorkspaceRepository', () => {
       'listAccessible',
       'listActiveMembers',
       'removeMember',
+      'suspendMember',
       'update',
     ]);
     expect(repository.addMember).toBeTypeOf('function');
@@ -27,6 +28,7 @@ describe('makeSupabaseWorkspaceRepository', () => {
     expect(repository.create).toBeTypeOf('function');
     expect(repository.changeMemberRole).toBeTypeOf('function');
     expect(repository.removeMember).toBeTypeOf('function');
+    expect(repository.suspendMember).toBeTypeOf('function');
     expect(repository.update).toBeTypeOf('function');
     expect(repository.listAccessible).toBeTypeOf('function');
     expect(repository.listActiveMembers).toBeTypeOf('function');

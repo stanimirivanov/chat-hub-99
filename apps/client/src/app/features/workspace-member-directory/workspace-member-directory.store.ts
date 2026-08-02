@@ -11,6 +11,7 @@ import type {
   AddWorkspaceMemberByUsernameError,
   ChangeWorkspaceMemberRoleError,
   RemoveWorkspaceMemberError,
+  SuspendWorkspaceMemberError,
 } from '@chat-hub/application/workspace';
 import type { Profile, ProfileId } from '@chat-hub/domain/profile';
 import type {
@@ -45,6 +46,11 @@ export const WorkspaceMemberDirectoryStore = signalStore(
         store.mutationStatus() === 'pending' &&
         store.mutationKind() === 'removal'
     ),
+    isSuspendingMember: computed(
+      () =>
+        store.mutationStatus() === 'pending' &&
+        store.mutationKind() === 'suspension'
+    ),
     isAddingMember: computed(() => store.additionStatus() === 'pending'),
     hasMembers: computed(() => store.members().length > 0),
     entries: computed(() =>
@@ -63,6 +69,66 @@ export const WorkspaceMemberDirectoryStore = signalStore(
         readonly workspaceId: WorkspaceId;
         readonly promise: Promise<void>;
       } | null = null;
+
+      const deactivateMember = async (
+        profileId: ProfileId,
+        kind: 'removal' | 'suspension',
+        execute: (
+          workspaceId: WorkspaceId
+        ) => Promise<
+          Either.Either<
+            void,
+            RemoveWorkspaceMemberError | SuspendWorkspaceMemberError
+          >
+        >
+      ): Promise<boolean> => {
+        const workspaceId = store.workspaceId();
+
+        if (
+          workspaceId === null ||
+          store.loadStatus() !== 'loaded' ||
+          store.mutationStatus() === 'pending'
+        ) {
+          return false;
+        }
+
+        const version = requestVersion;
+        patchState(store, {
+          mutationStatus: 'pending',
+          mutationKind: kind,
+          mutatingProfileId: profileId,
+          mutationError: null,
+        });
+
+        const result = await execute(workspaceId);
+
+        if (version !== requestVersion || store.workspaceId() !== workspaceId) {
+          return false;
+        }
+
+        if (Either.isLeft(result)) {
+          patchState(store, {
+            mutationStatus: 'failed',
+            mutatingProfileId: null,
+            mutationError: presentMemberMutationError(result.left, kind),
+          });
+          return false;
+        }
+
+        patchState(store, {
+          members: store
+            .members()
+            .filter((member) => member.profileId !== profileId),
+          profiles: store
+            .profiles()
+            .filter((profile) => profile.id !== profileId),
+          mutationStatus: 'idle',
+          mutationKind: null,
+          mutatingProfileId: null,
+          mutationError: null,
+        });
+        return true;
+      };
 
       return {
         /**
@@ -285,59 +351,30 @@ export const WorkspaceMemberDirectoryStore = signalStore(
           profileId: ProfileId,
           reason: string | null = null
         ): Promise<boolean> {
-          const workspaceId = store.workspaceId();
+          return deactivateMember(profileId, 'removal', (workspaceId) =>
+            workspaceApplication.removeWorkspaceMember({
+              workspaceId,
+              profileId,
+              reason,
+            })
+          );
+        },
 
-          if (
-            workspaceId === null ||
-            store.loadStatus() !== 'loaded' ||
-            store.mutationStatus() === 'pending'
-          ) {
-            return false;
-          }
-
-          const version = requestVersion;
-          patchState(store, {
-            mutationStatus: 'pending',
-            mutationKind: 'removal',
-            mutatingProfileId: profileId,
-            mutationError: null,
-          });
-
-          const result = await workspaceApplication.removeWorkspaceMember({
-            workspaceId,
-            profileId,
-            reason,
-          });
-
-          if (
-            version !== requestVersion ||
-            store.workspaceId() !== workspaceId
-          ) {
-            return false;
-          }
-
-          if (Either.isLeft(result)) {
-            patchState(store, {
-              mutationStatus: 'failed',
-              mutatingProfileId: null,
-              mutationError: presentMemberMutationError(result.left, 'removal'),
-            });
-            return false;
-          }
-
-          patchState(store, {
-            members: store
-              .members()
-              .filter((member) => member.profileId !== profileId),
-            profiles: store
-              .profiles()
-              .filter((profile) => profile.id !== profileId),
-            mutationStatus: 'idle',
-            mutationKind: null,
-            mutatingProfileId: null,
-            mutationError: null,
-          });
-          return true;
+        /**
+         * Suspends one member through the same serialized mutation path used
+         * by removal, then drops its now-inactive local projections.
+         */
+        async suspendMember(
+          profileId: ProfileId,
+          reason: string | null = null
+        ): Promise<boolean> {
+          return deactivateMember(profileId, 'suspension', (workspaceId) =>
+            workspaceApplication.suspendWorkspaceMember({
+              workspaceId,
+              profileId,
+              reason,
+            })
+          );
         },
 
         clearMemberMutationError(): void {
@@ -395,8 +432,11 @@ const roleOrder = (role: WorkspaceMemberDirectoryEntry['role']): number =>
   role === 'owner' ? 0 : 1;
 
 const presentMemberMutationError = (
-  error: ChangeWorkspaceMemberRoleError | RemoveWorkspaceMemberError,
-  kind: 'role-change' | 'removal'
+  error:
+    | ChangeWorkspaceMemberRoleError
+    | RemoveWorkspaceMemberError
+    | SuspendWorkspaceMemberError,
+  kind: 'role-change' | 'removal' | 'suspension'
 ): { readonly message: string } => {
   switch (error._tag) {
     case 'WorkspaceLastOwnerDemotionError':
@@ -416,6 +456,14 @@ const presentMemberMutationError = (
       return {
         message: 'You no longer have permission to remove workspace members.',
       };
+    case 'WorkspaceLastOwnerSuspensionError':
+      return {
+        message: 'The last active workspace owner cannot be suspended.',
+      };
+    case 'WorkspaceMemberSuspensionNotAllowedError':
+      return {
+        message: 'You no longer have permission to suspend workspace members.',
+      };
     case 'WorkspaceMemberNotFoundError':
     case 'WorkspaceMemberNotActiveError':
       return {
@@ -425,13 +473,16 @@ const presentMemberMutationError = (
       return { message: 'This member already has the requested role.' };
     case 'InvalidWorkspaceMemberRoleChangeInputError':
     case 'InvalidWorkspaceMemberRemovalInputError':
+    case 'InvalidWorkspaceMemberSuspensionInputError':
     case 'InvalidWorkspaceMemberDataError':
     case 'WorkspaceRepositoryUnavailableError':
       return {
         message:
           kind === 'role-change'
             ? 'The member role could not be changed. Please try again.'
-            : 'The workspace member could not be removed. Please try again.',
+            : kind === 'removal'
+              ? 'The workspace member could not be removed. Please try again.'
+              : 'The workspace member could not be suspended. Please try again.',
       };
   }
 };

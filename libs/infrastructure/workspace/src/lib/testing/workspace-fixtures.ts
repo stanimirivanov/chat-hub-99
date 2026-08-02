@@ -7,6 +7,7 @@ import type {
   CurrentWorkspace,
   LeaveWorkspaceResult,
   RemoveWorkspaceMemberResult,
+  SuspendWorkspaceMemberResult,
   UpdateWorkspaceResult,
 } from '@chat-hub/shared/database';
 
@@ -61,6 +62,15 @@ export const removedWorkspaceMemberRow: RemoveWorkspaceMemberResult = {
   membership_role: 'member',
   membership_status: 'removed',
   latest_event_id: '00000000-0000-4000-8000-000000000014',
+};
+
+export const suspendedWorkspaceMemberRow: SuspendWorkspaceMemberResult = {
+  workspace_membership_id: '00000000-0000-4000-8000-000000000010',
+  workspace_id: '00000000-0000-4000-8000-000000000001',
+  user_id: '00000000-0000-4000-8000-000000000012',
+  membership_role: 'member',
+  membership_status: 'suspended',
+  latest_event_id: '00000000-0000-4000-8000-000000000015',
 };
 
 export const leftWorkspaceRow: LeaveWorkspaceResult = {
