@@ -49,6 +49,10 @@
     <ul aria-label="Active workspace members">
       @for (entry of store.entries(); track entry.profileId) {
         <li>
+          <app-profile-avatar
+            [avatarUrl]="entry.avatarUrl"
+            [displayName]="entry.displayName"
+          />
           <span>{{ entry.displayName }}</span>
           @if (isCurrentUser(entry.profileId)) {
             <span> (you)</span>

@@ -2,6 +2,7 @@ import { Either, Schema } from 'effect';
 import { TestBed } from '@angular/core/testing';
 import { describe, expect, it, vi } from 'vitest';
 import {
+  InvalidProfileUpdateInputError,
   ProfileRepositoryUnavailableError,
   ProfileUsernameUnavailableError,
 } from '@chat-hub/application/profile';
@@ -172,6 +173,27 @@ describe('CurrentProfileStore', () => {
     store.clearUpdateError();
     expect(store.updateStatus()).toBe('idle');
     expect(store.updateError()).toBeNull();
+  });
+
+  it('presents actionable avatar URL validation feedback', async () => {
+    const failure = new InvalidProfileUpdateInputError({
+      field: 'avatarUrl',
+      cause: new Error('Invalid URL'),
+    });
+    const { store } = configureStore(
+      vi.fn().mockResolvedValue(Either.right(profile)),
+      vi.fn().mockResolvedValue(Either.left(failure))
+    );
+    await store.load(userId);
+
+    await store.update({
+      displayName: profile.displayName,
+      avatarUrl: 'http://example.com/avatar.png',
+    });
+
+    expect(store.updateError()).toEqual({
+      message: 'Use an HTTPS avatar URL, or leave it blank.',
+    });
   });
 
   it('ignores an update result after the session identity changes', async () => {

@@ -3,6 +3,11 @@
   [attr.aria-busy]="store.isLoading() || store.isUpdating()"
 >
   @if (store.profile(); as profile) {
+    <app-profile-avatar
+      [avatarUrl]="profile.avatarUrl"
+      [displayName]="profile.displayName"
+    />
+
     @if (isEditing()) {
       <form
         (submit)="
@@ -31,12 +36,13 @@
           [disabled]="store.isUpdating()"
         />
 
-        <label for="profile-avatar-url">Avatar value</label>
+        <label for="profile-avatar-url">Avatar HTTPS URL</label>
         <input
           #avatarUrlInput
           id="profile-avatar-url"
           name="profile-avatar-url"
-          type="text"
+          type="url"
+          inputmode="url"
           [value]="profile.avatarUrl ?? ''"
           [disabled]="store.isUpdating()"
         />

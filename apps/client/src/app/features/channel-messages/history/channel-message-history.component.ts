@@ -2,12 +2,15 @@ import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   input,
   signal,
 } from '@angular/core';
 import type { Message, MessageId } from '@chat-hub/domain/message';
+import type { AvatarUrl, Profile } from '@chat-hub/domain/profile';
 import { AuthenticationStore } from '@client/features/authentication/store/authentication.store';
+import { ProfileAvatarComponent } from '@client/shared/profile-avatar/profile-avatar.component';
 import { ChannelMessagesStore } from '../channel-messages.store';
 
 /**
@@ -20,7 +23,7 @@ import { ChannelMessagesStore } from '../channel-messages.store';
 @Component({
   selector: 'app-channel-message-history',
   standalone: true,
-  imports: [DatePipe],
+  imports: [DatePipe, ProfileAvatarComponent],
   templateUrl: './channel-message-history.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -31,6 +34,15 @@ export class ChannelMessageHistoryComponent {
   protected readonly store = inject(ChannelMessagesStore);
 
   private readonly authenticationStore = inject(AuthenticationStore);
+
+  private readonly authorProfilesById = computed(
+    () =>
+      new Map(
+        this.store
+          .authorProfiles()
+          .map((profile) => [profile.id, profile] as const)
+      )
+  );
 
   protected readonly editingMessageId = signal<MessageId | null>(null);
 
@@ -65,12 +77,21 @@ export class ChannelMessageHistoryComponent {
       return 'You';
     }
 
+    return this.authorProfile(message)?.displayName ?? 'Another user';
+  }
+
+  protected authorAvatarUrl(message: Message): AvatarUrl | null {
+    return this.authorProfile(message)?.avatarUrl ?? null;
+  }
+
+  protected authorAvatarName(message: Message): string {
     return (
-      this.store
-        .authorProfiles()
-        .find((profile) => profile.id === message.authorId)?.displayName ??
-      'Another user'
+      this.authorProfile(message)?.displayName ?? this.authorLabel(message)
     );
+  }
+
+  private authorProfile(message: Message): Profile | undefined {
+    return this.authorProfilesById().get(message.authorId);
   }
 
   protected beginEdit(messageId: MessageId): void {

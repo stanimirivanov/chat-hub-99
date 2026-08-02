@@ -11,7 +11,7 @@ profile.
 - `getCurrentProfile` validates unknown boundary input and orchestrates one
   required profile lookup.
 - `updateCurrentProfile` normalizes editable values and coordinates the
-  self-service update.
+  self-service update, including decoding optional HTTPS avatar URLs.
 - `listCurrentProfiles` validates and deduplicates an identity collection for
   batched discovery.
 - `ProfileRepository` defines single and batched discovery, exact active
@@ -41,6 +41,11 @@ supplies its implementation before the Angular runtime executes the program.
 The batch use case returns the visible subset rather than treating missing
 profiles as an error: RLS or lifecycle state may legitimately hide an author
 profile while the associated message remains readable.
+
+Blank avatar input is normalized to absence. Non-blank input is decoded with
+the profile domain's `AvatarUrlSchema` before the repository is requested, so
+the command port carries only validated avatar values while PostgreSQL remains
+the final integrity boundary.
 
 Exact username lookup is a profile capability consumed by the workspace
 application workflow. Keeping lookup behind the profile port prevents the

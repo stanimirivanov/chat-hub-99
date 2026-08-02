@@ -373,12 +373,16 @@ const toDirectoryEntries = (
   );
 
   return members
-    .map((member) => ({
-      profileId: member.profileId,
-      displayName:
-        profilesById.get(member.profileId)?.displayName ?? 'Another member',
-      role: member.role,
-    }))
+    .map((member) => {
+      const profile = profilesById.get(member.profileId);
+
+      return {
+        profileId: member.profileId,
+        displayName: profile?.displayName ?? 'Another member',
+        avatarUrl: profile?.avatarUrl ?? null,
+        role: member.role,
+      };
+    })
     .sort(
       (left, right) =>
         roleOrder(left.role) - roleOrder(right.role) ||

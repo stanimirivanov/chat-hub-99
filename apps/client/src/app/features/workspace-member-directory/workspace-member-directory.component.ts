@@ -14,6 +14,7 @@ import type {
   WorkspaceMemberRole,
 } from '@chat-hub/domain/workspace';
 import { AuthenticationStore } from '@client/features/authentication/store/authentication.store';
+import { ProfileAvatarComponent } from '@client/shared/profile-avatar/profile-avatar.component';
 import { WorkspaceMemberDirectoryStore } from './workspace-member-directory.store';
 
 /**
@@ -22,6 +23,7 @@ import { WorkspaceMemberDirectoryStore } from './workspace-member-directory.stor
 @Component({
   selector: 'app-workspace-member-directory',
   standalone: true,
+  imports: [ProfileAvatarComponent],
   providers: [WorkspaceMemberDirectoryStore],
   templateUrl: './workspace-member-directory.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

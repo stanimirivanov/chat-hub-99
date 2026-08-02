@@ -174,7 +174,9 @@ const toProfileUpdateError = (
         message:
           error.field === 'displayName'
             ? 'Enter a display name.'
-            : 'Check the profile values and try again.',
+            : error.field === 'avatarUrl'
+              ? 'Use an HTTPS avatar URL, or leave it blank.'
+              : 'Check the profile values and try again.',
       };
 
     case 'ProfileUsernameUnavailableError':

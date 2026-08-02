@@ -2,7 +2,11 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Schema } from 'effect';
 import { describe, expect, it, vi } from 'vitest';
-import { ProfileIdSchema, type ProfileId } from '@chat-hub/domain/profile';
+import {
+  AvatarUrlSchema,
+  ProfileIdSchema,
+  type ProfileId,
+} from '@chat-hub/domain/profile';
 import { WorkspaceIdSchema } from '@chat-hub/domain/workspace';
 import { AuthenticationStore } from '@client/features/authentication/store/authentication.store';
 import { WorkspaceMemberDirectoryComponent } from './workspace-member-directory.component';
@@ -17,6 +21,9 @@ const ownerId = Schema.decodeUnknownSync(ProfileIdSchema)(
 const memberId = Schema.decodeUnknownSync(ProfileIdSchema)(
   '00000000-0000-4000-8000-000000000003'
 );
+const ownerAvatarUrl = Schema.decodeUnknownSync(AvatarUrlSchema)(
+  'https://example.com/owner.png'
+);
 
 const renderComponent = async (currentProfileId: ProfileId) => {
   const store = {
@@ -24,11 +31,13 @@ const renderComponent = async (currentProfileId: ProfileId) => {
       {
         profileId: ownerId,
         displayName: 'Workspace Owner',
+        avatarUrl: ownerAvatarUrl,
         role: 'owner' as const,
       },
       {
         profileId: memberId,
         displayName: 'Workspace Member',
+        avatarUrl: null,
         role: 'member' as const,
       },
     ]),
@@ -95,6 +104,13 @@ describe('WorkspaceMemberDirectoryComponent', () => {
 
     expect(store.load).toHaveBeenCalledExactlyOnceWith(workspaceId);
     expect(managementChanges).toContain(true);
+    expect(
+      (
+        fixture.nativeElement.querySelector(
+          'app-profile-avatar img'
+        ) as HTMLImageElement
+      ).src
+    ).toBe(ownerAvatarUrl);
     expect(fixture.nativeElement.textContent).toContain(
       'Workspace Owner (you) — Owner'
     );

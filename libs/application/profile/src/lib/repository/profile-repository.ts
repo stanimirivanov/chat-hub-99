@@ -1,5 +1,5 @@
 import { Context, type Effect } from 'effect';
-import type { Profile, ProfileId } from '@chat-hub/domain/profile';
+import type { AvatarUrl, Profile, ProfileId } from '@chat-hub/domain/profile';
 import type {
   ProfileRepositoryReadError,
   ProfileRepositoryUpdateError,
@@ -11,7 +11,7 @@ import type {
 export interface UpdateCurrentProfileCommand {
   readonly displayName: string;
   readonly username: string | null;
-  readonly avatarUrl: string | null;
+  readonly avatarUrl: AvatarUrl | null;
 }
 
 /**

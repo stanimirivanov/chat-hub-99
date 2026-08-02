@@ -15,6 +15,7 @@ The `supabase` directory is responsible for:
 - configuring the local Supabase development stack;
 - defining the PostgreSQL schema through ordered migrations;
 - implementing database command functions;
+- enforcing persisted profile-avatar URL integrity;
 - enforcing authorization through Row Level Security;
 - providing deterministic local development data;
 - verifying database behavior with pgTAP tests;

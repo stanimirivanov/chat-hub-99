@@ -10,7 +10,7 @@ describe('ProfileSchema', () => {
       id: '00000000-0000-4000-8000-000000000001',
       username: 'owner',
       displayName: 'Workspace Owner',
-      avatarUrl: null,
+      avatarUrl: 'https://example.com/owner.png',
       status: 'active',
     });
 
@@ -22,6 +22,11 @@ describe('ProfileSchema', () => {
     ['blank username', { username: '   ' }],
     ['blank display name', { displayName: '   ' }],
     ['blank avatar value', { avatarUrl: '   ' }],
+    ['insecure avatar URL', { avatarUrl: 'http://example.com/avatar.png' }],
+    [
+      'credentialed avatar URL',
+      { avatarUrl: 'https://user:secret@example.com/avatar.png' },
+    ],
     ['unknown status', { status: 'unknown' }],
   ])('rejects %s', (_label, invalidField) => {
     const result = decodeProfile({

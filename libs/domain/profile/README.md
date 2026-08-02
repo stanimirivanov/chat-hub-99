@@ -7,14 +7,16 @@ by authenticated presentation.
 
 ## Boundary and public API
 
-The public API consists of `ProfileIdSchema`, `ProfileId`, `ProfileSchema`, and
-`Profile`. The library has no Angular, Supabase, generated database, or
-application dependency. It may depend only on domain or utility libraries.
+The public API consists of the profile identity, avatar URL, and current-profile
+schemas and their corresponding types. The library has no Angular, Supabase,
+generated database, or application dependency. It may depend only on domain or
+utility libraries.
 
 The schema validates unknown adapter data at runtime. Usernames are optional,
-display names are non-blank, and lifecycle status is explicit. Avatar values
-remain non-blank opaque strings because the database contract currently
-normalizes absence but imposes no URL-format rule.
+display names are non-blank, and lifecycle status is explicit. An avatar is
+either absent or a trimmed, credential-free HTTPS URL of at most 2,048
+characters. The branded `AvatarUrl` remains a string value so the domain does
+not require browser or Node URL globals.
 
 ## Extension
 

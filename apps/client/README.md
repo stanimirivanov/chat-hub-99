@@ -200,9 +200,14 @@ authentication session email as a reliable fallback while profile data loads
 or fails. Its feature-scoped store does not duplicate session ownership, and a
 late response for a previous session identity cannot replace the current
 profile. The same feature supports self-service editing and replaces its state
-only with the canonical profile returned by the application workflow. Avatar
-values remain opaque editable text and are not rendered until a concrete media
-or URL policy is implemented.
+only with the canonical profile returned by the application workflow.
+
+Validated HTTPS avatars are rendered beside visible profile names in the
+current-profile header, workspace-member directory, and message history. Those
+three concrete consumers share one small presentation component. External
+images are decorative, omit referrer information, and fall back to deterministic
+initials when absent or unavailable. Uploads and Supabase Storage remain outside
+this URL-based slice.
 
 Workspace and channel selections are reflected in the root route as validated
 slugs:

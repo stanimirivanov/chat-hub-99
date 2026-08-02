@@ -9,6 +9,10 @@
   <ul>
     @for (message of store.messages(); track message.id) {
       <li>
+        <app-profile-avatar
+          [avatarUrl]="authorAvatarUrl(message)"
+          [displayName]="authorAvatarName(message)"
+        />
         <strong>
           {{ authorLabel(message) }}
         </strong>

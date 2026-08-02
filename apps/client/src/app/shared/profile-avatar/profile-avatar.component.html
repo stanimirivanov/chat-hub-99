@@ -1,0 +1,14 @@
+@if (imageUrl(); as avatarUrl) {
+  <img
+    [src]="avatarUrl"
+    alt=""
+    width="32"
+    height="32"
+    loading="lazy"
+    decoding="async"
+    referrerpolicy="no-referrer"
+    (error)="markFailed(avatarUrl)"
+  />
+} @else {
+  <span aria-hidden="true">{{ initials() }}</span>
+}

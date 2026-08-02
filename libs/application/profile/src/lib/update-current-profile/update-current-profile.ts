@@ -1,5 +1,9 @@
 import { Effect, Schema } from 'effect';
-import type { Profile } from '@chat-hub/domain/profile';
+import {
+  AvatarUrlSchema,
+  type AvatarUrl,
+  type Profile,
+} from '@chat-hub/domain/profile';
 import {
   ProfileRepositoryTag,
   type ProfileRepository,
@@ -14,6 +18,7 @@ import {
 const DisplayNameSchema = Schema.Trim.pipe(Schema.nonEmptyString());
 const decodeDisplayName = Schema.decodeUnknown(DisplayNameSchema);
 const decodeTrimmedString = Schema.decodeUnknown(Schema.Trim);
+const decodeAvatarUrlValue = Schema.decodeUnknown(AvatarUrlSchema);
 
 const readInputField = (input: unknown, field: ProfileUpdateField): unknown =>
   typeof input === 'object' && input !== null
@@ -26,13 +31,22 @@ const invalidField = (
 ): InvalidProfileUpdateInputError =>
   new InvalidProfileUpdateInputError({ field, cause });
 
-const decodeOptionalText = (
-  input: unknown,
-  field: 'username' | 'avatarUrl'
+const decodeOptionalUsername = (
+  input: unknown
 ): Effect.Effect<string | null, InvalidProfileUpdateInputError> =>
-  decodeTrimmedString(readInputField(input, field) ?? '').pipe(
+  decodeTrimmedString(readInputField(input, 'username') ?? '').pipe(
     Effect.map((value) => (value.length === 0 ? null : value)),
-    Effect.mapError((cause) => invalidField(field, cause))
+    Effect.mapError((cause) => invalidField('username', cause))
+  );
+
+const decodeOptionalAvatarUrl = (
+  input: unknown
+): Effect.Effect<AvatarUrl | null, InvalidProfileUpdateInputError> =>
+  decodeTrimmedString(readInputField(input, 'avatarUrl') ?? '').pipe(
+    Effect.flatMap((value) =>
+      value.length === 0 ? Effect.succeed(null) : decodeAvatarUrlValue(value)
+    ),
+    Effect.mapError((cause) => invalidField('avatarUrl', cause))
   );
 
 /**
@@ -54,8 +68,8 @@ export const updateCurrentProfile = (
     const displayName = yield* decodeDisplayName(
       readInputField(input, 'displayName')
     ).pipe(Effect.mapError((cause) => invalidField('displayName', cause)));
-    const username = yield* decodeOptionalText(input, 'username');
-    const avatarUrl = yield* decodeOptionalText(input, 'avatarUrl');
+    const username = yield* decodeOptionalUsername(input);
+    const avatarUrl = yield* decodeOptionalAvatarUrl(input);
 
     const command: UpdateCurrentProfileCommand = {
       displayName,
