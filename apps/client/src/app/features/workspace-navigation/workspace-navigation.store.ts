@@ -4,6 +4,7 @@ import type {
   ArchiveWorkspaceError,
   CreateWorkspaceError,
   CreateWorkspaceInput,
+  LeaveWorkspaceError,
   UpdateWorkspaceError,
   UpdateWorkspaceInput,
 } from '@chat-hub/application/workspace';
@@ -29,6 +30,7 @@ export const WorkspaceNavigationStore = signalStore(
     isCreating: computed(() => store.creationStatus() === 'creating'),
     isUpdating: computed(() => store.updateStatus() === 'updating'),
     isArchiving: computed(() => store.archiveStatus() === 'archiving'),
+    isLeaving: computed(() => store.departureStatus() === 'leaving'),
     hasWorkspaces: computed(() => store.workspaces().length > 0),
     selectedWorkspace: computed(() => {
       const selectedWorkspaceId = store.selectedWorkspaceId();
@@ -45,6 +47,28 @@ export const WorkspaceNavigationStore = signalStore(
     (store, workspaceApplication = inject(WorkspaceApplicationService)) => {
       let loading: Promise<void> | null = null;
       let selectionVersion = 0;
+
+      const selectionIsObsolete = (
+        workspaceId: WorkspaceId,
+        version: number
+      ): boolean =>
+        version !== selectionVersion ||
+        store.selectedWorkspaceId() !== workspaceId;
+
+      const removeAccessibleWorkspace = (workspaceId: WorkspaceId): void => {
+        const targetStillSelected = store.selectedWorkspaceId() === workspaceId;
+
+        if (targetStillSelected) {
+          selectionVersion += 1;
+        }
+
+        patchState(store, {
+          workspaces: store
+            .workspaces()
+            .filter((workspace) => workspace.id !== workspaceId),
+          ...(targetStillSelected ? { selectedWorkspaceId: null } : {}),
+        });
+      };
 
       return {
         /**
@@ -70,6 +94,9 @@ export const WorkspaceNavigationStore = signalStore(
             archiveStatus: 'idle',
             archivingWorkspaceId: null,
             archiveError: null,
+            departureStatus: 'idle',
+            departingWorkspaceId: null,
+            departureError: null,
           });
 
           loading = workspaceApplication
@@ -136,6 +163,13 @@ export const WorkspaceNavigationStore = signalStore(
                   archiveError: null,
                 }
               : {}),
+            ...(selectionChanged && store.departureStatus() !== 'leaving'
+              ? {
+                  departureStatus: 'idle' as const,
+                  departingWorkspaceId: null,
+                  departureError: null,
+                }
+              : {}),
           });
 
           return true;
@@ -160,6 +194,13 @@ export const WorkspaceNavigationStore = signalStore(
                   archivingWorkspaceId: null,
                   archiveError: null,
                 }),
+            ...(store.departureStatus() === 'leaving'
+              ? {}
+              : {
+                  departureStatus: 'idle' as const,
+                  departingWorkspaceId: null,
+                  departureError: null,
+                }),
           });
         },
 
@@ -173,7 +214,8 @@ export const WorkspaceNavigationStore = signalStore(
             store.loadStatus() !== 'loaded' ||
             store.creationStatus() === 'creating' ||
             store.updateStatus() === 'updating' ||
-            store.archiveStatus() === 'archiving'
+            store.archiveStatus() === 'archiving' ||
+            store.departureStatus() === 'leaving'
           ) {
             return null;
           }
@@ -228,7 +270,8 @@ export const WorkspaceNavigationStore = signalStore(
             store.loadStatus() !== 'loaded' ||
             store.updateStatus() === 'updating' ||
             store.creationStatus() === 'creating' ||
-            store.archiveStatus() === 'archiving'
+            store.archiveStatus() === 'archiving' ||
+            store.departureStatus() === 'leaving'
           ) {
             return null;
           }
@@ -244,10 +287,7 @@ export const WorkspaceNavigationStore = signalStore(
             ...details,
           });
 
-          if (
-            version !== selectionVersion ||
-            store.selectedWorkspaceId() !== workspaceId
-          ) {
+          if (selectionIsObsolete(workspaceId, version)) {
             return null;
           }
 
@@ -296,7 +336,8 @@ export const WorkspaceNavigationStore = signalStore(
             store.loadStatus() !== 'loaded' ||
             store.creationStatus() === 'creating' ||
             store.updateStatus() === 'updating' ||
-            store.archiveStatus() === 'archiving'
+            store.archiveStatus() === 'archiving' ||
+            store.departureStatus() === 'leaving'
           ) {
             return null;
           }
@@ -313,10 +354,7 @@ export const WorkspaceNavigationStore = signalStore(
           });
 
           if (Either.isLeft(result)) {
-            if (
-              version !== selectionVersion ||
-              store.selectedWorkspaceId() !== workspaceId
-            ) {
+            if (selectionIsObsolete(workspaceId, version)) {
               patchState(store, {
                 archiveStatus: 'idle',
                 archivingWorkspaceId: null,
@@ -333,18 +371,8 @@ export const WorkspaceNavigationStore = signalStore(
             return null;
           }
 
-          const targetStillSelected =
-            store.selectedWorkspaceId() === workspaceId;
-
-          if (targetStillSelected) {
-            selectionVersion += 1;
-          }
-
+          removeAccessibleWorkspace(workspaceId);
           patchState(store, {
-            workspaces: store
-              .workspaces()
-              .filter((workspace) => workspace.id !== workspaceId),
-            ...(targetStillSelected ? { selectedWorkspaceId: null } : {}),
             archiveStatus: 'idle',
             archivingWorkspaceId: null,
             archiveError: null,
@@ -359,6 +387,74 @@ export const WorkspaceNavigationStore = signalStore(
               archiveStatus: 'idle',
               archivingWorkspaceId: null,
               archiveError: null,
+            });
+          }
+        },
+
+        /**
+         * Removes the authenticated user's membership through one serialized
+         * command and reconciles the accessible collection by stable identity.
+         * A late success is retained, while an obsolete failure is hidden.
+         */
+        async leaveSelectedWorkspace(): Promise<WorkspaceId | null> {
+          const workspaceId = store.selectedWorkspaceId();
+
+          if (
+            workspaceId === null ||
+            store.loadStatus() !== 'loaded' ||
+            store.creationStatus() === 'creating' ||
+            store.updateStatus() === 'updating' ||
+            store.archiveStatus() === 'archiving' ||
+            store.departureStatus() === 'leaving'
+          ) {
+            return null;
+          }
+
+          const version = selectionVersion;
+          patchState(store, {
+            departureStatus: 'leaving',
+            departingWorkspaceId: workspaceId,
+            departureError: null,
+          });
+
+          const result = await workspaceApplication.leaveWorkspace({
+            workspaceId,
+          });
+
+          if (Either.isLeft(result)) {
+            if (selectionIsObsolete(workspaceId, version)) {
+              patchState(store, {
+                departureStatus: 'idle',
+                departingWorkspaceId: null,
+                departureError: null,
+              });
+              return null;
+            }
+
+            patchState(store, {
+              departureStatus: 'failed',
+              departingWorkspaceId: null,
+              departureError: toWorkspaceDepartureError(result.left),
+            });
+            return null;
+          }
+
+          removeAccessibleWorkspace(workspaceId);
+          patchState(store, {
+            departureStatus: 'idle',
+            departingWorkspaceId: null,
+            departureError: null,
+          });
+
+          return workspaceId;
+        },
+
+        clearDepartureError(): void {
+          if (store.departureStatus() !== 'leaving') {
+            patchState(store, {
+              departureStatus: 'idle',
+              departingWorkspaceId: null,
+              departureError: null,
             });
           }
         },
@@ -447,6 +543,27 @@ const toWorkspaceArchiveError = (
     case 'WorkspaceRepositoryUnavailableError':
       return {
         message: 'The workspace could not be archived. Please try again.',
+      };
+  }
+};
+
+const toWorkspaceDepartureError = (
+  error: LeaveWorkspaceError
+): { readonly message: string } => {
+  switch (error._tag) {
+    case 'WorkspaceLastOwnerDepartureError':
+      return {
+        message: 'Assign another active owner before leaving this workspace.',
+      };
+    case 'WorkspaceDepartureNotAllowedError':
+      return {
+        message: 'You can no longer leave this workspace.',
+      };
+    case 'InvalidWorkspaceDepartureInputError':
+    case 'InvalidWorkspaceMemberDataError':
+    case 'WorkspaceRepositoryUnavailableError':
+      return {
+        message: 'The workspace could not be left. Please try again.',
       };
   }
 };

@@ -158,6 +158,25 @@ export class WorkspaceLastOwnerRemovalError extends Data.TaggedError(
   readonly profileId: ProfileId;
 }> {}
 
+/**
+ * Indicates that the authenticated user or workspace cannot be departed from
+ * its current provider state.
+ */
+export class WorkspaceDepartureNotAllowedError extends Data.TaggedError(
+  'WorkspaceDepartureNotAllowedError'
+)<{
+  readonly workspaceId: WorkspaceId;
+}> {}
+
+/**
+ * Indicates that departure would leave no active workspace owner.
+ */
+export class WorkspaceLastOwnerDepartureError extends Data.TaggedError(
+  'WorkspaceLastOwnerDepartureError'
+)<{
+  readonly workspaceId: WorkspaceId;
+}> {}
+
 export type WorkspaceRepositoryReadError =
   | WorkspaceRepositoryUnavailableError
   | InvalidWorkspaceDataError;
@@ -203,3 +222,9 @@ export type WorkspaceMemberRemovalRepositoryError =
   | WorkspaceMemberNotFoundError
   | WorkspaceMemberNotActiveError
   | WorkspaceLastOwnerRemovalError;
+
+export type WorkspaceDepartureRepositoryError =
+  | WorkspaceRepositoryUnavailableError
+  | InvalidWorkspaceMemberDataError
+  | WorkspaceDepartureNotAllowedError
+  | WorkspaceLastOwnerDepartureError;

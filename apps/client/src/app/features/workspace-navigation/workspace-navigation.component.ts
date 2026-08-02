@@ -28,6 +28,7 @@ export class WorkspaceNavigationComponent {
   protected readonly isCreatingWorkspace = signal(false);
   protected readonly isEditingWorkspace = signal(false);
   protected readonly isConfirmingWorkspaceArchive = signal(false);
+  protected readonly isConfirmingWorkspaceDeparture = signal(false);
   protected readonly canManageSelectedWorkspace = signal(false);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -63,8 +64,10 @@ export class WorkspaceNavigationComponent {
     this.store.clearCreationError();
     this.store.clearUpdateError();
     this.store.clearArchiveError();
+    this.store.clearDepartureError();
     this.isEditingWorkspace.set(false);
     this.isConfirmingWorkspaceArchive.set(false);
+    this.isConfirmingWorkspaceDeparture.set(false);
     this.isCreatingWorkspace.set(true);
   }
 
@@ -94,8 +97,10 @@ export class WorkspaceNavigationComponent {
     this.store.clearCreationError();
     this.store.clearUpdateError();
     this.store.clearArchiveError();
+    this.store.clearDepartureError();
     this.isCreatingWorkspace.set(false);
     this.isConfirmingWorkspaceArchive.set(false);
+    this.isConfirmingWorkspaceDeparture.set(false);
     this.isEditingWorkspace.set(true);
   }
 
@@ -134,7 +139,9 @@ export class WorkspaceNavigationComponent {
 
   protected beginWorkspaceArchive(): void {
     this.store.clearArchiveError();
+    this.store.clearDepartureError();
     this.isEditingWorkspace.set(false);
+    this.isConfirmingWorkspaceDeparture.set(false);
     this.isConfirmingWorkspaceArchive.set(true);
   }
 
@@ -155,22 +162,36 @@ export class WorkspaceNavigationComponent {
 
     const archivedWorkspaceId = await this.store.archiveSelectedWorkspace();
 
-    if (
-      archivedWorkspaceId !== workspace.id ||
-      this.queryParamMap().get('workspace') !== workspace.slug
-    ) {
-      return;
-    }
+    this.clearRemovedWorkspaceRoute(workspace, archivedWorkspaceId);
+  }
 
-    void this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: {
-        workspace: null,
-        channel: null,
-      },
-      queryParamsHandling: 'merge',
-      replaceUrl: true,
-    });
+  protected beginWorkspaceDeparture(): void {
+    this.store.clearDepartureError();
+    this.store.clearCreationError();
+    this.store.clearUpdateError();
+    this.store.clearArchiveError();
+    this.isCreatingWorkspace.set(false);
+    this.isEditingWorkspace.set(false);
+    this.isConfirmingWorkspaceArchive.set(false);
+    this.isConfirmingWorkspaceDeparture.set(true);
+  }
+
+  protected cancelWorkspaceDeparture(): void {
+    this.store.clearDepartureError();
+    this.isConfirmingWorkspaceDeparture.set(false);
+  }
+
+  /**
+   * Leaves the selected workspace after explicit member confirmation.
+   */
+  protected async confirmWorkspaceDeparture(
+    workspace: Workspace
+  ): Promise<void> {
+    this.isConfirmingWorkspaceDeparture.set(false);
+
+    const departedWorkspaceId = await this.store.leaveSelectedWorkspace();
+
+    this.clearRemovedWorkspaceRoute(workspace, departedWorkspaceId);
   }
 
   protected handleCanManageMembersChange(canManage: boolean): void {
@@ -195,6 +216,7 @@ export class WorkspaceNavigationComponent {
       this.canManageSelectedWorkspace.set(false);
       this.isEditingWorkspace.set(false);
       this.isConfirmingWorkspaceArchive.set(false);
+      this.isConfirmingWorkspaceDeparture.set(false);
     }
 
     if (workspaceSlug === null) {
@@ -216,6 +238,32 @@ export class WorkspaceNavigationComponent {
     }
 
     this.store.clearSelection();
+
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        workspace: null,
+        channel: null,
+      },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
+
+  /**
+   * Clears a removed workspace route only while it still names the command
+   * target. Navigation that happened during the request is preserved.
+   */
+  private clearRemovedWorkspaceRoute(
+    workspace: Workspace,
+    removedWorkspaceId: Workspace['id'] | null
+  ): void {
+    if (
+      removedWorkspaceId !== workspace.id ||
+      this.queryParamMap().get('workspace') !== workspace.slug
+    ) {
+      return;
+    }
 
     void this.router.navigate([], {
       relativeTo: this.route,

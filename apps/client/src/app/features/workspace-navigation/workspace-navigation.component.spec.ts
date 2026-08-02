@@ -80,21 +80,25 @@ const configureComponent = async ({
     isCreating: signal(false),
     isUpdating: signal(false),
     isArchiving: signal(false),
+    isLeaving: signal(false),
     hasWorkspaces: signal(workspaces.length > 0),
     loadStatus: signal('loaded'),
     error: signal(null),
     creationError: signal(null),
     updateError: signal(null),
     archiveError: signal(null),
+    departureError: signal(null),
     load: vi.fn().mockResolvedValue(undefined),
     createWorkspace: vi.fn().mockResolvedValue(workspace),
     updateSelectedWorkspace: vi.fn().mockResolvedValue(updatedWorkspace),
     archiveSelectedWorkspace: vi.fn().mockResolvedValue(workspace.id),
+    leaveSelectedWorkspace: vi.fn().mockResolvedValue(workspace.id),
     select: vi.fn().mockReturnValue(true),
     clearSelection: vi.fn(),
     clearCreationError: vi.fn(),
     clearUpdateError: vi.fn(),
     clearArchiveError: vi.fn(),
+    clearDepartureError: vi.fn(),
   };
 
   TestBed.overrideComponent(WorkspaceNavigationComponent, {
@@ -339,6 +343,49 @@ describe('WorkspaceNavigationComponent', () => {
     await fixture.whenStable();
 
     expect(store.archiveSelectedWorkspace).toHaveBeenCalledOnce();
+    expect(router.navigate).toHaveBeenCalledExactlyOnceWith([], {
+      relativeTo: route,
+      queryParams: {
+        workspace: null,
+        channel: null,
+      },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  });
+
+  it('requires member confirmation before leaving and clears its route', async () => {
+    const { fixture, route, router, store } = await configureComponent({
+      queryParams: {
+        workspace: workspace.slug,
+        channel: 'general',
+      },
+      selectedWorkspace: workspace,
+    });
+
+    const leaveButton = Array.from(
+      fixture.nativeElement.querySelectorAll(
+        'button'
+      ) as NodeListOf<HTMLButtonElement>
+    ).find((button) => button.textContent?.trim() === 'Leave workspace');
+    leaveButton?.click();
+    fixture.detectChanges();
+
+    expect(store.leaveSelectedWorkspace).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.textContent).toContain(
+      `Leave ${workspace.name}?`
+    );
+
+    const confirmButton = Array.from(
+      fixture.nativeElement.querySelectorAll(
+        'button'
+      ) as NodeListOf<HTMLButtonElement>
+    ).find((button) => button.textContent?.trim() === 'Confirm leave');
+    confirmButton?.click();
+
+    await fixture.whenStable();
+
+    expect(store.leaveSelectedWorkspace).toHaveBeenCalledOnce();
     expect(router.navigate).toHaveBeenCalledExactlyOnceWith([], {
       relativeTo: route,
       queryParams: {

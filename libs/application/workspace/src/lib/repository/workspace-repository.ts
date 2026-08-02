@@ -8,6 +8,7 @@ import type {
 } from '@chat-hub/domain/workspace';
 import type {
   WorkspaceMemberAddRepositoryError,
+  WorkspaceDepartureRepositoryError,
   WorkspaceMemberRepositoryReadError,
   WorkspaceMemberRemovalRepositoryError,
   WorkspaceMemberRoleChangeRepositoryError,
@@ -101,6 +102,16 @@ export interface WorkspaceRepository {
     readonly WorkspaceMember[],
     WorkspaceMemberRepositoryReadError
   >;
+
+  /**
+   * Removes the provider-authenticated user's own active membership.
+   *
+   * The authenticated identity is deliberately absent from the contract so a
+   * caller cannot request departure on behalf of another member.
+   */
+  readonly leave: (
+    workspaceId: WorkspaceId
+  ) => Effect.Effect<void, WorkspaceDepartureRepositoryError>;
 
   /**
    * Creates a workspace owned by the provider-authenticated user.

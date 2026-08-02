@@ -20,6 +20,8 @@ export const makeWorkspaceRepositoryStub = (
     Effect.dieMessage(
       'Unexpected WorkspaceRepository.listActiveMembers call in test'
     ),
+  leave: () =>
+    Effect.dieMessage('Unexpected WorkspaceRepository.leave call in test'),
   create: () =>
     Effect.dieMessage('Unexpected WorkspaceRepository.create call in test'),
   changeMemberRole: () =>
@@ -103,6 +105,17 @@ export const makeListWorkspaceMembersRepository = (
   return {
     listActiveMembers,
     repositoryLayer: makeWorkspaceRepositoryLayer({ listActiveMembers }),
+  };
+};
+
+export const makeLeaveWorkspaceRepository = (
+  implementation: WorkspaceRepository['leave']
+) => {
+  const leave = vi.fn(implementation);
+
+  return {
+    leave,
+    repositoryLayer: makeWorkspaceRepositoryLayer({ leave }),
   };
 };
 

@@ -3,11 +3,14 @@ import { TestBed } from '@angular/core/testing';
 import { describe, expect, it, vi } from 'vitest';
 import {
   WorkspaceArchiveNotAllowedError,
+  WorkspaceDepartureNotAllowedError,
+  WorkspaceLastOwnerDepartureError,
   WorkspaceRepositoryUnavailableError,
   WorkspaceSlugUnavailableError,
   WorkspaceUpdateNotAllowedError,
   type CreateWorkspaceError,
   type ArchiveWorkspaceError,
+  type LeaveWorkspaceError,
   type UpdateWorkspaceError,
   type WorkspaceRepositoryReadError,
 } from '@chat-hub/application/workspace';
@@ -66,6 +69,9 @@ const configureStore = (
   ),
   archiveResult: Either.Either<void, ArchiveWorkspaceError> = Either.right(
     undefined
+  ),
+  departureResult: Either.Either<void, LeaveWorkspaceError> = Either.right(
+    undefined
   )
 ) => {
   const service = {
@@ -73,6 +79,7 @@ const configureStore = (
     createWorkspace: vi.fn().mockResolvedValue(creationResult),
     updateWorkspace: vi.fn().mockResolvedValue(updateResult),
     archiveWorkspace: vi.fn().mockResolvedValue(archiveResult),
+    leaveWorkspace: vi.fn().mockResolvedValue(departureResult),
   };
 
   TestBed.configureTestingModule({
@@ -391,5 +398,114 @@ describe('WorkspaceNavigationStore', () => {
     expect(store.selectedWorkspace()).toBe(otherWorkspace);
     expect(store.archiveStatus()).toBe('idle');
     expect(store.archiveError()).toBeNull();
+  });
+
+  it('removes a departed workspace and clears its selection', async () => {
+    const { store, service } = configureStore(
+      Either.right([workspace, otherWorkspace])
+    );
+    await store.load();
+    store.select(workspace.id);
+
+    const departure = store.leaveSelectedWorkspace();
+
+    expect(store.isLeaving()).toBe(true);
+    expect(store.departingWorkspaceId()).toBe(workspace.id);
+    await expect(departure).resolves.toBe(workspace.id);
+    expect(service.leaveWorkspace).toHaveBeenCalledExactlyOnceWith({
+      workspaceId: workspace.id,
+    });
+    expect(store.workspaces()).toEqual([otherWorkspace]);
+    expect(store.selectedWorkspace()).toBeNull();
+    expect(store.departureStatus()).toBe('idle');
+    expect(store.departureError()).toBeNull();
+  });
+
+  it.each([
+    [
+      new WorkspaceLastOwnerDepartureError({ workspaceId: workspace.id }),
+      'Assign another active owner before leaving this workspace.',
+    ],
+    [
+      new WorkspaceDepartureNotAllowedError({ workspaceId: workspace.id }),
+      'You can no longer leave this workspace.',
+    ],
+  ])('retains navigation and presents $._tag', async (failure, message) => {
+    const { store } = configureStore(
+      Either.right([workspace]),
+      undefined,
+      undefined,
+      undefined,
+      Either.left(failure)
+    );
+    await store.load();
+    store.select(workspace.id);
+
+    await expect(store.leaveSelectedWorkspace()).resolves.toBeNull();
+
+    expect(store.workspaces()).toEqual([workspace]);
+    expect(store.selectedWorkspace()).toBe(workspace);
+    expect(store.departureStatus()).toBe('failed');
+    expect(store.departureError()).toEqual({ message });
+
+    store.clearDepartureError();
+    expect(store.departureStatus()).toBe('idle');
+    expect(store.departureError()).toBeNull();
+  });
+
+  it('reconciles a successful departure without disturbing a newer selection', async () => {
+    let resolveDeparture:
+      | ((result: Either.Either<void, never>) => void)
+      | undefined;
+    const departureResult = new Promise<Either.Either<void, never>>(
+      (resolve) => {
+        resolveDeparture = resolve;
+      }
+    );
+    const { store, service } = configureStore(
+      Either.right([workspace, otherWorkspace])
+    );
+    service.leaveWorkspace.mockReturnValue(departureResult);
+    await store.load();
+    store.select(workspace.id);
+
+    const departure = store.leaveSelectedWorkspace();
+    store.select(otherWorkspace.id);
+    resolveDeparture?.(Either.right(undefined));
+
+    await expect(departure).resolves.toBe(workspace.id);
+    expect(store.workspaces()).toEqual([otherWorkspace]);
+    expect(store.selectedWorkspace()).toBe(otherWorkspace);
+    expect(store.departureStatus()).toBe('idle');
+  });
+
+  it('discards a departure failure after selection changes', async () => {
+    const failure = new WorkspaceDepartureNotAllowedError({
+      workspaceId: workspace.id,
+    });
+    let resolveDeparture:
+      | ((result: Either.Either<void, LeaveWorkspaceError>) => void)
+      | undefined;
+    const departureResult = new Promise<
+      Either.Either<void, LeaveWorkspaceError>
+    >((resolve) => {
+      resolveDeparture = resolve;
+    });
+    const { store, service } = configureStore(
+      Either.right([workspace, otherWorkspace])
+    );
+    service.leaveWorkspace.mockReturnValue(departureResult);
+    await store.load();
+    store.select(workspace.id);
+
+    const departure = store.leaveSelectedWorkspace();
+    store.select(otherWorkspace.id);
+    resolveDeparture?.(Either.left(failure));
+
+    await expect(departure).resolves.toBeNull();
+    expect(store.workspaces()).toEqual([workspace, otherWorkspace]);
+    expect(store.selectedWorkspace()).toBe(otherWorkspace);
+    expect(store.departureStatus()).toBe('idle');
+    expect(store.departureError()).toBeNull();
   });
 });

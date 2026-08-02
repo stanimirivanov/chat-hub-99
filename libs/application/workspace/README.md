@@ -3,7 +3,7 @@
 `@chat-hub/application/workspace` owns provider-independent workflows for
 discovering accessible workspaces and active members, creating and editing
 workspaces, archiving workspaces, adding active profiles as members, changing
-active member roles, and removing active members.
+active member roles, removing active members, and leaving a workspace.
 
 ## Responsibilities
 
@@ -26,6 +26,9 @@ active member roles, and removing active members.
 - Change roles without accepting client-supplied actor identity.
 - Normalize removal targets and optional audit reasons before repository access.
 - Remove members without accepting client-supplied actor identity.
+- Normalize and validate the workspace identity before self-departure.
+- Leave a workspace without accepting either client-supplied actor or target
+  identity.
 
 It does not know about Supabase, generated database rows, Angular, selection
 state, profile persistence, channels, or workspace restoration/deletion.
@@ -78,6 +81,12 @@ Angular caller
   -> validated RemoveWorkspaceMemberCommand
   -> WorkspaceRepositoryTag
   -> validated removed membership acknowledgment
+
+Angular caller
+  -> leaveWorkspace(input)
+  -> validated WorkspaceId
+  -> WorkspaceRepositoryTag.leave
+  -> validated removed membership acknowledgment
 ```
 
 Testing support is private and follows the fixture/stub convention used by the
@@ -93,6 +102,7 @@ other application libraries.
 - `addWorkspaceMemberByUsername` and its input/result/error contracts
 - `changeWorkspaceMemberRole` and its input/error contracts
 - `removeWorkspaceMember` and its input/error contracts
+- `leaveWorkspace` and its input/error contracts
 - `WorkspaceRepositoryTag` and `WorkspaceRepository`
 - workspace repository error types
 

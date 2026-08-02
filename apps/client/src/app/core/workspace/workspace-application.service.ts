@@ -7,6 +7,7 @@ import {
   createWorkspace,
   listAccessibleWorkspaces,
   listWorkspaceMembers,
+  leaveWorkspace,
   removeWorkspaceMember,
   updateWorkspace,
   type AddedWorkspaceMember,
@@ -18,6 +19,8 @@ import {
   type ChangeWorkspaceMemberRoleInput,
   type CreateWorkspaceError,
   type CreateWorkspaceInput,
+  type LeaveWorkspaceError,
+  type LeaveWorkspaceInput,
   type RemoveWorkspaceMemberError,
   type RemoveWorkspaceMemberInput,
   type WorkspaceMemberRepositoryReadError,
@@ -79,6 +82,17 @@ export class WorkspaceApplicationService {
   > {
     return applicationRuntime.runPromise(
       listWorkspaceMembers(workspaceId).pipe(Effect.either)
+    );
+  }
+
+  /**
+   * Removes the authenticated user's own active workspace membership.
+   */
+  leaveWorkspace(
+    input: LeaveWorkspaceInput
+  ): Promise<Either.Either<void, LeaveWorkspaceError>> {
+    return applicationRuntime.runPromise(
+      leaveWorkspace(input).pipe(Effect.either)
     );
   }
 
