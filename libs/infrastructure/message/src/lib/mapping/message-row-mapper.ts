@@ -3,6 +3,7 @@ import { Effect, Schema } from 'effect';
 import type { CurrentMessage } from '@chat-hub/shared/database';
 import { MessageSchema, type Message } from '@chat-hub/domain/message';
 import { MessageRowMappingError } from './message-row-mapping-error';
+import { parseRequiredTimestamp } from './parse-required-timestamp';
 
 const decodeMessage = Schema.decodeUnknown(MessageSchema);
 
@@ -82,30 +83,4 @@ const parseEditedAt = (
   }
 
   return parseRequiredTimestamp('version_created_at', row.version_created_at);
-};
-
-const parseRequiredTimestamp = (
-  field: string,
-  value: string | null
-): Effect.Effect<Date, MessageRowMappingError> => {
-  if (value === null) {
-    return Effect.fail(
-      new MessageRowMappingError({
-        message: `Required database field "${field}" is null.`,
-      })
-    );
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return Effect.fail(
-      new MessageRowMappingError({
-        message: `Database field "${field}" contains an invalid timestamp.`,
-        cause: value,
-      })
-    );
-  }
-
-  return Effect.succeed(date);
 };

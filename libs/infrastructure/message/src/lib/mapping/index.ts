@@ -1,7 +1,12 @@
 export { mapCurrentMessage } from './map-current-message';
+export { mapMessageRevision } from './map-message-revision';
 export { mapMessageHeadChange } from './map-message-head-change';
 
 export { toMessage } from './message-row-mapper';
+export {
+  toMessageRevision,
+  type MessageRevisionRow,
+} from './message-revision-row-mapper';
 
 export {
   toCreateMessageArgs,

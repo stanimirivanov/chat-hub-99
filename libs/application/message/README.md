@@ -6,8 +6,8 @@ external systems.
 
 ## Responsibilities
 
-- Use cases for creating, editing, deleting, listing, and observing channel
-  messages
+- Use cases for creating, editing, deleting, listing, observing, and inspecting
+  channel messages
 - Input validation that belongs to a use-case boundary
 - Pagination query and result contracts
 - Typed application and repository failures
@@ -37,6 +37,7 @@ src/lib/
 ├── delete-message/
 ├── edit-message/
 ├── list-channel-messages/
+├── list-message-revisions/
 ├── observe-channel-messages/
 ├── pagination/
 ├── repository/
@@ -49,10 +50,13 @@ Cross-use-case contracts remain near the package root:
   validation failure, and type tests.
 - `list-channel-messages/` contains the paginated channel query and its
   boundary-specific input and error types.
+- `list-message-revisions/` validates revision page size and delegates the
+  newest-first keyset query through the existing message repository port.
 - `observe-channel-messages/` validates channel identity, consumes repository
   notifications, and loads authoritative current projections.
 - `pagination/` contains pagination value types shared by callers and the
-  repository port.
+  repository port. Channel pages use the compound creation-time/message-ID
+  cursor, while revision pages use the message-local monotonic version number.
 - `repository/` defines the outbound repository port, validated command
   contracts, and technology-independent repository failures.
 - `testing/` contains private fixtures and repository doubles used only by this

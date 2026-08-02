@@ -1,6 +1,18 @@
 export { MessageIdSchema, type MessageId } from './lib/message-id';
 
 export {
+  MessageRevisionIdSchema,
+  type MessageRevisionId,
+} from './lib/message-revision-id';
+
+export {
+  MessageRevisionNumberSchema,
+  MessageRevisionSchema,
+  type MessageRevision,
+  type MessageRevisionNumber,
+} from './lib/message-revision';
+
+export {
   MESSAGE_CONTENT_MAX_LENGTH,
   MessageContentSchema,
   type MessageContent,

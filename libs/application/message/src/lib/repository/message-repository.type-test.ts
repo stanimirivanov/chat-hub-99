@@ -1,6 +1,10 @@
 import type { Effect, Stream } from 'effect';
 import type { ChannelId } from '@chat-hub/domain/channel';
-import type { Message, MessageId } from '@chat-hub/domain/message';
+import type {
+  Message,
+  MessageId,
+  MessageRevision,
+} from '@chat-hub/domain/message';
 
 import {
   CreateMessageCommand,
@@ -9,6 +13,7 @@ import {
 } from './message-repository-command';
 import {
   ListChannelMessagesQuery,
+  ListMessageRevisionsQuery,
   MessageRepository,
 } from './message-repository';
 import {
@@ -18,7 +23,7 @@ import {
   MessageRepositoryError,
 } from './message-repository-error';
 import type { MessageChangeNotification } from './message-change-notification';
-import type { MessagePage } from '../pagination';
+import type { MessagePage, MessageRevisionPage } from '../pagination';
 
 declare const repository: MessageRepository;
 declare const createCommand: CreateMessageCommand;
@@ -26,6 +31,7 @@ declare const editCommand: EditMessageCommand;
 declare const deleteCommand: DeleteMessageCommand;
 declare const messageId: MessageId;
 declare const query: ListChannelMessagesQuery;
+declare const revisionQuery: ListMessageRevisionsQuery;
 declare const channelId: ChannelId;
 
 const createResult: Effect.Effect<MessageId, MessageRepositoryCreateError> =
@@ -43,6 +49,13 @@ const findResult: Effect.Effect<Message, MessageRepositoryError> =
 const listResult: Effect.Effect<MessagePage, MessageRepositoryError> =
   repository.listByChannel(query);
 
+const listRevisionsResult: Effect.Effect<
+  MessageRevisionPage,
+  MessageRepositoryError
+> = repository.listRevisions(revisionQuery);
+
+declare const revision: MessageRevision;
+
 const changesResult: Stream.Stream<
   MessageChangeNotification,
   MessageRepositoryError
@@ -53,4 +66,6 @@ void editResult;
 void deleteResult;
 void findResult;
 void listResult;
+void listRevisionsResult;
+void revision;
 void changesResult;

@@ -11,5 +11,6 @@ export {
   makeMessageRepositoryStub,
   makeMessageRepositoryLayer,
   makeListByChannelRepository,
+  makeListRevisionsRepository,
   makeObserveByChannelRepository,
 } from './message-repository.stub';

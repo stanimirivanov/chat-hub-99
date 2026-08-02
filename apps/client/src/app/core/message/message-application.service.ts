@@ -5,6 +5,7 @@ import {
   deleteMessage,
   editMessage,
   listChannelMessages,
+  listMessageRevisions,
   observeChannelMessages,
   type CreateMessageError,
   type CreateMessageInput,
@@ -14,7 +15,10 @@ import {
   type EditMessageInput,
   type ListChannelMessagesError,
   type ListChannelMessagesInput,
+  type ListMessageRevisionsError,
+  type ListMessageRevisionsInput,
   type MessagePage,
+  type MessageRevisionPage,
   type MessageChange,
   type ObserveChannelMessagesError,
 } from '@chat-hub/application/message';
@@ -39,6 +43,14 @@ export class MessageApplicationService {
   ): Promise<Either.Either<MessagePage, ListChannelMessagesError>> {
     return applicationRuntime.runPromise(
       listChannelMessages(input).pipe(Effect.either)
+    );
+  }
+
+  listMessageRevisions(
+    input: ListMessageRevisionsInput
+  ): Promise<Either.Either<MessageRevisionPage, ListMessageRevisionsError>> {
+    return applicationRuntime.runPromise(
+      listMessageRevisions(input).pipe(Effect.either)
     );
   }
 

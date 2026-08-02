@@ -5,6 +5,7 @@ import { withChannelMessagesComputed } from './store/with-channel-messages-compu
 import { withChannelMessagesLoading } from './store/with-channel-messages-loading';
 import { withChannelMessageAuthors } from './store/with-channel-message-authors';
 import { withChannelMessageRealtime } from './store/with-channel-message-realtime';
+import { withChannelMessageRevisions } from './store/with-channel-message-revisions';
 
 /**
  * Owns message-list state for the currently selected channel.
@@ -29,6 +30,8 @@ export const ChannelMessagesStore = signalStore(
   withChannelMessageRealtime(),
 
   withChannelMessagesLoading(),
+
+  withChannelMessageRevisions(),
 
   withChannelMessageMutations()
 );

@@ -9,7 +9,10 @@ import {
 import type { ChannelId } from '@chat-hub/domain/channel';
 import type { MessageId } from '@chat-hub/domain/message';
 import { MessageApplicationService } from '@client/core/message/message-application.service';
-import type { ChannelMessagesState } from '../channel-messages.state';
+import {
+  clearedMessageRevisionHistoryState,
+  type ChannelMessagesState,
+} from '../channel-messages.state';
 import { prependUniqueMessage } from './prepend-unique-message';
 import { replaceMessage } from './replace-message';
 import { toChannelMessagesError } from './to-channel-messages-error';
@@ -119,6 +122,11 @@ export const withChannelMessageMutations = () =>
                 patchState(store, {
                   messages: replaceMessage(store.messages(), message),
                   editMessageStatus: 'idle',
+                  ...(store.revisionHistoryMessageId() === message.id
+                    ? clearedMessageRevisionHistoryState(
+                        store.revisionRequestGeneration() + 1
+                      )
+                    : {}),
                 });
 
                 return true;

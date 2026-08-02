@@ -3,6 +3,7 @@ import type { MessageRepository } from '@chat-hub/application/message';
 import { createMessage, deleteMessage, editMessage } from './commands';
 import { findMessageById } from './queries/find-message-by-id';
 import { listMessagesByChannel } from './queries/list-messages-by-channel';
+import { listMessageRevisions } from './queries/list-message-revisions';
 import { makeMessageChangesStream } from './realtime';
 import type { ChatHubSupabaseClient } from './supabase-message-client';
 
@@ -21,5 +22,6 @@ export const makeSupabaseMessageRepository = (
   delete: (command) => deleteMessage(client, command),
   findById: (messageId) => findMessageById(client, messageId),
   listByChannel: (query) => listMessagesByChannel(client, query),
+  listRevisions: (query) => listMessageRevisions(client, query),
   changesByChannel: (channelId) => makeMessageChangesStream(client, channelId),
 });

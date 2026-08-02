@@ -17,6 +17,8 @@ import type {
   Message,
   MessageContent,
   MessageId,
+  MessageRevision,
+  MessageRevisionNumber,
 } from '@chat-hub/domain/message';
 import type { Profile, ProfileId } from '@chat-hub/domain/profile';
 import { MessageApplicationService } from '@client/core/message/message-application.service';
@@ -1165,5 +1167,133 @@ describe('ChannelMessagesStore realtime synchronization', () => {
     TestBed.resetTestingModule();
 
     expect(observer.subscriptions[0]?.stop).toHaveBeenCalledOnce();
+  });
+
+  it('loads the newest revision page on demand', async () => {
+    const messageId = '00000000-0000-4000-8000-000000000050' as MessageId;
+    const revision: MessageRevision = {
+      id: '00000000-0000-4000-8000-000000000060' as MessageRevision['id'],
+      messageId,
+      versionNumber: 2 as MessageRevisionNumber,
+      content: 'Edited content' as MessageContent,
+      createdBy: authorId,
+      createdAt: new Date('2026-08-01T08:00:00.000Z'),
+    };
+    const listChannelMessages = vi
+      .fn()
+      .mockResolvedValue(Either.right({ messages: [], nextCursor: null }));
+    const listMessageRevisions = vi
+      .fn()
+      .mockResolvedValue(
+        Either.right({ revisions: [revision], nextCursor: null })
+      );
+    const { store } = configureStore({
+      listChannelMessages,
+      listMessageRevisions,
+    });
+
+    await store.selectChannel(channelId);
+    await store.openRevisionHistory(messageId);
+
+    expect(listMessageRevisions).toHaveBeenCalledExactlyOnceWith({
+      messageId,
+      limit: 20,
+    });
+    expect(store.messageRevisions()).toEqual([revision]);
+    expect(store.messageRevisionsStatus()).toBe('loaded');
+  });
+
+  it('appends older revisions without duplicates', async () => {
+    const messageId = '00000000-0000-4000-8000-000000000051' as MessageId;
+    const currentRevision: MessageRevision = {
+      id: '00000000-0000-4000-8000-000000000061' as MessageRevision['id'],
+      messageId,
+      versionNumber: 2 as MessageRevisionNumber,
+      content: 'Current' as MessageContent,
+      createdBy: authorId,
+      createdAt: new Date('2026-08-01T09:00:00.000Z'),
+    };
+    const originalRevision: MessageRevision = {
+      ...currentRevision,
+      id: '00000000-0000-4000-8000-000000000062' as MessageRevision['id'],
+      versionNumber: 1 as MessageRevisionNumber,
+      content: 'Original' as MessageContent,
+      createdAt: new Date('2026-08-01T08:00:00.000Z'),
+    };
+    const nextCursor = { versionNumber: 2 as MessageRevisionNumber };
+    const listChannelMessages = vi
+      .fn()
+      .mockResolvedValue(Either.right({ messages: [], nextCursor: null }));
+    const listMessageRevisions = vi
+      .fn()
+      .mockResolvedValueOnce(
+        Either.right({ revisions: [currentRevision], nextCursor })
+      )
+      .mockResolvedValueOnce(
+        Either.right({
+          revisions: [currentRevision, originalRevision],
+          nextCursor: null,
+        })
+      );
+    const { store } = configureStore({
+      listChannelMessages,
+      listMessageRevisions,
+    });
+
+    await store.selectChannel(channelId);
+    await store.openRevisionHistory(messageId);
+    await store.loadOlderMessageRevisions();
+
+    expect(listMessageRevisions).toHaveBeenLastCalledWith({
+      messageId,
+      limit: 20,
+      before: nextCursor,
+    });
+    expect(store.messageRevisions()).toEqual([
+      currentRevision,
+      originalRevision,
+    ]);
+  });
+
+  it('ignores revision results after another history is selected', async () => {
+    const firstMessageId = '00000000-0000-4000-8000-000000000052' as MessageId;
+    const secondMessageId = '00000000-0000-4000-8000-000000000053' as MessageId;
+    const staleResult =
+      makeDeferredPromise<
+        Either.Either<
+          { revisions: readonly MessageRevision[]; nextCursor: null },
+          never
+        >
+      >();
+    const secondRevision: MessageRevision = {
+      id: '00000000-0000-4000-8000-000000000063' as MessageRevision['id'],
+      messageId: secondMessageId,
+      versionNumber: 1 as MessageRevisionNumber,
+      content: 'Second message' as MessageContent,
+      createdBy: authorId,
+      createdAt: new Date('2026-08-01T08:00:00.000Z'),
+    };
+    const listChannelMessages = vi
+      .fn()
+      .mockResolvedValue(Either.right({ messages: [], nextCursor: null }));
+    const listMessageRevisions = vi
+      .fn()
+      .mockReturnValueOnce(staleResult.promise)
+      .mockResolvedValueOnce(
+        Either.right({ revisions: [secondRevision], nextCursor: null })
+      );
+    const { store } = configureStore({
+      listChannelMessages,
+      listMessageRevisions,
+    });
+
+    await store.selectChannel(channelId);
+    const firstRequest = store.openRevisionHistory(firstMessageId);
+    await store.openRevisionHistory(secondMessageId);
+    staleResult.resolve(Either.right({ revisions: [], nextCursor: null }));
+    await firstRequest;
+
+    expect(store.revisionHistoryMessageId()).toBe(secondMessageId);
+    expect(store.messageRevisions()).toEqual([secondRevision]);
   });
 });

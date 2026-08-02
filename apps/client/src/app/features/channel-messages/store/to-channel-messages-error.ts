@@ -3,6 +3,7 @@ import type {
   DeleteMessageError,
   EditMessageError,
   ListChannelMessagesError,
+  ListMessageRevisionsError,
 } from '@chat-hub/application/message';
 import type { ChannelMessagesError } from '../channel-messages.state';
 
@@ -78,3 +79,12 @@ export const toChannelMessagesError = (
       };
   }
 };
+
+/** Maps revision-query failures without exposing provider or RLS diagnostics. */
+export const toMessageRevisionsError = (
+  error: ListMessageRevisionsError
+): ChannelMessagesError => ({
+  tag: error._tag,
+  message:
+    'Message revision history is currently unavailable. Please try again.',
+});

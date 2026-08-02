@@ -5,6 +5,7 @@ import {
   InvalidMessageContentError,
   InvalidMessageDataError,
   InvalidMessagePageLimitError,
+  InvalidMessageRevisionPageLimitError,
   MessageAccessDeniedError,
   MessageContentUnchangedError,
   MessageCreationNotAllowedError,
@@ -14,7 +15,10 @@ import {
 } from '@chat-hub/application/message';
 import { ChannelIdSchema } from '@chat-hub/domain/channel';
 import { MessageIdSchema } from '@chat-hub/domain/message';
-import { toChannelMessagesError } from './to-channel-messages-error';
+import {
+  toChannelMessagesError,
+  toMessageRevisionsError,
+} from './to-channel-messages-error';
 
 const cause = new Error('Sensitive provider detail');
 const messageId = Schema.decodeUnknownSync(MessageIdSchema)(
@@ -85,6 +89,21 @@ describe('toChannelMessagesError', () => {
     expect(result).toEqual({
       tag: error._tag,
       message: expectedMessage,
+    });
+    expect(result.message).not.toContain(cause.message);
+  });
+});
+
+describe('toMessageRevisionsError', () => {
+  it('uses revision-specific safe feedback', () => {
+    const result = toMessageRevisionsError(
+      new InvalidMessageRevisionPageLimitError({ limit: 0, cause })
+    );
+
+    expect(result).toEqual({
+      tag: 'InvalidMessageRevisionPageLimitError',
+      message:
+        'Message revision history is currently unavailable. Please try again.',
     });
     expect(result.message).not.toContain(cause.message);
   });

@@ -11,7 +11,10 @@ import type {
 } from '@chat-hub/application/message';
 import type { ChannelId } from '@chat-hub/domain/channel';
 import { MessageApplicationService } from '@client/core/message/message-application.service';
-import type { ChannelMessagesState } from '../channel-messages.state';
+import {
+  clearedMessageRevisionHistoryState,
+  type ChannelMessagesState,
+} from '../channel-messages.state';
 import type { ChannelMessageAuthorMethods } from './with-channel-message-authors';
 import { reconcileMessageChange } from './reconcile-message-change';
 
@@ -73,6 +76,12 @@ export const withChannelMessageRealtime = () =>
 
           patchState(store, {
             messages: reconcileMessageChange(store.messages(), change),
+            ...(change.kind === 'updated' &&
+            store.revisionHistoryMessageId() === change.message.id
+              ? clearedMessageRevisionHistoryState(
+                  store.revisionRequestGeneration() + 1
+                )
+              : {}),
           });
 
           if (change.kind === 'created') {

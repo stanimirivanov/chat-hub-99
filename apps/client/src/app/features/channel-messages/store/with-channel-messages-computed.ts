@@ -24,6 +24,21 @@ export const withChannelMessagesComputed = () =>
 
       isDeleting: computed(() => store.deleteMessageStatus() === 'deleting'),
 
+      isLoadingMessageRevisions: computed(
+        () => store.messageRevisionsStatus() === 'loading'
+      ),
+
+      isLoadingOlderMessageRevisions: computed(
+        () => store.olderMessageRevisionsStatus() === 'loading'
+      ),
+
+      canLoadOlderMessageRevisions: computed(
+        () =>
+          store.messageRevisionsStatus() === 'loaded' &&
+          store.revisionNextCursor() !== null &&
+          store.olderMessageRevisionsStatus() !== 'loading'
+      ),
+
       canLoadOlder: computed(
         () =>
           store.loadStatus() === 'loaded' &&

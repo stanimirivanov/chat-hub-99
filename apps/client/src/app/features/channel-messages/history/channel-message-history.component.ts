@@ -44,6 +44,22 @@ export class ChannelMessageHistoryComponent {
     return this.isAuthoredByCurrentUser(message) || this.canModerateMessages();
   }
 
+  protected canViewRevisionHistory(message: Message): boolean {
+    return (
+      message.editedAt !== null &&
+      (this.isAuthoredByCurrentUser(message) || this.canModerateMessages())
+    );
+  }
+
+  protected toggleRevisionHistory(messageId: MessageId): void {
+    if (this.store.revisionHistoryMessageId() === messageId) {
+      this.store.closeRevisionHistory();
+      return;
+    }
+
+    void this.store.openRevisionHistory(messageId);
+  }
+
   protected authorLabel(message: Message): string {
     if (this.isAuthoredByCurrentUser(message)) {
       return 'You';
@@ -60,6 +76,7 @@ export class ChannelMessageHistoryComponent {
   protected beginEdit(messageId: MessageId): void {
     this.store.clearEditError();
     this.deletingMessageId.set(null);
+    this.store.closeRevisionHistory();
     this.editingMessageId.set(messageId);
   }
 

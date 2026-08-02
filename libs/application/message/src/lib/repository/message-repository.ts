@@ -17,6 +17,9 @@ import type {
   MessageCursor,
   MessagePage,
   MessagePageSize,
+  MessageRevisionCursor,
+  MessageRevisionPage,
+  MessageRevisionPageSize,
 } from '../pagination';
 
 /**
@@ -26,6 +29,13 @@ export interface ListChannelMessagesQuery {
   readonly channelId: ChannelId;
   readonly limit: MessagePageSize;
   readonly before?: MessageCursor;
+}
+
+/** Query used to retrieve one newest-first page of message revisions. */
+export interface ListMessageRevisionsQuery {
+  readonly messageId: MessageId;
+  readonly limit: MessageRevisionPageSize;
+  readonly before?: MessageRevisionCursor;
 }
 
 /**
@@ -79,6 +89,11 @@ export interface MessageRepository {
   readonly listByChannel: (
     query: ListChannelMessagesQuery
   ) => Effect.Effect<MessagePage, MessageRepositoryError>;
+
+  /** Returns one newest-first page of immutable revisions for a message. */
+  readonly listRevisions: (
+    query: ListMessageRevisionsQuery
+  ) => Effect.Effect<MessageRevisionPage, MessageRepositoryError>;
 
   /**
    * Observes message-head changes scoped to one RLS-visible channel.

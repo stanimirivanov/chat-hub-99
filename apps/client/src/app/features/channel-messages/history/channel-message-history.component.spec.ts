@@ -3,7 +3,11 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Schema } from 'effect';
 import { describe, expect, it, vi } from 'vitest';
 import type { AuthenticationSession } from '@chat-hub/application/authentication';
-import { MessageSchema, type Message } from '@chat-hub/domain/message';
+import {
+  MessageRevisionSchema,
+  MessageSchema,
+  type Message,
+} from '@chat-hub/domain/message';
 import { ProfileSchema, type Profile } from '@chat-hub/domain/profile';
 import { AuthenticationStore } from '@client/features/authentication/store/authentication.store';
 import { ChannelMessagesStore } from '../channel-messages.store';
@@ -38,6 +42,14 @@ const editedMessage = Schema.decodeUnknownSync(MessageSchema)({
   ...otherMessage,
   content: 'Edited message',
   editedAt,
+});
+const revision = Schema.decodeUnknownSync(MessageRevisionSchema)({
+  id: '00000000-0000-4000-8000-000000000040',
+  messageId: editedMessage.id,
+  versionNumber: 2,
+  content: 'Edited message',
+  createdBy: otherUserId,
+  createdAt: editedAt,
 });
 const deletedAt = new Date('2026-07-31T10:30:00.000Z');
 const deletedMessage = Schema.decodeUnknownSync(MessageSchema)({
@@ -80,6 +92,12 @@ const configureComponent = async (
     editError: signal(null),
     deleteError: signal(null),
     realtimeError: signal(realtimeError),
+    revisionHistoryMessageId: signal<Message['id'] | null>(null),
+    messageRevisions: signal([revision]),
+    isLoadingMessageRevisions: signal(false),
+    isLoadingOlderMessageRevisions: signal(false),
+    canLoadOlderMessageRevisions: signal(false),
+    messageRevisionsError: signal(null),
     refresh: vi.fn(),
     loadOlder: vi.fn(),
     edit: vi.fn().mockResolvedValue(true),
@@ -87,6 +105,9 @@ const configureComponent = async (
     clearEditError: vi.fn(),
     clearDeleteError: vi.fn(),
     retryRealtime: vi.fn(),
+    openRevisionHistory: vi.fn(),
+    closeRevisionHistory: vi.fn(),
+    loadOlderMessageRevisions: vi.fn(),
   };
 
   await TestBed.configureTestingModule({
@@ -142,6 +163,65 @@ describe('ChannelMessageHistoryComponent', () => {
     expect(item.textContent).toContain('Edited');
     expect(editedTime).toBeDefined();
     expect(editedTime?.getAttribute('aria-label')).toMatch(/^Edited /);
+  });
+
+  it('offers revision history to the message author only after an edit', async () => {
+    const ownEditedMessage = Schema.decodeUnknownSync(MessageSchema)({
+      ...ownMessage,
+      content: 'My edited message',
+      editedAt,
+    });
+    const { fixture, store } = await configureComponent([ownEditedMessage]);
+
+    const button = findButton(fixture, 'View edit history');
+    expect(button).toBeDefined();
+    button?.click();
+
+    expect(store.openRevisionHistory).toHaveBeenCalledExactlyOnceWith(
+      ownEditedMessage.id
+    );
+  });
+
+  it('lets a workspace owner inspect another author revision history', async () => {
+    const { fixture, store } = await configureComponent(
+      [editedMessage],
+      [],
+      null,
+      true
+    );
+
+    findButton(fixture, 'View edit history')?.click();
+
+    expect(store.openRevisionHistory).toHaveBeenCalledExactlyOnceWith(
+      editedMessage.id
+    );
+  });
+
+  it('renders a loaded revision with semantic time metadata', async () => {
+    const { fixture, store } = await configureComponent(
+      [editedMessage],
+      [],
+      null,
+      true
+    );
+    store.revisionHistoryMessageId.set(editedMessage.id);
+    fixture.detectChanges();
+
+    const revisionSection = fixture.nativeElement.querySelector(
+      '[aria-label="Message edit history"]'
+    ) as HTMLElement;
+    const time = revisionSection.querySelector('time') as HTMLTimeElement;
+
+    expect(revisionSection.textContent).toContain('Version 2');
+    expect(revisionSection.textContent).toContain('Edited message');
+    expect(time.dateTime).toBe(revision.createdAt.toISOString());
+    expect(time.getAttribute('aria-label')).toMatch(/^Version 2 created /);
+  });
+
+  it('does not disclose another author revision control to a member', async () => {
+    const { fixture } = await configureComponent([editedMessage]);
+
+    expect(findButton(fixture, 'View edit history')).toBeUndefined();
   });
 
   it('renders deleted state with its machine-readable deletion time', async () => {

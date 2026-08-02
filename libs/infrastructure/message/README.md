@@ -10,6 +10,7 @@ domain values.
 - Hold the typed Supabase client service
 - Execute message command RPCs
 - Query current message projections
+- Query immutable message revisions with keyset pagination
 - Subscribe to channel-filtered message-head changes
 - Map PostgREST and thrown failures into application repository errors
 - Validate database results before they cross into the application layer
@@ -53,6 +54,8 @@ Supporting mappers remain small and focused:
 - `message-rpc-mapper.ts` maps domain commands to generated RPC arguments.
 - `message-row-mapper.ts` validates row fields, including stable author
   identity, with domain schemas.
+- `message-revision-row-mapper.ts` validates immutable `message_versions` rows
+  and converts persisted timestamps before returning domain revisions.
 - `map-message-head-change.ts` validates Realtime event identity and channel
   ownership before emitting an application notification.
 - `message-repository-error-mapper.ts` translates Supabase failures.
@@ -96,6 +99,18 @@ Each Effect Stream subscription owns one Supabase Realtime channel. Interrupting
 the stream removes that channel; provider closure, timeout, malformed payload,
 or projection-query failure terminates the stream with the existing typed
 repository error vocabulary.
+
+## Revision history query
+
+Revision pages are read directly from the immutable `message_versions` table.
+They are ordered newest-first by `version_number`, which is monotonic and unique
+within one message, and use `version_number < cursor` for the next older page.
+The adapter requests one extra row to derive `nextCursor` without a count query.
+
+The query does not reproduce authorization rules. Existing database RLS decides
+whether the authenticated caller may see complete history; an RLS-visible empty
+result is a successful empty page. Every visible row is still validated against
+the domain revision schema before it crosses the repository boundary.
 
 ## Testing strategy
 

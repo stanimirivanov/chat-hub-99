@@ -10,6 +10,7 @@ import type { ChannelId } from '@chat-hub/domain/channel';
 import { MessageApplicationService } from '@client/core/message/message-application.service';
 import { appendUniqueMessages } from './append-unique-messages';
 import {
+  clearedMessageRevisionHistoryState,
   initialChannelMessagesState,
   type ChannelMessagesState,
 } from '../channel-messages.state';
@@ -114,6 +115,9 @@ export const withChannelMessagesLoading = () =>
               editError: null,
               deleteError: null,
               realtimeError: null,
+              ...clearedMessageRevisionHistoryState(
+                store.revisionRequestGeneration() + 1
+              ),
               requestGeneration: generation,
             });
 
@@ -147,6 +151,9 @@ export const withChannelMessagesLoading = () =>
               editError: null,
               deleteError: null,
               realtimeError: null,
+              ...clearedMessageRevisionHistoryState(
+                store.revisionRequestGeneration() + 1
+              ),
               requestGeneration: generation,
             });
 

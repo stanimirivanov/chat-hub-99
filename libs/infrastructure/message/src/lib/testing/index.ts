@@ -3,6 +3,7 @@ export {
   messageId,
   channelId,
   activeMessageRow,
+  messageRevisionRow,
   createMessageCommand,
   editMessageCommand,
   deleteMessageCommand,
@@ -15,5 +16,7 @@ export {
 } from './supabase-message-client.stub';
 
 export { makeListMessageClientStub } from './supabase-message-list-query.stub';
+
+export { makeListMessageRevisionsClientStub } from './supabase-message-revision-query.stub';
 
 export { makeFindMessageClientStub } from './supabase-message-single-query.stub';
