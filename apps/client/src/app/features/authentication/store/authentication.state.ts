@@ -18,6 +18,17 @@ export type SignUpStatus =
   | AuthenticationOperationStatus
   | 'confirmation-required';
 
+/** State of requesting a recovery email and its safe completion notice. */
+export type PasswordResetRequestStatus = AuthenticationOperationStatus | 'sent';
+
+/** State of replacing a password after a recovery session is established. */
+export type PasswordRecoveryStatus =
+  | 'idle'
+  | 'ready'
+  | 'pending'
+  | 'failed'
+  | 'completed';
+
 /**
  * Safe error representation rendered by Angular.
  */
@@ -39,6 +50,10 @@ export interface AuthenticationState {
 
   readonly signOutStatus: AuthenticationOperationStatus;
 
+  readonly passwordResetRequestStatus: PasswordResetRequestStatus;
+
+  readonly passwordRecoveryStatus: PasswordRecoveryStatus;
+
   readonly error: AuthenticationPresentationError | null;
 }
 
@@ -51,5 +66,7 @@ export const initialAuthenticationState: AuthenticationState = {
   signInStatus: 'idle',
   signUpStatus: 'idle',
   signOutStatus: 'idle',
+  passwordResetRequestStatus: 'idle',
+  passwordRecoveryStatus: 'idle',
   error: null,
 };

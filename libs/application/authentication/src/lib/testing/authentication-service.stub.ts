@@ -18,6 +18,8 @@ export const makeAuthenticationServiceStub = (
   getCurrentSession: () => unexpectedOperation('getCurrentSession'),
   signIn: () => unexpectedOperation('signIn'),
   signUp: () => unexpectedOperation('signUp'),
+  requestPasswordReset: () => unexpectedOperation('requestPasswordReset'),
+  updatePassword: () => unexpectedOperation('updatePassword'),
   signOut: () => unexpectedOperation('signOut'),
   sessionChanges: Stream.die(
     new Error(
@@ -54,5 +56,27 @@ export const makeSignUpAuthenticationService = (
   return {
     signUp,
     serviceLayer: makeAuthenticationServiceLayer({ signUp }),
+  };
+};
+
+export const makeRequestPasswordResetAuthenticationService = (
+  implementation: AuthenticationService['requestPasswordReset']
+) => {
+  const requestPasswordReset = vi.fn(implementation);
+
+  return {
+    requestPasswordReset,
+    serviceLayer: makeAuthenticationServiceLayer({ requestPasswordReset }),
+  };
+};
+
+export const makeUpdatePasswordAuthenticationService = (
+  implementation: AuthenticationService['updatePassword']
+) => {
+  const updatePassword = vi.fn(implementation);
+
+  return {
+    updatePassword,
+    serviceLayer: makeAuthenticationServiceLayer({ updatePassword }),
   };
 };

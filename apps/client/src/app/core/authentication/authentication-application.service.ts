@@ -1,16 +1,21 @@
-import { Injectable } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { inject, Injectable } from '@angular/core';
 import { Effect, Either, Fiber, Stream } from 'effect';
 import {
   observeSessionChanges,
+  requestPasswordReset,
   restoreSession,
   signIn,
   signUp,
   signOut,
+  updatePassword,
   type AuthenticationError,
   type AuthenticationSession,
+  type AuthenticationSessionChange,
   type SignInInput,
   type SignUpInput,
   type SignUpResult,
+  type UpdatePasswordInput,
 } from '@chat-hub/application/authentication';
 import { applicationRuntime } from '../effect/application-runtime';
 import { logAuthenticationError } from './log-authentication-error';
@@ -25,6 +30,8 @@ import { logAuthenticationError } from './log-authentication-error';
   providedIn: 'root',
 })
 export class AuthenticationApplicationService {
+  private readonly document = inject(DOCUMENT);
+
   /**
    * Restores the persisted browser session.
    */
@@ -85,6 +92,45 @@ export class AuthenticationApplicationService {
   }
 
   /**
+   * Requests a password-reset email with a callback to this browser origin.
+   *
+   * Constructing the absolute URL belongs here because the application use
+   * case has no browser globals. The callback returns to the root shell, whose
+   * Auth listener selects recovery mode from the provider event.
+   */
+  requestPasswordReset(
+    email: string
+  ): Promise<Either.Either<void, AuthenticationError>> {
+    const redirectUrl = new URL('/', this.document.location.origin).toString();
+    const program = requestPasswordReset({ email, redirectUrl }).pipe(
+      Effect.tapError((error) =>
+        Effect.sync(() => {
+          logAuthenticationError('request-password-reset', error);
+        })
+      ),
+      Effect.either
+    );
+
+    return applicationRuntime.runPromise(program);
+  }
+
+  /** Updates the password belonging to the active recovery session. */
+  updatePassword(
+    input: UpdatePasswordInput
+  ): Promise<Either.Either<void, AuthenticationError>> {
+    const program = updatePassword(input).pipe(
+      Effect.tapError((error) =>
+        Effect.sync(() => {
+          logAuthenticationError('update-password', error);
+        })
+      ),
+      Effect.either
+    );
+
+    return applicationRuntime.runPromise(program);
+  }
+
+  /**
    * Ends the current browser session.
    */
   signOut(): Promise<Either.Either<void, AuthenticationError>> {
@@ -106,13 +152,13 @@ export class AuthenticationApplicationService {
    * The returned cleanup function interrupts the running stream Fiber.
    */
   observeSessionChanges(
-    onSessionChange: (session: AuthenticationSession | null) => void,
+    onSessionChange: (change: AuthenticationSessionChange) => void,
     onError: (error: AuthenticationError) => void
   ): () => void {
     const program = observeSessionChanges.pipe(
-      Stream.runForEach((session) =>
+      Stream.runForEach((change) =>
         Effect.sync(() => {
-          onSessionChange(session);
+          onSessionChange(change);
         })
       ),
 

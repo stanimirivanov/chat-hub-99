@@ -2,6 +2,10 @@
   <main>
     <p>Restoring session…</p>
   </main>
+} @else if (store.isPasswordRecoveryActive()) {
+  <main>
+    <app-password-recovery />
+  </main>
 } @else if (store.isAuthenticated()) {
   <header>
     <strong>Chat Hub 99</strong>
@@ -58,7 +62,17 @@
 
   @if (anonymousView() === 'sign-in') {
     <app-sign-in />
-  } @else {
+
+    <button type="button" (click)="showAnonymousView('password-recovery')">
+      Forgot password?
+    </button>
+  } @else if (anonymousView() === 'sign-up') {
     <app-sign-up />
+  } @else {
+    <app-password-recovery />
+
+    <button type="button" (click)="showAnonymousView('sign-in')">
+      Back to sign in
+    </button>
   }
 }

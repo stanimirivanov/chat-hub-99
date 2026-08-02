@@ -45,6 +45,34 @@ describe('mapAuthenticationError', () => {
     });
   });
 
+  it.each([
+    ['over_email_send_rate_limit', 'PasswordResetRateLimitedError'],
+    ['over_request_rate_limit', 'PasswordResetRateLimitedError'],
+    ['email_address_invalid', 'InvalidPasswordResetRequestInputError'],
+  ] as const)('maps password-reset request %s', (code, tag) => {
+    const result = mapAuthenticationError(
+      makeAuthError(code),
+      'request-password-reset'
+    );
+
+    expect(result._tag).toBe(tag);
+  });
+
+  it.each([
+    ['weak_password', 'InvalidPasswordUpdateInputError'],
+    ['same_password', 'PasswordUnchangedError'],
+    ['session_not_found', 'PasswordRecoveryExpiredError'],
+    ['session_expired', 'PasswordRecoveryExpiredError'],
+    ['bad_jwt', 'PasswordRecoveryExpiredError'],
+  ] as const)('maps password-update %s', (code, tag) => {
+    const result = mapAuthenticationError(
+      makeAuthError(code),
+      'update-password'
+    );
+
+    expect(result._tag).toBe(tag);
+  });
+
   it('maps other failures to unavailable', () => {
     const providerError = makeAuthError('unexpected_failure');
 

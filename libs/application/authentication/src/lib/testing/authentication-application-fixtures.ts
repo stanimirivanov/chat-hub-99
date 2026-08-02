@@ -1,5 +1,6 @@
 import { Schema } from 'effect';
 import { AuthenticationSessionSchema } from '../authentication-session';
+import type { AuthenticationSessionChange } from '../authentication-session';
 import type { SignUpResult } from '../authentication-service';
 
 export const authenticationSession = Schema.decodeUnknownSync(
@@ -17,3 +18,18 @@ export const authenticatedSignUpResult = {
 export const confirmationRequiredSignUpResult = {
   status: 'confirmation-required',
 } satisfies SignUpResult;
+
+export const authenticatedSessionChange = {
+  type: 'session',
+  session: authenticationSession,
+} satisfies AuthenticationSessionChange;
+
+export const passwordRecoverySessionChange = {
+  type: 'password-recovery',
+  session: authenticationSession,
+} satisfies AuthenticationSessionChange;
+
+export const signedOutSessionChange = {
+  type: 'session',
+  session: null,
+} satisfies AuthenticationSessionChange;

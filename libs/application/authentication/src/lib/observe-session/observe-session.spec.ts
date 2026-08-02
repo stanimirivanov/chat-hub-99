@@ -1,15 +1,21 @@
 import { Chunk, Effect, Stream } from 'effect';
 import { describe, expect, it } from 'vitest';
 import {
-  authenticationSession,
+  authenticatedSessionChange,
   makeAuthenticationServiceLayer,
+  passwordRecoverySessionChange,
+  signedOutSessionChange,
 } from '../testing';
 import { observeSessionChanges } from './observe-session';
 
 describe('observeSessionChanges', () => {
   it('exposes changes from the authentication service', async () => {
     const layer = makeAuthenticationServiceLayer({
-      sessionChanges: Stream.make(authenticationSession, null),
+      sessionChanges: Stream.make(
+        authenticatedSessionChange,
+        passwordRecoverySessionChange,
+        signedOutSessionChange
+      ),
     });
 
     const result = await Effect.runPromise(
@@ -17,8 +23,9 @@ describe('observeSessionChanges', () => {
     );
 
     expect(Chunk.toReadonlyArray(result)).toEqual([
-      authenticationSession,
-      null,
+      authenticatedSessionChange,
+      passwordRecoverySessionChange,
+      signedOutSessionChange,
     ]);
   });
 });

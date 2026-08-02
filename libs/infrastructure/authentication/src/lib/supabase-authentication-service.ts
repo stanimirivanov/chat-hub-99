@@ -157,6 +157,49 @@ export const makeSupabaseAuthenticationService = (
       )
     ),
 
+  requestPasswordReset: (request) =>
+    Effect.tryPromise({
+      try: () =>
+        client.auth.resetPasswordForEmail(request.email, {
+          redirectTo: request.redirectUrl,
+        }),
+
+      catch: (cause) =>
+        new AuthenticationUnavailableError({
+          operation: 'request-password-reset',
+          cause,
+        }),
+    }).pipe(
+      Effect.flatMap(({ error }): Effect.Effect<void, AuthenticationError> => {
+        if (error !== null) {
+          return Effect.fail(
+            mapAuthenticationError(error, 'request-password-reset')
+          );
+        }
+
+        return Effect.void;
+      })
+    ),
+
+  updatePassword: (password) =>
+    Effect.tryPromise({
+      try: () => client.auth.updateUser({ password }),
+
+      catch: (cause) =>
+        new AuthenticationUnavailableError({
+          operation: 'update-password',
+          cause,
+        }),
+    }).pipe(
+      Effect.flatMap(({ error }): Effect.Effect<void, AuthenticationError> => {
+        if (error !== null) {
+          return Effect.fail(mapAuthenticationError(error, 'update-password'));
+        }
+
+        return Effect.void;
+      })
+    ),
+
   signOut: () =>
     Effect.tryPromise({
       try: () => client.auth.signOut(),

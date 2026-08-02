@@ -6,6 +6,7 @@ import {
 } from '@angular/core';
 import { SignInComponent } from './sign-in/sign-in.component';
 import { SignUpComponent } from './sign-up/sign-up.component';
+import { PasswordRecoveryComponent } from './password-recovery/password-recovery.component';
 import { AuthenticationStore } from './store/authentication.store';
 import { CurrentProfileComponent } from '../current-profile/current-profile.component';
 import { WorkspaceNavigationComponent } from '../workspace-navigation/workspace-navigation.component';
@@ -15,7 +16,9 @@ import { WorkspaceNavigationComponent } from '../workspace-navigation/workspace-
  *
  * The shell triggers explicit one-time store initialization and renders either
  * anonymous account access or authenticated application content. Its local
- * signal selects between sign-in and sign-up without duplicating command state.
+ * signal selects anonymous account-access forms without duplicating command
+ * state. Observed password-recovery intent takes precedence over the ordinary
+ * authenticated shell.
  */
 @Component({
   selector: 'app-authentication-shell',
@@ -23,6 +26,7 @@ import { WorkspaceNavigationComponent } from '../workspace-navigation/workspace-
   imports: [
     SignInComponent,
     SignUpComponent,
+    PasswordRecoveryComponent,
     CurrentProfileComponent,
     WorkspaceNavigationComponent,
   ],
@@ -32,7 +36,9 @@ import { WorkspaceNavigationComponent } from '../workspace-navigation/workspace-
 export class AuthenticationShellComponent {
   protected readonly store = inject(AuthenticationStore);
 
-  protected readonly anonymousView = signal<'sign-in' | 'sign-up'>('sign-in');
+  protected readonly anonymousView = signal<
+    'sign-in' | 'sign-up' | 'password-recovery'
+  >('sign-in');
 
   constructor() {
     /*
@@ -42,7 +48,9 @@ export class AuthenticationShellComponent {
     void this.store.initialize();
   }
 
-  protected showAnonymousView(view: 'sign-in' | 'sign-up'): void {
+  protected showAnonymousView(
+    view: 'sign-in' | 'sign-up' | 'password-recovery'
+  ): void {
     this.store.clearError();
     this.anonymousView.set(view);
   }

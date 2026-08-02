@@ -10,6 +10,8 @@ export type AuthenticationOperation =
   | 'restore-session'
   | 'sign-in'
   | 'sign-up'
+  | 'request-password-reset'
+  | 'update-password'
   | 'sign-out'
   | 'observe-session';
 
@@ -43,6 +45,35 @@ export class AccountAlreadyRegisteredError extends Data.TaggedError(
   'AccountAlreadyRegisteredError'
 ) {}
 
+/** Indicates malformed input at the password-reset request boundary. */
+export class InvalidPasswordResetRequestInputError extends Data.TaggedError(
+  'InvalidPasswordResetRequestInputError'
+)<{
+  readonly field: 'email' | 'redirectUrl';
+}> {}
+
+/** Indicates malformed or mismatched replacement-password input. */
+export class InvalidPasswordUpdateInputError extends Data.TaggedError(
+  'InvalidPasswordUpdateInputError'
+)<{
+  readonly field: 'password' | 'passwordConfirmation';
+}> {}
+
+/** Indicates that another recovery email cannot be sent yet. */
+export class PasswordResetRateLimitedError extends Data.TaggedError(
+  'PasswordResetRateLimitedError'
+) {}
+
+/** Indicates that the recovery session can no longer update a password. */
+export class PasswordRecoveryExpiredError extends Data.TaggedError(
+  'PasswordRecoveryExpiredError'
+) {}
+
+/** Indicates that the replacement password equals the existing password. */
+export class PasswordUnchangedError extends Data.TaggedError(
+  'PasswordUnchangedError'
+) {}
+
 /**
  * Indicates that authentication could not be completed for a reason other
  * than rejected credentials.
@@ -63,6 +94,11 @@ export class AuthenticationUnavailableError extends Data.TaggedError(
 export type AuthenticationError =
   | InvalidSignInInputError
   | InvalidSignUpInputError
+  | InvalidPasswordResetRequestInputError
+  | InvalidPasswordUpdateInputError
   | InvalidCredentialsError
   | AccountAlreadyRegisteredError
+  | PasswordResetRateLimitedError
+  | PasswordRecoveryExpiredError
+  | PasswordUnchangedError
   | AuthenticationUnavailableError;

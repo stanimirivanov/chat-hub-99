@@ -14,6 +14,7 @@ describe('AuthenticationShellComponent', () => {
     options: {
       readonly initializing?: boolean;
       readonly authenticated?: boolean;
+      readonly recovering?: boolean;
       readonly session?: AuthenticationSession | null;
     } = {}
   ) => {
@@ -22,9 +23,19 @@ describe('AuthenticationShellComponent', () => {
 
       isAuthenticated: signal(options.authenticated ?? false),
 
+      isPasswordRecoveryActive: signal(options.recovering ?? false),
+
       isSigningIn: signal(false),
 
       isSigningUp: signal(false),
+
+      isRequestingPasswordReset: signal(false),
+
+      isPasswordResetEmailSent: signal(false),
+
+      isUpdatingPassword: signal(false),
+
+      isPasswordUpdateComplete: signal(false),
 
       isSigningOut: signal(false),
 
@@ -40,11 +51,19 @@ describe('AuthenticationShellComponent', () => {
 
       signUp: vi.fn().mockResolvedValue(true),
 
+      requestPasswordReset: vi.fn().mockResolvedValue(true),
+
+      updatePassword: vi.fn().mockResolvedValue(true),
+
       signOut: vi.fn().mockResolvedValue(true),
 
       clearError: vi.fn(),
 
       resetSignUp: vi.fn(),
+
+      resetPasswordResetRequest: vi.fn(),
+
+      finishPasswordRecovery: vi.fn(),
     };
 
     await TestBed.configureTestingModule({
@@ -142,5 +161,38 @@ describe('AuthenticationShellComponent', () => {
       'Create your Chat Hub 99 account'
     );
     expect(store.clearError).toHaveBeenCalledOnce();
+  });
+
+  it('switches anonymous users to password recovery', async () => {
+    const { fixture, store } = await configureComponent();
+    const forgotPasswordButton = Array.from(
+      fixture.nativeElement.querySelectorAll('button')
+    ).find((button: Element) =>
+      button.textContent?.includes('Forgot password')
+    );
+
+    (forgotPasswordButton as HTMLButtonElement | undefined)?.click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Reset your password');
+    expect(store.clearError).toHaveBeenCalledOnce();
+  });
+
+  it('gives an active recovery session precedence over authenticated content', async () => {
+    const { fixture } = await configureComponent({
+      authenticated: true,
+      recovering: true,
+      session: {
+        userId: '00000000-0000-4000-8000-000000000001',
+        email: 'owner@chat-hub.local',
+      },
+    });
+
+    expect(fixture.nativeElement.textContent).toContain(
+      'Choose a new password'
+    );
+    expect(fixture.nativeElement.textContent).not.toContain(
+      'owner@chat-hub.local'
+    );
   });
 });

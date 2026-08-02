@@ -6,6 +6,8 @@ import {
   authenticationSession,
   invalidCredentialsError,
   makeSupabaseAuthenticationClientStub,
+  passwordResetRateLimitError,
+  weakPasswordError,
 } from './testing';
 
 describe('makeSupabaseAuthenticationService', () => {
@@ -212,6 +214,92 @@ describe('makeSupabaseAuthenticationService', () => {
       expect(result.left).toMatchObject({
         _tag: 'AuthenticationUnavailableError',
         operation: 'sign-up',
+      });
+    }
+  });
+
+  it('requests a password-reset email with its callback URL', async () => {
+    const resetPasswordForEmail = vi.fn().mockResolvedValue({
+      data: {},
+      error: null,
+    });
+    const service = makeSupabaseAuthenticationService(
+      makeSupabaseAuthenticationClientStub({ resetPasswordForEmail })
+    );
+
+    await Effect.runPromise(
+      service.requestPasswordReset({
+        email: 'owner@example.com',
+        redirectUrl: 'http://localhost:4200/',
+      })
+    );
+
+    expect(resetPasswordForEmail).toHaveBeenCalledExactlyOnceWith(
+      'owner@example.com',
+      { redirectTo: 'http://localhost:4200/' }
+    );
+  });
+
+  it('maps password-reset email rate limiting', async () => {
+    const service = makeSupabaseAuthenticationService(
+      makeSupabaseAuthenticationClientStub({
+        resetPasswordForEmail: vi.fn().mockResolvedValue({
+          data: null,
+          error: passwordResetRateLimitError,
+        }),
+      })
+    );
+
+    const result = await Effect.runPromise(
+      service
+        .requestPasswordReset({
+          email: 'owner@example.com',
+          redirectUrl: 'http://localhost:4200/',
+        })
+        .pipe(Effect.either)
+    );
+
+    expect(Either.isLeft(result)).toBe(true);
+    if (Either.isLeft(result)) {
+      expect(result.left._tag).toBe('PasswordResetRateLimitedError');
+    }
+  });
+
+  it('updates the recovery session password', async () => {
+    const updateUser = vi.fn().mockResolvedValue({
+      data: { user: authenticationSession.user },
+      error: null,
+    });
+    const service = makeSupabaseAuthenticationService(
+      makeSupabaseAuthenticationClientStub({ updateUser })
+    );
+
+    await Effect.runPromise(service.updatePassword('NewPassword123!'));
+
+    expect(updateUser).toHaveBeenCalledExactlyOnceWith({
+      password: 'NewPassword123!',
+    });
+  });
+
+  it('maps a weak replacement password', async () => {
+    const service = makeSupabaseAuthenticationService(
+      makeSupabaseAuthenticationClientStub({
+        updateUser: vi.fn().mockResolvedValue({
+          data: { user: null },
+          error: weakPasswordError,
+        }),
+      })
+    );
+
+    const result = await Effect.runPromise(
+      service.updatePassword('weak').pipe(Effect.either)
+    );
+
+    expect(Either.isLeft(result)).toBe(true);
+    if (Either.isLeft(result)) {
+      expect(result.left).toMatchObject({
+        _tag: 'InvalidPasswordUpdateInputError',
+        field: 'password',
       });
     }
   });

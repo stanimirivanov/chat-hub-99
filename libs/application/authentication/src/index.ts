@@ -1,6 +1,7 @@
 export {
   AuthenticationSessionSchema,
   type AuthenticationSession,
+  type AuthenticationSessionChange,
 } from './lib/authentication-session';
 
 export {
@@ -8,6 +9,11 @@ export {
   InvalidSignInInputError,
   InvalidSignUpInputError,
   AccountAlreadyRegisteredError,
+  InvalidPasswordResetRequestInputError,
+  InvalidPasswordUpdateInputError,
+  PasswordResetRateLimitedError,
+  PasswordRecoveryExpiredError,
+  PasswordUnchangedError,
   AuthenticationUnavailableError,
   type AuthenticationOperation,
   type AuthenticationError,
@@ -16,6 +22,7 @@ export {
 export {
   AuthenticationServiceTag,
   type AuthenticationService,
+  type PasswordResetRequest,
   type SignUpResult,
 } from './lib/authentication-service';
 
@@ -25,8 +32,18 @@ export { observeSessionChanges } from './lib/observe-session';
 
 export { restoreSession } from './lib/restore-session';
 
+export {
+  requestPasswordReset,
+  type RequestPasswordResetInput,
+} from './lib/request-password-reset';
+
 export { signIn, type SignInInput } from './lib/sign-in';
 
 export { signUp, type SignUpInput } from './lib/sign-up';
 
 export { signOut } from './lib/sign-out';
+
+export {
+  updatePassword,
+  type UpdatePasswordInput,
+} from './lib/update-password';

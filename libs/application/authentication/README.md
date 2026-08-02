@@ -5,16 +5,16 @@ authentication capability used by the Chat Hub application.
 
 It contains application session contracts, typed authentication failures,
 the outbound authentication service port, and use cases for restoring a
-session, signing in, registering an account, signing out, and observing session
-changes.
+session, signing in, registering an account, requesting password recovery,
+replacing a recovered password, signing out, and observing session changes.
 
 ## Responsibilities
 
 - Define the application authentication-session projection.
 - Define technology-independent authentication errors.
 - Define the outbound `AuthenticationService` port.
-- Orchestrate session restoration, sign-in, sign-up, sign-out, and session
-  observation.
+- Orchestrate session restoration, sign-in, sign-up, password recovery,
+  sign-out, and session observation.
 - Runtime-validate and normalize use-case input before requesting a provider.
 - Express dependencies and expected failures through Effect types.
 
@@ -56,10 +56,12 @@ src/lib/
 ├── authentication-session.ts
 ├── email-password-credentials.ts
 ├── observe-session/
+├── request-password-reset/
 ├── restore-session/
 ├── sign-in/
 ├── sign-up/
 ├── sign-out/
+├── update-password/
 └── testing/
 ```
 
@@ -76,7 +78,7 @@ The public entry point exports:
 - the runtime-validated session contract and credential contracts;
 - application authentication errors;
 - `AuthenticationServiceTag`;
-- the five authentication use cases.
+- the seven authentication use cases.
 
 Account registration deliberately models both successful provider outcomes:
 an immediately authenticated session and an account that must confirm its
@@ -89,6 +91,21 @@ Angular store -> signUp use case -> AuthenticationService Tag
 ```
 
 Testing helpers and implementation details remain private.
+
+Password recovery is modeled as two commands connected by an observed session
+change. The request command validates an absolute HTTP(S) callback URL without
+depending on browser APIs. The session stream distinguishes an ordinary session
+notification from recovery intent, while keeping provider event names out of
+the application contract. The update command validates matching replacement
+password fields before invoking the provider port.
+
+```text
+request reset -> provider email -> password-recovery session change
+              -> update password -> authenticated session retained
+```
+
+The reset-request success value is always `void`; callers must render the same
+completion for existing and unknown email addresses.
 
 ## Verification
 

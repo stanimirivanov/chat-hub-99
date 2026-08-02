@@ -1,0 +1,132 @@
+import { signal } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { describe, expect, it, vi } from 'vitest';
+import { AuthenticationStore } from '../store/authentication.store';
+import { PasswordRecoveryComponent } from './password-recovery.component';
+
+describe('PasswordRecoveryComponent', () => {
+  const configureComponent = async (
+    options: {
+      readonly recoveryActive?: boolean;
+      readonly emailSent?: boolean;
+      readonly updateComplete?: boolean;
+    } = {}
+  ) => {
+    const store = {
+      isPasswordRecoveryActive: signal(options.recoveryActive ?? false),
+      isPasswordResetEmailSent: signal(options.emailSent ?? false),
+      isPasswordUpdateComplete: signal(options.updateComplete ?? false),
+      isRequestingPasswordReset: signal(false),
+      isUpdatingPassword: signal(false),
+      error: signal(null),
+      requestPasswordReset: vi.fn().mockResolvedValue(true),
+      updatePassword: vi.fn().mockResolvedValue(true),
+      signOut: vi.fn().mockResolvedValue(true),
+      resetPasswordResetRequest: vi.fn(),
+      finishPasswordRecovery: vi.fn(),
+      clearError: vi.fn(),
+    };
+
+    await TestBed.configureTestingModule({
+      imports: [PasswordRecoveryComponent],
+      providers: [
+        {
+          provide: AuthenticationStore,
+          useValue: store,
+        },
+      ],
+    }).compileComponents();
+
+    const fixture: ComponentFixture<PasswordRecoveryComponent> =
+      TestBed.createComponent(PasswordRecoveryComponent);
+    fixture.detectChanges();
+
+    return { fixture, store };
+  };
+
+  it('submits an email for password recovery', async () => {
+    const { fixture, store } = await configureComponent();
+    const emailInput = fixture.nativeElement.querySelector(
+      '#password-reset-email'
+    ) as HTMLInputElement;
+    const form = fixture.nativeElement.querySelector('form') as HTMLFormElement;
+
+    emailInput.value = 'owner@chat-hub.local';
+    form.dispatchEvent(new Event('submit'));
+    await fixture.whenStable();
+
+    expect(store.requestPasswordReset).toHaveBeenCalledExactlyOnceWith(
+      'owner@chat-hub.local'
+    );
+  });
+
+  it('renders the same completion notice regardless of account existence', async () => {
+    const { fixture, store } = await configureComponent({ emailSent: true });
+
+    expect(fixture.nativeElement.querySelector('form')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain(
+      'If an account exists for that address'
+    );
+
+    (
+      fixture.nativeElement.querySelector('button') as HTMLButtonElement
+    ).click();
+
+    expect(store.resetPasswordResetRequest).toHaveBeenCalledOnce();
+  });
+
+  it('submits matching fields through the recovery session boundary', async () => {
+    const { fixture, store } = await configureComponent({
+      recoveryActive: true,
+    });
+    const passwordInput = fixture.nativeElement.querySelector(
+      '#recovery-password'
+    ) as HTMLInputElement;
+    const confirmationInput = fixture.nativeElement.querySelector(
+      '#recovery-password-confirmation'
+    ) as HTMLInputElement;
+    const form = fixture.nativeElement.querySelector('form') as HTMLFormElement;
+
+    passwordInput.value = 'Replacement123!';
+    confirmationInput.value = 'Replacement123!';
+    form.dispatchEvent(new Event('submit'));
+    await fixture.whenStable();
+
+    expect(store.updatePassword).toHaveBeenCalledExactlyOnceWith(
+      'Replacement123!',
+      'Replacement123!'
+    );
+  });
+
+  it('cancels recovery through the existing sign-out workflow', async () => {
+    const { fixture, store } = await configureComponent({
+      recoveryActive: true,
+    });
+    const cancelButton = Array.from(
+      fixture.nativeElement.querySelectorAll('button')
+    ).find((button: Element) =>
+      button.textContent?.includes('Cancel recovery')
+    );
+
+    (cancelButton as HTMLButtonElement | undefined)?.click();
+    await fixture.whenStable();
+
+    expect(store.signOut).toHaveBeenCalledOnce();
+  });
+
+  it('leaves a completed recovery screen only on explicit continuation', async () => {
+    const { fixture, store } = await configureComponent({
+      recoveryActive: true,
+      updateComplete: true,
+    });
+
+    expect(fixture.nativeElement.querySelector('form')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Password updated');
+
+    (
+      fixture.nativeElement.querySelector('button') as HTMLButtonElement
+    ).click();
+
+    expect(store.finishPasswordRecovery).toHaveBeenCalledOnce();
+  });
+});

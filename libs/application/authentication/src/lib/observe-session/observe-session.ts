@@ -4,7 +4,7 @@ import {
   AuthenticationServiceTag,
   type AuthenticationService,
 } from '../authentication-service';
-import type { AuthenticationSession } from '../authentication-session';
+import type { AuthenticationSessionChange } from '../authentication-session';
 
 /**
  * Builds a stream of future authentication-session changes.
@@ -15,7 +15,7 @@ import type { AuthenticationSession } from '../authentication-session';
  * requires an `AuthenticationService`.
  */
 export const observeSessionChanges: Stream.Stream<
-  AuthenticationSession | null,
+  AuthenticationSessionChange,
   AuthenticationError,
   AuthenticationService
 > = Stream.unwrap(

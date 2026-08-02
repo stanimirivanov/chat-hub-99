@@ -31,6 +31,15 @@ or renders an explicit email-confirmation completion. The existing Auth-user
 database trigger owns initial profile creation; the client adds no parallel
 profile-provisioning workflow.
 
+Anonymous users can also request a password-reset email. The completion text is
+deliberately identical whether or not the address belongs to an account. The
+Angular execution boundary supplies the current browser origin as the callback;
+application and infrastructure contracts do not import DOM APIs. When Supabase
+opens a valid recovery session, that observed event takes precedence over the
+authenticated application shell until the user replaces the password and
+explicitly continues. Store revisions prevent an older restoration or command
+result from replacing a newer provider session.
+
 ## Angular boundary
 
 Effect use cases remain framework-independent. Services under `core` run
