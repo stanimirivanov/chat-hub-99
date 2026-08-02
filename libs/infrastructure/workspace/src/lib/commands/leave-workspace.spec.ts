@@ -101,6 +101,10 @@ describe('leaveWorkspace', () => {
       },
     ],
     ['active membership', { ...leftWorkspaceRow, membership_status: 'active' }],
+    [
+      'owner-removed membership',
+      { ...leftWorkspaceRow, membership_status: 'removed' },
+    ],
   ])('rejects an invalid %s at the adapter boundary', async (_label, data) => {
     const stub = makeWorkspaceCommandClientStub({ data, error: null });
 

@@ -10,12 +10,12 @@ import {
 } from './leave-workspace-error';
 
 /**
- * Removes the authenticated user's own membership from one active workspace.
+ * Leaves the authenticated user's own membership in one active workspace.
  *
  * The workspace identity is validated before repository access. The actor is
- * not accepted as input: the provider session is the authority for which
- * membership may be removed. The Effect preserves typed lifecycle and
- * last-owner failures and requires `WorkspaceRepository`.
+ * not accepted as input: the provider session authoritatively identifies the
+ * membership that transitions to `left`. The Effect preserves typed lifecycle
+ * and last-owner failures and requires `WorkspaceRepository`.
  */
 export const leaveWorkspace = (
   input: unknown
