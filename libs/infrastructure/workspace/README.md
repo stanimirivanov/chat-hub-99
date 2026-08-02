@@ -91,7 +91,7 @@ leaveWorkspace use case
   -> WorkspaceRepositoryTag
   -> SupabaseWorkspaceRepositoryLayer
   -> leave_workspace RPC
-  -> removed workspace-membership validation
+  -> left workspace-membership validation
 ```
 
 The membership query returns stable identities and roles only. Profile
@@ -105,11 +105,12 @@ Role-change/removal
 authorization and last-owner invariants are likewise enforced there;
 owner-driven removal cannot target the actor, while the separate departure
 command can target only the provider-authenticated actor. The adapter translates
-stable outcomes without reimplementing them. A removed membership is validated
-and acknowledged as `void` rather than being misrepresented as an active
-`WorkspaceMember`. The focused client projection contains only operations
-needed by implemented slices. Testing support provides fresh query doubles and
-canonical generated rows.
+stable outcomes without reimplementing them. Owner-driven removal is validated
+as `removed`, while voluntary departure is validated as `left`; both are
+acknowledged as `void` rather than being misrepresented as active
+`WorkspaceMember` values. The focused client projection contains only
+operations needed by implemented slices. Testing support provides fresh query
+doubles and canonical generated rows.
 
 Workspace updates replace the complete mutable snapshot and append an immutable
 database version. Owner authorization, active-workspace status, concurrent head

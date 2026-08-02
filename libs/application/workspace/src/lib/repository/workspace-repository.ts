@@ -105,7 +105,7 @@ export interface WorkspaceRepository {
   >;
 
   /**
-   * Removes the provider-authenticated user's own active membership.
+   * Leaves the provider-authenticated user's own active membership.
    *
    * The authenticated identity is deliberately absent from the contract so a
    * caller cannot request departure on behalf of another member.

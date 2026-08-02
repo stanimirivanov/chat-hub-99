@@ -88,7 +88,7 @@ Angular caller
   -> leaveWorkspace(input)
   -> validated WorkspaceId
   -> WorkspaceRepositoryTag.leave
-  -> validated removed membership acknowledgment
+  -> validated left membership acknowledgment
 ```
 
 Testing support is private and follows the fixture/stub convention used by the

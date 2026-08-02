@@ -14,7 +14,7 @@
 --   - role changes append immutable events;
 --   - a workspace cannot lose its final active owner;
 --   - owners can remove active members;
---   - active members can leave their workspace;
+--   - active members append a distinct left event when leaving their workspace;
 --   - the final active owner cannot leave;
 --   - owners can reinstate a left or removed membership without replacing its
 --     stable identity or immutable history;
@@ -29,7 +29,7 @@ BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap
 WITH SCHEMA extensions;
 
-SELECT plan(33);
+SELECT plan(34);
 
 
 -- ============================================================================
@@ -699,13 +699,13 @@ SELECT results_eq(
         ),
         (
             2,
-            'removed'::TEXT,
+            'left'::TEXT,
             'member'::TEXT,
             '30000000-0000-0000-0000-000000000003'::UUID,
             NULL::TEXT
         )
     $$,
-    'Leaving appends a self-performed removed event to immutable history'
+    'Leaving appends a self-performed left event to immutable history'
 );
 
 
@@ -727,12 +727,12 @@ SELECT results_eq(
     $$
         VALUES (
             'member'::TEXT,
-            'removed'::TEXT,
+            'left'::TEXT,
             2,
-            'removed'::TEXT
+            'left'::TEXT
         )
     $$,
-    'Departure advances the current membership head to removed'
+    'Departure advances the current membership head to left'
 );
 
 
@@ -740,6 +740,18 @@ SET LOCAL ROLE authenticated;
 
 SET LOCAL request.jwt.claim.sub =
     '30000000-0000-0000-0000-000000000003';
+
+
+SELECT is(
+    (
+        SELECT count(*)
+        FROM public.current_workspace_memberships
+        WHERE workspace_id =
+            :'workspace_workspace_id'::UUID
+    ),
+    0::BIGINT,
+    'A member that left loses workspace membership directory access'
+);
 
 
 SELECT throws_ok(
@@ -856,7 +868,7 @@ SELECT results_eq(
         ),
         (
             2,
-            'removed'::TEXT,
+            'left'::TEXT,
             'member'::TEXT,
             '30000000-0000-0000-0000-000000000003'::UUID
         ),

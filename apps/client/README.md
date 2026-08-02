@@ -172,8 +172,9 @@ parameters are cleared only while they still name that target. A final owner
 receives actionable guidance to assign another active owner first. The client
 does not accept or derive a departure target identity: the database command
 uses the authenticated Supabase session and protects the last-owner invariant.
-An owner can restore that access through the exact-username member workflow
-described below.
+The immutable history records voluntary departure as `left`, distinct from an
+owner-driven `removed` event. An owner can restore that access through the
+exact-username member workflow described below.
 
 The nested `workspace-member-directory` slice loads active RLS-visible
 memberships for the selected workspace and batch-enriches their stable profile

@@ -13,7 +13,7 @@ import { toLeaveWorkspaceArgs } from '../mapping';
 import type { SupabaseWorkspaceClient } from '../supabase-workspace-client';
 
 /**
- * Executes self-departure and validates the canonical removed membership
+ * Executes self-departure and validates the canonical left membership
  * before acknowledging success. The target identity remains session-derived.
  */
 export const leaveWorkspace = (
@@ -39,13 +39,13 @@ const validateDepartureResult = (
 ): Effect.Effect<void, InvalidWorkspaceMemberDataError> => {
   if (
     result === null ||
-    result.membership_status !== 'removed' ||
+    result.membership_status !== 'left' ||
     result.workspace_id !== workspaceId
   ) {
     return Effect.fail(
       new InvalidWorkspaceMemberDataError({
         cause:
-          'Workspace departure returned no matching removed membership projection.',
+          'Workspace departure returned no matching left membership projection.',
       })
     );
   }

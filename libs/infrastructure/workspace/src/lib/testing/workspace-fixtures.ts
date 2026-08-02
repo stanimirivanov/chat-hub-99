@@ -68,7 +68,7 @@ export const leftWorkspaceRow: LeaveWorkspaceResult = {
   workspace_id: '00000000-0000-4000-8000-000000000001',
   user_id: '00000000-0000-4000-8000-000000000002',
   membership_role: 'member',
-  membership_status: 'removed',
+  membership_status: 'left',
   latest_event_id: '00000000-0000-4000-8000-000000000022',
 };
 
