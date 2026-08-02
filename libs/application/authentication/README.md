@@ -5,14 +5,16 @@ authentication capability used by the Chat Hub application.
 
 It contains application session contracts, typed authentication failures,
 the outbound authentication service port, and use cases for restoring a
-session, signing in, signing out, and observing session changes.
+session, signing in, registering an account, signing out, and observing session
+changes.
 
 ## Responsibilities
 
 - Define the application authentication-session projection.
 - Define technology-independent authentication errors.
 - Define the outbound `AuthenticationService` port.
-- Orchestrate session restoration, sign-in, sign-out, and session observation.
+- Orchestrate session restoration, sign-in, sign-up, sign-out, and session
+  observation.
 - Runtime-validate and normalize use-case input before requesting a provider.
 - Express dependencies and expected failures through Effect types.
 
@@ -52,9 +54,11 @@ src/lib/
 ├── authentication-error.ts
 ├── authentication-service.ts
 ├── authentication-session.ts
+├── email-password-credentials.ts
 ├── observe-session/
 ├── restore-session/
 ├── sign-in/
+├── sign-up/
 ├── sign-out/
 └── testing/
 ```
@@ -72,7 +76,17 @@ The public entry point exports:
 - the runtime-validated session contract and credential contracts;
 - application authentication errors;
 - `AuthenticationServiceTag`;
-- the four authentication use cases.
+- the five authentication use cases.
+
+Account registration deliberately models both successful provider outcomes:
+an immediately authenticated session and an account that must confirm its
+email first. A nullable provider session never leaks into Angular as an
+ambiguous success value.
+
+```text
+Angular store -> signUp use case -> AuthenticationService Tag
+              -> Supabase adapter -> mapped SignUpResult
+```
 
 Testing helpers and implementation details remain private.
 

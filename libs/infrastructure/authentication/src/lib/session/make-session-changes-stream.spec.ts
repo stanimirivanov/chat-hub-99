@@ -5,8 +5,10 @@ import type {
 } from '@supabase/supabase-js';
 import { Effect, Fiber, Stream } from 'effect';
 import { describe, expect, it, vi } from 'vitest';
-import type { SupabaseAuthenticationClient } from '../supabase-authentication-client';
-import { authenticationSession } from '../testing';
+import {
+  authenticationSession,
+  makeSupabaseAuthenticationClientStub,
+} from '../testing';
 import { makeSessionChangesStream } from './make-session-changes-stream';
 
 describe('makeSessionChangesStream', () => {
@@ -17,29 +19,21 @@ describe('makeSessionChangesStream', () => {
       | ((event: AuthChangeEvent, session: Session | null) => void)
       | undefined;
 
-    const client: SupabaseAuthenticationClient = {
-      auth: {
-        getSession: vi.fn(),
+    const client = makeSupabaseAuthenticationClientStub({
+      onAuthStateChange: (callback) => {
+        authCallback = callback;
 
-        signInWithPassword: vi.fn(),
-
-        signOut: vi.fn(),
-
-        onAuthStateChange: (callback) => {
-          authCallback = callback;
-
-          return {
-            data: {
-              subscription: {
-                id: 'auth-subscription',
-                callback,
-                unsubscribe,
-              } satisfies Subscription,
-            },
-          };
-        },
+        return {
+          data: {
+            subscription: {
+              id: 'auth-subscription',
+              callback,
+              unsubscribe,
+            } satisfies Subscription,
+          },
+        };
       },
-    };
+    });
 
     const observed: Array<string | null> = [];
 

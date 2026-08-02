@@ -1,14 +1,20 @@
 import { Context, type Effect, type Stream } from 'effect';
 import type { AuthenticationError } from './authentication-error';
 import type { AuthenticationSession } from './authentication-session';
+import type { EmailPasswordCredentials } from './email-password-credentials';
 
 /**
- * Email/password credentials accepted by the authentication capability.
+ * Successful account-registration outcomes supported by the provider-neutral
+ * application boundary.
  */
-export interface SignInCredentials {
-  readonly email: string;
-  readonly password: string;
-}
+export type SignUpResult =
+  | {
+      readonly status: 'authenticated';
+      readonly session: AuthenticationSession;
+    }
+  | {
+      readonly status: 'confirmation-required';
+    };
 
 /**
  * Outbound application port for authentication.
@@ -33,8 +39,18 @@ export interface AuthenticationService {
    * Builds a program that authenticates using email and password.
    */
   readonly signIn: (
-    credentials: SignInCredentials
+    credentials: EmailPasswordCredentials
   ) => Effect.Effect<AuthenticationSession, AuthenticationError>;
+
+  /**
+   * Builds a program that registers an email/password account.
+   *
+   * Providers may either create a session immediately or require email
+   * confirmation before authentication is possible.
+   */
+  readonly signUp: (
+    credentials: EmailPasswordCredentials
+  ) => Effect.Effect<SignUpResult, AuthenticationError>;
 
   /**
    * Builds a program that ends the current authentication session.

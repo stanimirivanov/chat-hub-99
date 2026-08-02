@@ -24,19 +24,27 @@ describe('AuthenticationShellComponent', () => {
 
       isSigningIn: signal(false),
 
+      isSigningUp: signal(false),
+
       isSigningOut: signal(false),
 
       session: signal(options.session ?? null),
 
       error: signal(null),
 
+      requiresEmailConfirmation: signal(false),
+
       initialize: vi.fn().mockResolvedValue(undefined),
 
       signIn: vi.fn().mockResolvedValue(true),
 
+      signUp: vi.fn().mockResolvedValue(true),
+
       signOut: vi.fn().mockResolvedValue(true),
 
       clearError: vi.fn(),
+
+      resetSignUp: vi.fn(),
     };
 
     await TestBed.configureTestingModule({
@@ -116,5 +124,23 @@ describe('AuthenticationShellComponent', () => {
     expect(fixture.nativeElement.textContent).toContain(
       'Sign in to Chat Hub 99'
     );
+  });
+
+  it('switches anonymous users to account registration', async () => {
+    const { fixture, store } = await configureComponent();
+    const buttons = Array.from(
+      fixture.nativeElement.querySelectorAll('nav button')
+    ) as HTMLButtonElement[];
+    const createAccountButton = buttons.find((button) =>
+      button.textContent?.includes('Create account')
+    );
+
+    createAccountButton?.click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain(
+      'Create your Chat Hub 99 account'
+    );
+    expect(store.clearError).toHaveBeenCalledOnce();
   });
 });

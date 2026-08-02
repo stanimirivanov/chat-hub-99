@@ -2,6 +2,7 @@ import { Effect, Either } from 'effect';
 import { describe, expect, it, vi } from 'vitest';
 import { makeSupabaseAuthenticationService } from './supabase-authentication-service';
 import {
+  accountAlreadyRegisteredError,
   authenticationSession,
   invalidCredentialsError,
   makeSupabaseAuthenticationClientStub,
@@ -103,6 +104,116 @@ describe('makeSupabaseAuthenticationService', () => {
         throw new Error('Expected sign-in to fail.');
       },
     });
+  });
+
+  it('registers an account and maps its immediate session', async () => {
+    const signUp = vi.fn().mockResolvedValue({
+      data: {
+        user: authenticationSession.user,
+        session: authenticationSession,
+      },
+      error: null,
+    });
+    const service = makeSupabaseAuthenticationService(
+      makeSupabaseAuthenticationClientStub({ signUp })
+    );
+
+    const result = await Effect.runPromise(
+      service.signUp({
+        email: 'new-user@example.com',
+        password: 'Password123!',
+      })
+    );
+
+    expect(result).toEqual({
+      status: 'authenticated',
+      session: {
+        userId: '00000000-0000-4000-8000-000000000001',
+        email: 'owner@chat-hub.local',
+      },
+    });
+    expect(signUp).toHaveBeenCalledExactlyOnceWith({
+      email: 'new-user@example.com',
+      password: 'Password123!',
+    });
+  });
+
+  it('preserves email-confirmation registration as an explicit outcome', async () => {
+    const service = makeSupabaseAuthenticationService(
+      makeSupabaseAuthenticationClientStub({
+        signUp: vi.fn().mockResolvedValue({
+          data: {
+            user: authenticationSession.user,
+            session: null,
+          },
+          error: null,
+        }),
+      })
+    );
+
+    await expect(
+      Effect.runPromise(
+        service.signUp({
+          email: 'new-user@example.com',
+          password: 'Password123!',
+        })
+      )
+    ).resolves.toEqual({ status: 'confirmation-required' });
+  });
+
+  it('maps an already registered account', async () => {
+    const service = makeSupabaseAuthenticationService(
+      makeSupabaseAuthenticationClientStub({
+        signUp: vi.fn().mockResolvedValue({
+          data: { user: null, session: null },
+          error: accountAlreadyRegisteredError,
+        }),
+      })
+    );
+
+    const result = await Effect.runPromise(
+      service
+        .signUp({
+          email: 'owner@chat-hub.local',
+          password: 'Password123!',
+        })
+        .pipe(Effect.either)
+    );
+
+    expect(Either.isLeft(result)).toBe(true);
+    if (Either.isLeft(result)) {
+      expect(result.left).toMatchObject({
+        _tag: 'AccountAlreadyRegisteredError',
+      });
+    }
+  });
+
+  it('rejects a successful provider response without a user or session', async () => {
+    const service = makeSupabaseAuthenticationService(
+      makeSupabaseAuthenticationClientStub({
+        signUp: vi.fn().mockResolvedValue({
+          data: { user: null, session: null },
+          error: null,
+        }),
+      })
+    );
+
+    const result = await Effect.runPromise(
+      service
+        .signUp({
+          email: 'new-user@example.com',
+          password: 'Password123!',
+        })
+        .pipe(Effect.either)
+    );
+
+    expect(Either.isLeft(result)).toBe(true);
+    if (Either.isLeft(result)) {
+      expect(result.left).toMatchObject({
+        _tag: 'AuthenticationUnavailableError',
+        operation: 'sign-up',
+      });
+    }
   });
 
   it('signs out', async () => {

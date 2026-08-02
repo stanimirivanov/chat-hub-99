@@ -1,4 +1,4 @@
-import { Effect, Schema } from 'effect';
+import { Effect } from 'effect';
 import {
   InvalidSignInInputError,
   type AuthenticationError,
@@ -8,54 +8,15 @@ import {
   type AuthenticationService,
 } from '../authentication-service';
 import type { AuthenticationSession } from '../authentication-session';
+import {
+  decodeEmailPasswordCredentials,
+  type EmailPasswordCredentials,
+} from '../email-password-credentials';
 
 /**
  * Input accepted by the sign-in use case.
  */
-export interface SignInInput {
-  readonly email: string;
-  readonly password: string;
-}
-
-const EmailSchema = Schema.Trim.pipe(Schema.nonEmptyString());
-const PasswordSchema = Schema.String.pipe(Schema.minLength(1));
-
-const readInputField = (input: unknown, field: keyof SignInInput): unknown =>
-  typeof input === 'object' && input !== null
-    ? Reflect.get(input, field)
-    : undefined;
-
-const decodeSignInInput = (
-  input: unknown
-): Effect.Effect<SignInInput, InvalidSignInInputError> =>
-  Effect.gen(function* () {
-    const email = yield* Schema.decodeUnknown(EmailSchema)(
-      readInputField(input, 'email')
-    ).pipe(
-      Effect.mapError(
-        () =>
-          new InvalidSignInInputError({
-            field: 'email',
-          })
-      )
-    );
-
-    const password = yield* Schema.decodeUnknown(PasswordSchema)(
-      readInputField(input, 'password')
-    ).pipe(
-      Effect.mapError(
-        () =>
-          new InvalidSignInInputError({
-            field: 'password',
-          })
-      )
-    );
-
-    return {
-      email,
-      password,
-    };
-  });
+export type SignInInput = EmailPasswordCredentials;
 
 /**
  * Builds a program that authenticates using email and password.
@@ -78,7 +39,10 @@ export const signIn = (
   AuthenticationService
 > =>
   Effect.gen(function* () {
-    const credentials = yield* decodeSignInInput(input);
+    const credentials = yield* decodeEmailPasswordCredentials(
+      input,
+      (field) => new InvalidSignInInputError({ field })
+    );
 
     const authenticationService = yield* AuthenticationServiceTag;
 

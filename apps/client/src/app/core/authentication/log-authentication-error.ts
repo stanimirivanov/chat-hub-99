@@ -18,21 +18,22 @@ export const logAuthenticationError = (
     return;
   }
 
-  if (
-    error._tag === 'InvalidCredentialsError' ||
-    error._tag === 'InvalidSignInInputError'
-  ) {
-    console.warn('[authentication] Credentials rejected', {
-      operation,
-      errorTag: error._tag,
-    });
+  switch (error._tag) {
+    case 'InvalidCredentialsError':
+    case 'InvalidSignInInputError':
+    case 'InvalidSignUpInputError':
+    case 'AccountAlreadyRegisteredError':
+      console.warn('[authentication] Credentials rejected', {
+        operation,
+        errorTag: error._tag,
+      });
 
-    return;
+      return;
+    case 'AuthenticationUnavailableError':
+      console.error('[authentication] Operation failed', {
+        operation,
+        errorTag: error._tag,
+        cause: error.cause,
+      });
   }
-
-  console.error('[authentication] Operation failed', {
-    operation,
-    errorTag: error._tag,
-    cause: error.cause,
-  });
 };

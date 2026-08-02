@@ -13,6 +13,11 @@ export type AuthenticationStatus =
  */
 export type AuthenticationOperationStatus = 'idle' | 'pending' | 'failed';
 
+/** State of the account-registration command and its non-error completion. */
+export type SignUpStatus =
+  | AuthenticationOperationStatus
+  | 'confirmation-required';
+
 /**
  * Safe error representation rendered by Angular.
  */
@@ -30,6 +35,8 @@ export interface AuthenticationState {
 
   readonly signInStatus: AuthenticationOperationStatus;
 
+  readonly signUpStatus: SignUpStatus;
+
   readonly signOutStatus: AuthenticationOperationStatus;
 
   readonly error: AuthenticationPresentationError | null;
@@ -42,6 +49,7 @@ export const initialAuthenticationState: AuthenticationState = {
   status: 'initializing',
   session: null,
   signInStatus: 'idle',
+  signUpStatus: 'idle',
   signOutStatus: 'idle',
   error: null,
 };

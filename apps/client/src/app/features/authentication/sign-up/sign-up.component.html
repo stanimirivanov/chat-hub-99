@@ -1,0 +1,61 @@
+<section aria-labelledby="sign-up-heading">
+  @if (store.requiresEmailConfirmation()) {
+    <h1 id="sign-up-heading">Check your email</h1>
+
+    <p role="status">
+      Confirm your email address before signing in to Chat Hub 99.
+    </p>
+
+    <button type="button" (click)="store.resetSignUp()">
+      Register another email
+    </button>
+  } @else {
+    <h1 id="sign-up-heading">Create your Chat Hub 99 account</h1>
+
+    <form (submit)="$event.preventDefault(); submit(emailInput, passwordInput)">
+      <div>
+        <label for="sign-up-email"> Email </label>
+
+        <input
+          #emailInput
+          id="sign-up-email"
+          name="email"
+          type="email"
+          autocomplete="email"
+          required
+          [disabled]="store.isSigningUp()"
+        />
+      </div>
+
+      <div>
+        <label for="sign-up-password"> Password </label>
+
+        <input
+          #passwordInput
+          id="sign-up-password"
+          name="password"
+          type="password"
+          autocomplete="new-password"
+          required
+          [disabled]="store.isSigningUp()"
+        />
+      </div>
+
+      <button type="submit" [disabled]="store.isSigningUp()">
+        @if (store.isSigningUp()) {
+          Creating account...
+        } @else {
+          Create account
+        }
+      </button>
+    </form>
+  }
+
+  @if (store.error(); as error) {
+    <p role="alert">
+      {{ error.message }}
+    </p>
+
+    <button type="button" (click)="store.clearError()">Dismiss</button>
+  }
+</section>

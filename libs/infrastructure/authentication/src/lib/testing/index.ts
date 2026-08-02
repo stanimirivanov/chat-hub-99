@@ -1,4 +1,5 @@
 export {
+  accountAlreadyRegisteredError,
   authenticationSession,
   invalidCredentialsError,
 } from './authentication-fixtures';

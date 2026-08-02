@@ -11,6 +11,8 @@ provider-independent application contracts.
 - Define the focused Supabase Auth client dependency used by the adapter.
 - Restore the current Supabase browser session.
 - Sign in with email and password.
+- Register email/password accounts and distinguish immediate sessions from
+  email-confirmation completion.
 - Sign out of the current session.
 - Adapt `onAuthStateChange` to a scoped Effect Stream.
 - Map Supabase sessions to `AuthenticationSession`.
@@ -29,6 +31,14 @@ application/authentication
 
 The application library never imports Supabase. Raw Supabase sessions, tokens,
 callbacks, and `AuthError` values stop at this infrastructure boundary.
+
+The adapter maps `auth.signUp` responses before crossing that boundary:
+
+```text
+Supabase session   -> authenticated application session
+Supabase user only -> confirmation required
+Supabase AuthError -> typed application authentication error
+```
 
 ## Package structure
 
@@ -82,12 +92,6 @@ The public entry point exports only:
 
 The concrete service factory, mappers, and stream adapter remain internal.
 
-# 7. Optional addition to the authentication infrastructure README
-
-The root README should own operational troubleshooting. The infrastructure README can contain a smaller boundary-specific note.
-
-Append to:
-
 ## Local troubleshooting
 
 The adapter maps provider and transport failures to typed application errors.
@@ -120,8 +124,4 @@ pnpm exec nx lint authentication-infrastructure
 pnpm exec nx run authentication-infrastructure:typecheck
 pnpm exec nx run authentication-infrastructure:typecheck:test
 pnpm exec nx test authentication-infrastructure
-```
-
-```
-
 ```

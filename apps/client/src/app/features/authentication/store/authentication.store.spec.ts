@@ -3,9 +3,11 @@ import { describe, expect, it, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import {
   AuthenticationUnavailableError,
+  AccountAlreadyRegisteredError,
   InvalidCredentialsError,
   type AuthenticationError,
   type AuthenticationSession,
+  type SignUpResult,
 } from '@chat-hub/application/authentication';
 import { AuthenticationApplicationService } from '@client/core/authentication/authentication-application.service';
 import { AuthenticationStore } from './authentication.store';
@@ -60,6 +62,8 @@ const configureStore = (
 
     signIn: AuthenticationApplicationService['signIn'];
 
+    signUp: AuthenticationApplicationService['signUp'];
+
     signOut: AuthenticationApplicationService['signOut'];
 
     observeSessionChanges: AuthenticationApplicationService['observeSessionChanges'];
@@ -71,6 +75,13 @@ const configureStore = (
     restoreSession: vi.fn().mockResolvedValue(Either.right(null)),
 
     signIn: vi.fn().mockResolvedValue(Either.right(session)),
+
+    signUp: vi.fn().mockResolvedValue(
+      Either.right({
+        status: 'authenticated',
+        session,
+      } satisfies SignUpResult)
+    ),
 
     signOut: vi.fn().mockResolvedValue(Either.right(undefined)),
 
@@ -346,6 +357,121 @@ describe('AuthenticationStore', () => {
     await expect(result).resolves.toBe(true);
 
     expect(store.session()).toEqual(newerSession);
+  });
+
+  it('authenticates after registration returns an immediate session', async () => {
+    const signUp = vi.fn().mockResolvedValue(
+      Either.right({
+        status: 'authenticated',
+        session,
+      } satisfies SignUpResult)
+    );
+    const { store } = configureStore({ signUp });
+
+    await store.initialize();
+
+    await expect(
+      store.signUp('new-user@example.com', 'Password123!')
+    ).resolves.toBe(true);
+    expect(signUp).toHaveBeenCalledExactlyOnceWith({
+      email: 'new-user@example.com',
+      password: 'Password123!',
+    });
+    expect(store.status()).toBe('authenticated');
+    expect(store.session()).toEqual(session);
+    expect(store.signUpStatus()).toBe('idle');
+  });
+
+  it('retains an anonymous confirmation-required completion', async () => {
+    const { store } = configureStore({
+      signUp: vi.fn().mockResolvedValue(
+        Either.right({
+          status: 'confirmation-required',
+        } satisfies SignUpResult)
+      ),
+    });
+
+    await store.initialize();
+
+    await expect(
+      store.signUp('new-user@example.com', 'Password123!')
+    ).resolves.toBe(true);
+    expect(store.status()).toBe('anonymous');
+    expect(store.session()).toBeNull();
+    expect(store.signUpStatus()).toBe('confirmation-required');
+    expect(store.requiresEmailConfirmation()).toBe(true);
+
+    store.resetSignUp();
+
+    expect(store.signUpStatus()).toBe('idle');
+  });
+
+  it('presents an already registered account without provider details', async () => {
+    const { store } = configureStore({
+      signUp: vi
+        .fn()
+        .mockResolvedValue(Either.left(new AccountAlreadyRegisteredError())),
+    });
+
+    await store.initialize();
+
+    await expect(
+      store.signUp('owner@chat-hub.local', 'Password123!')
+    ).resolves.toBe(false);
+    expect(store.signUpStatus()).toBe('failed');
+    expect(store.error()).toEqual({
+      message: 'An account with this email already exists. Try signing in.',
+    });
+  });
+
+  it('serializes registration with other authentication commands', async () => {
+    const pendingSignUp =
+      makeDeferred<Either.Either<SignUpResult, AuthenticationError>>();
+    const signIn = vi.fn().mockResolvedValue(Either.right(session));
+    const signUp = vi.fn().mockReturnValue(pendingSignUp.promise);
+    const { store } = configureStore({ signIn, signUp });
+
+    await store.initialize();
+
+    const registration = store.signUp('new-user@example.com', 'Password123!');
+
+    expect(store.isSigningUp()).toBe(true);
+    await expect(
+      store.signIn('owner@chat-hub.local', 'Password123!')
+    ).resolves.toBe(false);
+    expect(signIn).not.toHaveBeenCalled();
+
+    pendingSignUp.resolve(Either.right({ status: 'confirmation-required' }));
+    await expect(registration).resolves.toBe(true);
+  });
+
+  it('does not let a stale registration result replace an observed session', async () => {
+    const newerSession: AuthenticationSession = {
+      userId: '00000000-0000-4000-8000-000000000002',
+      email: 'newer@chat-hub.local',
+    };
+    const observer = makeSessionObserver();
+    const signUp =
+      makeDeferred<Either.Either<SignUpResult, AuthenticationError>>();
+    const { store } = configureStore({
+      signUp: vi.fn().mockReturnValue(signUp.promise),
+      observeSessionChanges: observer.observeSessionChanges,
+    });
+
+    await store.initialize();
+
+    const registration = store.signUp('new-user@example.com', 'Password123!');
+    observer.emitSession(newerSession);
+    signUp.resolve(
+      Either.right({
+        status: 'authenticated',
+        session,
+      })
+    );
+
+    await expect(registration).resolves.toBe(true);
+    expect(store.session()).toEqual(newerSession);
+    expect(store.signUpStatus()).toBe('idle');
   });
 
   it('becomes anonymous after sign-out', async () => {
