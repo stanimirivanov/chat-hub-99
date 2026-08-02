@@ -88,6 +88,7 @@ Migrations define:
 - database extensions and shared prerequisites;
 - immutable profile and workspace models;
 - workspace membership history;
+- immutable workspace-invitation history with recipient consent;
 - owner-authorized workspace-member suspension with final-owner protection;
 - session-derived `left` workspace departure with final-owner protection;
 - owner-authorized reinstatement of preserved former-member history;
@@ -131,6 +132,7 @@ Contains pgTAP tests for:
 - profile commands;
 - workspace commands;
 - workspace membership commands;
+- workspace invitation commands and recipient read policies;
 - channel commands;
 - message commands;
 - profile and workspace read policies;

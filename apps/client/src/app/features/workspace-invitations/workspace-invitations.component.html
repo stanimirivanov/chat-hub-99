@@ -1,0 +1,97 @@
+<section
+  aria-labelledby="workspace-invitations-heading"
+  [attr.aria-busy]="
+    store.isLoading() || store.isCreating() || store.isResponding()
+  "
+>
+  <h2 id="workspace-invitations-heading">Workspace invitations</h2>
+
+  @if (canInvite()) {
+    @if (workspaceId(); as selectedWorkspaceId) {
+      <form (submit)="invite($event, selectedWorkspaceId, usernameInput)">
+        <label for="workspace-invitation-username">
+          Invite an existing user by exact username
+        </label>
+        <input
+          #usernameInput
+          id="workspace-invitation-username"
+          name="username"
+          type="text"
+          autocomplete="off"
+          required
+          [disabled]="store.isCreating()"
+        />
+        <button type="submit" [disabled]="store.isCreating()">
+          {{ store.isCreating() ? 'Inviting…' : 'Send invitation' }}
+        </button>
+      </form>
+    }
+  }
+
+  @if (store.creationStatus() === 'succeeded') {
+    <p role="status">Invitation sent. Access begins only after acceptance.</p>
+    <button type="button" (click)="store.clearCreationFeedback()">
+      Dismiss
+    </button>
+  } @else if (store.creationError(); as error) {
+    <p role="alert">{{ error.message }}</p>
+    <button type="button" (click)="store.clearCreationFeedback()">
+      Dismiss
+    </button>
+  }
+
+  @if (store.isLoading()) {
+    <p>Loading invitations&hellip;</p>
+  } @else if (store.error(); as error) {
+    <p role="alert">{{ error.message }}</p>
+    <button type="button" (click)="store.load()">Try again</button>
+  } @else if (store.hasInvitations()) {
+    <ul aria-label="Pending workspace invitations">
+      @for (entry of store.invitations(); track entry.invitation.id) {
+        <li>
+          <strong>{{ entry.workspace.name }}</strong>
+          @if (entry.workspace.description) {
+            <span> &mdash; {{ entry.workspace.description }}</span>
+          }
+          <button
+            type="button"
+            [disabled]="store.isResponding()"
+            [attr.aria-label]="'Accept invitation to ' + entry.workspace.name"
+            (click)="accept(entry.invitation.id)"
+          >
+            @if (
+              store.responseKind() === 'accept' &&
+              store.respondingInvitationId() === entry.invitation.id
+            ) {
+              Accepting&hellip;
+            } @else {
+              Accept
+            }
+          </button>
+          <button
+            type="button"
+            [disabled]="store.isResponding()"
+            [attr.aria-label]="'Decline invitation to ' + entry.workspace.name"
+            (click)="decline(entry.invitation.id)"
+          >
+            @if (
+              store.responseKind() === 'decline' &&
+              store.respondingInvitationId() === entry.invitation.id
+            ) {
+              Declining&hellip;
+            } @else {
+              Decline
+            }
+          </button>
+        </li>
+      }
+    </ul>
+  } @else {
+    <p>You have no pending workspace invitations.</p>
+  }
+
+  @if (store.responseError(); as error) {
+    <p role="alert">{{ error.message }}</p>
+    <button type="button" (click)="store.clearResponseError()">Dismiss</button>
+  }
+</section>

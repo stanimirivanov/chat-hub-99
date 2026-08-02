@@ -13,6 +13,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { WorkspaceIdSchema, type Workspace } from '@chat-hub/domain/workspace';
 import { ChannelNavigationComponent } from '@client/features/channel-navigation/channel-navigation.component';
 import { WorkspaceMemberDirectoryComponent } from '@client/features/workspace-member-directory/workspace-member-directory.component';
+import { WorkspaceInvitationsComponent } from '@client/features/workspace-invitations/workspace-invitations.component';
 import { WorkspaceNavigationComponent } from './workspace-navigation.component';
 import { WorkspaceNavigationStore } from './workspace-navigation.store';
 
@@ -51,6 +52,17 @@ class ChannelNavigationStubComponent {
 class WorkspaceMemberDirectoryStubComponent {
   readonly workspaceId = input.required<typeof workspace.id>();
   readonly canManageMembersChange = output<boolean>();
+}
+
+@Component({
+  selector: 'app-workspace-invitations',
+  standalone: true,
+  template: '',
+})
+class WorkspaceInvitationsStubComponent {
+  readonly workspaceId = input<typeof workspace.id | null>(null);
+  readonly canInvite = input(false);
+  readonly invitationAccepted = output<Workspace>();
 }
 
 const configureComponent = async ({
@@ -99,15 +111,21 @@ const configureComponent = async ({
     clearUpdateError: vi.fn(),
     clearArchiveError: vi.fn(),
     clearDepartureError: vi.fn(),
+    includeAccessibleWorkspace: vi.fn(),
   };
 
   TestBed.overrideComponent(WorkspaceNavigationComponent, {
     remove: {
-      imports: [ChannelNavigationComponent, WorkspaceMemberDirectoryComponent],
+      imports: [
+        ChannelNavigationComponent,
+        WorkspaceInvitationsComponent,
+        WorkspaceMemberDirectoryComponent,
+      ],
     },
     add: {
       imports: [
         ChannelNavigationStubComponent,
+        WorkspaceInvitationsStubComponent,
         WorkspaceMemberDirectoryStubComponent,
       ],
     },

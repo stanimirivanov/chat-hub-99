@@ -1,7 +1,10 @@
 export { addWorkspaceMember } from './add-workspace-member';
+export { acceptWorkspaceInvitation } from './accept-workspace-invitation';
 export { archiveWorkspace } from './archive-workspace';
 export { changeWorkspaceMemberRole } from './change-workspace-member-role';
 export { createWorkspace } from './create-workspace';
+export { declineWorkspaceInvitation } from './decline-workspace-invitation';
+export { inviteWorkspaceMember } from './invite-workspace-member';
 export { leaveWorkspace } from './leave-workspace';
 export { removeWorkspaceMember } from './remove-workspace-member';
 export { suspendWorkspaceMember } from './suspend-workspace-member';

@@ -47,6 +47,7 @@ export const WorkspaceNavigationStore = signalStore(
     (store, workspaceApplication = inject(WorkspaceApplicationService)) => {
       let loading: Promise<void> | null = null;
       let selectionVersion = 0;
+      const locallyIncludedWorkspaces = new Map<WorkspaceId, Workspace>();
 
       const selectionIsObsolete = (
         workspaceId: WorkspaceId,
@@ -56,6 +57,7 @@ export const WorkspaceNavigationStore = signalStore(
         store.selectedWorkspaceId() !== workspaceId;
 
       const removeAccessibleWorkspace = (workspaceId: WorkspaceId): void => {
+        locallyIncludedWorkspaces.delete(workspaceId);
         const targetStillSelected = store.selectedWorkspaceId() === workspaceId;
 
         if (targetStillSelected) {
@@ -71,6 +73,20 @@ export const WorkspaceNavigationStore = signalStore(
       };
 
       return {
+        /**
+         * Reconciles access granted by invitation acceptance, including while
+         * the initial workspace query is still in flight.
+         */
+        includeAccessibleWorkspace(workspace: Workspace): void {
+          locallyIncludedWorkspaces.set(workspace.id, workspace);
+
+          if (store.loadStatus() === 'loaded') {
+            patchState(store, {
+              workspaces: upsertWorkspace(store.workspaces(), workspace),
+            });
+          }
+        },
+
         /**
          * Loads accessible workspaces once. Concurrent calls share the active
          * request, while failed loads may be retried.
@@ -118,7 +134,12 @@ export const WorkspaceNavigationStore = signalStore(
                 onRight: (workspaces) => {
                   selectionVersion += 1;
                   patchState(store, {
-                    workspaces,
+                    workspaces: [...workspaces].reduce(
+                      (result, workspace) => upsertWorkspace(result, workspace),
+                      [
+                        ...locallyIncludedWorkspaces.values(),
+                      ] as readonly Workspace[]
+                    ),
                     selectedWorkspaceId: null,
                     loadStatus: 'loaded',
                     error: null,

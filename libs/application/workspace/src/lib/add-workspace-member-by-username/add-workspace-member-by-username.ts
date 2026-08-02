@@ -1,13 +1,10 @@
-import { Effect, Schema } from 'effect';
+import { Effect } from 'effect';
 import {
   ProfileRepositoryTag,
   type ProfileRepository,
 } from '@chat-hub/application/profile';
 import type { Profile } from '@chat-hub/domain/profile';
-import {
-  WorkspaceIdSchema,
-  type WorkspaceMember,
-} from '@chat-hub/domain/workspace';
+import { type WorkspaceMember } from '@chat-hub/domain/workspace';
 import {
   WorkspaceRepositoryTag,
   type AddWorkspaceMemberCommand,
@@ -17,40 +14,8 @@ import {
   InvalidWorkspaceMemberAdditionInputError,
   WorkspaceMemberCandidateNotFoundError,
   type AddWorkspaceMemberByUsernameError,
-  type WorkspaceMemberAdditionField,
 } from './add-workspace-member-by-username-error';
-
-const decodeString = Schema.decodeUnknown(Schema.String);
-
-const readInputField = (
-  input: unknown,
-  field: WorkspaceMemberAdditionField
-): unknown =>
-  typeof input === 'object' && input !== null
-    ? Reflect.get(input, field)
-    : undefined;
-
-const invalidField = (
-  field: WorkspaceMemberAdditionField,
-  cause: unknown
-): InvalidWorkspaceMemberAdditionInputError =>
-  new InvalidWorkspaceMemberAdditionInputError({ field, cause });
-
-const decodeWorkspaceId = (input: unknown) =>
-  decodeString(readInputField(input, 'workspaceId')).pipe(
-    Effect.map((value) => value.trim()),
-    Effect.flatMap(Schema.decodeUnknown(WorkspaceIdSchema)),
-    Effect.mapError((cause) => invalidField('workspaceId', cause))
-  );
-
-const decodeUsername = (
-  input: unknown
-): Effect.Effect<string, InvalidWorkspaceMemberAdditionInputError> =>
-  decodeString(readInputField(input, 'username')).pipe(
-    Effect.map((value) => value.trim()),
-    Effect.flatMap(Schema.decodeUnknown(Schema.NonEmptyTrimmedString)),
-    Effect.mapError((cause) => invalidField('username', cause))
-  );
+import { decodeWorkspaceMemberCandidate } from '../workspace-member-candidate/decode-workspace-member-candidate';
 
 /**
  * Active member and profile projections produced by addition or reactivation.
@@ -77,8 +42,11 @@ export const addWorkspaceMemberByUsername = (
   ProfileRepository | WorkspaceRepository
 > =>
   Effect.gen(function* () {
-    const workspaceId = yield* decodeWorkspaceId(input);
-    const username = yield* decodeUsername(input);
+    const { workspaceId, username } = yield* decodeWorkspaceMemberCandidate(
+      input,
+      (field, cause) =>
+        new InvalidWorkspaceMemberAdditionInputError({ field, cause })
+    );
     const profileRepository = yield* ProfileRepositoryTag;
     const profile = yield* profileRepository.findActiveByUsername(username);
 

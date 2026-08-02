@@ -2,6 +2,7 @@ import { Data } from 'effect';
 import type { ProfileId } from '@chat-hub/domain/profile';
 import type {
   WorkspaceId,
+  WorkspaceInvitationId,
   WorkspaceMemberRole,
 } from '@chat-hub/domain/workspace';
 
@@ -29,6 +30,13 @@ export class InvalidWorkspaceDataError extends Data.TaggedError(
  */
 export class InvalidWorkspaceMemberDataError extends Data.TaggedError(
   'InvalidWorkspaceMemberDataError'
+)<{
+  readonly cause: unknown;
+}> {}
+
+/** Indicates that an external invitation projection violated its contract. */
+export class InvalidWorkspaceInvitationDataError extends Data.TaggedError(
+  'InvalidWorkspaceInvitationDataError'
 )<{
   readonly cause: unknown;
 }> {}
@@ -98,6 +106,44 @@ export class WorkspaceMemberReactivationNotAllowedError extends Data.TaggedError
 )<{
   readonly workspaceId: WorkspaceId;
   readonly profileId: ProfileId;
+}> {}
+
+/** Indicates that the current session may not create the invitation. */
+export class WorkspaceInvitationCreationNotAllowedError extends Data.TaggedError(
+  'WorkspaceInvitationCreationNotAllowedError'
+)<{
+  readonly workspaceId: WorkspaceId;
+}> {}
+
+/** Indicates that the selected profile is no longer active. */
+export class WorkspaceInvitationProfileNotActiveError extends Data.TaggedError(
+  'WorkspaceInvitationProfileNotActiveError'
+)<{
+  readonly workspaceId: WorkspaceId;
+  readonly profileId: ProfileId;
+}> {}
+
+/** Indicates that the selected profile already has active workspace access. */
+export class WorkspaceInvitationMemberAlreadyActiveError extends Data.TaggedError(
+  'WorkspaceInvitationMemberAlreadyActiveError'
+)<{
+  readonly workspaceId: WorkspaceId;
+  readonly profileId: ProfileId;
+}> {}
+
+/** Indicates that consent is already awaiting the selected profile. */
+export class WorkspaceInvitationAlreadyPendingError extends Data.TaggedError(
+  'WorkspaceInvitationAlreadyPendingError'
+)<{
+  readonly workspaceId: WorkspaceId;
+  readonly profileId: ProfileId;
+}> {}
+
+/** Indicates that an invitation cannot be answered in the current state. */
+export class WorkspaceInvitationResponseNotAllowedError extends Data.TaggedError(
+  'WorkspaceInvitationResponseNotAllowedError'
+)<{
+  readonly invitationId: WorkspaceInvitationId;
 }> {}
 
 /**
@@ -267,3 +313,26 @@ export type WorkspaceDepartureRepositoryError =
   | InvalidWorkspaceMemberDataError
   | WorkspaceDepartureNotAllowedError
   | WorkspaceLastOwnerDepartureError;
+
+export type WorkspaceInvitationCreationRepositoryError =
+  | WorkspaceRepositoryUnavailableError
+  | InvalidWorkspaceInvitationDataError
+  | WorkspaceInvitationCreationNotAllowedError
+  | WorkspaceInvitationProfileNotActiveError
+  | WorkspaceInvitationMemberAlreadyActiveError
+  | WorkspaceInvitationAlreadyPendingError;
+
+export type WorkspaceInvitationRepositoryReadError =
+  | WorkspaceRepositoryUnavailableError
+  | InvalidWorkspaceInvitationDataError
+  | InvalidWorkspaceDataError;
+
+export type WorkspaceInvitationAcceptanceRepositoryError =
+  | WorkspaceRepositoryUnavailableError
+  | InvalidWorkspaceMemberDataError
+  | WorkspaceInvitationResponseNotAllowedError;
+
+export type WorkspaceInvitationDeclineRepositoryError =
+  | WorkspaceRepositoryUnavailableError
+  | InvalidWorkspaceInvitationDataError
+  | WorkspaceInvitationResponseNotAllowedError;

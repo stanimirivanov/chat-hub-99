@@ -2,16 +2,23 @@ import type {
   AddWorkspaceMemberCommand,
   ChangeWorkspaceMemberRoleCommand,
   CreateWorkspaceCommand,
+  InviteWorkspaceMemberCommand,
   RemoveWorkspaceMemberCommand,
   SuspendWorkspaceMemberCommand,
   UpdateWorkspaceCommand,
 } from '@chat-hub/application/workspace';
-import type { WorkspaceId } from '@chat-hub/domain/workspace';
+import type {
+  WorkspaceId,
+  WorkspaceInvitationId,
+} from '@chat-hub/domain/workspace';
 import type {
   AddWorkspaceMemberArgs,
   ArchiveWorkspaceArgs,
   ChangeWorkspaceMemberRoleArgs,
   CreateWorkspaceArgs,
+  InviteWorkspaceMemberArgs,
+  AcceptWorkspaceInvitationArgs,
+  DeclineWorkspaceInvitationArgs,
   LeaveWorkspaceArgs,
   RemoveWorkspaceMemberArgs,
   SuspendWorkspaceMemberArgs,
@@ -104,4 +111,26 @@ export const toSuspendWorkspaceMemberArgs = (
   p_workspace_id: command.workspaceId,
   p_user_id: command.profileId,
   ...(command.reason === null ? {} : { p_reason: command.reason }),
+});
+
+/** Maps a validated invitation command to generated RPC arguments. */
+export const toInviteWorkspaceMemberArgs = (
+  command: InviteWorkspaceMemberCommand
+): InviteWorkspaceMemberArgs => ({
+  p_workspace_id: command.workspaceId,
+  p_user_id: command.profileId,
+});
+
+/** Maps a validated invitation identity to acceptance RPC arguments. */
+export const toAcceptWorkspaceInvitationArgs = (
+  invitationId: WorkspaceInvitationId
+): AcceptWorkspaceInvitationArgs => ({
+  p_workspace_invitation_id: invitationId,
+});
+
+/** Maps a validated invitation identity to decline RPC arguments. */
+export const toDeclineWorkspaceInvitationArgs = (
+  invitationId: WorkspaceInvitationId
+): DeclineWorkspaceInvitationArgs => ({
+  p_workspace_invitation_id: invitationId,
 });

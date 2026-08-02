@@ -8,6 +8,9 @@ archiving with `archive_workspace`, member addition/reactivation with
 `change_workspace_member_role`, member suspension with
 `suspend_workspace_member`, and member removal with `remove_workspace_member`.
 Self-service departure uses the separate `leave_workspace` command.
+Consent-based access uses `invite_workspace_member`,
+`list_pending_workspace_invitations`, `accept_workspace_invitation`, and
+`decline_workspace_invitation`.
 
 ## Responsibilities
 
@@ -24,6 +27,9 @@ Self-service departure uses the separate `leave_workspace` command.
   argument.
 - Execute self-departure without exposing actor or target identity as an
   argument.
+- Create pending invitations without granting immediate access, list only the
+  authenticated recipient's pending invitations, and execute recipient-only
+  acceptance or decline commands.
 - Apply stable name/identity ordering.
 - Map generated view and RPC rows into validated domain projections.
 - Preserve actionable current-slug conflicts as a typed application failure.
@@ -100,6 +106,21 @@ leaveWorkspace use case
   -> SupabaseWorkspaceRepositoryLayer
   -> leave_workspace RPC
   -> left workspace-membership validation
+
+inviteWorkspaceMemberByUsername use case
+  -> WorkspaceRepositoryTag.inviteMember
+  -> invite_workspace_member RPC
+  -> pending identity/status checks + WorkspaceInvitationSchema decoding
+
+listPendingWorkspaceInvitations use case
+  -> WorkspaceRepositoryTag.listPendingInvitations
+  -> recipient-scoped list_pending_workspace_invitations RPC
+  -> WorkspaceInvitationSchema + WorkspaceSchema decoding
+
+acceptWorkspaceInvitation / declineWorkspaceInvitation
+  -> WorkspaceRepositoryTag recipient command
+  -> transactional invitation event and membership activation / decline event
+  -> canonical membership or invitation-state validation
 ```
 
 The membership query returns stable identities and roles only. Profile
@@ -119,6 +140,16 @@ validated as `removed`, suspension as `suspended`, and voluntary departure as
 active `WorkspaceMember`. The focused client projection contains only
 operations needed by implemented slices. Testing support provides fresh query
 doubles and canonical generated rows.
+
+Invitation identities and events are append-only. Their mutable heads enforce
+one pending invitation per workspace/profile pair. Creation is owner-only and
+rejects active members; listing is recipient-scoped; acceptance and decline can
+only be performed by the addressed authenticated user. Acceptance and
+membership activation share one database transaction. A private database
+helper owns the demonstrated create-or-reinstate transition used by both direct
+owner addition and invitation acceptance, while each public RPC keeps its own
+authorization policy. Email delivery, external addresses, expiry, cancellation,
+and broad profile search are outside this slice.
 
 Workspace updates replace the complete mutable snapshot and append an immutable
 database version. Owner authorization, active-workspace status, concurrent head

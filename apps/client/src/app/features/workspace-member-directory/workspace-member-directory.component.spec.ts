@@ -45,9 +45,7 @@ const renderComponent = async (currentProfileId: ProfileId) => {
     hasMembers: signal(true),
     error: signal(null),
     mutationError: signal(null),
-    additionError: signal(null),
     isMutatingMember: signal(false),
-    isAddingMember: signal(false),
     isChangingRole: signal(false),
     isRemovingMember: signal(false),
     isSuspendingMember: signal(false),
@@ -56,9 +54,7 @@ const renderComponent = async (currentProfileId: ProfileId) => {
     changeMemberRole: vi.fn().mockResolvedValue(true),
     removeMember: vi.fn().mockResolvedValue(true),
     suspendMember: vi.fn().mockResolvedValue(true),
-    addMemberByUsername: vi.fn().mockResolvedValue(true),
     clearMemberMutationError: vi.fn(),
-    clearMemberAdditionError: vi.fn(),
   };
 
   TestBed.overrideComponent(WorkspaceMemberDirectoryComponent, {
@@ -145,29 +141,6 @@ describe('WorkspaceMemberDirectoryComponent', () => {
       fixture.nativeElement.querySelectorAll('button[aria-label^="Suspend:"]')
     ).toHaveLength(0);
     expect(fixture.nativeElement.querySelector('form')).toBeNull();
-  });
-
-  it('lets an owner add or reactivate a member by exact username', async () => {
-    const { fixture, store } = await renderComponent(ownerId);
-    const input = fixture.nativeElement.querySelector(
-      'input[name="username"]'
-    ) as HTMLInputElement;
-    const form = input.closest('form') as HTMLFormElement;
-    input.value = 'candidate';
-
-    expect(fixture.nativeElement.textContent).toContain(
-      'Add or reactivate member by username'
-    );
-
-    form.dispatchEvent(
-      new SubmitEvent('submit', { bubbles: true, cancelable: true })
-    );
-    await fixture.whenStable();
-
-    expect(store.addMemberByUsername).toHaveBeenCalledExactlyOnceWith(
-      'candidate'
-    );
-    expect(input.value).toBe('');
   });
 
   it('requires owner confirmation before requesting member removal', async () => {

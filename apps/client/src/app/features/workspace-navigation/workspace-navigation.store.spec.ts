@@ -118,6 +118,26 @@ describe('WorkspaceNavigationStore', () => {
     expect(service.listAccessibleWorkspaces).toHaveBeenCalledOnce();
   });
 
+  it('reconciles invitation access while initial discovery is in flight', async () => {
+    let resolveLoad:
+      | ((value: Either.Either<readonly Workspace[], never>) => void)
+      | undefined;
+    const result = new Promise<Either.Either<readonly Workspace[], never>>(
+      (resolve) => {
+        resolveLoad = resolve;
+      }
+    );
+    const { store, service } = configureStore();
+    service.listAccessibleWorkspaces.mockReturnValue(result);
+
+    const loading = store.load();
+    store.includeAccessibleWorkspace(createdWorkspace);
+    resolveLoad?.(Either.right([workspace]));
+    await loading;
+
+    expect(store.workspaces()).toEqual([workspace, createdWorkspace]);
+  });
+
   it('exposes a safe error and permits retry', async () => {
     const failure = new WorkspaceRepositoryUnavailableError({
       cause: new Error('Provider unavailable'),

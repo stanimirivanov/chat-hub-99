@@ -1,4 +1,8 @@
-export { workspace, workspaceMember } from './workspace-application-fixtures';
+export {
+  workspace,
+  workspaceInvitation,
+  workspaceMember,
+} from './workspace-application-fixtures';
 export {
   makeAddWorkspaceMemberRepository,
   makeArchiveWorkspaceRepository,
@@ -9,6 +13,10 @@ export {
   makeLeaveWorkspaceRepository,
   makeRemoveWorkspaceMemberRepository,
   makeSuspendWorkspaceMemberRepository,
+  makeAcceptWorkspaceInvitationRepository,
+  makeDeclineWorkspaceInvitationRepository,
+  makeInviteWorkspaceMemberRepository,
+  makeListPendingWorkspaceInvitationsRepository,
   makeUpdateWorkspaceRepository,
   makeWorkspaceRepositoryLayer,
   makeWorkspaceRepositoryStub,

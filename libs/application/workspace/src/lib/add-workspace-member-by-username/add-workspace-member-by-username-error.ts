@@ -1,8 +1,9 @@
 import { Data } from 'effect';
 import type { ProfileRepositoryReadError } from '@chat-hub/application/profile';
 import type { WorkspaceMemberAddRepositoryError } from '../repository';
+import type { WorkspaceMemberCandidateField } from '../workspace-member-candidate/decode-workspace-member-candidate';
 
-export type WorkspaceMemberAdditionField = 'workspaceId' | 'username';
+export type WorkspaceMemberAdditionField = WorkspaceMemberCandidateField;
 
 /**
  * Indicates that one add-member field failed boundary validation.

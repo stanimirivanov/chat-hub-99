@@ -22,6 +22,22 @@ export const makeWorkspaceRepositoryStub = (
     ),
   leave: () =>
     Effect.dieMessage('Unexpected WorkspaceRepository.leave call in test'),
+  inviteMember: () =>
+    Effect.dieMessage(
+      'Unexpected WorkspaceRepository.inviteMember call in test'
+    ),
+  listPendingInvitations: () =>
+    Effect.dieMessage(
+      'Unexpected WorkspaceRepository.listPendingInvitations call in test'
+    ),
+  acceptInvitation: () =>
+    Effect.dieMessage(
+      'Unexpected WorkspaceRepository.acceptInvitation call in test'
+    ),
+  declineInvitation: () =>
+    Effect.dieMessage(
+      'Unexpected WorkspaceRepository.declineInvitation call in test'
+    ),
   create: () =>
     Effect.dieMessage('Unexpected WorkspaceRepository.create call in test'),
   changeMemberRole: () =>
@@ -153,5 +169,49 @@ export const makeSuspendWorkspaceMemberRepository = (
   return {
     suspendMember,
     repositoryLayer: makeWorkspaceRepositoryLayer({ suspendMember }),
+  };
+};
+
+export const makeInviteWorkspaceMemberRepository = (
+  implementation: WorkspaceRepository['inviteMember']
+) => {
+  const inviteMember = vi.fn(implementation);
+
+  return {
+    inviteMember,
+    repositoryLayer: makeWorkspaceRepositoryLayer({ inviteMember }),
+  };
+};
+
+export const makeListPendingWorkspaceInvitationsRepository = (
+  implementation: WorkspaceRepository['listPendingInvitations']
+) => {
+  const listPendingInvitations = vi.fn(implementation);
+
+  return {
+    listPendingInvitations,
+    repositoryLayer: makeWorkspaceRepositoryLayer({ listPendingInvitations }),
+  };
+};
+
+export const makeAcceptWorkspaceInvitationRepository = (
+  implementation: WorkspaceRepository['acceptInvitation']
+) => {
+  const acceptInvitation = vi.fn(implementation);
+
+  return {
+    acceptInvitation,
+    repositoryLayer: makeWorkspaceRepositoryLayer({ acceptInvitation }),
+  };
+};
+
+export const makeDeclineWorkspaceInvitationRepository = (
+  implementation: WorkspaceRepository['declineInvitation']
+) => {
+  const declineInvitation = vi.fn(implementation);
+
+  return {
+    declineInvitation,
+    repositoryLayer: makeWorkspaceRepositoryLayer({ declineInvitation }),
   };
 };

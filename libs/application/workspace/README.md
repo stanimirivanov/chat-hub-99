@@ -4,13 +4,13 @@
 discovering accessible workspaces and active members, creating and editing
 workspaces, archiving workspaces, adding active profiles as members, changing
 active member roles, suspending and reactivating members, removing active
-members, and leaving a workspace.
+members, leaving a workspace, and consent-based invitations for existing users.
 
 ## Responsibilities
 
 - Define the `WorkspaceRepository` outbound port.
 - Define typed read, creation, update, archive, member-addition, role-change,
-  removal, suspension, and expected command failures.
+  removal, suspension, invitation, and expected command failures.
 - List active, accessible workspaces through an Effect use case.
 - List active, RLS-visible members for one selected workspace.
 - Normalize and validate workspace creation input before repository access.
@@ -34,6 +34,11 @@ members, and leaving a workspace.
 - Normalize and validate the workspace identity before self-departure.
 - Leave a workspace without accepting either client-supplied actor or target
   identity.
+- Resolve an exact active username and create a pending invitation without
+  granting immediate membership.
+- List pending invitations addressed to the authenticated user.
+- Validate invitation identities before accepting or declining them; recipient
+  identity remains provider-session data rather than caller input.
 
 It does not know about Supabase, generated database rows, Angular, selection
 state, profile persistence, channels, or workspace restoration/deletion.
@@ -98,6 +103,23 @@ Angular caller
   -> validated WorkspaceId
   -> WorkspaceRepositoryTag.leave
   -> validated left membership acknowledgment
+
+Angular caller
+  -> inviteWorkspaceMemberByUsername(input)
+  -> ProfileRepositoryTag exact active-profile lookup
+  -> WorkspaceRepositoryTag.inviteMember
+  -> canonical pending WorkspaceInvitation
+
+Angular caller
+  -> listPendingWorkspaceInvitations
+  -> WorkspaceRepositoryTag.listPendingInvitations
+  -> validated invitation + current Workspace projections
+
+Angular caller
+  -> acceptWorkspaceInvitation / declineWorkspaceInvitation
+  -> validated WorkspaceInvitationId
+  -> WorkspaceRepositoryTag recipient command
+  -> active default-member projection / decline acknowledgment
 ```
 
 Testing support is private and follows the fixture/stub convention used by the
@@ -115,6 +137,9 @@ other application libraries.
 - `removeWorkspaceMember` and its input/error contracts
 - `suspendWorkspaceMember` and its input/error contracts
 - `leaveWorkspace` and its input/error contracts
+- `inviteWorkspaceMemberByUsername` and its input/error contracts
+- `listPendingWorkspaceInvitations`
+- `acceptWorkspaceInvitation` and `declineWorkspaceInvitation`
 - `WorkspaceRepositoryTag` and `WorkspaceRepository`
 - workspace repository error types
 

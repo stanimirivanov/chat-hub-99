@@ -85,17 +85,6 @@ export class WorkspaceMemberDirectoryComponent {
     );
   }
 
-  protected async addMember(
-    event: SubmitEvent,
-    usernameInput: HTMLInputElement
-  ): Promise<void> {
-    event.preventDefault();
-
-    if (await this.store.addMemberByUsername(usernameInput.value)) {
-      usernameInput.value = '';
-    }
-  }
-
   protected requestRemoval(profileId: ProfileId): void {
     this.pendingSuspensionProfileId.set(null);
     this.pendingRemovalProfileId.set(profileId);

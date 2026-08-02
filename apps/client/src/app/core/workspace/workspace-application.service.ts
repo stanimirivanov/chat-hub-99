@@ -1,25 +1,33 @@
 import { Injectable } from '@angular/core';
 import { Effect, Either } from 'effect';
 import {
-  addWorkspaceMemberByUsername,
+  acceptWorkspaceInvitation,
   archiveWorkspace,
   changeWorkspaceMemberRole,
   createWorkspace,
+  declineWorkspaceInvitation,
+  inviteWorkspaceMemberByUsername,
+  listPendingWorkspaceInvitations,
   listAccessibleWorkspaces,
   listWorkspaceMembers,
   leaveWorkspace,
   removeWorkspaceMember,
   suspendWorkspaceMember,
   updateWorkspace,
-  type AddedWorkspaceMember,
-  type AddWorkspaceMemberByUsernameError,
-  type AddWorkspaceMemberByUsernameInput,
+  type AcceptWorkspaceInvitationError,
+  type AcceptWorkspaceInvitationInput,
   type ArchiveWorkspaceError,
   type ArchiveWorkspaceInput,
   type ChangeWorkspaceMemberRoleError,
   type ChangeWorkspaceMemberRoleInput,
   type CreateWorkspaceError,
   type CreateWorkspaceInput,
+  type DeclineWorkspaceInvitationError,
+  type DeclineWorkspaceInvitationInput,
+  type InviteWorkspaceMemberByUsernameError,
+  type InviteWorkspaceMemberByUsernameInput,
+  type PendingWorkspaceInvitation,
+  type WorkspaceInvitationRepositoryReadError,
   type LeaveWorkspaceError,
   type LeaveWorkspaceInput,
   type RemoveWorkspaceMemberError,
@@ -34,6 +42,7 @@ import {
 import type {
   Workspace,
   WorkspaceId,
+  WorkspaceInvitation,
   WorkspaceMember,
 } from '@chat-hub/domain/workspace';
 import { applicationRuntime } from '../effect/application-runtime';
@@ -100,19 +109,6 @@ export class WorkspaceApplicationService {
   }
 
   /**
-   * Resolves one active profile by exact username and adds it as a member.
-   */
-  addWorkspaceMemberByUsername(
-    input: AddWorkspaceMemberByUsernameInput
-  ): Promise<
-    Either.Either<AddedWorkspaceMember, AddWorkspaceMemberByUsernameError>
-  > {
-    return applicationRuntime.runPromise(
-      addWorkspaceMemberByUsername(input).pipe(Effect.either)
-    );
-  }
-
-  /**
    * Changes one active workspace member's role using session authorization.
    */
   changeWorkspaceMemberRole(
@@ -164,6 +160,47 @@ export class WorkspaceApplicationService {
   ): Promise<Either.Either<Workspace, UpdateWorkspaceError>> {
     return applicationRuntime.runPromise(
       updateWorkspace(input).pipe(Effect.either)
+    );
+  }
+
+  /** Creates a pending invitation for one exact active username. */
+  inviteWorkspaceMemberByUsername(
+    input: InviteWorkspaceMemberByUsernameInput
+  ): Promise<
+    Either.Either<WorkspaceInvitation, InviteWorkspaceMemberByUsernameError>
+  > {
+    return applicationRuntime.runPromise(
+      inviteWorkspaceMemberByUsername(input).pipe(Effect.either)
+    );
+  }
+
+  /** Lists pending invitations addressed to the authenticated user. */
+  listPendingWorkspaceInvitations(): Promise<
+    Either.Either<
+      readonly PendingWorkspaceInvitation[],
+      WorkspaceInvitationRepositoryReadError
+    >
+  > {
+    return applicationRuntime.runPromise(
+      listPendingWorkspaceInvitations.pipe(Effect.either)
+    );
+  }
+
+  /** Accepts one pending invitation as its authenticated recipient. */
+  acceptWorkspaceInvitation(
+    input: AcceptWorkspaceInvitationInput
+  ): Promise<Either.Either<WorkspaceMember, AcceptWorkspaceInvitationError>> {
+    return applicationRuntime.runPromise(
+      acceptWorkspaceInvitation(input).pipe(Effect.either)
+    );
+  }
+
+  /** Declines one pending invitation as its authenticated recipient. */
+  declineWorkspaceInvitation(
+    input: DeclineWorkspaceInvitationInput
+  ): Promise<Either.Either<void, DeclineWorkspaceInvitationError>> {
+    return applicationRuntime.runPromise(
+      declineWorkspaceInvitation(input).pipe(Effect.either)
     );
   }
 }

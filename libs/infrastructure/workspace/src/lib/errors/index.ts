@@ -6,6 +6,9 @@ export {
   mapWorkspaceMemberRoleChangeError,
   mapWorkspaceMemberRemovalError,
   mapWorkspaceMemberSuspensionError,
+  mapWorkspaceInvitationAcceptanceError,
+  mapWorkspaceInvitationCreationError,
+  mapWorkspaceInvitationDeclineError,
   mapWorkspaceRepositoryError,
   mapWorkspaceUpdateError,
 } from './workspace-repository-error-mapper';

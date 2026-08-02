@@ -534,6 +534,169 @@ export type Database = {
           },
         ]
       }
+      workspace_invitation_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          invited_user_id: string
+          performed_by: string
+          sequence_number: number
+          workspace_id: string
+          workspace_invitation_event_id: string
+          workspace_invitation_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          invited_user_id: string
+          performed_by: string
+          sequence_number: number
+          workspace_id: string
+          workspace_invitation_event_id?: string
+          workspace_invitation_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          invited_user_id?: string
+          performed_by?: string
+          sequence_number?: number
+          workspace_id?: string
+          workspace_invitation_event_id?: string
+          workspace_invitation_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_invitation_events_invitation_identity"
+            columns: [
+              "workspace_invitation_id",
+              "workspace_id",
+              "invited_user_id",
+            ]
+            isOneToOne: false
+            referencedRelation: "workspace_invitations"
+            referencedColumns: [
+              "workspace_invitation_id",
+              "workspace_id",
+              "invited_user_id",
+            ]
+          },
+          {
+            foreignKeyName: "workspace_invitation_events_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "current_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "workspace_invitation_events_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      workspace_invitation_heads: {
+        Row: {
+          invitation_status: string
+          invited_user_id: string
+          latest_event_id: string
+          workspace_id: string
+          workspace_invitation_id: string
+        }
+        Insert: {
+          invitation_status: string
+          invited_user_id: string
+          latest_event_id: string
+          workspace_id: string
+          workspace_invitation_id: string
+        }
+        Update: {
+          invitation_status?: string
+          invited_user_id?: string
+          latest_event_id?: string
+          workspace_id?: string
+          workspace_invitation_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_invitation_heads_invitation_identity"
+            columns: [
+              "workspace_invitation_id",
+              "workspace_id",
+              "invited_user_id",
+            ]
+            isOneToOne: false
+            referencedRelation: "workspace_invitations"
+            referencedColumns: [
+              "workspace_invitation_id",
+              "workspace_id",
+              "invited_user_id",
+            ]
+          },
+          {
+            foreignKeyName: "workspace_invitation_heads_latest_event"
+            columns: ["latest_event_id", "workspace_invitation_id"]
+            isOneToOne: false
+            referencedRelation: "workspace_invitation_events"
+            referencedColumns: [
+              "workspace_invitation_event_id",
+              "workspace_invitation_id",
+            ]
+          },
+        ]
+      }
+      workspace_invitations: {
+        Row: {
+          created_at: string
+          invited_user_id: string
+          workspace_id: string
+          workspace_invitation_id: string
+        }
+        Insert: {
+          created_at?: string
+          invited_user_id: string
+          workspace_id: string
+          workspace_invitation_id?: string
+        }
+        Update: {
+          created_at?: string
+          invited_user_id?: string
+          workspace_id?: string
+          workspace_invitation_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_invitations_invited_user_id_fkey"
+            columns: ["invited_user_id"]
+            isOneToOne: false
+            referencedRelation: "current_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "workspace_invitations_invited_user_id_fkey"
+            columns: ["invited_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "workspace_invitations_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "current_workspaces"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "workspace_invitations_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["workspace_id"]
+          },
+        ]
+      }
       workspace_membership_events: {
         Row: {
           created_at: string
@@ -1087,6 +1250,23 @@ export type Database = {
       }
     }
     Functions: {
+      accept_workspace_invitation: {
+        Args: { p_workspace_invitation_id: string }
+        Returns: {
+          latest_event_id: string
+          membership_role: string
+          membership_status: string
+          user_id: string
+          workspace_id: string
+          workspace_membership_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "workspace_membership_heads"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       add_workspace_member: {
         Args: { p_user_id: string; p_workspace_id: string }
         Returns: {
@@ -1177,10 +1357,42 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      decline_workspace_invitation: {
+        Args: { p_workspace_invitation_id: string }
+        Returns: {
+          invitation_status: string
+          invited_user_id: string
+          latest_event_id: string
+          workspace_id: string
+          workspace_invitation_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "workspace_invitation_heads"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       delete_message: { Args: { p_message_id: string }; Returns: undefined }
       edit_message: {
         Args: { p_content: string; p_message_id: string }
         Returns: string
+      }
+      invite_workspace_member: {
+        Args: { p_user_id: string; p_workspace_id: string }
+        Returns: {
+          invitation_status: string
+          invited_user_id: string
+          latest_event_id: string
+          workspace_id: string
+          workspace_invitation_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "workspace_invitation_heads"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       leave_workspace: {
         Args: { p_workspace_id: string }
@@ -1198,6 +1410,18 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      list_pending_workspace_invitations: {
+        Args: never
+        Returns: {
+          invitation_status: string
+          invited_user_id: string
+          workspace_description: string
+          workspace_id: string
+          workspace_invitation_id: string
+          workspace_name: string
+          workspace_slug: string
+        }[]
       }
       remove_workspace_member: {
         Args: { p_reason?: string; p_user_id: string; p_workspace_id: string }

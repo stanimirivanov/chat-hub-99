@@ -9,6 +9,7 @@ active-membership projections required by presentation.
 - Validate workspace names, normalized slugs, and optional descriptions.
 - Expose the active workspace projection consumed by application use cases.
 - Validate active member identities and the closed owner/member role vocabulary.
+- Validate workspace-invitation identities and their closed consent lifecycle.
 
 It does not own persistence, membership authorization, selection state, or
 Angular presentation. Those responsibilities remain in infrastructure,
@@ -26,6 +27,7 @@ types, or application services.
 - `WorkspaceNameSchema` and `WorkspaceSlugSchema`
 - `WorkspaceSchema` and `Workspace`
 - `WorkspaceMemberSchema`, `WorkspaceMember`, and their role schema/type
+- `WorkspaceInvitationIdSchema`, `WorkspaceInvitationSchema`, and their types
 
 ## Verification
 

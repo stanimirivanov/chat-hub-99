@@ -10,6 +10,12 @@
 >
   <h1 id="workspace-navigation-heading">Workspaces</h1>
 
+  <app-workspace-invitations
+    [workspaceId]="store.selectedWorkspaceId()"
+    [canInvite]="canManageSelectedWorkspace()"
+    (invitationAccepted)="handleInvitationAccepted($event)"
+  />
+
   @if (store.isLoading()) {
     <p>Loading workspaces…</p>
   } @else if (store.error(); as error) {
