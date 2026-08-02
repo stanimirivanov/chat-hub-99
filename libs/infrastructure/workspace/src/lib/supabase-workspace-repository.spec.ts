@@ -16,6 +16,7 @@ describe('makeSupabaseWorkspaceRepository', () => {
       'archive',
       'changeMemberRole',
       'create',
+      'leave',
       'listAccessible',
       'listActiveMembers',
       'removeMember',
@@ -29,5 +30,6 @@ describe('makeSupabaseWorkspaceRepository', () => {
     expect(repository.update).toBeTypeOf('function');
     expect(repository.listAccessible).toBeTypeOf('function');
     expect(repository.listActiveMembers).toBeTypeOf('function');
+    expect(repository.leave).toBeTypeOf('function');
   });
 });

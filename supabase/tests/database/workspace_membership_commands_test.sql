@@ -14,6 +14,8 @@
 --   - role changes append immutable events;
 --   - a workspace cannot lose its final active owner;
 --   - owners can remove active members;
+--   - active members can leave their workspace;
+--   - the final active owner cannot leave;
 --   - removed members lose membership-management authority;
 --   - membership history rejects UPDATE and DELETE.
 --
@@ -25,7 +27,7 @@ BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap
 WITH SCHEMA extensions;
 
-SELECT plan(21);
+SELECT plan(28);
 
 
 -- ============================================================================
@@ -588,6 +590,192 @@ SELECT throws_ok(
     '42501',
     NULL,
     'A removed workspace member cannot add another member'
+);
+
+
+RESET ROLE;
+
+
+-- ============================================================================
+-- Members leave their workspace
+-- ============================================================================
+
+SET LOCAL ROLE authenticated;
+
+RESET request.jwt.claim.sub;
+
+
+SELECT throws_ok(
+    format(
+        $sql$
+            SELECT public.leave_workspace(
+                p_workspace_id => %L::UUID
+            )
+        $sql$,
+        :'workspace_workspace_id'
+    ),
+    '28000',
+    NULL,
+    'An authenticated identity is required to leave a workspace'
+);
+
+
+RESET ROLE;
+
+
+SET LOCAL ROLE authenticated;
+
+SET LOCAL request.jwt.claim.sub =
+    '30000000-0000-0000-0000-000000000002';
+
+
+SELECT lives_ok(
+    format(
+        $sql$
+            SELECT public.add_workspace_member(
+                p_workspace_id => %L::UUID,
+                p_user_id =>
+                    '30000000-0000-0000-0000-000000000003'::UUID
+            )
+        $sql$,
+        :'workspace_workspace_id'
+    ),
+    'The owner can add the member used by the departure tests'
+);
+
+
+RESET ROLE;
+
+
+SET LOCAL ROLE authenticated;
+
+SET LOCAL request.jwt.claim.sub =
+    '30000000-0000-0000-0000-000000000003';
+
+
+SELECT lives_ok(
+    format(
+        $sql$
+            SELECT public.leave_workspace(
+                p_workspace_id => %L::UUID
+            )
+        $sql$,
+        :'workspace_workspace_id'
+    ),
+    'An active ordinary member can leave the workspace'
+);
+
+
+RESET ROLE;
+
+
+SELECT results_eq(
+    format(
+        $sql$
+            SELECT
+                sequence_number,
+                event_type,
+                role,
+                performed_by,
+                reason
+            FROM public.workspace_membership_events
+            WHERE workspace_id = %L::UUID
+              AND user_id =
+                  '30000000-0000-0000-0000-000000000003'::UUID
+            ORDER BY sequence_number
+        $sql$,
+        :'workspace_workspace_id'
+    ),
+    $$
+        VALUES
+        (
+            1,
+            'joined'::TEXT,
+            'member'::TEXT,
+            '30000000-0000-0000-0000-000000000002'::UUID,
+            NULL::TEXT
+        ),
+        (
+            2,
+            'removed'::TEXT,
+            'member'::TEXT,
+            '30000000-0000-0000-0000-000000000003'::UUID,
+            NULL::TEXT
+        )
+    $$,
+    'Leaving appends a self-performed removed event to immutable history'
+);
+
+
+SELECT results_eq(
+    format(
+        $sql$
+            SELECT
+                membership_role,
+                membership_status,
+                latest_event_sequence_number,
+                latest_event_type
+            FROM public.current_workspace_memberships
+            WHERE workspace_id = %L::UUID
+              AND user_id =
+                  '30000000-0000-0000-0000-000000000003'::UUID
+        $sql$,
+        :'workspace_workspace_id'
+    ),
+    $$
+        VALUES (
+            'member'::TEXT,
+            'removed'::TEXT,
+            2,
+            'removed'::TEXT
+        )
+    $$,
+    'Departure advances the current membership head to removed'
+);
+
+
+SET LOCAL ROLE authenticated;
+
+SET LOCAL request.jwt.claim.sub =
+    '30000000-0000-0000-0000-000000000003';
+
+
+SELECT throws_ok(
+    format(
+        $sql$
+            SELECT public.leave_workspace(
+                p_workspace_id => %L::UUID
+            )
+        $sql$,
+        :'workspace_workspace_id'
+    ),
+    '55000',
+    NULL,
+    'An inactive member cannot leave the workspace again'
+);
+
+
+RESET ROLE;
+
+
+SET LOCAL ROLE authenticated;
+
+SET LOCAL request.jwt.claim.sub =
+    '30000000-0000-0000-0000-000000000002';
+
+
+SELECT throws_ok(
+    format(
+        $sql$
+            SELECT public.leave_workspace(
+                p_workspace_id => %L::UUID
+            )
+        $sql$,
+        :'workspace_workspace_id'
+    ),
+    '55000',
+    NULL,
+    'The final active workspace owner cannot leave'
 );
 
 

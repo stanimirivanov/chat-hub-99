@@ -164,6 +164,17 @@ are not shown against a newer selection. The database remains responsible for
 owner authorization and the immutable archived version. The client does not
 offer restoration or hard deletion.
 
+Every active member can leave the selected workspace after an explicit inline
+confirmation. Departure has independent state but shares the navigation
+store's serialized workspace-command boundary. Success removes the workspace
+from the accessible collection even after newer navigation; selection and URL
+parameters are cleared only while they still name that target. A final owner
+receives actionable guidance to assign another active owner first. The client
+does not accept or derive a departure target identity: the database command
+uses the authenticated Supabase session and protects the last-owner invariant.
+Reactivation of the preserved membership history remains outside this slice and
+is stated explicitly in the confirmation.
+
 The nested `workspace-member-directory` slice loads active RLS-visible
 memberships for the selected workspace and batch-enriches their stable profile
 identities. Owners are displayed before members and the authenticated user is

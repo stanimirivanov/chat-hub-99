@@ -35,6 +35,8 @@ export type {
   ChangeWorkspaceMemberRoleResult,
   RemoveWorkspaceMemberArgs,
   RemoveWorkspaceMemberResult,
+  LeaveWorkspaceArgs,
+  LeaveWorkspaceResult,
   CreateChannelArgs,
   CreateChannelResult,
   UpdateChannelArgs,

@@ -6,7 +6,8 @@ discovery with RLS-protected Supabase views, creation with the transactional
 archiving with `archive_workspace`, member addition with
 `add_workspace_member`, role changes with
 `change_workspace_member_role`, and member removal with
-`remove_workspace_member`.
+`remove_workspace_member`. Self-service departure uses the separate
+`leave_workspace` command.
 
 ## Responsibilities
 
@@ -18,6 +19,8 @@ archiving with `archive_workspace`, member addition with
 - Execute member addition without exposing actor identity or role as arguments.
 - Execute member role changes without exposing actor identity as an argument.
 - Execute member removal without exposing actor identity as an argument.
+- Execute self-departure without exposing actor or target identity as an
+  argument.
 - Apply stable name/identity ordering.
 - Map generated view and RPC rows into validated domain projections.
 - Preserve actionable current-slug conflicts as a typed application failure.
@@ -81,6 +84,12 @@ removeWorkspaceMember use case
   -> SupabaseWorkspaceRepositoryLayer
   -> remove_workspace_member RPC
   -> removed target/identity validation
+
+leaveWorkspace use case
+  -> WorkspaceRepositoryTag
+  -> SupabaseWorkspaceRepositoryLayer
+  -> leave_workspace RPC
+  -> removed workspace-membership validation
 ```
 
 The membership query returns stable identities and roles only. Profile
@@ -88,12 +97,14 @@ enrichment remains a separate application capability, preventing the workspace
 adapter from depending on profile persistence. Member-addition authorization,
 default role assignment, active-profile validation, and immutable membership
 history remain transactional database concerns. Role-change/removal
-authorization, self-removal prevention, and last-owner invariants are likewise
-enforced there; the adapter translates stable outcomes without reimplementing
-them. A removed membership is validated and acknowledged as `void` rather than
-being misrepresented as an active `WorkspaceMember`. The focused client
-projection contains only operations needed by implemented slices. Testing
-support provides fresh query doubles and canonical generated rows.
+authorization and last-owner invariants are likewise enforced there;
+owner-driven removal cannot target the actor, while the separate departure
+command can target only the provider-authenticated actor. The adapter translates
+stable outcomes without reimplementing them. A removed membership is validated
+and acknowledged as `void` rather than being misrepresented as an active
+`WorkspaceMember`. The focused client projection contains only operations
+needed by implemented slices. Testing support provides fresh query doubles and
+canonical generated rows.
 
 Workspace updates replace the complete mutable snapshot and append an immutable
 database version. Owner authorization, active-workspace status, concurrent head

@@ -21,6 +21,11 @@ export type WorkspaceUpdateStatus = 'idle' | 'updating' | 'failed';
 export type WorkspaceArchiveStatus = 'idle' | 'archiving' | 'failed';
 
 /**
+ * Lifecycle of the serialized self-departure operation.
+ */
+export type WorkspaceDepartureStatus = 'idle' | 'leaving' | 'failed';
+
+/**
  * Safe failure information rendered by workspace navigation.
  */
 export interface WorkspaceNavigationError {
@@ -42,6 +47,9 @@ export interface WorkspaceNavigationState {
   readonly archiveStatus: WorkspaceArchiveStatus;
   readonly archivingWorkspaceId: WorkspaceId | null;
   readonly archiveError: WorkspaceNavigationError | null;
+  readonly departureStatus: WorkspaceDepartureStatus;
+  readonly departingWorkspaceId: WorkspaceId | null;
+  readonly departureError: WorkspaceNavigationError | null;
 }
 
 /**
@@ -59,4 +67,7 @@ export const initialWorkspaceNavigationState: WorkspaceNavigationState = {
   archiveStatus: 'idle',
   archivingWorkspaceId: null,
   archiveError: null,
+  departureStatus: 'idle',
+  departingWorkspaceId: null,
+  departureError: null,
 };

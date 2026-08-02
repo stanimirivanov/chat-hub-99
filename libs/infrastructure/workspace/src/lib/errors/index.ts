@@ -2,6 +2,7 @@ export {
   mapWorkspaceArchiveError,
   mapWorkspaceMemberAdditionError,
   mapWorkspaceCreateError,
+  mapWorkspaceDepartureError,
   mapWorkspaceMemberRoleChangeError,
   mapWorkspaceMemberRemovalError,
   mapWorkspaceRepositoryError,

@@ -5,6 +5,7 @@ export {
   toArchiveWorkspaceArgs,
   toChangeWorkspaceMemberRoleArgs,
   toCreateWorkspaceArgs,
+  toLeaveWorkspaceArgs,
   toRemoveWorkspaceMemberArgs,
   toUpdateWorkspaceArgs,
 } from './workspace-rpc-mapper';

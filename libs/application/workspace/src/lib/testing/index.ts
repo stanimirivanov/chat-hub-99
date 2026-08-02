@@ -6,6 +6,7 @@ export {
   makeCreateWorkspaceRepository,
   makeListAccessibleWorkspaceRepository,
   makeListWorkspaceMembersRepository,
+  makeLeaveWorkspaceRepository,
   makeRemoveWorkspaceMemberRepository,
   makeUpdateWorkspaceRepository,
   makeWorkspaceRepositoryLayer,

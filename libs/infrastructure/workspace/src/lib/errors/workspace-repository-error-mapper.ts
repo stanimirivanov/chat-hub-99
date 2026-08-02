@@ -1,10 +1,12 @@
 import {
   WorkspaceArchiveNotAllowedError,
+  WorkspaceDepartureNotAllowedError,
   WorkspaceMemberAdditionNotAllowedError,
   WorkspaceMemberProfileNotActiveError,
   WorkspaceMembershipHistoryExistsError,
   WorkspaceLastOwnerDemotionError,
   WorkspaceLastOwnerRemovalError,
+  WorkspaceLastOwnerDepartureError,
   WorkspaceMemberNotActiveError,
   WorkspaceMemberNotFoundError,
   WorkspaceMemberRemovalNotAllowedError,
@@ -21,6 +23,7 @@ import {
   type WorkspaceMemberRemovalRepositoryError,
   type WorkspaceMemberRoleChangeRepositoryError,
   type WorkspaceRepositoryArchiveError,
+  type WorkspaceDepartureRepositoryError,
   type WorkspaceRepositoryCreateError,
   type UpdateWorkspaceCommand,
   type WorkspaceRepositoryUpdateError,
@@ -121,6 +124,42 @@ export const mapWorkspaceArchiveError = (
     (error.code === '55000' && message.includes('already archived'))
   ) {
     return new WorkspaceArchiveNotAllowedError({ workspaceId });
+  }
+
+  return mapWorkspaceRepositoryError(error);
+};
+
+/**
+ * Translates stable self-departure lifecycle outcomes without exposing
+ * PostgREST details beyond the infrastructure boundary.
+ */
+export const mapWorkspaceDepartureError = (
+  workspaceId: WorkspaceId,
+  error: PostgrestErrorLike
+): WorkspaceDepartureRepositoryError => {
+  const message = error.message.toLowerCase();
+
+  if (
+    error.code === '55000' &&
+    message.includes('last active workspace owner')
+  ) {
+    return new WorkspaceLastOwnerDepartureError({ workspaceId });
+  }
+
+  if (
+    error.code === '28000' ||
+    (error.code === 'P0002' &&
+      ((message.startsWith('workspace ') &&
+        message.includes('does not exist')) ||
+        message.startsWith(
+          'authenticated user is not a member of workspace '
+        ))) ||
+    (error.code === '55000' &&
+      ((message.startsWith('workspace ') &&
+        message.includes('is not active')) ||
+        message === 'only active workspace members may leave'))
+  ) {
+    return new WorkspaceDepartureNotAllowedError({ workspaceId });
   }
 
   return mapWorkspaceRepositoryError(error);

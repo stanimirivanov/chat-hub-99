@@ -4,7 +4,8 @@
     store.isLoading() ||
     store.isCreating() ||
     store.isUpdating() ||
-    store.isArchiving()
+    store.isArchiving() ||
+    store.isLeaving()
   "
 >
   <h1 id="workspace-navigation-heading">Workspaces</h1>
@@ -29,7 +30,7 @@
           name="workspace-name"
           type="text"
           required
-          [disabled]="store.isCreating()"
+          [disabled]="store.isCreating() || store.isLeaving()"
         />
 
         <label for="workspace-slug">Workspace URL</label>
@@ -40,7 +41,7 @@
           type="text"
           required
           aria-describedby="workspace-slug-help"
-          [disabled]="store.isCreating()"
+          [disabled]="store.isCreating() || store.isLeaving()"
         />
         <small id="workspace-slug-help">
           Lowercase letters, numbers, and single hyphens.
@@ -51,10 +52,13 @@
           #descriptionInput
           id="workspace-description"
           name="workspace-description"
-          [disabled]="store.isCreating()"
+          [disabled]="store.isCreating() || store.isLeaving()"
         ></textarea>
 
-        <button type="submit" [disabled]="store.isCreating()">
+        <button
+          type="submit"
+          [disabled]="store.isCreating() || store.isLeaving()"
+        >
           @if (store.isCreating()) {
             Creating&hellip;
           } @else {
@@ -64,7 +68,7 @@
 
         <button
           type="button"
-          [disabled]="store.isCreating()"
+          [disabled]="store.isCreating() || store.isLeaving()"
           (click)="cancelWorkspaceCreation()"
         >
           Cancel
@@ -73,7 +77,9 @@
     } @else {
       <button
         type="button"
-        [disabled]="isEditingWorkspace() || store.isArchiving()"
+        [disabled]="
+          isEditingWorkspace() || store.isArchiving() || store.isLeaving()
+        "
         (click)="beginWorkspaceCreation()"
       >
         Create workspace
@@ -116,7 +122,9 @@
             <p>{{ workspace.description }}</p>
           }
 
-          @if (canManageSelectedWorkspace()) {
+          @if (
+            canManageSelectedWorkspace() && !isConfirmingWorkspaceDeparture()
+          ) {
             @if (isEditingWorkspace()) {
               <form
                 (submit)="
@@ -137,7 +145,11 @@
                   type="text"
                   required
                   [value]="workspace.name"
-                  [disabled]="store.isUpdating() || store.isArchiving()"
+                  [disabled]="
+                    store.isUpdating() ||
+                    store.isArchiving() ||
+                    store.isLeaving()
+                  "
                 />
 
                 <label for="workspace-edit-slug">Workspace URL</label>
@@ -149,7 +161,11 @@
                   required
                   aria-describedby="workspace-edit-slug-help"
                   [value]="workspace.slug"
-                  [disabled]="store.isUpdating() || store.isArchiving()"
+                  [disabled]="
+                    store.isUpdating() ||
+                    store.isArchiving() ||
+                    store.isLeaving()
+                  "
                 />
                 <small id="workspace-edit-slug-help">
                   Lowercase letters, numbers, and single hyphens.
@@ -161,12 +177,20 @@
                   id="workspace-edit-description"
                   name="workspace-edit-description"
                   [value]="workspace.description ?? ''"
-                  [disabled]="store.isUpdating() || store.isArchiving()"
+                  [disabled]="
+                    store.isUpdating() ||
+                    store.isArchiving() ||
+                    store.isLeaving()
+                  "
                 ></textarea>
 
                 <button
                   type="submit"
-                  [disabled]="store.isUpdating() || store.isArchiving()"
+                  [disabled]="
+                    store.isUpdating() ||
+                    store.isArchiving() ||
+                    store.isLeaving()
+                  "
                 >
                   @if (store.isUpdating()) {
                     Saving&hellip;
@@ -176,7 +200,11 @@
                 </button>
                 <button
                   type="button"
-                  [disabled]="store.isUpdating() || store.isArchiving()"
+                  [disabled]="
+                    store.isUpdating() ||
+                    store.isArchiving() ||
+                    store.isLeaving()
+                  "
                   (click)="cancelWorkspaceEditing()"
                 >
                   Cancel
@@ -190,7 +218,7 @@
                 </p>
                 <button
                   type="button"
-                  [disabled]="store.isArchiving()"
+                  [disabled]="store.isArchiving() || store.isLeaving()"
                   (click)="confirmWorkspaceArchive(workspace)"
                 >
                   @if (store.isArchiving()) {
@@ -201,7 +229,7 @@
                 </button>
                 <button
                   type="button"
-                  [disabled]="store.isArchiving()"
+                  [disabled]="store.isArchiving() || store.isLeaving()"
                   (click)="cancelWorkspaceArchive()"
                 >
                   Cancel
@@ -209,7 +237,11 @@
               } @else {
                 <button
                   type="button"
-                  [disabled]="store.isCreating() || store.isArchiving()"
+                  [disabled]="
+                    store.isCreating() ||
+                    store.isArchiving() ||
+                    store.isLeaving()
+                  "
                   (click)="beginWorkspaceEditing()"
                 >
                   Edit workspace
@@ -219,7 +251,8 @@
                   [disabled]="
                     store.isCreating() ||
                     store.isUpdating() ||
-                    store.isArchiving()
+                    store.isArchiving() ||
+                    store.isLeaving()
                   "
                   (click)="beginWorkspaceArchive()"
                 >
@@ -227,6 +260,51 @@
                 </button>
               }
             }
+          }
+
+          @if (isConfirmingWorkspaceDeparture()) {
+            <p>
+              Leave {{ workspace.name }}? You will lose access to its channels
+              and messages, and rejoining is not supported yet. If you are its
+              only owner, assign another owner first.
+            </p>
+            <button
+              type="button"
+              [disabled]="store.isLeaving()"
+              (click)="confirmWorkspaceDeparture(workspace)"
+            >
+              @if (store.isLeaving()) {
+                Leaving&hellip;
+              } @else {
+                Confirm leave
+              }
+            </button>
+            <button
+              type="button"
+              [disabled]="store.isLeaving()"
+              (click)="cancelWorkspaceDeparture()"
+            >
+              Cancel
+            </button>
+          } @else if (
+            !isEditingWorkspace() && !isConfirmingWorkspaceArchive()
+          ) {
+            <button
+              type="button"
+              [disabled]="
+                store.isCreating() ||
+                store.isUpdating() ||
+                store.isArchiving() ||
+                store.isLeaving()
+              "
+              (click)="beginWorkspaceDeparture()"
+            >
+              @if (store.isLeaving()) {
+                Leaving&hellip;
+              } @else {
+                Leave workspace
+              }
+            </button>
           }
 
           @if (store.updateError(); as error) {
@@ -239,6 +317,13 @@
           @if (store.archiveError(); as error) {
             <p role="alert">{{ error.message }}</p>
             <button type="button" (click)="store.clearArchiveError()">
+              Dismiss
+            </button>
+          }
+
+          @if (store.departureError(); as error) {
+            <p role="alert">{{ error.message }}</p>
+            <button type="button" (click)="store.clearDepartureError()">
               Dismiss
             </button>
           }

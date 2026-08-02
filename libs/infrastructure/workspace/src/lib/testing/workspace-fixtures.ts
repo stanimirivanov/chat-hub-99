@@ -5,6 +5,7 @@ import type {
   CreateWorkspaceResult,
   CurrentWorkspaceMembership,
   CurrentWorkspace,
+  LeaveWorkspaceResult,
   RemoveWorkspaceMemberResult,
   UpdateWorkspaceResult,
 } from '@chat-hub/shared/database';
@@ -60,6 +61,15 @@ export const removedWorkspaceMemberRow: RemoveWorkspaceMemberResult = {
   membership_role: 'member',
   membership_status: 'removed',
   latest_event_id: '00000000-0000-4000-8000-000000000014',
+};
+
+export const leftWorkspaceRow: LeaveWorkspaceResult = {
+  workspace_membership_id: '00000000-0000-4000-8000-000000000021',
+  workspace_id: '00000000-0000-4000-8000-000000000001',
+  user_id: '00000000-0000-4000-8000-000000000002',
+  membership_role: 'member',
+  membership_status: 'removed',
+  latest_event_id: '00000000-0000-4000-8000-000000000022',
 };
 
 export const currentWorkspaceMemberRow: CurrentWorkspaceMembership = {

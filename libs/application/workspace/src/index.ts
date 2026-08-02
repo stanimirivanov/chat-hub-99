@@ -30,6 +30,12 @@ export {
 export { listAccessibleWorkspaces } from './lib/list-accessible-workspaces';
 export { listWorkspaceMembers } from './lib/list-workspace-members';
 export {
+  InvalidWorkspaceDepartureInputError,
+  leaveWorkspace,
+  type LeaveWorkspaceError,
+  type LeaveWorkspaceInput,
+} from './lib/leave-workspace';
+export {
   removeWorkspaceMember,
   InvalidWorkspaceMemberRemovalInputError,
   type RemoveWorkspaceMemberError,
@@ -56,8 +62,10 @@ export {
   InvalidWorkspaceMemberDataError,
   InvalidWorkspaceDataError,
   WorkspaceArchiveNotAllowedError,
+  WorkspaceDepartureNotAllowedError,
   WorkspaceLastOwnerDemotionError,
   WorkspaceLastOwnerRemovalError,
+  WorkspaceLastOwnerDepartureError,
   WorkspaceMemberAdditionNotAllowedError,
   WorkspaceMemberNotActiveError,
   WorkspaceMemberNotFoundError,
@@ -70,6 +78,7 @@ export {
   WorkspaceSlugUnavailableError,
   WorkspaceUpdateNotAllowedError,
   type WorkspaceMemberRepositoryReadError,
+  type WorkspaceDepartureRepositoryError,
   type WorkspaceMemberAddRepositoryError,
   type WorkspaceMemberRemovalRepositoryError,
   type WorkspaceMemberRoleChangeRepositoryError,

@@ -11,6 +11,7 @@ import type {
   ArchiveWorkspaceArgs,
   ChangeWorkspaceMemberRoleArgs,
   CreateWorkspaceArgs,
+  LeaveWorkspaceArgs,
   RemoveWorkspaceMemberArgs,
   UpdateWorkspaceArgs,
 } from '@chat-hub/shared/database';
@@ -21,6 +22,15 @@ import type {
 export const toArchiveWorkspaceArgs = (
   workspaceId: WorkspaceId
 ): ArchiveWorkspaceArgs => ({
+  p_workspace_id: workspaceId,
+});
+
+/**
+ * Maps a validated workspace identity to generated self-departure arguments.
+ */
+export const toLeaveWorkspaceArgs = (
+  workspaceId: WorkspaceId
+): LeaveWorkspaceArgs => ({
   p_workspace_id: workspaceId,
 });
 
