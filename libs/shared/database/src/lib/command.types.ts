@@ -73,6 +73,30 @@ export type LeaveWorkspaceArgs = DatabaseFunctionArgs<'leave_workspace'>;
 export type LeaveWorkspaceResult = DatabaseFunctionReturns<'leave_workspace'>;
 
 /**
+ * Workspace-invitation commands and recipient query.
+ */
+export type InviteWorkspaceMemberArgs =
+  DatabaseFunctionArgs<'invite_workspace_member'>;
+
+export type InviteWorkspaceMemberResult =
+  DatabaseFunctionReturns<'invite_workspace_member'>;
+
+export type AcceptWorkspaceInvitationArgs =
+  DatabaseFunctionArgs<'accept_workspace_invitation'>;
+
+export type AcceptWorkspaceInvitationResult =
+  DatabaseFunctionReturns<'accept_workspace_invitation'>;
+
+export type DeclineWorkspaceInvitationArgs =
+  DatabaseFunctionArgs<'decline_workspace_invitation'>;
+
+export type DeclineWorkspaceInvitationResult =
+  DatabaseFunctionReturns<'decline_workspace_invitation'>;
+
+export type ListPendingWorkspaceInvitationsResult =
+  DatabaseFunctionReturns<'list_pending_workspace_invitations'>;
+
+/**
  * Channel commands.
  */
 export type CreateChannelArgs = DatabaseFunctionArgs<'create_channel'>;

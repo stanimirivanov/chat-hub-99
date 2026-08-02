@@ -15,6 +15,11 @@ import {
   WorkspaceMemberSuspensionNotAllowedError,
   WorkspaceMemberRoleChangeNotAllowedError,
   WorkspaceMemberRoleUnchangedError,
+  WorkspaceInvitationAlreadyPendingError,
+  WorkspaceInvitationCreationNotAllowedError,
+  WorkspaceInvitationMemberAlreadyActiveError,
+  WorkspaceInvitationProfileNotActiveError,
+  WorkspaceInvitationResponseNotAllowedError,
   WorkspaceRepositoryUnavailableError,
   WorkspaceSlugUnavailableError,
   WorkspaceUpdateNotAllowedError,
@@ -24,6 +29,7 @@ import {
   type WorkspaceMemberAddRepositoryError,
   type RemoveWorkspaceMemberCommand,
   type SuspendWorkspaceMemberCommand,
+  type InviteWorkspaceMemberCommand,
   type WorkspaceMemberRemovalRepositoryError,
   type WorkspaceMemberSuspensionRepositoryError,
   type WorkspaceMemberRoleChangeRepositoryError,
@@ -32,8 +38,14 @@ import {
   type WorkspaceRepositoryCreateError,
   type UpdateWorkspaceCommand,
   type WorkspaceRepositoryUpdateError,
+  type WorkspaceInvitationCreationRepositoryError,
+  type WorkspaceInvitationAcceptanceRepositoryError,
+  type WorkspaceInvitationDeclineRepositoryError,
 } from '@chat-hub/application/workspace';
-import type { WorkspaceId } from '@chat-hub/domain/workspace';
+import type {
+  WorkspaceId,
+  WorkspaceInvitationId,
+} from '@chat-hub/domain/workspace';
 
 interface PostgrestErrorLike {
   readonly code: string;
@@ -369,3 +381,85 @@ export const mapWorkspaceMemberSuspensionError = (
 
   return mapWorkspaceRepositoryError(error);
 };
+
+/** Translates stable invitation-creation outcomes into application failures. */
+export const mapWorkspaceInvitationCreationError = (
+  command: InviteWorkspaceMemberCommand,
+  error: PostgrestErrorLike
+): WorkspaceInvitationCreationRepositoryError => {
+  const message = error.message.toLowerCase();
+
+  if (isWorkspaceCommandNotAllowed(error, message)) {
+    return new WorkspaceInvitationCreationNotAllowedError({
+      workspaceId: command.workspaceId,
+    });
+  }
+
+  if (
+    error.code === '55000' &&
+    message.includes('does not have an active profile')
+  ) {
+    return new WorkspaceInvitationProfileNotActiveError({
+      workspaceId: command.workspaceId,
+      profileId: command.profileId,
+    });
+  }
+
+  if (
+    error.code === '55000' &&
+    message.includes('already an active workspace member')
+  ) {
+    return new WorkspaceInvitationMemberAlreadyActiveError({
+      workspaceId: command.workspaceId,
+      profileId: command.profileId,
+    });
+  }
+
+  if (
+    (error.code === '55000' &&
+      message.includes('already has a pending workspace invitation')) ||
+    (error.code === '23505' &&
+      `${error.message} ${error.details ?? ''}`.includes(
+        'workspace_invitation_heads_pending_unique'
+      ))
+  ) {
+    return new WorkspaceInvitationAlreadyPendingError({
+      workspaceId: command.workspaceId,
+      profileId: command.profileId,
+    });
+  }
+
+  return mapWorkspaceRepositoryError(error);
+};
+
+const isInvitationResponseNotAllowed = (error: PostgrestErrorLike): boolean => {
+  const message = error.message.toLowerCase();
+
+  return (
+    error.code === '28000' ||
+    error.code === '42501' ||
+    (error.code === 'P0002' && message.includes('workspace invitation')) ||
+    (error.code === '55000' &&
+      (message.includes('pending workspace invitation') ||
+        message.includes('invitation can no longer be accepted') ||
+        message.includes('already an active workspace member')))
+  );
+};
+
+/** Translates invitation-acceptance lifecycle and authorization failures. */
+export const mapWorkspaceInvitationAcceptanceError = (
+  invitationId: WorkspaceInvitationId,
+  error: PostgrestErrorLike
+): WorkspaceInvitationAcceptanceRepositoryError =>
+  isInvitationResponseNotAllowed(error)
+    ? new WorkspaceInvitationResponseNotAllowedError({ invitationId })
+    : mapWorkspaceRepositoryError(error);
+
+/** Translates invitation-decline lifecycle and authorization failures. */
+export const mapWorkspaceInvitationDeclineError = (
+  invitationId: WorkspaceInvitationId,
+  error: PostgrestErrorLike
+): WorkspaceInvitationDeclineRepositoryError =>
+  isInvitationResponseNotAllowed(error)
+    ? new WorkspaceInvitationResponseNotAllowedError({ invitationId })
+    : mapWorkspaceRepositoryError(error);

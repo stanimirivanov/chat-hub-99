@@ -3,6 +3,8 @@ import type { ProfileId } from '@chat-hub/domain/profile';
 import type {
   Workspace,
   WorkspaceId,
+  WorkspaceInvitation,
+  WorkspaceInvitationId,
   WorkspaceMember,
   WorkspaceMemberRole,
 } from '@chat-hub/domain/workspace';
@@ -13,6 +15,10 @@ import type {
   WorkspaceMemberRemovalRepositoryError,
   WorkspaceMemberRoleChangeRepositoryError,
   WorkspaceMemberSuspensionRepositoryError,
+  WorkspaceInvitationAcceptanceRepositoryError,
+  WorkspaceInvitationCreationRepositoryError,
+  WorkspaceInvitationDeclineRepositoryError,
+  WorkspaceInvitationRepositoryReadError,
   WorkspaceRepositoryCreateError,
   WorkspaceRepositoryArchiveError,
   WorkspaceRepositoryReadError,
@@ -71,8 +77,26 @@ export interface SuspendWorkspaceMemberCommand {
 }
 
 /**
- * Outbound port for workspace discovery, workspace commands, and membership
- * administration.
+ * Validated identities used to invite one active profile without granting
+ * immediate workspace access.
+ */
+export interface InviteWorkspaceMemberCommand {
+  readonly workspaceId: WorkspaceId;
+  readonly profileId: ProfileId;
+}
+
+/**
+ * Pending invitation enriched with the independently mutable workspace
+ * projection needed by recipient presentation.
+ */
+export interface PendingWorkspaceInvitation {
+  readonly invitation: WorkspaceInvitation;
+  readonly workspace: Workspace;
+}
+
+/**
+ * Outbound port for workspace discovery, workspace commands, membership
+ * administration, and invitation consent.
  *
  * Implementations return active workspaces visible to the current
  * authenticated user and must validate external rows before returning them.
@@ -164,10 +188,38 @@ export interface WorkspaceRepository {
   readonly suspendMember: (
     command: SuspendWorkspaceMemberCommand
   ) => Effect.Effect<void, WorkspaceMemberSuspensionRepositoryError>;
+
+  /** Creates one pending invitation using provider-session owner authority. */
+  readonly inviteMember: (
+    command: InviteWorkspaceMemberCommand
+  ) => Effect.Effect<
+    WorkspaceInvitation,
+    WorkspaceInvitationCreationRepositoryError
+  >;
+
+  /** Lists pending invitations addressed to the provider-authenticated user. */
+  readonly listPendingInvitations: () => Effect.Effect<
+    readonly PendingWorkspaceInvitation[],
+    WorkspaceInvitationRepositoryReadError
+  >;
+
+  /** Accepts one invitation as its authenticated recipient. */
+  readonly acceptInvitation: (
+    invitationId: WorkspaceInvitationId
+  ) => Effect.Effect<
+    WorkspaceMember,
+    WorkspaceInvitationAcceptanceRepositoryError
+  >;
+
+  /** Declines one invitation as its authenticated recipient. */
+  readonly declineInvitation: (
+    invitationId: WorkspaceInvitationId
+  ) => Effect.Effect<void, WorkspaceInvitationDeclineRepositoryError>;
 }
 
 /**
- * Typed Effect service key for workspace and membership capabilities.
+ * Typed Effect service key for workspace, membership, and invitation
+ * capabilities.
  *
  * Application programs yield this Tag to request a `WorkspaceRepository`.
  * Infrastructure supplies the concrete implementation through a Layer.

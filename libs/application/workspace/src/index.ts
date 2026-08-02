@@ -8,6 +8,27 @@ export {
   type WorkspaceMemberAdditionField,
 } from './lib/add-workspace-member-by-username';
 export {
+  inviteWorkspaceMemberByUsername,
+  InvalidWorkspaceInvitationCreationInputError,
+  WorkspaceInvitationCandidateNotFoundError,
+  type InviteWorkspaceMemberByUsernameError,
+  type InviteWorkspaceMemberByUsernameInput,
+  type WorkspaceInvitationCreationField,
+} from './lib/invite-workspace-member-by-username';
+export {
+  acceptWorkspaceInvitation,
+  InvalidWorkspaceInvitationAcceptanceInputError,
+  type AcceptWorkspaceInvitationError,
+  type AcceptWorkspaceInvitationInput,
+} from './lib/accept-workspace-invitation';
+export {
+  declineWorkspaceInvitation,
+  InvalidWorkspaceInvitationDeclineInputError,
+  type DeclineWorkspaceInvitationError,
+  type DeclineWorkspaceInvitationInput,
+} from './lib/decline-workspace-invitation';
+export { listPendingWorkspaceInvitations } from './lib/list-pending-workspace-invitations';
+export {
   archiveWorkspace,
   InvalidWorkspaceArchiveInputError,
   type ArchiveWorkspaceError,
@@ -61,6 +82,8 @@ export {
   type AddWorkspaceMemberCommand,
   type ChangeWorkspaceMemberRoleCommand,
   type CreateWorkspaceCommand,
+  type InviteWorkspaceMemberCommand,
+  type PendingWorkspaceInvitation,
   type RemoveWorkspaceMemberCommand,
   type SuspendWorkspaceMemberCommand,
   type UpdateWorkspaceCommand,
@@ -69,6 +92,7 @@ export {
 export {
   InvalidWorkspaceMemberDataError,
   InvalidWorkspaceDataError,
+  InvalidWorkspaceInvitationDataError,
   WorkspaceArchiveNotAllowedError,
   WorkspaceDepartureNotAllowedError,
   WorkspaceLastOwnerDemotionError,
@@ -85,6 +109,11 @@ export {
   WorkspaceMemberRoleUnchangedError,
   WorkspaceMemberProfileNotActiveError,
   WorkspaceMemberReactivationNotAllowedError,
+  WorkspaceInvitationAlreadyPendingError,
+  WorkspaceInvitationCreationNotAllowedError,
+  WorkspaceInvitationMemberAlreadyActiveError,
+  WorkspaceInvitationProfileNotActiveError,
+  WorkspaceInvitationResponseNotAllowedError,
   WorkspaceRepositoryUnavailableError,
   WorkspaceSlugUnavailableError,
   WorkspaceUpdateNotAllowedError,
@@ -98,4 +127,8 @@ export {
   type WorkspaceRepositoryArchiveError,
   type WorkspaceRepositoryReadError,
   type WorkspaceRepositoryUpdateError,
+  type WorkspaceInvitationAcceptanceRepositoryError,
+  type WorkspaceInvitationCreationRepositoryError,
+  type WorkspaceInvitationDeclineRepositoryError,
+  type WorkspaceInvitationRepositoryReadError,
 } from './lib/repository';

@@ -6,10 +6,7 @@ import {
   WorkspaceLastOwnerDemotionError,
   WorkspaceLastOwnerRemovalError,
   WorkspaceLastOwnerSuspensionError,
-  WorkspaceMemberAlreadyActiveError,
-  WorkspaceMemberReactivationNotAllowedError,
   WorkspaceRepositoryUnavailableError,
-  type AddedWorkspaceMember,
 } from '@chat-hub/application/workspace';
 import { ProfileIdSchema, type Profile } from '@chat-hub/domain/profile';
 import {
@@ -32,10 +29,6 @@ const ownerId = Schema.decodeUnknownSync(ProfileIdSchema)(
 const memberId = Schema.decodeUnknownSync(ProfileIdSchema)(
   '00000000-0000-4000-8000-000000000004'
 );
-const candidateId = Schema.decodeUnknownSync(ProfileIdSchema)(
-  '00000000-0000-4000-8000-000000000005'
-);
-
 const owner: WorkspaceMember = {
   workspaceId,
   profileId: ownerId,
@@ -62,19 +55,6 @@ const profiles: readonly Profile[] = [
     status: 'active',
   },
 ];
-const candidateProfile: Profile = {
-  id: candidateId,
-  username: 'candidate',
-  displayName: 'Candidate Member',
-  avatarUrl: null,
-  status: 'active',
-};
-const addedMember: WorkspaceMember = {
-  workspaceId,
-  profileId: candidateId,
-  role: 'member',
-};
-
 const configureStore = (
   listWorkspaceMembers = vi
     .fn()
@@ -84,12 +64,6 @@ const configureStore = (
     .fn()
     .mockResolvedValue(Either.right({ ...member, role: 'owner' as const })),
   removeWorkspaceMember = vi.fn().mockResolvedValue(Either.right(undefined)),
-  addWorkspaceMemberByUsername = vi.fn().mockResolvedValue(
-    Either.right({
-      member: addedMember,
-      profile: candidateProfile,
-    } satisfies AddedWorkspaceMember)
-  ),
   suspendWorkspaceMember = vi.fn().mockResolvedValue(Either.right(undefined))
 ) => {
   TestBed.configureTestingModule({
@@ -102,7 +76,6 @@ const configureStore = (
           changeWorkspaceMemberRole,
           removeWorkspaceMember,
           suspendWorkspaceMember,
-          addWorkspaceMemberByUsername,
         },
       },
       {
@@ -118,7 +91,6 @@ const configureStore = (
     listCurrentProfiles,
     changeWorkspaceMemberRole,
     removeWorkspaceMember,
-    addWorkspaceMemberByUsername,
     suspendWorkspaceMember,
   };
 };
@@ -263,119 +235,6 @@ describe('WorkspaceMemberDirectoryStore', () => {
     expect(store.mutationError()).toBeNull();
   });
 
-  it('activates the canonical membership and profile returned by the application', async () => {
-    const addWorkspaceMemberByUsername = vi.fn().mockResolvedValue(
-      Either.right({
-        member: addedMember,
-        profile: candidateProfile,
-      } satisfies AddedWorkspaceMember)
-    );
-    const { store } = configureStore(
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      addWorkspaceMemberByUsername
-    );
-    await store.load(workspaceId);
-
-    const addition = store.addMemberByUsername('candidate');
-
-    expect(store.isAddingMember()).toBe(true);
-    await expect(addition).resolves.toBe(true);
-    expect(addWorkspaceMemberByUsername).toHaveBeenCalledExactlyOnceWith({
-      workspaceId,
-      username: 'candidate',
-    });
-    expect(store.members()).toContainEqual(addedMember);
-    expect(store.profiles()).toContainEqual(candidateProfile);
-    expect(store.additionStatus()).toBe('idle');
-    expect(store.additionError()).toBeNull();
-  });
-
-  it.each([
-    {
-      caseName: 'an already-active membership',
-      failure: new WorkspaceMemberAlreadyActiveError({
-        workspaceId,
-        profileId: candidateId,
-      }),
-      message: 'That user is already an active workspace member.',
-    },
-    {
-      caseName: 'membership history that cannot be reactivated',
-      failure: new WorkspaceMemberReactivationNotAllowedError({
-        workspaceId,
-        profileId: candidateId,
-      }),
-      message: 'That workspace membership cannot currently be reactivated.',
-    },
-  ])(
-    'presents $caseName and permits dismissal',
-    async ({ failure, message }) => {
-      const addWorkspaceMemberByUsername = vi
-        .fn()
-        .mockResolvedValue(Either.left(failure));
-      const { store } = configureStore(
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        addWorkspaceMemberByUsername
-      );
-      await store.load(workspaceId);
-
-      await expect(store.addMemberByUsername('candidate')).resolves.toBe(false);
-
-      expect(store.additionStatus()).toBe('failed');
-      expect(store.additionError()).toEqual({ message });
-
-      store.clearMemberAdditionError();
-      expect(store.additionStatus()).toBe('idle');
-      expect(store.additionError()).toBeNull();
-    }
-  );
-
-  it('ignores an add-member result after the selected workspace changes', async () => {
-    let resolveAddition:
-      | ((result: Either.Either<AddedWorkspaceMember, never>) => void)
-      | undefined;
-    const additionResult = new Promise<
-      Either.Either<AddedWorkspaceMember, never>
-    >((resolve) => {
-      resolveAddition = resolve;
-    });
-    const nextMember: WorkspaceMember = {
-      workspaceId: nextWorkspaceId,
-      profileId: memberId,
-      role: 'member',
-    };
-    const listWorkspaceMembers = vi
-      .fn()
-      .mockResolvedValueOnce(Either.right([member]))
-      .mockResolvedValueOnce(Either.right([nextMember]));
-    const { store } = configureStore(
-      listWorkspaceMembers,
-      undefined,
-      undefined,
-      undefined,
-      vi.fn().mockReturnValue(additionResult)
-    );
-    await store.load(workspaceId);
-
-    const oldAddition = store.addMemberByUsername('candidate');
-    await store.load(nextWorkspaceId);
-    resolveAddition?.(
-      Either.right({ member: addedMember, profile: candidateProfile })
-    );
-    await oldAddition;
-
-    expect(store.workspaceId()).toBe(nextWorkspaceId);
-    expect(store.members()).toEqual([nextMember]);
-    expect(store.profiles()).not.toContainEqual(candidateProfile);
-    expect(store.additionStatus()).toBe('idle');
-  });
-
   it('presents the protected last-owner rule and permits dismissal', async () => {
     const failure = new WorkspaceLastOwnerDemotionError({
       workspaceId,
@@ -501,7 +360,6 @@ describe('WorkspaceMemberDirectoryStore', () => {
       undefined,
       undefined,
       undefined,
-      undefined,
       suspendWorkspaceMember
     );
     await store.load(workspaceId);
@@ -531,7 +389,6 @@ describe('WorkspaceMemberDirectoryStore', () => {
       .mockResolvedValue(Either.left(failure));
     const { store } = configureStore(
       vi.fn().mockResolvedValue(Either.right([owner])),
-      undefined,
       undefined,
       undefined,
       undefined,

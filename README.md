@@ -55,17 +55,17 @@ apps/client/                    Angular application and presentation features
 libs/domain/channel/            Channel identity, navigation projection, and invariants
 libs/domain/message/            Message projections, revisions, and invariants
 libs/domain/profile/            Profile identity, current projection, and invariants
-libs/domain/workspace/          Workspace and active-membership invariants
+libs/domain/workspace/          Workspace, membership, and invitation invariants
 libs/application/authentication/ Provider-independent authentication workflows
 libs/application/channel/       Workspace-scoped channel lifecycle workflows
 libs/application/message/       Message lifecycle, history queries, and repository port
 libs/application/profile/       Current-profile discovery/update port and use cases
-libs/application/workspace/     Workspace lifecycle and membership administration workflows
+libs/application/workspace/     Workspace lifecycle, membership, and invitation workflows
 libs/infrastructure/authentication/ Supabase authentication adapter
 libs/infrastructure/channel/    Supabase channel query and command adapter
 libs/infrastructure/message/    Supabase implementation of the message repository
 libs/infrastructure/profile/    Supabase current-profile query and command adapter
-libs/infrastructure/workspace/  Supabase workspace/member query and command adapter
+libs/infrastructure/workspace/  Supabase workspace/member/invitation adapter
 libs/shared/database/           Generated and derived database types
 supabase/                       Migrations, seed data, configuration, and pgTAP tests
 tools/database/                 Database type-generation tooling

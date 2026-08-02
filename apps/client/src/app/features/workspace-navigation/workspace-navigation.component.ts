@@ -10,6 +10,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import type { Workspace } from '@chat-hub/domain/workspace';
 import { ChannelNavigationComponent } from '@client/features/channel-navigation/channel-navigation.component';
 import { WorkspaceMemberDirectoryComponent } from '@client/features/workspace-member-directory/workspace-member-directory.component';
+import { WorkspaceInvitationsComponent } from '@client/features/workspace-invitations/workspace-invitations.component';
 import { WorkspaceNavigationStore } from './workspace-navigation.store';
 
 /**
@@ -18,7 +19,11 @@ import { WorkspaceNavigationStore } from './workspace-navigation.store';
 @Component({
   selector: 'app-workspace-navigation',
   standalone: true,
-  imports: [ChannelNavigationComponent, WorkspaceMemberDirectoryComponent],
+  imports: [
+    ChannelNavigationComponent,
+    WorkspaceInvitationsComponent,
+    WorkspaceMemberDirectoryComponent,
+  ],
   providers: [WorkspaceNavigationStore],
   templateUrl: './workspace-navigation.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -201,6 +206,12 @@ export class WorkspaceNavigationComponent {
       this.isEditingWorkspace.set(false);
       this.isConfirmingWorkspaceArchive.set(false);
     }
+  }
+
+  /** Reconciles newly accepted access and selects the joined workspace. */
+  protected handleInvitationAccepted(workspace: Workspace): void {
+    this.store.includeAccessibleWorkspace(workspace);
+    this.navigateToWorkspace(workspace.slug);
   }
 
   private async selectWorkspaceFromRoute(
