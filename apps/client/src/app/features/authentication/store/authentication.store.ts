@@ -10,6 +10,7 @@ import {
 import type {
   AuthenticationError,
   AuthenticationSession,
+  AuthenticationSessionChange,
 } from '@chat-hub/application/authentication';
 import { AuthenticationApplicationService } from '@client/core/authentication/authentication-application.service';
 import { initialAuthenticationState } from './authentication.state';
@@ -19,7 +20,7 @@ import { toAuthenticationPresentationError } from './to-authentication-presentat
  * Root-scoped authentication state for the browser application.
  *
  * The store restores the persisted session once, subscribes once to future
- * provider changes, and coordinates sign-in, sign-up, and sign-out state.
+ * provider changes, and coordinates account access and password recovery.
  */
 export const AuthenticationStore = signalStore(
   {
@@ -39,6 +40,26 @@ export const AuthenticationStore = signalStore(
 
     requiresEmailConfirmation: computed(
       () => store.signUpStatus() === 'confirmation-required'
+    ),
+
+    isRequestingPasswordReset: computed(
+      () => store.passwordResetRequestStatus() === 'pending'
+    ),
+
+    isPasswordResetEmailSent: computed(
+      () => store.passwordResetRequestStatus() === 'sent'
+    ),
+
+    isPasswordRecoveryActive: computed(
+      () => store.passwordRecoveryStatus() !== 'idle'
+    ),
+
+    isUpdatingPassword: computed(
+      () => store.passwordRecoveryStatus() === 'pending'
+    ),
+
+    isPasswordUpdateComplete: computed(
+      () => store.passwordRecoveryStatus() === 'completed'
     ),
 
     isSigningOut: computed(() => store.signOutStatus() === 'pending'),
@@ -65,6 +86,7 @@ export const AuthenticationStore = signalStore(
           patchState(store, {
             status: 'anonymous',
             session: null,
+            passwordRecoveryStatus: 'idle',
           });
 
           return;
@@ -76,23 +98,52 @@ export const AuthenticationStore = signalStore(
           error: null,
           signUpStatus:
             store.signUpStatus() === 'pending' ? store.signUpStatus() : 'idle',
+          passwordResetRequestStatus:
+            store.passwordResetRequestStatus() === 'pending'
+              ? store.passwordResetRequestStatus()
+              : 'idle',
         });
       };
 
       const isAuthenticationCommandPending = (): boolean =>
         store.signInStatus() === 'pending' ||
         store.signUpStatus() === 'pending' ||
-        store.signOutStatus() === 'pending';
+        store.signOutStatus() === 'pending' ||
+        store.passwordResetRequestStatus() === 'pending' ||
+        store.passwordRecoveryStatus() === 'pending';
 
       /**
        * Applies an authoritative provider notification and invalidates
        * command results that started against an older session.
        */
       const applyObservedSession = (
-        session: AuthenticationSession | null
+        change: AuthenticationSessionChange
       ): void => {
+        const recoveryUserId =
+          store.passwordRecoveryStatus() === 'idle'
+            ? null
+            : (store.session()?.userId ?? null);
+
         sessionRevision += 1;
-        applySession(session);
+        applySession(change.session);
+
+        if (change.type === 'password-recovery') {
+          patchState(store, {
+            passwordRecoveryStatus: 'ready',
+            passwordResetRequestStatus: 'idle',
+            error: null,
+          });
+          return;
+        }
+
+        if (
+          recoveryUserId !== null &&
+          change.session?.userId !== recoveryUserId
+        ) {
+          patchState(store, {
+            passwordRecoveryStatus: 'idle',
+          });
+        }
       };
 
       /**
@@ -145,7 +196,19 @@ export const AuthenticationStore = signalStore(
               error: null,
             });
 
+            /*
+             * Register before restoration so a recovery callback discovered
+             * during Supabase client initialization cannot be reduced to a
+             * later ordinary INITIAL_SESSION notification.
+             */
+            startObservation();
+
+            const restorationRevision = sessionRevision;
             const result = await authenticationApplication.restoreSession();
+
+            if (sessionRevision !== restorationRevision) {
+              return;
+            }
 
             Either.match(result, {
               onLeft: (error) => {
@@ -160,13 +223,6 @@ export const AuthenticationStore = signalStore(
                 applySession(session);
               },
             });
-
-            /*
-             * Supabase emits INITIAL_SESSION when the listener is
-             * registered. That event closes the small interval between
-             * explicit restoration and listener registration.
-             */
-            startObservation();
           })();
 
           return initialization;
@@ -296,6 +352,114 @@ export const AuthenticationStore = signalStore(
         },
 
         /**
+         * Requests a recovery email without revealing account existence.
+         *
+         * The completion notice is applied only while the same anonymous
+         * session generation remains current.
+         */
+        async requestPasswordReset(email: string): Promise<boolean> {
+          if (
+            store.status() !== 'anonymous' ||
+            isAuthenticationCommandPending()
+          ) {
+            return false;
+          }
+
+          const startedAtRevision = sessionRevision;
+          patchState(store, {
+            passwordResetRequestStatus: 'pending',
+            error: null,
+          });
+
+          const result =
+            await authenticationApplication.requestPasswordReset(email);
+
+          return Either.match(result, {
+            onLeft: (error) => {
+              if (sessionRevision !== startedAtRevision) {
+                patchState(store, { passwordResetRequestStatus: 'idle' });
+                return false;
+              }
+
+              patchState(store, {
+                passwordResetRequestStatus: 'failed',
+                error: toAuthenticationPresentationError(error),
+              });
+              return false;
+            },
+            onRight: () => {
+              if (
+                sessionRevision !== startedAtRevision ||
+                store.status() !== 'anonymous'
+              ) {
+                patchState(store, { passwordResetRequestStatus: 'idle' });
+                return true;
+              }
+
+              patchState(store, {
+                passwordResetRequestStatus: 'sent',
+                error: null,
+              });
+              return true;
+            },
+          });
+        },
+
+        /** Replaces the password for the active recovery session. */
+        async updatePassword(
+          password: string,
+          passwordConfirmation: string
+        ): Promise<boolean> {
+          const recoverySession = store.session();
+
+          if (
+            recoverySession === null ||
+            (store.passwordRecoveryStatus() !== 'ready' &&
+              store.passwordRecoveryStatus() !== 'failed') ||
+            isAuthenticationCommandPending()
+          ) {
+            return false;
+          }
+
+          patchState(store, {
+            passwordRecoveryStatus: 'pending',
+            error: null,
+          });
+
+          const result = await authenticationApplication.updatePassword({
+            password,
+            passwordConfirmation,
+          });
+
+          return Either.match(result, {
+            onLeft: (error) => {
+              if (store.session()?.userId !== recoverySession.userId) {
+                patchState(store, { passwordRecoveryStatus: 'idle' });
+                return false;
+              }
+
+              patchState(store, {
+                passwordRecoveryStatus: 'failed',
+                error: toAuthenticationPresentationError(error),
+              });
+              return false;
+            },
+            onRight: () => {
+              if (store.session()?.userId !== recoverySession.userId) {
+                patchState(store, { passwordRecoveryStatus: 'idle' });
+                return false;
+              }
+
+              patchState(store, {
+                passwordRecoveryStatus: 'completed',
+                error: null,
+              });
+              return true;
+            },
+          });
+        },
+
+        /**
          * Attempts to end the current session.
          *
          * Returns `false` while another authentication command is pending.
@@ -364,6 +528,16 @@ export const AuthenticationStore = signalStore(
               store.signOutStatus() === 'failed'
                 ? 'idle'
                 : store.signOutStatus(),
+
+            passwordResetRequestStatus:
+              store.passwordResetRequestStatus() === 'failed'
+                ? 'idle'
+                : store.passwordResetRequestStatus(),
+
+            passwordRecoveryStatus:
+              store.passwordRecoveryStatus() === 'failed'
+                ? 'ready'
+                : store.passwordRecoveryStatus(),
           });
         },
 
@@ -372,6 +546,26 @@ export const AuthenticationStore = signalStore(
           if (store.signUpStatus() !== 'pending') {
             patchState(store, {
               signUpStatus: 'idle',
+              error: null,
+            });
+          }
+        },
+
+        /** Clears the sent notice so another recovery email can be requested. */
+        resetPasswordResetRequest(): void {
+          if (store.passwordResetRequestStatus() !== 'pending') {
+            patchState(store, {
+              passwordResetRequestStatus: 'idle',
+              error: null,
+            });
+          }
+        },
+
+        /** Leaves the completed recovery screen while retaining its session. */
+        finishPasswordRecovery(): void {
+          if (store.passwordRecoveryStatus() === 'completed') {
+            patchState(store, {
+              passwordRecoveryStatus: 'idle',
               error: null,
             });
           }

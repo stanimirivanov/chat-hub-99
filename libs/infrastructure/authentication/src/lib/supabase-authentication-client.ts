@@ -5,6 +5,7 @@ import type {
   AuthTokenResponsePassword,
   Session,
   Subscription,
+  UserResponse,
 } from '@supabase/supabase-js';
 import { Context } from 'effect';
 
@@ -25,6 +26,11 @@ export interface SupabaseSignOutResult {
   readonly error: AuthError | null;
 }
 
+/** Minimal result returned when requesting a password-reset email. */
+export type SupabasePasswordResetRequestResult =
+  | { readonly data: Record<string, never>; readonly error: null }
+  | { readonly data: null; readonly error: AuthError };
+
 /**
  * Authentication-only projection of the Supabase browser client.
  *
@@ -44,6 +50,15 @@ export interface SupabaseAuthenticationClient {
       readonly email: string;
       readonly password: string;
     }) => Promise<AuthResponse>;
+
+    readonly resetPasswordForEmail: (
+      email: string,
+      options: { readonly redirectTo: string }
+    ) => Promise<SupabasePasswordResetRequestResult>;
+
+    readonly updateUser: (attributes: {
+      readonly password: string;
+    }) => Promise<UserResponse>;
 
     readonly signOut: () => Promise<SupabaseSignOutResult>;
 

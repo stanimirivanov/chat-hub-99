@@ -22,8 +22,13 @@ export const logAuthenticationError = (
     case 'InvalidCredentialsError':
     case 'InvalidSignInInputError':
     case 'InvalidSignUpInputError':
+    case 'InvalidPasswordResetRequestInputError':
+    case 'InvalidPasswordUpdateInputError':
     case 'AccountAlreadyRegisteredError':
-      console.warn('[authentication] Credentials rejected', {
+    case 'PasswordResetRateLimitedError':
+    case 'PasswordRecoveryExpiredError':
+    case 'PasswordUnchangedError':
+      console.warn('[authentication] Expected failure', {
         operation,
         errorTag: error._tag,
       });

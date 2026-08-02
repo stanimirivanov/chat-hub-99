@@ -24,3 +24,17 @@ export const accountAlreadyRegisteredError = {
   status: 422,
   code: 'user_already_exists',
 } as AuthError;
+
+export const passwordResetRateLimitError = {
+  name: 'AuthApiError',
+  message: 'Email rate limit exceeded',
+  status: 429,
+  code: 'over_email_send_rate_limit',
+} as AuthError;
+
+export const weakPasswordError = {
+  name: 'AuthApiError',
+  message: 'Password is too weak',
+  status: 422,
+  code: 'weak_password',
+} as AuthError;

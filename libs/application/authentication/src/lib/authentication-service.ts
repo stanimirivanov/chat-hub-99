@@ -1,6 +1,9 @@
 import { Context, type Effect, type Stream } from 'effect';
 import type { AuthenticationError } from './authentication-error';
-import type { AuthenticationSession } from './authentication-session';
+import type {
+  AuthenticationSession,
+  AuthenticationSessionChange,
+} from './authentication-session';
 import type { EmailPasswordCredentials } from './email-password-credentials';
 
 /**
@@ -15,6 +18,12 @@ export type SignUpResult =
   | {
       readonly status: 'confirmation-required';
     };
+
+/** Provider-independent reset-email request passed to authentication. */
+export interface PasswordResetRequest {
+  readonly email: string;
+  readonly redirectUrl: string;
+}
 
 /**
  * Outbound application port for authentication.
@@ -52,6 +61,16 @@ export interface AuthenticationService {
     credentials: EmailPasswordCredentials
   ) => Effect.Effect<SignUpResult, AuthenticationError>;
 
+  /** Builds a program that sends a password-recovery email. */
+  readonly requestPasswordReset: (
+    request: PasswordResetRequest
+  ) => Effect.Effect<void, AuthenticationError>;
+
+  /** Builds a program that replaces the current recovery session's password. */
+  readonly updatePassword: (
+    password: string
+  ) => Effect.Effect<void, AuthenticationError>;
+
   /**
    * Builds a program that ends the current authentication session.
    */
@@ -64,7 +83,7 @@ export interface AuthenticationService {
    * stream must release that listener.
    */
   readonly sessionChanges: Stream.Stream<
-    AuthenticationSession | null,
+    AuthenticationSessionChange,
     AuthenticationError
   >;
 }

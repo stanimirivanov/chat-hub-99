@@ -54,6 +54,12 @@ Relevant defaults include:
 | Supabase Studio          | `http://127.0.0.1:54323` |
 | PostgreSQL major version |                     `17` |
 
+Supabase Auth uses `http://127.0.0.1:4200` as its local site URL and permits the
+equivalent localhost development origins as password-recovery redirects. These
+values must match the Angular development origin. Hosted environments must set
+their own allowlisted site and redirect URLs; the local configuration is not a
+production redirect policy.
+
 The configured project identifier is:
 
 ```text

@@ -4,6 +4,11 @@ import {
   AccountAlreadyRegisteredError,
   InvalidCredentialsError,
   InvalidSignUpInputError,
+  InvalidPasswordResetRequestInputError,
+  InvalidPasswordUpdateInputError,
+  PasswordRecoveryExpiredError,
+  PasswordResetRateLimitedError,
+  PasswordUnchangedError,
   type AuthenticationError,
   type AuthenticationOperation,
 } from '@chat-hub/application/authentication';
@@ -33,6 +38,37 @@ export const mapAuthenticationError = (
 
     if (error.code === 'weak_password') {
       return new InvalidSignUpInputError({ field: 'password' });
+    }
+  }
+
+  if (operation === 'request-password-reset') {
+    if (error.code === 'email_address_invalid') {
+      return new InvalidPasswordResetRequestInputError({ field: 'email' });
+    }
+
+    if (
+      error.code === 'over_email_send_rate_limit' ||
+      error.code === 'over_request_rate_limit'
+    ) {
+      return new PasswordResetRateLimitedError();
+    }
+  }
+
+  if (operation === 'update-password') {
+    if (error.code === 'weak_password') {
+      return new InvalidPasswordUpdateInputError({ field: 'password' });
+    }
+
+    if (error.code === 'same_password') {
+      return new PasswordUnchangedError();
+    }
+
+    if (
+      error.code === 'session_not_found' ||
+      error.code === 'session_expired' ||
+      error.code === 'bad_jwt'
+    ) {
+      return new PasswordRecoveryExpiredError();
     }
   }
 

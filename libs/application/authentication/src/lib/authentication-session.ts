@@ -12,6 +12,23 @@ export interface AuthenticationSession {
 }
 
 /**
+ * Provider-neutral authentication-session notification.
+ *
+ * Ordinary session changes drive signed-in/signed-out state. A password
+ * recovery notification carries the same validated session plus the intent
+ * required to select the password-update workflow.
+ */
+export type AuthenticationSessionChange =
+  | {
+      readonly type: 'session';
+      readonly session: AuthenticationSession | null;
+    }
+  | {
+      readonly type: 'password-recovery';
+      readonly session: AuthenticationSession;
+    };
+
+/**
  * Runtime contract for authentication information exposed to the application.
  *
  * Provider adapters decode external values through this schema, preventing

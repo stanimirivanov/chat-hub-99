@@ -13,8 +13,11 @@ provider-independent application contracts.
 - Sign in with email and password.
 - Register email/password accounts and distinguish immediate sessions from
   email-confirmation completion.
+- Request password-reset emails with an application-supplied redirect URL.
+- Replace the password belonging to an active recovery session.
 - Sign out of the current session.
-- Adapt `onAuthStateChange` to a scoped Effect Stream.
+- Adapt `onAuthStateChange` to a scoped Effect Stream and translate
+  `PASSWORD_RECOVERY` into provider-neutral recovery intent.
 - Map Supabase sessions to `AuthenticationSession`.
 - Translate Supabase Auth failures into application authentication errors.
 - Supply the implementation through an Effect Layer.
@@ -39,6 +42,10 @@ Supabase session   -> authenticated application session
 Supabase user only -> confirmation required
 Supabase AuthError -> typed application authentication error
 ```
+
+Recovery tokens, URL fragments, and raw Supabase event names remain inside the
+Supabase Auth/browser boundary. Infrastructure exposes only the validated
+session and a provider-independent `password-recovery` discriminator.
 
 ## Package structure
 
@@ -81,6 +88,10 @@ unsubscribe Supabase listener
 
 Angular owns the running Fiber and interrupts it when the authentication store's
 injection context is destroyed.
+
+The listener is registered before explicit session restoration. This preserves
+the recovery intent emitted while Supabase initializes from an emailed callback;
+an older restoration snapshot must not overwrite that event.
 
 ## Public API
 

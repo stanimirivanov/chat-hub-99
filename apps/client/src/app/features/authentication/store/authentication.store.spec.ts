@@ -5,8 +5,11 @@ import {
   AuthenticationUnavailableError,
   AccountAlreadyRegisteredError,
   InvalidCredentialsError,
+  InvalidPasswordUpdateInputError,
+  PasswordResetRateLimitedError,
   type AuthenticationError,
   type AuthenticationSession,
+  type AuthenticationSessionChange,
   type SignUpResult,
 } from '@chat-hub/application/authentication';
 import { AuthenticationApplicationService } from '@client/core/authentication/authentication-application.service';
@@ -28,14 +31,14 @@ const makeDeferred = <T>() => {
 
 const makeSessionObserver = () => {
   let onSessionChange:
-    | ((value: AuthenticationSession | null) => void)
+    | ((value: AuthenticationSessionChange) => void)
     | undefined;
   let onError: ((error: AuthenticationError) => void) | undefined;
   const stop = vi.fn();
 
   const observeSessionChanges = vi.fn(
     (
-      sessionHandler: (value: AuthenticationSession | null) => void,
+      sessionHandler: (value: AuthenticationSessionChange) => void,
       errorHandler: (error: AuthenticationError) => void
     ) => {
       onSessionChange = sessionHandler;
@@ -48,7 +51,16 @@ const makeSessionObserver = () => {
     observeSessionChanges,
     stop,
     emitSession(value: AuthenticationSession | null): void {
-      onSessionChange?.(value);
+      onSessionChange?.({
+        type: 'session',
+        session: value,
+      });
+    },
+    emitPasswordRecovery(value: AuthenticationSession): void {
+      onSessionChange?.({
+        type: 'password-recovery',
+        session: value,
+      });
     },
     emitError(error: AuthenticationError): void {
       onError?.(error);
@@ -63,6 +75,10 @@ const configureStore = (
     signIn: AuthenticationApplicationService['signIn'];
 
     signUp: AuthenticationApplicationService['signUp'];
+
+    requestPasswordReset: AuthenticationApplicationService['requestPasswordReset'];
+
+    updatePassword: AuthenticationApplicationService['updatePassword'];
 
     signOut: AuthenticationApplicationService['signOut'];
 
@@ -84,6 +100,10 @@ const configureStore = (
     ),
 
     signOut: vi.fn().mockResolvedValue(Either.right(undefined)),
+
+    requestPasswordReset: vi.fn().mockResolvedValue(Either.right(undefined)),
+
+    updatePassword: vi.fn().mockResolvedValue(Either.right(undefined)),
 
     observeSessionChanges: vi.fn().mockReturnValue(stopObserving),
 
@@ -138,6 +158,31 @@ describe('AuthenticationStore', () => {
     expect(store.status()).toBe('authenticated');
 
     expect(store.session()).toEqual(session);
+  });
+
+  it('does not overwrite a recovery event with an older restoration snapshot', async () => {
+    const observer = makeSessionObserver();
+    const restoration =
+      makeDeferred<
+        Either.Either<AuthenticationSession | null, AuthenticationError>
+      >();
+    const { store } = configureStore({
+      restoreSession: vi.fn().mockReturnValue(restoration.promise),
+      observeSessionChanges: observer.observeSessionChanges,
+    });
+
+    const initialization = store.initialize();
+
+    expect(observer.observeSessionChanges).toHaveBeenCalledOnce();
+
+    observer.emitPasswordRecovery(session);
+    restoration.resolve(Either.right(null));
+    await initialization;
+
+    expect(store.status()).toBe('authenticated');
+    expect(store.session()).toEqual(session);
+    expect(store.isPasswordRecoveryActive()).toBe(true);
+    expect(store.passwordRecoveryStatus()).toBe('ready');
   });
 
   it('exposes a restoration failure and remains anonymous', async () => {
@@ -472,6 +517,161 @@ describe('AuthenticationStore', () => {
     await expect(registration).resolves.toBe(true);
     expect(store.session()).toEqual(newerSession);
     expect(store.signUpStatus()).toBe('idle');
+  });
+
+  it('exposes a non-enumerating completion after requesting a recovery email', async () => {
+    const requestPasswordReset = vi
+      .fn()
+      .mockResolvedValue(Either.right(undefined));
+    const { store } = configureStore({ requestPasswordReset });
+
+    await store.initialize();
+
+    await expect(
+      store.requestPasswordReset('owner@chat-hub.local')
+    ).resolves.toBe(true);
+    expect(requestPasswordReset).toHaveBeenCalledExactlyOnceWith(
+      'owner@chat-hub.local'
+    );
+    expect(store.isPasswordResetEmailSent()).toBe(true);
+    expect(store.error()).toBeNull();
+
+    store.resetPasswordResetRequest();
+
+    expect(store.passwordResetRequestStatus()).toBe('idle');
+  });
+
+  it('presents password-reset rate limits without provider details', async () => {
+    const { store } = configureStore({
+      requestPasswordReset: vi
+        .fn()
+        .mockResolvedValue(Either.left(new PasswordResetRateLimitedError())),
+    });
+
+    await store.initialize();
+
+    await expect(
+      store.requestPasswordReset('owner@chat-hub.local')
+    ).resolves.toBe(false);
+    expect(store.passwordResetRequestStatus()).toBe('failed');
+    expect(store.error()).toEqual({
+      message: 'Wait a moment before requesting another recovery email.',
+    });
+  });
+
+  it('serializes recovery-email requests with other authentication commands', async () => {
+    const request = makeDeferred<Either.Either<void, AuthenticationError>>();
+    const signIn = vi.fn().mockResolvedValue(Either.right(session));
+    const { store } = configureStore({
+      requestPasswordReset: vi.fn().mockReturnValue(request.promise),
+      signIn,
+    });
+
+    await store.initialize();
+
+    const recoveryRequest = store.requestPasswordReset('owner@chat-hub.local');
+
+    expect(store.isRequestingPasswordReset()).toBe(true);
+    await expect(
+      store.signIn('owner@chat-hub.local', 'Password123!')
+    ).resolves.toBe(false);
+    expect(signIn).not.toHaveBeenCalled();
+
+    request.resolve(Either.right(undefined));
+    await expect(recoveryRequest).resolves.toBe(true);
+  });
+
+  it('updates the password for an observed recovery session', async () => {
+    const observer = makeSessionObserver();
+    const updatePassword = vi.fn().mockResolvedValue(Either.right(undefined));
+    const { store } = configureStore({
+      observeSessionChanges: observer.observeSessionChanges,
+      updatePassword,
+    });
+
+    await store.initialize();
+    observer.emitPasswordRecovery(session);
+
+    await expect(
+      store.updatePassword('Replacement123!', 'Replacement123!')
+    ).resolves.toBe(true);
+    expect(updatePassword).toHaveBeenCalledExactlyOnceWith({
+      password: 'Replacement123!',
+      passwordConfirmation: 'Replacement123!',
+    });
+    expect(store.isPasswordUpdateComplete()).toBe(true);
+
+    store.finishPasswordRecovery();
+
+    expect(store.isPasswordRecoveryActive()).toBe(false);
+    expect(store.status()).toBe('authenticated');
+    expect(store.session()).toEqual(session);
+  });
+
+  it('presents invalid replacement-password input inside recovery', async () => {
+    const observer = makeSessionObserver();
+    const { store } = configureStore({
+      observeSessionChanges: observer.observeSessionChanges,
+      updatePassword: vi.fn().mockResolvedValue(
+        Either.left(
+          new InvalidPasswordUpdateInputError({
+            field: 'passwordConfirmation',
+          })
+        )
+      ),
+    });
+
+    await store.initialize();
+    observer.emitPasswordRecovery(session);
+
+    await expect(store.updatePassword('one', 'two')).resolves.toBe(false);
+    expect(store.passwordRecoveryStatus()).toBe('failed');
+    expect(store.error()).toEqual({
+      message: 'The password confirmation must match.',
+    });
+  });
+
+  it('completes recovery after a same-user session notification', async () => {
+    const observer = makeSessionObserver();
+    const update = makeDeferred<Either.Either<void, AuthenticationError>>();
+    const { store } = configureStore({
+      observeSessionChanges: observer.observeSessionChanges,
+      updatePassword: vi.fn().mockReturnValue(update.promise),
+    });
+
+    await store.initialize();
+    observer.emitPasswordRecovery(session);
+
+    const result = store.updatePassword('Replacement123!', 'Replacement123!');
+    observer.emitSession(session);
+    update.resolve(Either.right(undefined));
+
+    await expect(result).resolves.toBe(true);
+    expect(store.passwordRecoveryStatus()).toBe('completed');
+  });
+
+  it('does not complete recovery for a replaced session', async () => {
+    const newerSession: AuthenticationSession = {
+      userId: '00000000-0000-4000-8000-000000000002',
+      email: 'newer@chat-hub.local',
+    };
+    const observer = makeSessionObserver();
+    const update = makeDeferred<Either.Either<void, AuthenticationError>>();
+    const { store } = configureStore({
+      observeSessionChanges: observer.observeSessionChanges,
+      updatePassword: vi.fn().mockReturnValue(update.promise),
+    });
+
+    await store.initialize();
+    observer.emitPasswordRecovery(session);
+
+    const result = store.updatePassword('Replacement123!', 'Replacement123!');
+    observer.emitSession(newerSession);
+    update.resolve(Either.right(undefined));
+
+    await expect(result).resolves.toBe(false);
+    expect(store.passwordRecoveryStatus()).toBe('idle');
+    expect(store.session()).toEqual(newerSession);
   });
 
   it('becomes anonymous after sign-out', async () => {
