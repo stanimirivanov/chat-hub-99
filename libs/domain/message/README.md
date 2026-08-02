@@ -8,6 +8,7 @@
 - Stable author identity represented by the profile-domain `ProfileId`
 - Validated message content
 - Active and deleted message projections
+- Immutable message revision identity, ordering, and content contracts
 - Commands expressed in domain vocabulary
 - Domain-level validation failures
 
@@ -39,6 +40,8 @@ or soft-deleted.
 - `message-id.ts`: message identity schema and branded type
 - `message-content.ts`: content normalization and length invariant
 - `message.ts`: active/deleted message union and schemas
+- `message-revision-id.ts`: immutable revision identity schema and branded type
+- `message-revision.ts`: positive version number and immutable revision schema
 
 ## Extension guideline
 

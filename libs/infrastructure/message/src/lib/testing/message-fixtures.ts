@@ -2,7 +2,7 @@ import { Schema } from 'effect';
 
 import { ChannelIdSchema } from '@chat-hub/domain/channel';
 import { ProfileIdSchema, type ProfileId } from '@chat-hub/domain/profile';
-import type { CurrentMessage } from '@chat-hub/shared/database';
+import type { CurrentMessage, TableRow } from '@chat-hub/shared/database';
 import {
   ActiveMessageSchema,
   MessageContentSchema,
@@ -50,6 +50,15 @@ export const activeMessageRow: CurrentMessage = {
   version_created_by: '00000000-0000-4000-8000-000000000010',
   version_number: 1,
   workspace_id: '00000000-0000-4000-8000-000000000050',
+};
+
+export const messageRevisionRow: TableRow<'message_versions'> = {
+  message_version_id: '00000000-0000-4000-8000-000000000040',
+  message_id: messageId,
+  version_number: 2,
+  content: 'Edited message content',
+  created_by: authorId,
+  created_at: '2026-07-26T19:00:00.000Z',
 };
 
 const createMessageContent = Schema.decodeUnknownSync(MessageContentSchema)(

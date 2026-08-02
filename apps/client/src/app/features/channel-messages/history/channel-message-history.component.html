@@ -33,6 +33,78 @@
               {{ editedAt | date: 'medium' }}
             </time>
           </span>
+
+          @if (canViewRevisionHistory(message)) {
+            <button
+              type="button"
+              [attr.aria-expanded]="
+                store.revisionHistoryMessageId() === message.id
+              "
+              [attr.aria-controls]="'message-revisions-' + message.id"
+              (click)="toggleRevisionHistory(message.id)"
+            >
+              @if (store.revisionHistoryMessageId() === message.id) {
+                Hide edit history
+              } @else {
+                View edit history
+              }
+            </button>
+          }
+        }
+
+        @if (store.revisionHistoryMessageId() === message.id) {
+          <section
+            [id]="'message-revisions-' + message.id"
+            aria-label="Message edit history"
+          >
+            @if (store.isLoadingMessageRevisions()) {
+              <p>Loading edit history&hellip;</p>
+            } @else if (store.messageRevisionsError(); as revisionError) {
+              <p role="alert">{{ revisionError.message }}</p>
+              <button
+                type="button"
+                (click)="store.openRevisionHistory(message.id)"
+              >
+                Retry edit history
+              </button>
+            } @else if (store.messageRevisions().length === 0) {
+              <p>No revision history is available.</p>
+            } @else {
+              <ol reversed>
+                @for (revision of store.messageRevisions(); track revision.id) {
+                  <li>
+                    <strong>Version {{ revision.versionNumber }}</strong>
+                    <span>{{ revision.content }}</span>
+                    <time
+                      [attr.datetime]="revision.createdAt.toISOString()"
+                      [attr.aria-label]="
+                        'Version ' +
+                        revision.versionNumber +
+                        ' created ' +
+                        (revision.createdAt | date: 'long')
+                      "
+                    >
+                      {{ revision.createdAt | date: 'medium' }}
+                    </time>
+                  </li>
+                }
+              </ol>
+
+              @if (store.canLoadOlderMessageRevisions()) {
+                <button
+                  type="button"
+                  [disabled]="store.isLoadingOlderMessageRevisions()"
+                  (click)="store.loadOlderMessageRevisions()"
+                >
+                  @if (store.isLoadingOlderMessageRevisions()) {
+                    Loading&hellip;
+                  } @else {
+                    Load older revisions
+                  }
+                </button>
+              }
+            }
+          </section>
         }
 
         @if (message.status === 'active') {

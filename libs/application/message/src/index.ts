@@ -26,6 +26,14 @@ export {
 } from './lib/list-channel-messages';
 
 export {
+  InvalidMessageRevisionPageLimitError,
+  listMessageRevisions,
+  type ListMessageRevisionsCursorInput,
+  type ListMessageRevisionsError,
+  type ListMessageRevisionsInput,
+} from './lib/list-message-revisions';
+
+export {
   InvalidChannelMessageObservationInputError,
   observeChannelMessages,
   type MessageChange,
@@ -34,9 +42,13 @@ export {
 
 export {
   MessagePageSizeSchema,
+  MessageRevisionPageSizeSchema,
   type MessageCursor,
   type MessagePage,
   type MessagePageSize,
+  type MessageRevisionCursor,
+  type MessageRevisionPage,
+  type MessageRevisionPageSize,
 } from './lib/pagination';
 
 export {
@@ -49,6 +61,7 @@ export {
   MessageRepositoryUnavailableError,
   InvalidMessageDataError,
   type ListChannelMessagesQuery,
+  type ListMessageRevisionsQuery,
   type CreateMessageCommand,
   type DeleteMessageCommand,
   type EditMessageCommand,

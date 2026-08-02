@@ -84,6 +84,14 @@ store state: every projection shows its creation time, edited projections show
 their latest edit time, and deleted projections show their deletion time.
 Angular formats visible values at the presentation boundary while semantic
 `time` elements retain machine-readable ISO values and contextual labels.
+Edited messages expose their immutable revision history on demand to the author
+or through the existing workspace-owner presentation capability. Revision
+pages live in the channel-message store because they share its selection and
+stale-request boundary, but they keep independent loading, pagination, and
+error state. Switching channels, opening another message, editing the target,
+or receiving an authoritative update invalidates an outstanding revision
+request. The UI capability is only an affordance: the `message_versions` RLS
+policy remains the authorization boundary.
 If message creation loses a race with workspace or channel archival, the store
 retains the existing history and reports that the channel no longer accepts
 messages. The composer clears its draft only after successful creation, so the

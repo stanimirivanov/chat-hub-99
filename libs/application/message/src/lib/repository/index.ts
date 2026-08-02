@@ -2,6 +2,7 @@ export type { MessageChangeNotification } from './message-change-notification';
 export {
   MessageRepositoryTag,
   type ListChannelMessagesQuery,
+  type ListMessageRevisionsQuery,
   type MessageRepository,
 } from './message-repository';
 
