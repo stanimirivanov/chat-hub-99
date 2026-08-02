@@ -6,7 +6,36 @@
       Confirm your email address before signing in to Chat Hub 99.
     </p>
 
-    <button type="button" (click)="store.resetSignUp()">
+    @if (store.confirmationEmail(); as email) {
+      <p>
+        Confirmation was requested for <strong>{{ email }}</strong
+        >.
+      </p>
+    }
+
+    @if (store.wasConfirmationEmailResent()) {
+      <p role="status">
+        If the address still requires confirmation, another email has been sent.
+      </p>
+    }
+
+    <button
+      type="button"
+      [disabled]="store.isResendingConfirmationEmail()"
+      (click)="store.resendConfirmationEmail()"
+    >
+      @if (store.isResendingConfirmationEmail()) {
+        Sending confirmation...
+      } @else {
+        Resend confirmation email
+      }
+    </button>
+
+    <button
+      type="button"
+      [disabled]="store.isResendingConfirmationEmail()"
+      (click)="store.resetSignUp()"
+    >
       Register another email
     </button>
   } @else {

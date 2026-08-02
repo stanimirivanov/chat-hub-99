@@ -32,6 +32,20 @@ export const passwordResetRateLimitError = {
   code: 'over_email_send_rate_limit',
 } as AuthError;
 
+export const confirmationEmailResendRateLimitError = {
+  name: 'AuthApiError',
+  message: 'Email rate limit exceeded',
+  status: 429,
+  code: 'over_email_send_rate_limit',
+} as AuthError;
+
+export const userNotFoundError = {
+  name: 'AuthApiError',
+  message: 'User not found',
+  status: 404,
+  code: 'user_not_found',
+} as AuthError;
+
 export const weakPasswordError = {
   name: 'AuthApiError',
   message: 'Password is too weak',

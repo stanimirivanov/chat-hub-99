@@ -36,6 +36,19 @@ export const toAuthenticationPresentationError = (
         message: 'An account with this email already exists. Try signing in.',
       };
 
+    case 'InvalidConfirmationEmailResendInputError':
+      return {
+        message:
+          error.field === 'email'
+            ? 'Enter a valid email address.'
+            : 'Email confirmation is currently unavailable. Please try again.',
+      };
+
+    case 'ConfirmationEmailResendRateLimitedError':
+      return {
+        message: 'Wait a moment before requesting another confirmation email.',
+      };
+
     case 'InvalidPasswordResetRequestInputError':
       return {
         message:

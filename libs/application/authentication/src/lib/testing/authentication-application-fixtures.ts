@@ -17,6 +17,7 @@ export const authenticatedSignUpResult = {
 
 export const confirmationRequiredSignUpResult = {
   status: 'confirmation-required',
+  email: 'new-user@example.com',
 } satisfies SignUpResult;
 
 export const authenticatedSessionChange = {

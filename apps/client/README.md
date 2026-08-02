@@ -31,6 +31,12 @@ or renders an explicit email-confirmation completion. The existing Auth-user
 database trigger owns initial profile creation; the client adds no parallel
 profile-provisioning workflow.
 
+Confirmation-required registration retains only its normalized email address,
+never the password. The same completion screen can resend confirmation through
+an independently tracked command state. Its success text remains conditional
+and non-enumerating, and a newer authenticated session invalidates a pending
+resend result.
+
 Anonymous users can also request a password-reset email. The completion text is
 deliberately identical whether or not the address belongs to an account. The
 Angular execution boundary supplies the current browser origin as the callback;

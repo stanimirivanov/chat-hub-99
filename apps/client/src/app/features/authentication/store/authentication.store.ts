@@ -42,6 +42,14 @@ export const AuthenticationStore = signalStore(
       () => store.signUpStatus() === 'confirmation-required'
     ),
 
+    isResendingConfirmationEmail: computed(
+      () => store.confirmationEmailResendStatus() === 'pending'
+    ),
+
+    wasConfirmationEmailResent: computed(
+      () => store.confirmationEmailResendStatus() === 'sent'
+    ),
+
     isRequestingPasswordReset: computed(
       () => store.passwordResetRequestStatus() === 'pending'
     ),
@@ -77,6 +85,11 @@ export const AuthenticationStore = signalStore(
 
       let sessionRevision = 0;
 
+      const idleConfirmationEmailState = {
+        confirmationEmail: null,
+        confirmationEmailResendStatus: 'idle',
+      } as const;
+
       /**
        * Applies a current authentication session without completing an
        * independently running authentication request.
@@ -98,6 +111,7 @@ export const AuthenticationStore = signalStore(
           error: null,
           signUpStatus:
             store.signUpStatus() === 'pending' ? store.signUpStatus() : 'idle',
+          ...idleConfirmationEmailState,
           passwordResetRequestStatus:
             store.passwordResetRequestStatus() === 'pending'
               ? store.passwordResetRequestStatus()
@@ -108,6 +122,7 @@ export const AuthenticationStore = signalStore(
       const isAuthenticationCommandPending = (): boolean =>
         store.signInStatus() === 'pending' ||
         store.signUpStatus() === 'pending' ||
+        store.confirmationEmailResendStatus() === 'pending' ||
         store.signOutStatus() === 'pending' ||
         store.passwordResetRequestStatus() === 'pending' ||
         store.passwordRecoveryStatus() === 'pending';
@@ -299,6 +314,7 @@ export const AuthenticationStore = signalStore(
 
           patchState(store, {
             signUpStatus: 'pending',
+            ...idleConfirmationEmailState,
             error: null,
           });
 
@@ -312,6 +328,7 @@ export const AuthenticationStore = signalStore(
               if (sessionRevision !== startedAtRevision) {
                 patchState(store, {
                   signUpStatus: 'idle',
+                  ...idleConfirmationEmailState,
                 });
 
                 return false;
@@ -319,6 +336,7 @@ export const AuthenticationStore = signalStore(
 
               patchState(store, {
                 signUpStatus: 'failed',
+                ...idleConfirmationEmailState,
                 error: toAuthenticationPresentationError(error),
               });
 
@@ -329,6 +347,7 @@ export const AuthenticationStore = signalStore(
               if (sessionRevision !== startedAtRevision) {
                 patchState(store, {
                   signUpStatus: 'idle',
+                  ...idleConfirmationEmailState,
                 });
 
                 return true;
@@ -338,14 +357,75 @@ export const AuthenticationStore = signalStore(
                 applySession(signUpResult.session);
                 patchState(store, {
                   signUpStatus: 'idle',
+                  ...idleConfirmationEmailState,
                 });
               } else {
                 patchState(store, {
                   signUpStatus: 'confirmation-required',
+                  confirmationEmail: signUpResult.email,
+                  confirmationEmailResendStatus: 'idle',
                   error: null,
                 });
               }
 
+              return true;
+            },
+          });
+        },
+
+        /** Resends confirmation for the retained normalized registration email. */
+        async resendConfirmationEmail(): Promise<boolean> {
+          const email = store.confirmationEmail();
+
+          if (
+            email === null ||
+            store.status() !== 'anonymous' ||
+            store.signUpStatus() !== 'confirmation-required' ||
+            isAuthenticationCommandPending()
+          ) {
+            return false;
+          }
+
+          const startedAtRevision = sessionRevision;
+          const isCurrentRequest = (): boolean =>
+            sessionRevision === startedAtRevision &&
+            store.confirmationEmail() === email;
+
+          patchState(store, {
+            confirmationEmailResendStatus: 'pending',
+            error: null,
+          });
+
+          const result =
+            await authenticationApplication.resendConfirmationEmail(email);
+
+          return Either.match(result, {
+            onLeft: (error) => {
+              if (!isCurrentRequest()) {
+                patchState(store, {
+                  confirmationEmailResendStatus: 'idle',
+                });
+                return false;
+              }
+
+              patchState(store, {
+                confirmationEmailResendStatus: 'failed',
+                error: toAuthenticationPresentationError(error),
+              });
+              return false;
+            },
+            onRight: () => {
+              if (!isCurrentRequest()) {
+                patchState(store, {
+                  confirmationEmailResendStatus: 'idle',
+                });
+                return true;
+              }
+
+              patchState(store, {
+                confirmationEmailResendStatus: 'sent',
+                error: null,
+              });
               return true;
             },
           });
@@ -524,6 +604,11 @@ export const AuthenticationStore = signalStore(
             signUpStatus:
               store.signUpStatus() === 'failed' ? 'idle' : store.signUpStatus(),
 
+            confirmationEmailResendStatus:
+              store.confirmationEmailResendStatus() === 'failed'
+                ? 'idle'
+                : store.confirmationEmailResendStatus(),
+
             signOutStatus:
               store.signOutStatus() === 'failed'
                 ? 'idle'
@@ -543,9 +628,13 @@ export const AuthenticationStore = signalStore(
 
         /** Clears a completed confirmation notice so another email can register. */
         resetSignUp(): void {
-          if (store.signUpStatus() !== 'pending') {
+          if (
+            store.signUpStatus() !== 'pending' &&
+            store.confirmationEmailResendStatus() !== 'pending'
+          ) {
             patchState(store, {
               signUpStatus: 'idle',
+              ...idleConfirmationEmailState,
               error: null,
             });
           }

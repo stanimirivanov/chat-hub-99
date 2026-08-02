@@ -29,6 +29,8 @@ describe('AuthenticationShellComponent', () => {
 
       isSigningUp: signal(false),
 
+      isResendingConfirmationEmail: signal(false),
+
       isRequestingPasswordReset: signal(false),
 
       isPasswordResetEmailSent: signal(false),
@@ -45,11 +47,17 @@ describe('AuthenticationShellComponent', () => {
 
       requiresEmailConfirmation: signal(false),
 
+      confirmationEmail: signal(null),
+
+      wasConfirmationEmailResent: signal(false),
+
       initialize: vi.fn().mockResolvedValue(undefined),
 
       signIn: vi.fn().mockResolvedValue(true),
 
       signUp: vi.fn().mockResolvedValue(true),
+
+      resendConfirmationEmail: vi.fn().mockResolvedValue(true),
 
       requestPasswordReset: vi.fn().mockResolvedValue(true),
 

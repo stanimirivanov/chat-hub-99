@@ -17,7 +17,14 @@ export type SignUpResult =
     }
   | {
       readonly status: 'confirmation-required';
+      readonly email: string;
     };
+
+/** Provider-independent confirmation-email request passed to authentication. */
+export interface ConfirmationEmailResendRequest {
+  readonly email: string;
+  readonly redirectUrl: string;
+}
 
 /** Provider-independent reset-email request passed to authentication. */
 export interface PasswordResetRequest {
@@ -60,6 +67,11 @@ export interface AuthenticationService {
   readonly signUp: (
     credentials: EmailPasswordCredentials
   ) => Effect.Effect<SignUpResult, AuthenticationError>;
+
+  /** Builds a program that resends an account-confirmation email. */
+  readonly resendConfirmationEmail: (
+    request: ConfirmationEmailResendRequest
+  ) => Effect.Effect<void, AuthenticationError>;
 
   /** Builds a program that sends a password-recovery email. */
   readonly requestPasswordReset: (

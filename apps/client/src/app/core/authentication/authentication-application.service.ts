@@ -3,6 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { Effect, Either, Fiber, Stream } from 'effect';
 import {
   observeSessionChanges,
+  resendConfirmationEmail,
   requestPasswordReset,
   restoreSession,
   signIn,
@@ -31,6 +32,10 @@ import { logAuthenticationError } from './log-authentication-error';
 })
 export class AuthenticationApplicationService {
   private readonly document = inject(DOCUMENT);
+
+  private rootCallbackUrl(): string {
+    return new URL('/', this.document.location.origin).toString();
+  }
 
   /**
    * Restores the persisted browser session.
@@ -91,6 +96,25 @@ export class AuthenticationApplicationService {
     return applicationRuntime.runPromise(program);
   }
 
+  /** Resends confirmation for an account awaiting email verification. */
+  resendConfirmationEmail(
+    email: string
+  ): Promise<Either.Either<void, AuthenticationError>> {
+    const program = resendConfirmationEmail({
+      email,
+      redirectUrl: this.rootCallbackUrl(),
+    }).pipe(
+      Effect.tapError((error) =>
+        Effect.sync(() => {
+          logAuthenticationError('resend-confirmation-email', error);
+        })
+      ),
+      Effect.either
+    );
+
+    return applicationRuntime.runPromise(program);
+  }
+
   /**
    * Requests a password-reset email with a callback to this browser origin.
    *
@@ -101,8 +125,10 @@ export class AuthenticationApplicationService {
   requestPasswordReset(
     email: string
   ): Promise<Either.Either<void, AuthenticationError>> {
-    const redirectUrl = new URL('/', this.document.location.origin).toString();
-    const program = requestPasswordReset({ email, redirectUrl }).pipe(
+    const program = requestPasswordReset({
+      email,
+      redirectUrl: this.rootCallbackUrl(),
+    }).pipe(
       Effect.tapError((error) =>
         Effect.sync(() => {
           logAuthenticationError('request-password-reset', error);

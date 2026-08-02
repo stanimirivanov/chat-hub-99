@@ -8,7 +8,9 @@ export {
   InvalidCredentialsError,
   InvalidSignInInputError,
   InvalidSignUpInputError,
+  InvalidConfirmationEmailResendInputError,
   AccountAlreadyRegisteredError,
+  ConfirmationEmailResendRateLimitedError,
   InvalidPasswordResetRequestInputError,
   InvalidPasswordUpdateInputError,
   PasswordResetRateLimitedError,
@@ -22,6 +24,7 @@ export {
 export {
   AuthenticationServiceTag,
   type AuthenticationService,
+  type ConfirmationEmailResendRequest,
   type PasswordResetRequest,
   type SignUpResult,
 } from './lib/authentication-service';
@@ -31,6 +34,11 @@ export type { EmailPasswordCredentials } from './lib/email-password-credentials'
 export { observeSessionChanges } from './lib/observe-session';
 
 export { restoreSession } from './lib/restore-session';
+
+export {
+  resendConfirmationEmail,
+  type ResendConfirmationEmailInput,
+} from './lib/resend-confirmation-email';
 
 export {
   requestPasswordReset,

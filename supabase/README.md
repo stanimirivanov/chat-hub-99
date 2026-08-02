@@ -55,10 +55,15 @@ Relevant defaults include:
 | PostgreSQL major version |                     `17` |
 
 Supabase Auth uses `http://127.0.0.1:4200` as its local site URL and permits the
-equivalent localhost development origins as password-recovery redirects. These
+equivalent localhost development origins as authentication-email redirects. These
 values must match the Angular development origin. Hosted environments must set
 their own allowlisted site and redirect URLs; the local configuration is not a
 production redirect policy.
+
+Local email confirmation is enabled. New email/password registrations therefore
+exercise the same confirmation-required and resend flow used by hosted
+environments, while the deterministic users inserted by `seed.sql` remain
+pre-confirmed for ordinary local sign-in.
 
 The configured project identifier is:
 

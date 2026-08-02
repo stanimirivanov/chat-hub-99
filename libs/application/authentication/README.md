@@ -6,15 +6,16 @@ authentication capability used by the Chat Hub application.
 It contains application session contracts, typed authentication failures,
 the outbound authentication service port, and use cases for restoring a
 session, signing in, registering an account, requesting password recovery,
-replacing a recovered password, signing out, and observing session changes.
+resending account confirmation, replacing a recovered password, signing out,
+and observing session changes.
 
 ## Responsibilities
 
 - Define the application authentication-session projection.
 - Define technology-independent authentication errors.
 - Define the outbound `AuthenticationService` port.
-- Orchestrate session restoration, sign-in, sign-up, password recovery,
-  sign-out, and session observation.
+- Orchestrate session restoration, sign-in, sign-up, confirmation-email
+  resend, password recovery, sign-out, and session observation.
 - Runtime-validate and normalize use-case input before requesting a provider.
 - Express dependencies and expected failures through Effect types.
 
@@ -54,8 +55,10 @@ src/lib/
 ├── authentication-error.ts
 ├── authentication-service.ts
 ├── authentication-session.ts
+├── email-redirect-request.ts
 ├── email-password-credentials.ts
 ├── observe-session/
+├── resend-confirmation-email/
 ├── request-password-reset/
 ├── restore-session/
 ├── sign-in/
@@ -78,12 +81,13 @@ The public entry point exports:
 - the runtime-validated session contract and credential contracts;
 - application authentication errors;
 - `AuthenticationServiceTag`;
-- the seven authentication use cases.
+- the eight authentication use cases.
 
 Account registration deliberately models both successful provider outcomes:
 an immediately authenticated session and an account that must confirm its
-email first. A nullable provider session never leaks into Angular as an
-ambiguous success value.
+email first. The latter retains the normalized address required by the resend
+workflow. A nullable provider session never leaks into Angular as an ambiguous
+success value.
 
 ```text
 Angular store -> signUp use case -> AuthenticationService Tag
@@ -106,6 +110,10 @@ request reset -> provider email -> password-recovery session change
 
 The reset-request success value is always `void`; callers must render the same
 completion for existing and unknown email addresses.
+
+Confirmation resend follows the same non-enumerating email/callback boundary.
+The shared decoder normalizes those two structural fields, while each use case
+retains its own typed validation failures and semantic provider operation.
 
 ## Verification
 

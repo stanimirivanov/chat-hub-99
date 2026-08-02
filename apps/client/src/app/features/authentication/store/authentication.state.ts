@@ -18,6 +18,11 @@ export type SignUpStatus =
   | AuthenticationOperationStatus
   | 'confirmation-required';
 
+/** State of resending confirmation and its non-enumerating completion. */
+export type ConfirmationEmailResendStatus =
+  | AuthenticationOperationStatus
+  | 'sent';
+
 /** State of requesting a recovery email and its safe completion notice. */
 export type PasswordResetRequestStatus = AuthenticationOperationStatus | 'sent';
 
@@ -48,6 +53,10 @@ export interface AuthenticationState {
 
   readonly signUpStatus: SignUpStatus;
 
+  readonly confirmationEmail: string | null;
+
+  readonly confirmationEmailResendStatus: ConfirmationEmailResendStatus;
+
   readonly signOutStatus: AuthenticationOperationStatus;
 
   readonly passwordResetRequestStatus: PasswordResetRequestStatus;
@@ -65,6 +74,8 @@ export const initialAuthenticationState: AuthenticationState = {
   session: null,
   signInStatus: 'idle',
   signUpStatus: 'idle',
+  confirmationEmail: null,
+  confirmationEmailResendStatus: 'idle',
   signOutStatus: 'idle',
   passwordResetRequestStatus: 'idle',
   passwordRecoveryStatus: 'idle',
