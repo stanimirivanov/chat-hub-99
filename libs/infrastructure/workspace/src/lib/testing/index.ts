@@ -1,8 +1,10 @@
 export {
   addedWorkspaceMemberRow,
+  cancelledWorkspaceInvitationRow,
   declinedWorkspaceInvitationRow,
   invitedWorkspaceMemberRow,
   pendingWorkspaceInvitationRows,
+  pendingWorkspaceInvitationForOwnerRows,
   archivedWorkspaceRow,
   changedWorkspaceMemberRoleRow,
   createdWorkspaceRow,

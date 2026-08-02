@@ -2,6 +2,7 @@ import { Effect, Schema } from 'effect';
 import {
   InvalidWorkspaceInvitationDataError,
   type PendingWorkspaceInvitation,
+  type PendingWorkspaceInvitationForOwner,
 } from '@chat-hub/application/workspace';
 import {
   WorkspaceInvitationSchema,
@@ -24,6 +25,15 @@ export interface PendingWorkspaceInvitationRow
   readonly workspace_slug: string | null;
   readonly workspace_description: string | null;
 }
+
+export interface PendingWorkspaceInvitationForOwnerRow
+  extends WorkspaceInvitationProjectionRow {
+  readonly invited_username: string | null;
+}
+
+const decodeOptionalUsername = Schema.decodeUnknown(
+  Schema.NullOr(Schema.NonEmptyTrimmedString)
+);
 
 /** Decodes one provider invitation projection into the domain contract. */
 export const mapWorkspaceInvitation = (
@@ -55,6 +65,22 @@ export const mapPendingWorkspaceInvitation = (
       slug: row.workspace_slug,
       description: row.workspace_description,
     }).pipe(
+      Effect.mapError(
+        (cause) => new InvalidWorkspaceInvitationDataError({ cause })
+      )
+    ),
+  });
+
+/** Validates invitation identity and current username for owner presentation. */
+export const mapPendingWorkspaceInvitationForOwner = (
+  row: PendingWorkspaceInvitationForOwnerRow
+): Effect.Effect<
+  PendingWorkspaceInvitationForOwner,
+  InvalidWorkspaceInvitationDataError
+> =>
+  Effect.all({
+    invitation: mapWorkspaceInvitation(row),
+    username: decodeOptionalUsername(row.invited_username).pipe(
       Effect.mapError(
         (cause) => new InvalidWorkspaceInvitationDataError({ cause })
       )

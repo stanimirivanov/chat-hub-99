@@ -38,6 +38,14 @@ export const makeWorkspaceRepositoryStub = (
     Effect.dieMessage(
       'Unexpected WorkspaceRepository.declineInvitation call in test'
     ),
+  listPendingInvitationsForWorkspace: () =>
+    Effect.dieMessage(
+      'Unexpected WorkspaceRepository.listPendingInvitationsForWorkspace call in test'
+    ),
+  cancelInvitation: () =>
+    Effect.dieMessage(
+      'Unexpected WorkspaceRepository.cancelInvitation call in test'
+    ),
   create: () =>
     Effect.dieMessage('Unexpected WorkspaceRepository.create call in test'),
   changeMemberRole: () =>
@@ -213,5 +221,29 @@ export const makeDeclineWorkspaceInvitationRepository = (
   return {
     declineInvitation,
     repositoryLayer: makeWorkspaceRepositoryLayer({ declineInvitation }),
+  };
+};
+
+export const makeListPendingWorkspaceInvitationsForOwnerRepository = (
+  implementation: WorkspaceRepository['listPendingInvitationsForWorkspace']
+) => {
+  const listPendingInvitationsForWorkspace = vi.fn(implementation);
+
+  return {
+    listPendingInvitationsForWorkspace,
+    repositoryLayer: makeWorkspaceRepositoryLayer({
+      listPendingInvitationsForWorkspace,
+    }),
+  };
+};
+
+export const makeCancelWorkspaceInvitationRepository = (
+  implementation: WorkspaceRepository['cancelInvitation']
+) => {
+  const cancelInvitation = vi.fn(implementation);
+
+  return {
+    cancelInvitation,
+    repositoryLayer: makeWorkspaceRepositoryLayer({ cancelInvitation }),
   };
 };

@@ -196,8 +196,15 @@ The nested `workspace-invitations` slice lets an owner invite an existing
 active profile by exact username without granting immediate access. Invitation
 creation has independent state and the database remains responsible for owner
 authorization, duplicate prevention, and active-member rejection. Broad user
-search, external email delivery, expiration, and cancellation remain outside
-this slice.
+search, external email delivery, and expiration remain outside this slice.
+
+For the selected workspace, active owners also receive a current-username list
+of pending invitations. The list is keyed by workspace identity so late results
+cannot cross navigation. Cancellation requires explicit inline confirmation,
+appends an immutable terminal event, and removes only the pending projection;
+it never deletes invitation history. Creation and cancellation share one
+serialized owner-mutation boundary, while database commands independently
+authorize the current session and workspace lifecycle.
 
 The same feature-scoped store loads invitations addressed to the authenticated
 user and serializes accept or decline responses. Acceptance creates or

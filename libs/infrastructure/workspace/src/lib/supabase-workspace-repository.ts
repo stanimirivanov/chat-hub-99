@@ -2,6 +2,7 @@ import type { WorkspaceRepository } from '@chat-hub/application/workspace';
 import {
   addWorkspaceMember,
   acceptWorkspaceInvitation,
+  cancelWorkspaceInvitation,
   archiveWorkspace,
   changeWorkspaceMemberRole,
   createWorkspace,
@@ -15,6 +16,7 @@ import {
 import {
   listAccessibleWorkspaces,
   listPendingWorkspaceInvitations,
+  listPendingWorkspaceInvitationsForWorkspace,
   listWorkspaceMembers,
 } from './queries';
 import type { SupabaseWorkspaceClient } from './supabase-workspace-client';
@@ -26,6 +28,8 @@ export const makeSupabaseWorkspaceRepository = (
   addMember: (command) => addWorkspaceMember(client, command),
   acceptInvitation: (invitationId) =>
     acceptWorkspaceInvitation(client, invitationId),
+  cancelInvitation: (invitationId) =>
+    cancelWorkspaceInvitation(client, invitationId),
   listAccessible: () => listAccessibleWorkspaces(client),
   listActiveMembers: (workspaceId) => listWorkspaceMembers(client, workspaceId),
   leave: (workspaceId) => leaveWorkspace(client, workspaceId),
@@ -34,6 +38,8 @@ export const makeSupabaseWorkspaceRepository = (
     declineWorkspaceInvitation(client, invitationId),
   inviteMember: (command) => inviteWorkspaceMember(client, command),
   listPendingInvitations: () => listPendingWorkspaceInvitations(client),
+  listPendingInvitationsForWorkspace: (workspaceId) =>
+    listPendingWorkspaceInvitationsForWorkspace(client, workspaceId),
   changeMemberRole: (command) => changeWorkspaceMemberRole(client, command),
   removeMember: (command) => removeWorkspaceMember(client, command),
   suspendMember: (command) => suspendWorkspaceMember(client, command),

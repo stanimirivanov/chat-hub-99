@@ -1,5 +1,6 @@
 export { addWorkspaceMember } from './add-workspace-member';
 export { acceptWorkspaceInvitation } from './accept-workspace-invitation';
+export { cancelWorkspaceInvitation } from './cancel-workspace-invitation';
 export { archiveWorkspace } from './archive-workspace';
 export { changeWorkspaceMemberRole } from './change-workspace-member-role';
 export { createWorkspace } from './create-workspace';

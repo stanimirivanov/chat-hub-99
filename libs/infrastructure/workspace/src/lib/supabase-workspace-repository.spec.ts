@@ -15,6 +15,7 @@ describe('makeSupabaseWorkspaceRepository', () => {
       'acceptInvitation',
       'addMember',
       'archive',
+      'cancelInvitation',
       'changeMemberRole',
       'create',
       'declineInvitation',
@@ -23,6 +24,7 @@ describe('makeSupabaseWorkspaceRepository', () => {
       'listAccessible',
       'listActiveMembers',
       'listPendingInvitations',
+      'listPendingInvitationsForWorkspace',
       'removeMember',
       'suspendMember',
       'update',
@@ -30,6 +32,7 @@ describe('makeSupabaseWorkspaceRepository', () => {
     expect(repository.addMember).toBeTypeOf('function');
     expect(repository.acceptInvitation).toBeTypeOf('function');
     expect(repository.archive).toBeTypeOf('function');
+    expect(repository.cancelInvitation).toBeTypeOf('function');
     expect(repository.create).toBeTypeOf('function');
     expect(repository.declineInvitation).toBeTypeOf('function');
     expect(repository.inviteMember).toBeTypeOf('function');
@@ -40,6 +43,9 @@ describe('makeSupabaseWorkspaceRepository', () => {
     expect(repository.listAccessible).toBeTypeOf('function');
     expect(repository.listActiveMembers).toBeTypeOf('function');
     expect(repository.listPendingInvitations).toBeTypeOf('function');
+    expect(repository.listPendingInvitationsForWorkspace).toBeTypeOf(
+      'function'
+    );
     expect(repository.leave).toBeTypeOf('function');
   });
 });

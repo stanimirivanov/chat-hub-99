@@ -50,12 +50,34 @@ const renderComponent = async () => {
     isCreating: signal(false),
     isResponding: signal(false),
     hasInvitations: signal(true),
+    ownerError: signal(null),
+    cancellationError: signal(null),
+    managedInvitations: signal([
+      {
+        invitation: {
+          id: invitationId,
+          workspaceId: workspace.id,
+          invitedProfileId: Schema.decodeUnknownSync(ProfileIdSchema)(
+            '00000000-0000-4000-8000-000000000003'
+          ),
+          status: 'pending' as const,
+        },
+        username: 'candidate',
+      },
+    ]),
+    isOwnerLoading: signal(false),
+    isCancelling: signal(false),
+    isMutatingOwnerInvitations: signal(false),
+    hasManagedInvitations: signal(true),
     load: vi.fn().mockResolvedValue(undefined),
+    loadManagedInvitations: vi.fn().mockResolvedValue(undefined),
     invite: vi.fn().mockResolvedValue(true),
     accept: vi.fn().mockResolvedValue(workspace),
     decline: vi.fn().mockResolvedValue(true),
+    cancel: vi.fn().mockResolvedValue(true),
     clearCreationFeedback: vi.fn(),
     clearResponseError: vi.fn(),
+    clearCancellationError: vi.fn(),
   };
 
   TestBed.overrideComponent(WorkspaceInvitationsComponent, {
@@ -91,6 +113,7 @@ describe('WorkspaceInvitationsComponent', () => {
     await fixture.whenStable();
 
     expect(store.load).toHaveBeenCalledOnce();
+    expect(store.loadManagedInvitations).toHaveBeenCalledWith(workspace.id);
     expect(store.invite).toHaveBeenCalledWith(workspace.id, 'candidate');
     expect(input.value).toBe('');
   });
@@ -110,5 +133,23 @@ describe('WorkspaceInvitationsComponent', () => {
 
     expect(store.accept).toHaveBeenCalledWith(invitationId);
     expect(accepted).toEqual([workspace]);
+  });
+
+  it('requires confirmation before cancelling an owner-managed invitation', async () => {
+    const { fixture, store } = await renderComponent();
+    const requestButton = fixture.nativeElement.querySelector(
+      'button[aria-label="Cancel invitation for candidate"]'
+    ) as HTMLButtonElement;
+
+    requestButton.click();
+    fixture.detectChanges();
+
+    const confirmButton = fixture.nativeElement.querySelector(
+      'button[aria-label="Confirm cancellation for candidate"]'
+    ) as HTMLButtonElement;
+    confirmButton.click();
+    await fixture.whenStable();
+
+    expect(store.cancel).toHaveBeenCalledWith(invitationId);
   });
 });

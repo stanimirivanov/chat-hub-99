@@ -16,7 +16,9 @@ import {
   WorkspaceMemberRoleChangeNotAllowedError,
   WorkspaceMemberRoleUnchangedError,
   WorkspaceInvitationAlreadyPendingError,
+  WorkspaceInvitationCancellationNotAllowedError,
   WorkspaceInvitationCreationNotAllowedError,
+  WorkspaceInvitationManagementNotAllowedError,
   WorkspaceInvitationMemberAlreadyActiveError,
   WorkspaceInvitationProfileNotActiveError,
   WorkspaceInvitationResponseNotAllowedError,
@@ -40,7 +42,9 @@ import {
   type WorkspaceRepositoryUpdateError,
   type WorkspaceInvitationCreationRepositoryError,
   type WorkspaceInvitationAcceptanceRepositoryError,
+  type WorkspaceInvitationCancellationRepositoryError,
   type WorkspaceInvitationDeclineRepositoryError,
+  type WorkspaceInvitationOwnerRepositoryReadError,
 } from '@chat-hub/application/workspace';
 import type {
   WorkspaceId,
@@ -463,3 +467,42 @@ export const mapWorkspaceInvitationDeclineError = (
   isInvitationResponseNotAllowed(error)
     ? new WorkspaceInvitationResponseNotAllowedError({ invitationId })
     : mapWorkspaceRepositoryError(error);
+
+/** Translates owner-list authorization and workspace lifecycle failures. */
+export const mapWorkspaceInvitationOwnerReadError = (
+  workspaceId: WorkspaceId,
+  error: PostgrestErrorLike
+): WorkspaceInvitationOwnerRepositoryReadError => {
+  const message = error.message.toLowerCase();
+
+  if (isWorkspaceCommandNotAllowed(error, message)) {
+    return new WorkspaceInvitationManagementNotAllowedError({ workspaceId });
+  }
+
+  return mapWorkspaceRepositoryError(error);
+};
+
+/** Translates cancellation authorization and terminal-state failures. */
+export const mapWorkspaceInvitationCancellationError = (
+  invitationId: WorkspaceInvitationId,
+  error: PostgrestErrorLike
+): WorkspaceInvitationCancellationRepositoryError => {
+  const message = error.message.toLowerCase();
+
+  if (
+    error.code === '28000' ||
+    error.code === '42501' ||
+    (error.code === 'P0002' &&
+      (message.includes('workspace invitation') ||
+        message.startsWith('workspace '))) ||
+    (error.code === '55000' &&
+      (message.includes('pending workspace invitation') ||
+        (message.includes('workspace') && message.includes('not active'))))
+  ) {
+    return new WorkspaceInvitationCancellationNotAllowedError({
+      invitationId,
+    });
+  }
+
+  return mapWorkspaceRepositoryError(error);
+};

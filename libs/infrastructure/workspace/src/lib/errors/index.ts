@@ -7,8 +7,10 @@ export {
   mapWorkspaceMemberRemovalError,
   mapWorkspaceMemberSuspensionError,
   mapWorkspaceInvitationAcceptanceError,
+  mapWorkspaceInvitationCancellationError,
   mapWorkspaceInvitationCreationError,
   mapWorkspaceInvitationDeclineError,
+  mapWorkspaceInvitationOwnerReadError,
   mapWorkspaceRepositoryError,
   mapWorkspaceUpdateError,
 } from './workspace-repository-error-mapper';
