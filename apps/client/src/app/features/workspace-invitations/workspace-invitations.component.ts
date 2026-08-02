@@ -1,9 +1,11 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  effect,
   inject,
   input,
   output,
+  signal,
 } from '@angular/core';
 import type {
   Workspace,
@@ -25,9 +27,17 @@ export class WorkspaceInvitationsComponent {
   readonly canInvite = input(false);
   readonly invitationAccepted = output<Workspace>();
   protected readonly store = inject(WorkspaceInvitationsStore);
+  protected readonly pendingCancellationInvitationId =
+    signal<WorkspaceInvitationId | null>(null);
 
   constructor() {
     void this.store.load();
+
+    effect(() => {
+      const workspaceId = this.canInvite() ? this.workspaceId() : null;
+      this.pendingCancellationInvitationId.set(null);
+      void this.store.loadManagedInvitations(workspaceId);
+    });
   }
 
   protected async invite(
@@ -52,5 +62,18 @@ export class WorkspaceInvitationsComponent {
 
   protected decline(invitationId: WorkspaceInvitationId): void {
     void this.store.decline(invitationId);
+  }
+
+  protected requestCancellation(invitationId: WorkspaceInvitationId): void {
+    this.pendingCancellationInvitationId.set(invitationId);
+  }
+
+  protected cancelCancellation(): void {
+    this.pendingCancellationInvitationId.set(null);
+  }
+
+  protected confirmCancellation(invitationId: WorkspaceInvitationId): void {
+    this.pendingCancellationInvitationId.set(null);
+    void this.store.cancel(invitationId);
   }
 }

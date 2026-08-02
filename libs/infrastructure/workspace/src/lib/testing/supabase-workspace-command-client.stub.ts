@@ -1,6 +1,7 @@
 import type {
   AddWorkspaceMemberResult,
   AcceptWorkspaceInvitationResult,
+  CancelWorkspaceInvitationResult,
   ArchiveWorkspaceResult,
   ChangeWorkspaceMemberRoleResult,
   CreateWorkspaceResult,
@@ -18,6 +19,7 @@ interface WorkspaceCommandResult {
   readonly data:
     | AddWorkspaceMemberResult
     | AcceptWorkspaceInvitationResult
+    | CancelWorkspaceInvitationResult
     | ArchiveWorkspaceResult
     | CreateWorkspaceResult
     | DeclineWorkspaceInvitationResult

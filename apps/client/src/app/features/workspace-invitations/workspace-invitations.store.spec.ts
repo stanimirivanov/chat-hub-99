@@ -3,9 +3,11 @@ import { TestBed } from '@angular/core/testing';
 import { describe, expect, it, vi } from 'vitest';
 import {
   WorkspaceInvitationAlreadyPendingError,
+  WorkspaceInvitationCancellationNotAllowedError,
   WorkspaceInvitationResponseNotAllowedError,
   WorkspaceRepositoryUnavailableError,
   type PendingWorkspaceInvitation,
+  type PendingWorkspaceInvitationForOwner,
 } from '@chat-hub/application/workspace';
 import { ProfileIdSchema } from '@chat-hub/domain/profile';
 import {
@@ -38,6 +40,13 @@ const invitation: WorkspaceInvitation = {
 };
 
 const pending: PendingWorkspaceInvitation = { invitation, workspace };
+const managedPending: PendingWorkspaceInvitationForOwner = {
+  invitation,
+  username: 'candidate',
+};
+const secondWorkspaceId = Schema.decodeUnknownSync(WorkspaceIdSchema)(
+  '00000000-0000-4000-8000-000000000004'
+);
 
 const configureStore = ({
   listResult = Either.right([pending]),
@@ -48,12 +57,18 @@ const configureStore = ({
     role: 'member' as const,
   }),
   declineResult = Either.right(undefined),
+  ownerListResult = Either.right([managedPending]),
+  cancelResult = Either.right(undefined),
 } = {}) => {
   const service = {
     listPendingWorkspaceInvitations: vi.fn().mockResolvedValue(listResult),
     inviteWorkspaceMemberByUsername: vi.fn().mockResolvedValue(inviteResult),
     acceptWorkspaceInvitation: vi.fn().mockResolvedValue(acceptResult),
     declineWorkspaceInvitation: vi.fn().mockResolvedValue(declineResult),
+    listPendingWorkspaceInvitationsForOwner: vi
+      .fn()
+      .mockResolvedValue(ownerListResult),
+    cancelWorkspaceInvitation: vi.fn().mockResolvedValue(cancelResult),
   };
 
   TestBed.configureTestingModule({
@@ -126,6 +141,7 @@ describe('WorkspaceInvitationsStore', () => {
     });
     const { store } = configureStore({ inviteResult: Either.left(failure) });
     await store.load();
+    await store.loadManagedInvitations(workspace.id);
 
     await expect(store.invite(workspace.id, 'candidate')).resolves.toBe(false);
 
@@ -133,6 +149,73 @@ describe('WorkspaceInvitationsStore', () => {
       message: 'That user already has a pending invitation.',
     });
     expect(store.invitations()).toEqual([pending]);
+  });
+
+  it('loads and cancels an owner-managed pending invitation', async () => {
+    const { store, service } = configureStore();
+
+    await store.loadManagedInvitations(workspace.id);
+    expect(store.managedInvitations()).toEqual([managedPending]);
+
+    await expect(store.cancel(invitation.id)).resolves.toBe(true);
+
+    expect(service.cancelWorkspaceInvitation).toHaveBeenCalledWith({
+      invitationId: invitation.id,
+    });
+    expect(store.managedInvitations()).toEqual([]);
+    expect(store.cancellationStatus()).toBe('idle');
+  });
+
+  it('removes a terminal invitation after a stale cancellation attempt', async () => {
+    const failure = new WorkspaceInvitationCancellationNotAllowedError({
+      invitationId: invitation.id,
+    });
+    const { store } = configureStore({ cancelResult: Either.left(failure) });
+    await store.loadManagedInvitations(workspace.id);
+
+    await expect(store.cancel(invitation.id)).resolves.toBe(false);
+
+    expect(store.managedInvitations()).toEqual([]);
+    expect(store.cancellationError()?.message).toContain('no longer pending');
+  });
+
+  it('clears owner-managed state when owner capability is lost', async () => {
+    const { store } = configureStore();
+    await store.loadManagedInvitations(workspace.id);
+
+    await store.loadManagedInvitations(null);
+
+    expect(store.ownerWorkspaceId()).toBeNull();
+    expect(store.managedInvitations()).toEqual([]);
+    expect(store.ownerLoadStatus()).toBe('idle');
+  });
+
+  it('ignores an owner-list response after workspace navigation', async () => {
+    let resolveFirst:
+      | ((
+          result: Either.Either<
+            readonly PendingWorkspaceInvitationForOwner[],
+            never
+          >
+        ) => void)
+      | undefined;
+    const firstResult = new Promise<
+      Either.Either<readonly PendingWorkspaceInvitationForOwner[], never>
+    >((resolve) => {
+      resolveFirst = resolve;
+    });
+    const { store, service } = configureStore();
+    service.listPendingWorkspaceInvitationsForOwner
+      .mockReturnValueOnce(firstResult)
+      .mockResolvedValueOnce(Either.right([]));
+
+    const firstLoad = store.loadManagedInvitations(workspace.id);
+    await store.loadManagedInvitations(secondWorkspaceId);
+    resolveFirst?.(Either.right([managedPending]));
+    await firstLoad;
+
+    expect(store.ownerWorkspaceId()).toBe(secondWorkspaceId);
+    expect(store.managedInvitations()).toEqual([]);
   });
 
   it('exposes a safe load failure and permits retry', async () => {

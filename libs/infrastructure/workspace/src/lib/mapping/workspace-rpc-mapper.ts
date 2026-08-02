@@ -18,8 +18,10 @@ import type {
   CreateWorkspaceArgs,
   InviteWorkspaceMemberArgs,
   AcceptWorkspaceInvitationArgs,
+  CancelWorkspaceInvitationArgs,
   DeclineWorkspaceInvitationArgs,
   LeaveWorkspaceArgs,
+  ListPendingWorkspaceInvitationsForWorkspaceArgs,
   RemoveWorkspaceMemberArgs,
   SuspendWorkspaceMemberArgs,
   UpdateWorkspaceArgs,
@@ -132,5 +134,19 @@ export const toAcceptWorkspaceInvitationArgs = (
 export const toDeclineWorkspaceInvitationArgs = (
   invitationId: WorkspaceInvitationId
 ): DeclineWorkspaceInvitationArgs => ({
+  p_workspace_invitation_id: invitationId,
+});
+
+/** Maps a selected workspace identity to the owner invitation-list arguments. */
+export const toListPendingWorkspaceInvitationsForWorkspaceArgs = (
+  workspaceId: WorkspaceId
+): ListPendingWorkspaceInvitationsForWorkspaceArgs => ({
+  p_workspace_id: workspaceId,
+});
+
+/** Maps a validated invitation identity to cancellation RPC arguments. */
+export const toCancelWorkspaceInvitationArgs = (
+  invitationId: WorkspaceInvitationId
+): CancelWorkspaceInvitationArgs => ({
   p_workspace_invitation_id: invitationId,
 });

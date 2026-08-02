@@ -3,11 +3,13 @@ import { Effect, Either } from 'effect';
 import {
   acceptWorkspaceInvitation,
   archiveWorkspace,
+  cancelWorkspaceInvitation,
   changeWorkspaceMemberRole,
   createWorkspace,
   declineWorkspaceInvitation,
   inviteWorkspaceMemberByUsername,
   listPendingWorkspaceInvitations,
+  listPendingWorkspaceInvitationsForOwner,
   listAccessibleWorkspaces,
   listWorkspaceMembers,
   leaveWorkspace,
@@ -18,6 +20,8 @@ import {
   type AcceptWorkspaceInvitationInput,
   type ArchiveWorkspaceError,
   type ArchiveWorkspaceInput,
+  type CancelWorkspaceInvitationError,
+  type CancelWorkspaceInvitationInput,
   type ChangeWorkspaceMemberRoleError,
   type ChangeWorkspaceMemberRoleInput,
   type CreateWorkspaceError,
@@ -27,6 +31,9 @@ import {
   type InviteWorkspaceMemberByUsernameError,
   type InviteWorkspaceMemberByUsernameInput,
   type PendingWorkspaceInvitation,
+  type PendingWorkspaceInvitationForOwner,
+  type ListPendingWorkspaceInvitationsForOwnerError,
+  type ListPendingWorkspaceInvitationsForOwnerInput,
   type WorkspaceInvitationRepositoryReadError,
   type LeaveWorkspaceError,
   type LeaveWorkspaceInput,
@@ -201,6 +208,29 @@ export class WorkspaceApplicationService {
   ): Promise<Either.Either<void, DeclineWorkspaceInvitationError>> {
     return applicationRuntime.runPromise(
       declineWorkspaceInvitation(input).pipe(Effect.either)
+    );
+  }
+
+  /** Lists pending invitations managed by an active selected-workspace owner. */
+  listPendingWorkspaceInvitationsForOwner(
+    input: ListPendingWorkspaceInvitationsForOwnerInput
+  ): Promise<
+    Either.Either<
+      readonly PendingWorkspaceInvitationForOwner[],
+      ListPendingWorkspaceInvitationsForOwnerError
+    >
+  > {
+    return applicationRuntime.runPromise(
+      listPendingWorkspaceInvitationsForOwner(input).pipe(Effect.either)
+    );
+  }
+
+  /** Cancels one pending invitation using its workspace owner's authority. */
+  cancelWorkspaceInvitation(
+    input: CancelWorkspaceInvitationInput
+  ): Promise<Either.Either<void, CancelWorkspaceInvitationError>> {
+    return applicationRuntime.runPromise(
+      cancelWorkspaceInvitation(input).pipe(Effect.either)
     );
   }
 }

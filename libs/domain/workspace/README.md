@@ -9,7 +9,8 @@ active-membership projections required by presentation.
 - Validate workspace names, normalized slugs, and optional descriptions.
 - Expose the active workspace projection consumed by application use cases.
 - Validate active member identities and the closed owner/member role vocabulary.
-- Validate workspace-invitation identities and their closed consent lifecycle.
+- Validate workspace-invitation identities and the closed `pending`,
+  `accepted`, `declined`, and `cancelled` lifecycle.
 
 It does not own persistence, membership authorization, selection state, or
 Angular presentation. Those responsibilities remain in infrastructure,

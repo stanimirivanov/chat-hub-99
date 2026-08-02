@@ -146,6 +146,20 @@ export class WorkspaceInvitationResponseNotAllowedError extends Data.TaggedError
   readonly invitationId: WorkspaceInvitationId;
 }> {}
 
+/** Indicates that the current session may not manage invitations here. */
+export class WorkspaceInvitationManagementNotAllowedError extends Data.TaggedError(
+  'WorkspaceInvitationManagementNotAllowedError'
+)<{
+  readonly workspaceId: WorkspaceId;
+}> {}
+
+/** Indicates that an invitation cannot be cancelled in its current state. */
+export class WorkspaceInvitationCancellationNotAllowedError extends Data.TaggedError(
+  'WorkspaceInvitationCancellationNotAllowedError'
+)<{
+  readonly invitationId: WorkspaceInvitationId;
+}> {}
+
 /**
  * Indicates that the current session cannot change roles in this workspace.
  */
@@ -336,3 +350,13 @@ export type WorkspaceInvitationDeclineRepositoryError =
   | WorkspaceRepositoryUnavailableError
   | InvalidWorkspaceInvitationDataError
   | WorkspaceInvitationResponseNotAllowedError;
+
+export type WorkspaceInvitationOwnerRepositoryReadError =
+  | WorkspaceRepositoryUnavailableError
+  | InvalidWorkspaceInvitationDataError
+  | WorkspaceInvitationManagementNotAllowedError;
+
+export type WorkspaceInvitationCancellationRepositoryError =
+  | WorkspaceRepositoryUnavailableError
+  | InvalidWorkspaceInvitationDataError
+  | WorkspaceInvitationCancellationNotAllowedError;

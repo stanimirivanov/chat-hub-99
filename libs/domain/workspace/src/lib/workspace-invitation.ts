@@ -9,7 +9,8 @@ import { WorkspaceInvitationIdSchema } from './workspace-invitation-id';
 export const WorkspaceInvitationStatusSchema = Schema.Literal(
   'pending',
   'accepted',
-  'declined'
+  'declined',
+  'cancelled'
 );
 
 export type WorkspaceInvitationStatus =

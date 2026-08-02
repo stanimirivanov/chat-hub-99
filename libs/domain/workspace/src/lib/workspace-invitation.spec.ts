@@ -14,13 +14,20 @@ describe('WorkspaceInvitationSchema', () => {
     expect(
       Schema.decodeUnknownSync(WorkspaceInvitationSchema)(invitation)
     ).toEqual(invitation);
+
+    expect(
+      Schema.decodeUnknownSync(WorkspaceInvitationSchema)({
+        ...invitation,
+        status: 'cancelled',
+      })
+    ).toEqual({ ...invitation, status: 'cancelled' });
   });
 
   it('rejects unsupported invitation states', () => {
     expect(() =>
       Schema.decodeUnknownSync(WorkspaceInvitationSchema)({
         ...invitation,
-        status: 'cancelled',
+        status: 'expired',
       })
     ).toThrow();
   });

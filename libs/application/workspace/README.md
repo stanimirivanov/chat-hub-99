@@ -39,6 +39,10 @@ members, leaving a workspace, and consent-based invitations for existing users.
 - List pending invitations addressed to the authenticated user.
 - Validate invitation identities before accepting or declining them; recipient
   identity remains provider-session data rather than caller input.
+- Validate a selected workspace before listing invitations managed by its
+  authenticated active owner.
+- Validate an invitation identity before cancelling it without accepting actor
+  or workspace authority as caller-supplied data.
 
 It does not know about Supabase, generated database rows, Angular, selection
 state, profile persistence, channels, or workspace restoration/deletion.
@@ -120,6 +124,18 @@ Angular caller
   -> validated WorkspaceInvitationId
   -> WorkspaceRepositoryTag recipient command
   -> active default-member projection / decline acknowledgment
+
+Angular caller
+  -> listPendingWorkspaceInvitationsForOwner
+  -> validated WorkspaceId
+  -> WorkspaceRepositoryTag.listPendingInvitationsForWorkspace
+  -> validated invitation + current username projections
+
+Angular caller
+  -> cancelWorkspaceInvitation
+  -> validated WorkspaceInvitationId
+  -> WorkspaceRepositoryTag.cancelInvitation
+  -> cancellation acknowledgment
 ```
 
 Testing support is private and follows the fixture/stub convention used by the
@@ -139,7 +155,9 @@ other application libraries.
 - `leaveWorkspace` and its input/error contracts
 - `inviteWorkspaceMemberByUsername` and its input/error contracts
 - `listPendingWorkspaceInvitations`
+- `listPendingWorkspaceInvitationsForOwner`
 - `acceptWorkspaceInvitation` and `declineWorkspaceInvitation`
+- `cancelWorkspaceInvitation`
 - `WorkspaceRepositoryTag` and `WorkspaceRepository`
 - workspace repository error types
 

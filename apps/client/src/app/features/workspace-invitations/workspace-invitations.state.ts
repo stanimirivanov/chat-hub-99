@@ -1,5 +1,11 @@
-import type { PendingWorkspaceInvitation } from '@chat-hub/application/workspace';
-import type { WorkspaceInvitationId } from '@chat-hub/domain/workspace';
+import type {
+  PendingWorkspaceInvitation,
+  PendingWorkspaceInvitationForOwner,
+} from '@chat-hub/application/workspace';
+import type {
+  WorkspaceId,
+  WorkspaceInvitationId,
+} from '@chat-hub/domain/workspace';
 
 export type WorkspaceInvitationLoadStatus =
   | 'idle'
@@ -17,6 +23,11 @@ export type WorkspaceInvitationResponseStatus = 'idle' | 'pending' | 'failed';
 
 export type WorkspaceInvitationResponseKind = 'accept' | 'decline';
 
+export type WorkspaceInvitationCancellationStatus =
+  | 'idle'
+  | 'pending'
+  | 'failed';
+
 export interface WorkspaceInvitationsError {
   readonly message: string;
 }
@@ -32,6 +43,13 @@ export interface WorkspaceInvitationsState {
   readonly responseKind: WorkspaceInvitationResponseKind | null;
   readonly respondingInvitationId: WorkspaceInvitationId | null;
   readonly responseError: WorkspaceInvitationsError | null;
+  readonly ownerWorkspaceId: WorkspaceId | null;
+  readonly managedInvitations: readonly PendingWorkspaceInvitationForOwner[];
+  readonly ownerLoadStatus: WorkspaceInvitationLoadStatus;
+  readonly ownerError: WorkspaceInvitationsError | null;
+  readonly cancellationStatus: WorkspaceInvitationCancellationStatus;
+  readonly cancellingInvitationId: WorkspaceInvitationId | null;
+  readonly cancellationError: WorkspaceInvitationsError | null;
 }
 
 export const initialWorkspaceInvitationsState: WorkspaceInvitationsState = {
@@ -44,4 +62,11 @@ export const initialWorkspaceInvitationsState: WorkspaceInvitationsState = {
   responseKind: null,
   respondingInvitationId: null,
   responseError: null,
+  ownerWorkspaceId: null,
+  managedInvitations: [],
+  ownerLoadStatus: 'idle',
+  ownerError: null,
+  cancellationStatus: 'idle',
+  cancellingInvitationId: null,
+  cancellationError: null,
 };

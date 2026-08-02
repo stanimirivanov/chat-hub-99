@@ -96,6 +96,18 @@ export type DeclineWorkspaceInvitationResult =
 export type ListPendingWorkspaceInvitationsResult =
   DatabaseFunctionReturns<'list_pending_workspace_invitations'>;
 
+export type ListPendingWorkspaceInvitationsForWorkspaceArgs =
+  DatabaseFunctionArgs<'list_pending_workspace_invitations_for_workspace'>;
+
+export type ListPendingWorkspaceInvitationsForWorkspaceResult =
+  DatabaseFunctionReturns<'list_pending_workspace_invitations_for_workspace'>;
+
+export type CancelWorkspaceInvitationArgs =
+  DatabaseFunctionArgs<'cancel_workspace_invitation'>;
+
+export type CancelWorkspaceInvitationResult =
+  DatabaseFunctionReturns<'cancel_workspace_invitation'>;
+
 /**
  * Channel commands.
  */

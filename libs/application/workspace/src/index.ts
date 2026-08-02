@@ -29,6 +29,18 @@ export {
 } from './lib/decline-workspace-invitation';
 export { listPendingWorkspaceInvitations } from './lib/list-pending-workspace-invitations';
 export {
+  listPendingWorkspaceInvitationsForOwner,
+  InvalidWorkspaceInvitationOwnerListInputError,
+  type ListPendingWorkspaceInvitationsForOwnerError,
+  type ListPendingWorkspaceInvitationsForOwnerInput,
+} from './lib/list-pending-workspace-invitations-for-owner';
+export {
+  cancelWorkspaceInvitation,
+  InvalidWorkspaceInvitationCancellationInputError,
+  type CancelWorkspaceInvitationError,
+  type CancelWorkspaceInvitationInput,
+} from './lib/cancel-workspace-invitation';
+export {
   archiveWorkspace,
   InvalidWorkspaceArchiveInputError,
   type ArchiveWorkspaceError,
@@ -84,6 +96,7 @@ export {
   type CreateWorkspaceCommand,
   type InviteWorkspaceMemberCommand,
   type PendingWorkspaceInvitation,
+  type PendingWorkspaceInvitationForOwner,
   type RemoveWorkspaceMemberCommand,
   type SuspendWorkspaceMemberCommand,
   type UpdateWorkspaceCommand,
@@ -110,7 +123,9 @@ export {
   WorkspaceMemberProfileNotActiveError,
   WorkspaceMemberReactivationNotAllowedError,
   WorkspaceInvitationAlreadyPendingError,
+  WorkspaceInvitationCancellationNotAllowedError,
   WorkspaceInvitationCreationNotAllowedError,
+  WorkspaceInvitationManagementNotAllowedError,
   WorkspaceInvitationMemberAlreadyActiveError,
   WorkspaceInvitationProfileNotActiveError,
   WorkspaceInvitationResponseNotAllowedError,
@@ -128,7 +143,9 @@ export {
   type WorkspaceRepositoryReadError,
   type WorkspaceRepositoryUpdateError,
   type WorkspaceInvitationAcceptanceRepositoryError,
+  type WorkspaceInvitationCancellationRepositoryError,
   type WorkspaceInvitationCreationRepositoryError,
   type WorkspaceInvitationDeclineRepositoryError,
+  type WorkspaceInvitationOwnerRepositoryReadError,
   type WorkspaceInvitationRepositoryReadError,
 } from './lib/repository';

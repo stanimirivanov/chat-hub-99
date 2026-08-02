@@ -9,8 +9,10 @@ import {
 } from '@ngrx/signals';
 import type {
   AcceptWorkspaceInvitationError,
+  CancelWorkspaceInvitationError,
   DeclineWorkspaceInvitationError,
   InviteWorkspaceMemberByUsernameError,
+  ListPendingWorkspaceInvitationsForOwnerError,
   PendingWorkspaceInvitation,
 } from '@chat-hub/application/workspace';
 import type {
@@ -24,7 +26,7 @@ import {
   type WorkspaceInvitationResponseKind,
 } from './workspace-invitations.state';
 
-/** Owns invitation discovery, creation, and serialized recipient responses. */
+/** Owns recipient consent and selected-workspace owner invitation management. */
 export const WorkspaceInvitationsStore = signalStore(
   withState(initialWorkspaceInvitationsState),
 
@@ -32,12 +34,114 @@ export const WorkspaceInvitationsStore = signalStore(
     isLoading: computed(() => store.loadStatus() === 'loading'),
     isCreating: computed(() => store.creationStatus() === 'pending'),
     isResponding: computed(() => store.responseStatus() === 'pending'),
+    isOwnerLoading: computed(() => store.ownerLoadStatus() === 'loading'),
+    isCancelling: computed(() => store.cancellationStatus() === 'pending'),
+    isMutatingOwnerInvitations: computed(
+      () =>
+        store.creationStatus() === 'pending' ||
+        store.cancellationStatus() === 'pending'
+    ),
     hasInvitations: computed(() => store.invitations().length > 0),
+    hasManagedInvitations: computed(
+      () => store.managedInvitations().length > 0
+    ),
   })),
 
   withMethods(
     (store, workspaceApplication = inject(WorkspaceApplicationService)) => {
       let loading: Promise<void> | null = null;
+      let ownerRequestVersion = 0;
+      let ownerLoading: {
+        readonly workspaceId: WorkspaceId;
+        readonly promise: Promise<void>;
+      } | null = null;
+
+      const loadManagedInvitations = (
+        workspaceId: WorkspaceId | null,
+        force = false
+      ): Promise<void> => {
+        if (workspaceId === null) {
+          ownerRequestVersion++;
+          ownerLoading = null;
+          patchState(store, {
+            ownerWorkspaceId: null,
+            managedInvitations: [],
+            ownerLoadStatus: 'idle',
+            ownerError: null,
+            creationStatus: 'idle',
+            creationError: null,
+            cancellationStatus: 'idle',
+            cancellingInvitationId: null,
+            cancellationError: null,
+          });
+          return Promise.resolve();
+        }
+
+        if (
+          !force &&
+          store.ownerWorkspaceId() === workspaceId &&
+          store.ownerLoadStatus() === 'loaded'
+        ) {
+          return Promise.resolve();
+        }
+
+        if (!force && ownerLoading?.workspaceId === workspaceId) {
+          return ownerLoading.promise;
+        }
+
+        const workspaceChanged = store.ownerWorkspaceId() !== workspaceId;
+        const version = ++ownerRequestVersion;
+
+        patchState(store, {
+          ownerWorkspaceId: workspaceId,
+          ...(workspaceChanged ? { managedInvitations: [] } : {}),
+          ownerLoadStatus: 'loading',
+          ownerError: null,
+          ...(workspaceChanged
+            ? {
+                creationStatus: 'idle' as const,
+                creationError: null,
+                cancellationStatus: 'idle' as const,
+                cancellingInvitationId: null,
+                cancellationError: null,
+              }
+            : {}),
+        });
+
+        const promise = workspaceApplication
+          .listPendingWorkspaceInvitationsForOwner({ workspaceId })
+          .then((result) => {
+            if (
+              version !== ownerRequestVersion ||
+              store.ownerWorkspaceId() !== workspaceId
+            ) {
+              return;
+            }
+
+            if (Either.isLeft(result)) {
+              patchState(store, {
+                managedInvitations: [],
+                ownerLoadStatus: 'failed',
+                ownerError: presentOwnerListError(result.left),
+              });
+              return;
+            }
+
+            patchState(store, {
+              managedInvitations: result.right,
+              ownerLoadStatus: 'loaded',
+              ownerError: null,
+            });
+          })
+          .finally(() => {
+            if (version === ownerRequestVersion) {
+              ownerLoading = null;
+            }
+          });
+
+        ownerLoading = { workspaceId, promise };
+        return promise;
+      };
 
       const respondToInvitation = async (
         invitationId: WorkspaceInvitationId,
@@ -148,14 +252,23 @@ export const WorkspaceInvitationsStore = signalStore(
           return loading;
         },
 
+        /** Loads owner-managed invitations for the current selected workspace. */
+        loadManagedInvitations,
+
         /** Creates a pending invitation for an exact active username. */
         async invite(
           workspaceId: WorkspaceId,
           username: string
         ): Promise<boolean> {
-          if (store.creationStatus() === 'pending') {
+          if (
+            store.ownerWorkspaceId() !== workspaceId ||
+            store.creationStatus() === 'pending' ||
+            store.cancellationStatus() === 'pending'
+          ) {
             return false;
           }
+
+          const version = ownerRequestVersion;
 
           patchState(store, {
             creationStatus: 'pending',
@@ -168,6 +281,13 @@ export const WorkspaceInvitationsStore = signalStore(
               username,
             });
 
+          if (
+            version !== ownerRequestVersion ||
+            store.ownerWorkspaceId() !== workspaceId
+          ) {
+            return false;
+          }
+
           if (Either.isLeft(result)) {
             patchState(store, {
               creationStatus: 'failed',
@@ -179,6 +299,72 @@ export const WorkspaceInvitationsStore = signalStore(
           patchState(store, {
             creationStatus: 'succeeded',
             creationError: null,
+          });
+          await loadManagedInvitations(workspaceId, true);
+          return true;
+        },
+
+        /** Cancels and removes one selected-workspace pending invitation. */
+        async cancel(invitationId: WorkspaceInvitationId): Promise<boolean> {
+          const workspaceId = store.ownerWorkspaceId();
+
+          if (
+            workspaceId === null ||
+            store.ownerLoadStatus() !== 'loaded' ||
+            store.creationStatus() === 'pending' ||
+            store.cancellationStatus() === 'pending' ||
+            !store
+              .managedInvitations()
+              .some((entry) => entry.invitation.id === invitationId)
+          ) {
+            return false;
+          }
+
+          const version = ownerRequestVersion;
+          patchState(store, {
+            cancellationStatus: 'pending',
+            cancellingInvitationId: invitationId,
+            cancellationError: null,
+          });
+
+          const result = await workspaceApplication.cancelWorkspaceInvitation({
+            invitationId,
+          });
+
+          if (
+            version !== ownerRequestVersion ||
+            store.ownerWorkspaceId() !== workspaceId
+          ) {
+            return false;
+          }
+
+          if (Either.isLeft(result)) {
+            const noLongerAvailable =
+              result.left._tag ===
+              'WorkspaceInvitationCancellationNotAllowedError';
+
+            patchState(store, {
+              ...(noLongerAvailable
+                ? {
+                    managedInvitations: store
+                      .managedInvitations()
+                      .filter((entry) => entry.invitation.id !== invitationId),
+                  }
+                : {}),
+              cancellationStatus: 'failed',
+              cancellingInvitationId: null,
+              cancellationError: presentCancellationError(result.left),
+            });
+            return false;
+          }
+
+          patchState(store, {
+            managedInvitations: store
+              .managedInvitations()
+              .filter((entry) => entry.invitation.id !== invitationId),
+            cancellationStatus: 'idle',
+            cancellingInvitationId: null,
+            cancellationError: null,
           });
           return true;
         },
@@ -222,6 +408,16 @@ export const WorkspaceInvitationsStore = signalStore(
               responseKind: null,
               respondingInvitationId: null,
               responseError: null,
+            });
+          }
+        },
+
+        clearCancellationError(): void {
+          if (store.cancellationStatus() !== 'pending') {
+            patchState(store, {
+              cancellationStatus: 'idle',
+              cancellingInvitationId: null,
+              cancellationError: null,
             });
           }
         },
@@ -279,6 +475,42 @@ const presentResponseError = (
       return {
         message:
           'The invitation response could not be saved. Please try again.',
+      };
+  }
+};
+
+const presentOwnerListError = (
+  error: ListPendingWorkspaceInvitationsForOwnerError
+): { readonly message: string } => {
+  switch (error._tag) {
+    case 'WorkspaceInvitationManagementNotAllowedError':
+      return {
+        message: 'You no longer have permission to manage invitations here.',
+      };
+    case 'InvalidWorkspaceInvitationOwnerListInputError':
+    case 'InvalidWorkspaceInvitationDataError':
+    case 'WorkspaceRepositoryUnavailableError':
+      return {
+        message:
+          'Pending workspace invitations are currently unavailable. Please try again.',
+      };
+  }
+};
+
+const presentCancellationError = (
+  error: CancelWorkspaceInvitationError
+): { readonly message: string } => {
+  switch (error._tag) {
+    case 'WorkspaceInvitationCancellationNotAllowedError':
+      return {
+        message:
+          'This invitation is no longer pending or you can no longer cancel it.',
+      };
+    case 'InvalidWorkspaceInvitationCancellationInputError':
+    case 'InvalidWorkspaceInvitationDataError':
+    case 'WorkspaceRepositoryUnavailableError':
+      return {
+        message: 'The invitation could not be cancelled. Please try again.',
       };
   }
 };

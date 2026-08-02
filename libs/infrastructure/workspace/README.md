@@ -3,14 +3,16 @@
 `@chat-hub/infrastructure/workspace` implements workspace and active-membership
 discovery with RLS-protected Supabase views, creation with the transactional
 `create_workspace` RPC, detail replacement with `update_workspace`, member
-archiving with `archive_workspace`, member addition/reactivation with
+workspace archiving with `archive_workspace`, member addition/reactivation with
 `add_workspace_member`, role changes with
 `change_workspace_member_role`, member suspension with
 `suspend_workspace_member`, and member removal with `remove_workspace_member`.
 Self-service departure uses the separate `leave_workspace` command.
 Consent-based access uses `invite_workspace_member`,
 `list_pending_workspace_invitations`, `accept_workspace_invitation`, and
-`decline_workspace_invitation`.
+`decline_workspace_invitation`. Owner management uses
+`list_pending_workspace_invitations_for_workspace` and
+`cancel_workspace_invitation`.
 
 ## Responsibilities
 
@@ -30,6 +32,8 @@ Consent-based access uses `invite_workspace_member`,
 - Create pending invitations without granting immediate access, list only the
   authenticated recipient's pending invitations, and execute recipient-only
   acceptance or decline commands.
+- List pending invitations with current usernames for an authenticated active
+  owner and cancel them without deleting immutable history.
 - Apply stable name/identity ordering.
 - Map generated view and RPC rows into validated domain projections.
 - Preserve actionable current-slug conflicts as a typed application failure.
@@ -121,6 +125,16 @@ acceptWorkspaceInvitation / declineWorkspaceInvitation
   -> WorkspaceRepositoryTag recipient command
   -> transactional invitation event and membership activation / decline event
   -> canonical membership or invitation-state validation
+
+listPendingWorkspaceInvitationsForOwner use case
+  -> WorkspaceRepositoryTag.listPendingInvitationsForWorkspace
+  -> owner-scoped list_pending_workspace_invitations_for_workspace RPC
+  -> WorkspaceInvitationSchema + current-username decoding
+
+cancelWorkspaceInvitation use case
+  -> WorkspaceRepositoryTag.cancelInvitation
+  -> owner-authorized cancel_workspace_invitation RPC
+  -> cancelled identity/status validation
 ```
 
 The membership query returns stable identities and roles only. Profile
@@ -143,13 +157,17 @@ doubles and canonical generated rows.
 
 Invitation identities and events are append-only. Their mutable heads enforce
 one pending invitation per workspace/profile pair. Creation is owner-only and
-rejects active members; listing is recipient-scoped; acceptance and decline can
-only be performed by the addressed authenticated user. Acceptance and
-membership activation share one database transaction. A private database
-helper owns the demonstrated create-or-reinstate transition used by both direct
-owner addition and invitation acceptance, while each public RPC keeps its own
-authorization policy. Email delivery, external addresses, expiry, cancellation,
-and broad profile search are outside this slice.
+rejects active members; recipient listing remains session-scoped; acceptance
+and decline can only be performed by the addressed authenticated user. Active
+owners can list pending invitations for their selected workspace and append a
+terminal `cancelled` event after explicit client confirmation. Cancellation
+removes pending projections without deleting history and is rejected after
+workspace archival or another terminal response. Acceptance and membership
+activation share one database transaction. A private database helper owns the
+demonstrated create-or-reinstate transition used by both direct owner addition
+and invitation acceptance, while each public RPC keeps its own authorization
+policy. Email delivery, external addresses, expiry, and broad profile search
+are outside this slice.
 
 Workspace updates replace the complete mutable snapshot and append an immutable
 database version. Owner authorization, active-workspace status, concurrent head

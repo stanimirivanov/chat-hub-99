@@ -1,8 +1,10 @@
 import type {
   AddWorkspaceMemberResult,
+  CancelWorkspaceInvitationResult,
   InviteWorkspaceMemberResult,
   DeclineWorkspaceInvitationResult,
   ListPendingWorkspaceInvitationsResult,
+  ListPendingWorkspaceInvitationsForWorkspaceResult,
   ArchiveWorkspaceResult,
   ChangeWorkspaceMemberRoleResult,
   CreateWorkspaceResult,
@@ -141,6 +143,13 @@ export const declinedWorkspaceInvitationRow: DeclineWorkspaceInvitationResult =
     latest_event_id: '00000000-0000-4000-8000-000000000032',
   };
 
+export const cancelledWorkspaceInvitationRow: CancelWorkspaceInvitationResult =
+  {
+    ...invitedWorkspaceMemberRow,
+    invitation_status: 'cancelled',
+    latest_event_id: '00000000-0000-4000-8000-000000000033',
+  };
+
 export const pendingWorkspaceInvitationRows: ListPendingWorkspaceInvitationsResult =
   [
     {
@@ -152,5 +161,17 @@ export const pendingWorkspaceInvitationRows: ListPendingWorkspaceInvitationsResu
       workspace_name: 'Chat Hub Development',
       workspace_slug: 'chat-hub-development',
       workspace_description: '',
+    },
+  ];
+
+export const pendingWorkspaceInvitationForOwnerRows: ListPendingWorkspaceInvitationsForWorkspaceResult =
+  [
+    {
+      workspace_invitation_id:
+        invitedWorkspaceMemberRow.workspace_invitation_id,
+      workspace_id: invitedWorkspaceMemberRow.workspace_id,
+      invited_user_id: invitedWorkspaceMemberRow.invited_user_id,
+      invitation_status: 'pending',
+      invited_username: 'candidate',
     },
   ];

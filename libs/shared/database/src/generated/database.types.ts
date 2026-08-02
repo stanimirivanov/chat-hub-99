@@ -1306,6 +1306,22 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      cancel_workspace_invitation: {
+        Args: { p_workspace_invitation_id: string }
+        Returns: {
+          invitation_status: string
+          invited_user_id: string
+          latest_event_id: string
+          workspace_id: string
+          workspace_invitation_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "workspace_invitation_heads"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       change_workspace_member_role: {
         Args: { p_role: string; p_user_id: string; p_workspace_id: string }
         Returns: {
@@ -1421,6 +1437,16 @@ export type Database = {
           workspace_invitation_id: string
           workspace_name: string
           workspace_slug: string
+        }[]
+      }
+      list_pending_workspace_invitations_for_workspace: {
+        Args: { p_workspace_id: string }
+        Returns: {
+          invitation_status: string
+          invited_user_id: string
+          invited_username: string
+          workspace_id: string
+          workspace_invitation_id: string
         }[]
       }
       remove_workspace_member: {

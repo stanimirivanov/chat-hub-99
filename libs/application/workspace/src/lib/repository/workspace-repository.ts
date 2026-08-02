@@ -16,8 +16,10 @@ import type {
   WorkspaceMemberRoleChangeRepositoryError,
   WorkspaceMemberSuspensionRepositoryError,
   WorkspaceInvitationAcceptanceRepositoryError,
+  WorkspaceInvitationCancellationRepositoryError,
   WorkspaceInvitationCreationRepositoryError,
   WorkspaceInvitationDeclineRepositoryError,
+  WorkspaceInvitationOwnerRepositoryReadError,
   WorkspaceInvitationRepositoryReadError,
   WorkspaceRepositoryCreateError,
   WorkspaceRepositoryArchiveError,
@@ -92,6 +94,12 @@ export interface InviteWorkspaceMemberCommand {
 export interface PendingWorkspaceInvitation {
   readonly invitation: WorkspaceInvitation;
   readonly workspace: Workspace;
+}
+
+/** Pending invitation with the current username needed by owner presentation. */
+export interface PendingWorkspaceInvitationForOwner {
+  readonly invitation: WorkspaceInvitation;
+  readonly username: string | null;
 }
 
 /**
@@ -215,6 +223,19 @@ export interface WorkspaceRepository {
   readonly declineInvitation: (
     invitationId: WorkspaceInvitationId
   ) => Effect.Effect<void, WorkspaceInvitationDeclineRepositoryError>;
+
+  /** Lists pending invitations in a workspace using authenticated owner authority. */
+  readonly listPendingInvitationsForWorkspace: (
+    workspaceId: WorkspaceId
+  ) => Effect.Effect<
+    readonly PendingWorkspaceInvitationForOwner[],
+    WorkspaceInvitationOwnerRepositoryReadError
+  >;
+
+  /** Cancels one invitation using authenticated authority over its workspace. */
+  readonly cancelInvitation: (
+    invitationId: WorkspaceInvitationId
+  ) => Effect.Effect<void, WorkspaceInvitationCancellationRepositoryError>;
 }
 
 /**
