@@ -29,6 +29,14 @@ export const makeSupabaseAuthenticationClientStub = (
       error: null,
     }),
 
+    resend: vi.fn().mockResolvedValue({
+      data: {
+        user: null,
+        session: null,
+      },
+      error: null,
+    }),
+
     resetPasswordForEmail: vi.fn().mockResolvedValue({
       data: {},
       error: null,

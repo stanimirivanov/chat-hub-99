@@ -18,6 +18,7 @@ export const makeAuthenticationServiceStub = (
   getCurrentSession: () => unexpectedOperation('getCurrentSession'),
   signIn: () => unexpectedOperation('signIn'),
   signUp: () => unexpectedOperation('signUp'),
+  resendConfirmationEmail: () => unexpectedOperation('resendConfirmationEmail'),
   requestPasswordReset: () => unexpectedOperation('requestPasswordReset'),
   updatePassword: () => unexpectedOperation('updatePassword'),
   signOut: () => unexpectedOperation('signOut'),
@@ -56,6 +57,17 @@ export const makeSignUpAuthenticationService = (
   return {
     signUp,
     serviceLayer: makeAuthenticationServiceLayer({ signUp }),
+  };
+};
+
+export const makeResendConfirmationEmailAuthenticationService = (
+  implementation: AuthenticationService['resendConfirmationEmail']
+) => {
+  const resendConfirmationEmail = vi.fn(implementation);
+
+  return {
+    resendConfirmationEmail,
+    serviceLayer: makeAuthenticationServiceLayer({ resendConfirmationEmail }),
   };
 };
 

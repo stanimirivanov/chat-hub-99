@@ -1,8 +1,10 @@
 export {
   accountAlreadyRegisteredError,
+  confirmationEmailResendRateLimitError,
   authenticationSession,
   invalidCredentialsError,
   passwordResetRateLimitError,
+  userNotFoundError,
   weakPasswordError,
 } from './authentication-fixtures';
 

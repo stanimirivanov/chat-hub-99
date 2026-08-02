@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import {
   AuthenticationUnavailableError,
   AccountAlreadyRegisteredError,
+  ConfirmationEmailResendRateLimitedError,
   InvalidCredentialsError,
   InvalidPasswordUpdateInputError,
   PasswordResetRateLimitedError,
@@ -76,6 +77,8 @@ const configureStore = (
 
     signUp: AuthenticationApplicationService['signUp'];
 
+    resendConfirmationEmail: AuthenticationApplicationService['resendConfirmationEmail'];
+
     requestPasswordReset: AuthenticationApplicationService['requestPasswordReset'];
 
     updatePassword: AuthenticationApplicationService['updatePassword'];
@@ -100,6 +103,8 @@ const configureStore = (
     ),
 
     signOut: vi.fn().mockResolvedValue(Either.right(undefined)),
+
+    resendConfirmationEmail: vi.fn().mockResolvedValue(Either.right(undefined)),
 
     requestPasswordReset: vi.fn().mockResolvedValue(Either.right(undefined)),
 
@@ -432,6 +437,7 @@ describe('AuthenticationStore', () => {
       signUp: vi.fn().mockResolvedValue(
         Either.right({
           status: 'confirmation-required',
+          email: 'new-user@example.com',
         } satisfies SignUpResult)
       ),
     });
@@ -445,10 +451,122 @@ describe('AuthenticationStore', () => {
     expect(store.session()).toBeNull();
     expect(store.signUpStatus()).toBe('confirmation-required');
     expect(store.requiresEmailConfirmation()).toBe(true);
+    expect(store.confirmationEmail()).toBe('new-user@example.com');
 
     store.resetSignUp();
 
     expect(store.signUpStatus()).toBe('idle');
+    expect(store.confirmationEmail()).toBeNull();
+  });
+
+  it('resends confirmation for the normalized registration email', async () => {
+    const resendConfirmationEmail = vi
+      .fn()
+      .mockResolvedValue(Either.right(undefined));
+    const { store } = configureStore({
+      signUp: vi.fn().mockResolvedValue(
+        Either.right({
+          status: 'confirmation-required',
+          email: 'new-user@example.com',
+        } satisfies SignUpResult)
+      ),
+      resendConfirmationEmail,
+    });
+
+    await store.initialize();
+    await store.signUp(' new-user@example.com ', 'Password123!');
+
+    await expect(store.resendConfirmationEmail()).resolves.toBe(true);
+    expect(resendConfirmationEmail).toHaveBeenCalledExactlyOnceWith(
+      'new-user@example.com'
+    );
+    expect(store.wasConfirmationEmailResent()).toBe(true);
+    expect(store.requiresEmailConfirmation()).toBe(true);
+  });
+
+  it('presents confirmation resend rate limits without losing its email', async () => {
+    const { store } = configureStore({
+      signUp: vi.fn().mockResolvedValue(
+        Either.right({
+          status: 'confirmation-required',
+          email: 'new-user@example.com',
+        } satisfies SignUpResult)
+      ),
+      resendConfirmationEmail: vi
+        .fn()
+        .mockResolvedValue(
+          Either.left(new ConfirmationEmailResendRateLimitedError())
+        ),
+    });
+
+    await store.initialize();
+    await store.signUp('new-user@example.com', 'Password123!');
+
+    await expect(store.resendConfirmationEmail()).resolves.toBe(false);
+    expect(store.confirmationEmailResendStatus()).toBe('failed');
+    expect(store.confirmationEmail()).toBe('new-user@example.com');
+    expect(store.error()).toEqual({
+      message: 'Wait a moment before requesting another confirmation email.',
+    });
+  });
+
+  it('serializes confirmation resend with other authentication commands', async () => {
+    const resend = makeDeferred<Either.Either<void, AuthenticationError>>();
+    const signIn = vi.fn().mockResolvedValue(Either.right(session));
+    const { store } = configureStore({
+      signUp: vi.fn().mockResolvedValue(
+        Either.right({
+          status: 'confirmation-required',
+          email: 'new-user@example.com',
+        } satisfies SignUpResult)
+      ),
+      resendConfirmationEmail: vi.fn().mockReturnValue(resend.promise),
+      signIn,
+    });
+
+    await store.initialize();
+    await store.signUp('new-user@example.com', 'Password123!');
+
+    const resendResult = store.resendConfirmationEmail();
+
+    expect(store.isResendingConfirmationEmail()).toBe(true);
+    await expect(
+      store.signIn('new-user@example.com', 'Password123!')
+    ).resolves.toBe(false);
+    expect(signIn).not.toHaveBeenCalled();
+
+    store.resetSignUp();
+    expect(store.requiresEmailConfirmation()).toBe(true);
+
+    resend.resolve(Either.right(undefined));
+    await expect(resendResult).resolves.toBe(true);
+  });
+
+  it('does not restore confirmation state after a newer session arrives', async () => {
+    const observer = makeSessionObserver();
+    const resend = makeDeferred<Either.Either<void, AuthenticationError>>();
+    const { store } = configureStore({
+      signUp: vi.fn().mockResolvedValue(
+        Either.right({
+          status: 'confirmation-required',
+          email: 'new-user@example.com',
+        } satisfies SignUpResult)
+      ),
+      resendConfirmationEmail: vi.fn().mockReturnValue(resend.promise),
+      observeSessionChanges: observer.observeSessionChanges,
+    });
+
+    await store.initialize();
+    await store.signUp('new-user@example.com', 'Password123!');
+
+    const result = store.resendConfirmationEmail();
+    observer.emitSession(session);
+    resend.resolve(Either.right(undefined));
+
+    await expect(result).resolves.toBe(true);
+    expect(store.status()).toBe('authenticated');
+    expect(store.confirmationEmail()).toBeNull();
+    expect(store.confirmationEmailResendStatus()).toBe('idle');
   });
 
   it('presents an already registered account without provider details', async () => {
@@ -486,7 +604,12 @@ describe('AuthenticationStore', () => {
     ).resolves.toBe(false);
     expect(signIn).not.toHaveBeenCalled();
 
-    pendingSignUp.resolve(Either.right({ status: 'confirmation-required' }));
+    pendingSignUp.resolve(
+      Either.right({
+        status: 'confirmation-required',
+        email: 'new-user@example.com',
+      })
+    );
     await expect(registration).resolves.toBe(true);
   });
 

@@ -1,4 +1,4 @@
-import { Effect, Schema } from 'effect';
+import { Effect } from 'effect';
 import {
   InvalidPasswordResetRequestInputError,
   type AuthenticationError,
@@ -8,23 +8,10 @@ import {
   type AuthenticationService,
   type PasswordResetRequest,
 } from '../authentication-service';
+import { decodeEmailRedirectRequest } from '../email-redirect-request';
 
 /** Input accepted by the password-reset email workflow. */
 export type RequestPasswordResetInput = PasswordResetRequest;
-
-const EmailSchema = Schema.Trim.pipe(Schema.nonEmptyString());
-const RedirectUrlSchema = Schema.Trim.pipe(
-  Schema.nonEmptyString(),
-  Schema.pattern(/^https?:\/\/[^/\s?#]+(?:[/?#]\S*)?$/)
-);
-
-const readInputField = (
-  input: unknown,
-  field: keyof RequestPasswordResetInput
-): unknown =>
-  typeof input === 'object' && input !== null
-    ? Reflect.get(input, field)
-    : undefined;
 
 /**
  * Builds a program that requests a password-recovery email.
@@ -37,25 +24,11 @@ export const requestPasswordReset = (
   input: RequestPasswordResetInput
 ): Effect.Effect<void, AuthenticationError, AuthenticationService> =>
   Effect.gen(function* () {
-    const email = yield* Schema.decodeUnknown(EmailSchema)(
-      readInputField(input, 'email')
-    ).pipe(
-      Effect.mapError(
-        () => new InvalidPasswordResetRequestInputError({ field: 'email' })
-      )
-    );
-    const redirectUrl = yield* Schema.decodeUnknown(RedirectUrlSchema)(
-      readInputField(input, 'redirectUrl')
-    ).pipe(
-      Effect.mapError(
-        () =>
-          new InvalidPasswordResetRequestInputError({ field: 'redirectUrl' })
-      )
+    const request = yield* decodeEmailRedirectRequest(
+      input,
+      (field) => new InvalidPasswordResetRequestInputError({ field })
     );
 
     const authenticationService = yield* AuthenticationServiceTag;
-    return yield* authenticationService.requestPasswordReset({
-      email,
-      redirectUrl,
-    });
+    return yield* authenticationService.requestPasswordReset(request);
   });

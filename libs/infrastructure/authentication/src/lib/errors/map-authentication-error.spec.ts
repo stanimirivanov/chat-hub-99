@@ -59,6 +59,19 @@ describe('mapAuthenticationError', () => {
   });
 
   it.each([
+    ['over_email_send_rate_limit', 'ConfirmationEmailResendRateLimitedError'],
+    ['over_request_rate_limit', 'ConfirmationEmailResendRateLimitedError'],
+    ['email_address_invalid', 'InvalidConfirmationEmailResendInputError'],
+  ] as const)('maps confirmation-email resend %s', (code, tag) => {
+    const result = mapAuthenticationError(
+      makeAuthError(code),
+      'resend-confirmation-email'
+    );
+
+    expect(result._tag).toBe(tag);
+  });
+
+  it.each([
     ['weak_password', 'InvalidPasswordUpdateInputError'],
     ['same_password', 'PasswordUnchangedError'],
     ['session_not_found', 'PasswordRecoveryExpiredError'],

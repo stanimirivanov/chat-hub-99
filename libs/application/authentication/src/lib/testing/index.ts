@@ -12,6 +12,7 @@ export {
   makeAuthenticationServiceLayer,
   makeSignInAuthenticationService,
   makeSignUpAuthenticationService,
+  makeResendConfirmationEmailAuthenticationService,
   makeRequestPasswordResetAuthenticationService,
   makeUpdatePasswordAuthenticationService,
 } from './authentication-service.stub';

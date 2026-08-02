@@ -9,8 +9,14 @@ describe('SignUpComponent', () => {
     const store = {
       isSigningUp: signal(false),
       requiresEmailConfirmation: signal(confirmationRequired),
+      confirmationEmail: signal(
+        confirmationRequired ? 'new-user@example.com' : null
+      ),
+      isResendingConfirmationEmail: signal(false),
+      wasConfirmationEmailResent: signal(false),
       error: signal(null),
       signUp: vi.fn().mockResolvedValue(true),
+      resendConfirmationEmail: vi.fn().mockResolvedValue(true),
       clearError: vi.fn(),
       resetSignUp: vi.fn(),
     };
@@ -59,11 +65,28 @@ describe('SignUpComponent', () => {
     expect(fixture.nativeElement.querySelector('form')).toBeNull();
     expect(fixture.nativeElement.textContent).toContain('Check your email');
 
-    const resetButton = fixture.nativeElement.querySelector(
-      'button'
-    ) as HTMLButtonElement;
-    resetButton.click();
+    const buttons = Array.from(
+      fixture.nativeElement.querySelectorAll('button')
+    ) as HTMLButtonElement[];
+    buttons
+      .find((button) => button.textContent?.includes('Register another'))
+      ?.click();
 
     expect(store.resetSignUp).toHaveBeenCalledOnce();
+  });
+
+  it('resends confirmation for the address retained by the store', async () => {
+    const { fixture, store } = await configureComponent(true);
+    const buttons = Array.from(
+      fixture.nativeElement.querySelectorAll('button')
+    ) as HTMLButtonElement[];
+
+    buttons
+      .find((button) => button.textContent?.includes('Resend confirmation'))
+      ?.click();
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.textContent).toContain('new-user@example.com');
+    expect(store.resendConfirmationEmail).toHaveBeenCalledOnce();
   });
 });

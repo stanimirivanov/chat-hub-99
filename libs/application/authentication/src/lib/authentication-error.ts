@@ -10,6 +10,7 @@ export type AuthenticationOperation =
   | 'restore-session'
   | 'sign-in'
   | 'sign-up'
+  | 'resend-confirmation-email'
   | 'request-password-reset'
   | 'update-password'
   | 'sign-out'
@@ -43,6 +44,18 @@ export class InvalidSignUpInputError extends Data.TaggedError(
 /** Indicates that the provider rejected an already registered email address. */
 export class AccountAlreadyRegisteredError extends Data.TaggedError(
   'AccountAlreadyRegisteredError'
+) {}
+
+/** Indicates malformed input at the confirmation-email resend boundary. */
+export class InvalidConfirmationEmailResendInputError extends Data.TaggedError(
+  'InvalidConfirmationEmailResendInputError'
+)<{
+  readonly field: 'email' | 'redirectUrl';
+}> {}
+
+/** Indicates that another confirmation email cannot be sent yet. */
+export class ConfirmationEmailResendRateLimitedError extends Data.TaggedError(
+  'ConfirmationEmailResendRateLimitedError'
 ) {}
 
 /** Indicates malformed input at the password-reset request boundary. */
@@ -94,10 +107,12 @@ export class AuthenticationUnavailableError extends Data.TaggedError(
 export type AuthenticationError =
   | InvalidSignInInputError
   | InvalidSignUpInputError
+  | InvalidConfirmationEmailResendInputError
   | InvalidPasswordResetRequestInputError
   | InvalidPasswordUpdateInputError
   | InvalidCredentialsError
   | AccountAlreadyRegisteredError
+  | ConfirmationEmailResendRateLimitedError
   | PasswordResetRateLimitedError
   | PasswordRecoveryExpiredError
   | PasswordUnchangedError

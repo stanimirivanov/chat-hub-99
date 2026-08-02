@@ -13,6 +13,7 @@ provider-independent application contracts.
 - Sign in with email and password.
 - Register email/password accounts and distinguish immediate sessions from
   email-confirmation completion.
+- Resend signup confirmation without revealing whether an account exists.
 - Request password-reset emails with an application-supplied redirect URL.
 - Replace the password belonging to an active recovery session.
 - Sign out of the current session.
@@ -46,6 +47,12 @@ Supabase AuthError -> typed application authentication error
 Recovery tokens, URL fragments, and raw Supabase event names remain inside the
 Supabase Auth/browser boundary. Infrastructure exposes only the validated
 session and a provider-independent `password-recovery` discriminator.
+
+The signup adapter retains the already-normalized input address when Supabase
+requires confirmation. Confirmation resend translates the application command
+to `auth.resend({ type: 'signup' })`; a provider `user_not_found` response is
+treated as the same empty completion as delivery so account existence cannot
+escape through presentation state.
 
 ## Package structure
 

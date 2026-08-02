@@ -1,6 +1,7 @@
 import type {
   AuthChangeEvent,
   AuthError,
+  AuthOtpResponse,
   AuthResponse,
   AuthTokenResponsePassword,
   Session,
@@ -50,6 +51,12 @@ export interface SupabaseAuthenticationClient {
       readonly email: string;
       readonly password: string;
     }) => Promise<AuthResponse>;
+
+    readonly resend: (request: {
+      readonly type: 'signup';
+      readonly email: string;
+      readonly options: { readonly emailRedirectTo: string };
+    }) => Promise<AuthOtpResponse>;
 
     readonly resetPasswordForEmail: (
       email: string,

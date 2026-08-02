@@ -2,7 +2,9 @@ import type { AuthError } from '@supabase/supabase-js';
 import {
   AuthenticationUnavailableError,
   AccountAlreadyRegisteredError,
+  ConfirmationEmailResendRateLimitedError,
   InvalidCredentialsError,
+  InvalidConfirmationEmailResendInputError,
   InvalidSignUpInputError,
   InvalidPasswordResetRequestInputError,
   InvalidPasswordUpdateInputError,
@@ -51,6 +53,19 @@ export const mapAuthenticationError = (
       error.code === 'over_request_rate_limit'
     ) {
       return new PasswordResetRateLimitedError();
+    }
+  }
+
+  if (operation === 'resend-confirmation-email') {
+    if (error.code === 'email_address_invalid') {
+      return new InvalidConfirmationEmailResendInputError({ field: 'email' });
+    }
+
+    if (
+      error.code === 'over_email_send_rate_limit' ||
+      error.code === 'over_request_rate_limit'
+    ) {
+      return new ConfirmationEmailResendRateLimitedError();
     }
   }
 

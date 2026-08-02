@@ -5,8 +5,8 @@ import { AuthenticationStore } from '../store/authentication.store';
  * Email/password account-registration form.
  *
  * The component owns DOM interaction only. Validation, provider execution,
- * command serialization, and confirmation state remain in the authentication
- * application boundary and root store.
+ * command serialization, retained confirmation address, and resend state
+ * remain in the authentication application boundary and root store.
  */
 @Component({
   selector: 'app-sign-up',

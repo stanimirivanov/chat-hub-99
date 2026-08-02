@@ -4,9 +4,11 @@ import { makeSupabaseAuthenticationService } from './supabase-authentication-ser
 import {
   accountAlreadyRegisteredError,
   authenticationSession,
+  confirmationEmailResendRateLimitError,
   invalidCredentialsError,
   makeSupabaseAuthenticationClientStub,
   passwordResetRateLimitError,
+  userNotFoundError,
   weakPasswordError,
 } from './testing';
 
@@ -160,7 +162,78 @@ describe('makeSupabaseAuthenticationService', () => {
           password: 'Password123!',
         })
       )
-    ).resolves.toEqual({ status: 'confirmation-required' });
+    ).resolves.toEqual({
+      status: 'confirmation-required',
+      email: 'new-user@example.com',
+    });
+  });
+
+  it('resends account confirmation with its callback URL', async () => {
+    const resend = vi.fn().mockResolvedValue({
+      data: { user: null, session: null },
+      error: null,
+    });
+    const service = makeSupabaseAuthenticationService(
+      makeSupabaseAuthenticationClientStub({ resend })
+    );
+
+    await Effect.runPromise(
+      service.resendConfirmationEmail({
+        email: 'new-user@example.com',
+        redirectUrl: 'http://localhost:4200/',
+      })
+    );
+
+    expect(resend).toHaveBeenCalledExactlyOnceWith({
+      type: 'signup',
+      email: 'new-user@example.com',
+      options: { emailRedirectTo: 'http://localhost:4200/' },
+    });
+  });
+
+  it('does not reveal a missing confirmation account', async () => {
+    const service = makeSupabaseAuthenticationService(
+      makeSupabaseAuthenticationClientStub({
+        resend: vi.fn().mockResolvedValue({
+          data: { user: null, session: null },
+          error: userNotFoundError,
+        }),
+      })
+    );
+
+    await expect(
+      Effect.runPromise(
+        service.resendConfirmationEmail({
+          email: 'missing@example.com',
+          redirectUrl: 'http://localhost:4200/',
+        })
+      )
+    ).resolves.toBeUndefined();
+  });
+
+  it('maps confirmation-email resend rate limiting', async () => {
+    const service = makeSupabaseAuthenticationService(
+      makeSupabaseAuthenticationClientStub({
+        resend: vi.fn().mockResolvedValue({
+          data: { user: null, session: null },
+          error: confirmationEmailResendRateLimitError,
+        }),
+      })
+    );
+
+    const result = await Effect.runPromise(
+      service
+        .resendConfirmationEmail({
+          email: 'new-user@example.com',
+          redirectUrl: 'http://localhost:4200/',
+        })
+        .pipe(Effect.either)
+    );
+
+    expect(result).toMatchObject({
+      _tag: 'Left',
+      left: { _tag: 'ConfirmationEmailResendRateLimitedError' },
+    });
   });
 
   it('maps an already registered account', async () => {

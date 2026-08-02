@@ -22,9 +22,11 @@ export const logAuthenticationError = (
     case 'InvalidCredentialsError':
     case 'InvalidSignInInputError':
     case 'InvalidSignUpInputError':
+    case 'InvalidConfirmationEmailResendInputError':
     case 'InvalidPasswordResetRequestInputError':
     case 'InvalidPasswordUpdateInputError':
     case 'AccountAlreadyRegisteredError':
+    case 'ConfirmationEmailResendRateLimitedError':
     case 'PasswordResetRateLimitedError':
     case 'PasswordRecoveryExpiredError':
     case 'PasswordUnchangedError':

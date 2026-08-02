@@ -142,7 +142,10 @@ export const makeSupabaseAuthenticationService = (
           }
 
           if (data.user !== null) {
-            return Effect.succeed({ status: 'confirmation-required' });
+            return Effect.succeed({
+              status: 'confirmation-required',
+              email: credentials.email,
+            });
           }
 
           return Effect.fail(
@@ -155,6 +158,39 @@ export const makeSupabaseAuthenticationService = (
           );
         }
       )
+    ),
+
+  resendConfirmationEmail: (request) =>
+    Effect.tryPromise({
+      try: () =>
+        client.auth.resend({
+          type: 'signup',
+          email: request.email,
+          options: {
+            emailRedirectTo: request.redirectUrl,
+          },
+        }),
+
+      catch: (cause) =>
+        new AuthenticationUnavailableError({
+          operation: 'resend-confirmation-email',
+          cause,
+        }),
+    }).pipe(
+      Effect.flatMap(({ error }): Effect.Effect<void, AuthenticationError> => {
+        /*
+         * A missing account must be indistinguishable from a delivered email.
+         * Supabase normally protects this itself; retaining the guarantee here
+         * prevents a provider response change from becoming enumeration UI.
+         */
+        if (error === null || error.code === 'user_not_found') {
+          return Effect.void;
+        }
+
+        return Effect.fail(
+          mapAuthenticationError(error, 'resend-confirmation-email')
+        );
+      })
     ),
 
   requestPasswordReset: (request) =>
