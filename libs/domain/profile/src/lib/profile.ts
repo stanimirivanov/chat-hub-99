@@ -1,8 +1,9 @@
 import { Schema } from 'effect';
 import { ProfileIdSchema } from './profile-id';
+import { AvatarUrlSchema } from './avatar-url';
 
 const OptionalUsernameSchema = Schema.NullOr(Schema.NonEmptyTrimmedString);
-const OptionalAvatarUrlSchema = Schema.NullOr(Schema.NonEmptyTrimmedString);
+const OptionalAvatarUrlSchema = Schema.NullOr(AvatarUrlSchema);
 
 /**
  * Current profile projection displayed at authenticated application entry.

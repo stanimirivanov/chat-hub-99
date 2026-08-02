@@ -82,6 +82,49 @@ describe('updateCurrentProfile', () => {
     expect(updateCurrent).not.toHaveBeenCalled();
   });
 
+  it.each([
+    'http://example.com/avatar.png',
+    'https://user:secret@example.com/avatar.png',
+    'not-a-url',
+  ])('rejects unsupported avatar URL %s', async (avatarUrl) => {
+    const { repositoryLayer, updateCurrent } =
+      makeUpdateCurrentProfileRepository(() => Effect.succeed(profile));
+
+    const result = await Effect.runPromise(
+      updateCurrentProfile({
+        displayName: 'Workspace Owner',
+        avatarUrl,
+      }).pipe(Effect.provide(repositoryLayer), Effect.either)
+    );
+
+    expect(result).toMatchObject({
+      _tag: 'Left',
+      left: {
+        _tag: 'InvalidProfileUpdateInputError',
+        field: 'avatarUrl',
+      },
+    });
+    expect(updateCurrent).not.toHaveBeenCalled();
+  });
+
+  it('normalizes and validates an HTTPS avatar URL', async () => {
+    const { repositoryLayer, updateCurrent } =
+      makeUpdateCurrentProfileRepository(() => Effect.succeed(profile));
+
+    await Effect.runPromise(
+      updateCurrentProfile({
+        displayName: 'Workspace Owner',
+        avatarUrl: '  https://example.com/avatar.png  ',
+      }).pipe(Effect.provide(repositoryLayer))
+    );
+
+    expect(updateCurrent).toHaveBeenCalledExactlyOnceWith({
+      displayName: 'Workspace Owner',
+      username: null,
+      avatarUrl: 'https://example.com/avatar.png',
+    });
+  });
+
   it('preserves a username conflict as a typed failure', async () => {
     const failure = new ProfileUsernameUnavailableError({
       username: 'owner',

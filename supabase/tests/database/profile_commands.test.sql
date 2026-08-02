@@ -21,7 +21,7 @@ BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap
 WITH SCHEMA extensions;
 
-SELECT plan(12);
+SELECT plan(14);
 
 
 -- ============================================================================
@@ -144,6 +144,35 @@ SELECT lives_ok(
         )
     $$,
     'An authenticated user can append a new profile version'
+);
+
+
+SELECT throws_ok(
+    $$
+        SELECT public.update_my_profile(
+            p_display_name => 'Updated User',
+            p_username => 'updated-user',
+            p_avatar_url => 'http://example.com/insecure-avatar.png'
+        )
+    $$,
+    '23514',
+    NULL,
+    'A profile update rejects a non-HTTPS avatar URL'
+);
+
+
+SELECT throws_ok(
+    $$
+        SELECT public.update_my_profile(
+            p_display_name => 'Updated User',
+            p_username => 'updated-user',
+            p_avatar_url =>
+                'https://example.com/' || repeat('a', 2048)
+        )
+    $$,
+    '23514',
+    NULL,
+    'A profile update rejects an avatar URL beyond the length limit'
 );
 
 

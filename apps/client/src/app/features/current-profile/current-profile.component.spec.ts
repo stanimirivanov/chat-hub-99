@@ -13,6 +13,10 @@ const profile = Schema.decodeUnknownSync(ProfileSchema)({
   avatarUrl: null,
   status: 'active',
 });
+const profileWithAvatar = Schema.decodeUnknownSync(ProfileSchema)({
+  ...profile,
+  avatarUrl: 'https://example.com/owner.png',
+});
 
 describe('CurrentProfileComponent', () => {
   const configureComponent = async (profile: Profile | null) => {
@@ -62,6 +66,16 @@ describe('CurrentProfileComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Workspace Owner');
     expect(fixture.nativeElement.textContent).toContain('@owner');
     expect(fixture.nativeElement.textContent).toContain('owner@chat-hub.local');
+  });
+
+  it('renders the validated current-profile avatar', async () => {
+    const { fixture } = await configureComponent(profileWithAvatar);
+    const image = fixture.nativeElement.querySelector(
+      'app-profile-avatar img'
+    ) as HTMLImageElement;
+
+    expect(image.src).toBe(profileWithAvatar.avatarUrl);
+    expect(image.alt).toBe('');
   });
 
   it('submits editable profile values and closes the editor on success', async () => {

@@ -62,7 +62,7 @@ const otherProfile = Schema.decodeUnknownSync(ProfileSchema)({
   id: otherUserId,
   username: 'workspace-member',
   displayName: 'Workspace Member',
-  avatarUrl: null,
+  avatarUrl: 'https://example.com/workspace-member.png',
   status: 'active',
 });
 
@@ -299,6 +299,9 @@ describe('ChannelMessageHistoryComponent', () => {
     expect(items[0].textContent).toContain('You');
     expect(items[1].textContent).toContain('Workspace Member');
     expect(items[1].textContent).not.toContain('Another user');
+    expect(
+      (items[1].querySelector('app-profile-avatar img') as HTMLImageElement).src
+    ).toBe(otherProfile.avatarUrl);
   });
 
   it('keeps history visible and offers retry when live updates fail', async () => {

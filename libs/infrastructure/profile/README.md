@@ -14,6 +14,7 @@ the `update_my_profile` RPC.
 - Query multiple author profiles in one identity-filtered request.
 - Decode generated nullable view data into a profile domain projection.
 - Decode the RPC result through the same profile domain mapper.
+- Reject persisted avatar values that violate the profile domain URL policy.
 - Preserve a missing single row as absence and omit invisible rows from batch
   results.
 - Translate provider, username-conflict, and validation failures into
@@ -49,6 +50,11 @@ updateCurrentProfile use case
   -> update_my_profile RPC
   -> ProfileSchema decoding of the canonical result
 ```
+
+The adapter does not parse or sanitize avatar URLs independently. Application
+commands already carry branded values, and database rows are decoded through
+`ProfileSchema`; the matching PostgreSQL check constraint protects writes that
+bypass the TypeScript application boundary.
 
 A Tag is the typed key through which the application requests a capability. A
 Layer constructs and supplies that capability from the configured Supabase

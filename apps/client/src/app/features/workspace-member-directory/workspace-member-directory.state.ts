@@ -1,4 +1,4 @@
-import type { Profile, ProfileId } from '@chat-hub/domain/profile';
+import type { AvatarUrl, Profile, ProfileId } from '@chat-hub/domain/profile';
 import type {
   WorkspaceId,
   WorkspaceMember,
@@ -27,6 +27,7 @@ export interface WorkspaceMemberDirectoryError {
 export interface WorkspaceMemberDirectoryEntry {
   readonly profileId: ProfileId;
   readonly displayName: string;
+  readonly avatarUrl: AvatarUrl | null;
   readonly role: WorkspaceMemberRole;
 }
 

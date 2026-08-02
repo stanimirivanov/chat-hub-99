@@ -31,4 +31,29 @@ describe('mapCurrentProfile', () => {
       expect(result.left._tag).toBe('InvalidProfileDataError');
     }
   });
+
+  it('maps a validated HTTPS avatar URL', async () => {
+    const result = await Effect.runPromise(
+      mapCurrentProfile({
+        ...currentProfileRow,
+        avatar_url: 'https://example.com/avatar.png',
+      })
+    );
+
+    expect(result.avatarUrl).toBe('https://example.com/avatar.png');
+  });
+
+  it('rejects an unsupported persisted avatar URL', async () => {
+    const result = await Effect.runPromise(
+      mapCurrentProfile({
+        ...currentProfileRow,
+        avatar_url: 'http://example.com/avatar.png',
+      }).pipe(Effect.either)
+    );
+
+    expect(result).toMatchObject({
+      _tag: 'Left',
+      left: { _tag: 'InvalidProfileDataError' },
+    });
+  });
 });

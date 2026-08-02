@@ -7,6 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { CurrentProfileStore } from './current-profile.store';
+import { ProfileAvatarComponent } from '@client/shared/profile-avatar/profile-avatar.component';
 
 /**
  * Displays and edits the current user's profile while retaining session email
@@ -15,6 +16,7 @@ import { CurrentProfileStore } from './current-profile.store';
 @Component({
   selector: 'app-current-profile',
   standalone: true,
+  imports: [ProfileAvatarComponent],
   providers: [CurrentProfileStore],
   templateUrl: './current-profile.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

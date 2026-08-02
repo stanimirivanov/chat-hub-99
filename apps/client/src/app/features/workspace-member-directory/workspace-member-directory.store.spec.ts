@@ -136,11 +136,13 @@ describe('WorkspaceMemberDirectoryStore', () => {
       {
         profileId: ownerId,
         displayName: 'Workspace Owner',
+        avatarUrl: null,
         role: 'owner',
       },
       {
         profileId: memberId,
         displayName: 'Alpha Member',
+        avatarUrl: null,
         role: 'member',
       },
     ]);
@@ -188,11 +190,13 @@ describe('WorkspaceMemberDirectoryStore', () => {
       {
         profileId: ownerId,
         displayName: 'Another member',
+        avatarUrl: null,
         role: 'owner',
       },
       {
         profileId: memberId,
         displayName: 'Another member',
+        avatarUrl: null,
         role: 'member',
       },
     ]);
