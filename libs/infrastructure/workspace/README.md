@@ -3,7 +3,7 @@
 `@chat-hub/infrastructure/workspace` implements workspace and active-membership
 discovery with RLS-protected Supabase views, creation with the transactional
 `create_workspace` RPC, detail replacement with `update_workspace`, member
-archiving with `archive_workspace`, member addition with
+archiving with `archive_workspace`, member addition/reactivation with
 `add_workspace_member`, role changes with
 `change_workspace_member_role`, and member removal with
 `remove_workspace_member`. Self-service departure uses the separate
@@ -16,7 +16,8 @@ archiving with `archive_workspace`, member addition with
 - Execute workspace creation without exposing owner identity as an argument.
 - Execute workspace updates without exposing actor identity as an argument.
 - Execute workspace archiving without exposing actor identity as an argument.
-- Execute member addition without exposing actor identity or role as arguments.
+- Execute member addition or reactivation without exposing actor identity or
+  role as arguments.
 - Execute member role changes without exposing actor identity as an argument.
 - Execute member removal without exposing actor identity as an argument.
 - Execute self-departure without exposing actor or target identity as an
@@ -77,6 +78,7 @@ addWorkspaceMemberByUsername use case
   -> WorkspaceRepositoryTag.addMember
   -> SupabaseWorkspaceRepositoryLayer
   -> add_workspace_member RPC
+  -> create or reinstate immutable membership history
   -> default-role/active-target/identity checks + WorkspaceMemberSchema decoding
 
 removeWorkspaceMember use case
@@ -96,7 +98,10 @@ The membership query returns stable identities and roles only. Profile
 enrichment remains a separate application capability, preventing the workspace
 adapter from depending on profile persistence. Member-addition authorization,
 default role assignment, active-profile validation, and immutable membership
-history remain transactional database concerns. Role-change/removal
+reactivation remain transactional database concerns. A former member keeps the
+same stable membership identity; the command appends `reinstated` and advances
+its head, while an already-active member remains an actionable typed failure.
+Role-change/removal
 authorization and last-owner invariants are likewise enforced there;
 owner-driven removal cannot target the actor, while the separate departure
 command can target only the provider-authenticated actor. The adapter translates

@@ -53,7 +53,7 @@ const decodeUsername = (
   );
 
 /**
- * Active member and profile projections produced by member addition.
+ * Active member and profile projections produced by addition or reactivation.
  */
 export interface AddedWorkspaceMember {
   readonly member: WorkspaceMember;
@@ -61,12 +61,13 @@ export interface AddedWorkspaceMember {
 }
 
 /**
- * Adds an active profile to a workspace by exact username.
+ * Adds or reactivates an active profile by exact username.
  *
  * The use case validates boundary input, resolves one active profile through
- * the profile port, and then asks the workspace port to create the default
- * member role. Its Effect requires both repositories and preserves each
- * capability's typed failures.
+ * the profile port, and then asks the workspace port to produce an active
+ * default-member projection. Existing left or removed history is preserved and
+ * reactivated by the repository implementation. Its Effect requires both
+ * repositories and preserves each capability's typed failures.
  */
 export const addWorkspaceMemberByUsername = (
   input: unknown

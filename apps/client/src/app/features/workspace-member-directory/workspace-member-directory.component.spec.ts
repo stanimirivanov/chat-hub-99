@@ -142,13 +142,17 @@ describe('WorkspaceMemberDirectoryComponent', () => {
     expect(fixture.nativeElement.querySelector('form')).toBeNull();
   });
 
-  it('lets an owner add a member by exact username', async () => {
+  it('lets an owner add or reactivate a member by exact username', async () => {
     const { fixture, store } = await renderComponent(ownerId);
     const input = fixture.nativeElement.querySelector(
       'input[name="username"]'
     ) as HTMLInputElement;
     const form = input.closest('form') as HTMLFormElement;
     input.value = 'candidate';
+
+    expect(fixture.nativeElement.textContent).toContain(
+      'Add or reactivate member by username'
+    );
 
     form.dispatchEvent(
       new SubmitEvent('submit', { bubbles: true, cancelable: true })

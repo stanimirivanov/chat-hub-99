@@ -8,7 +8,7 @@
 --   - adding a member creates one stable membership identity;
 --   - adding a member appends the initial joined event;
 --   - membership heads expose the resulting current state;
---   - duplicate membership creation is rejected;
+--   - an already-active membership cannot be added again;
 --   - ordinary members cannot manage membership;
 --   - owners can promote and demote members;
 --   - role changes append immutable events;
@@ -16,6 +16,8 @@
 --   - owners can remove active members;
 --   - active members can leave their workspace;
 --   - the final active owner cannot leave;
+--   - owners can reinstate a left or removed membership without replacing its
+--     stable identity or immutable history;
 --   - removed members lose membership-management authority;
 --   - membership history rejects UPDATE and DELETE.
 --
@@ -27,7 +29,7 @@ BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap
 WITH SCHEMA extensions;
 
-SELECT plan(28);
+SELECT plan(33);
 
 
 -- ============================================================================
@@ -239,7 +241,7 @@ SELECT results_eq(
 
 
 -- ============================================================================
--- Duplicate membership protection
+-- Active membership protection
 -- ============================================================================
 
 SET LOCAL ROLE authenticated;
@@ -259,9 +261,9 @@ SELECT throws_ok(
         $sql$,
         :'workspace_workspace_id'
     ),
-    '23505',
+    '55000',
     NULL,
-    'An existing membership history cannot be created twice'
+    'An already-active workspace member cannot be added again'
 );
 
 
@@ -776,6 +778,146 @@ SELECT throws_ok(
     '55000',
     NULL,
     'The final active workspace owner cannot leave'
+);
+
+
+RESET ROLE;
+
+
+-- ============================================================================
+-- Reinstate a former workspace member
+-- ============================================================================
+--
+-- User 3000...003 left above. Adding that same active profile again must
+-- advance its existing membership aggregate instead of creating another one.
+-- ============================================================================
+
+SET LOCAL ROLE authenticated;
+
+SET LOCAL request.jwt.claim.sub =
+    '30000000-0000-0000-0000-000000000002';
+
+
+SELECT lives_ok(
+    format(
+        $sql$
+            SELECT public.add_workspace_member(
+                p_workspace_id => %L::UUID,
+                p_user_id =>
+                    '30000000-0000-0000-0000-000000000003'::UUID
+            )
+        $sql$,
+        :'workspace_workspace_id'
+    ),
+    'An active owner can reinstate a former workspace member'
+);
+
+
+RESET ROLE;
+
+
+SELECT is(
+    (
+        SELECT count(*)
+        FROM public.workspace_memberships
+        WHERE workspace_id =
+            :'workspace_workspace_id'::UUID
+          AND user_id =
+            '30000000-0000-0000-0000-000000000003'::UUID
+    ),
+    1::BIGINT,
+    'Reinstatement preserves the stable membership identity'
+);
+
+
+SELECT results_eq(
+    format(
+        $sql$
+            SELECT
+                sequence_number,
+                event_type,
+                role,
+                performed_by
+            FROM public.workspace_membership_events
+            WHERE workspace_id = %L::UUID
+              AND user_id =
+                  '30000000-0000-0000-0000-000000000003'::UUID
+            ORDER BY sequence_number
+        $sql$,
+        :'workspace_workspace_id'
+    ),
+    $$
+        VALUES
+        (
+            1,
+            'joined'::TEXT,
+            'member'::TEXT,
+            '30000000-0000-0000-0000-000000000002'::UUID
+        ),
+        (
+            2,
+            'removed'::TEXT,
+            'member'::TEXT,
+            '30000000-0000-0000-0000-000000000003'::UUID
+        ),
+        (
+            3,
+            'reinstated'::TEXT,
+            'member'::TEXT,
+            '30000000-0000-0000-0000-000000000002'::UUID
+        )
+    $$,
+    'Reinstatement appends to the existing immutable membership history'
+);
+
+
+SELECT results_eq(
+    format(
+        $sql$
+            SELECT
+                membership_role,
+                membership_status,
+                latest_event_sequence_number,
+                latest_event_type
+            FROM public.current_workspace_memberships
+            WHERE workspace_id = %L::UUID
+              AND user_id =
+                  '30000000-0000-0000-0000-000000000003'::UUID
+        $sql$,
+        :'workspace_workspace_id'
+    ),
+    $$
+        VALUES (
+            'member'::TEXT,
+            'active'::TEXT,
+            3,
+            'reinstated'::TEXT
+        )
+    $$,
+    'Reinstatement advances the existing head to an active default member'
+);
+
+
+SET LOCAL ROLE authenticated;
+
+SET LOCAL request.jwt.claim.sub =
+    '30000000-0000-0000-0000-000000000002';
+
+
+SELECT throws_ok(
+    format(
+        $sql$
+            SELECT public.add_workspace_member(
+                p_workspace_id => %L::UUID,
+                p_user_id =>
+                    '30000000-0000-0000-0000-000000000003'::UUID
+            )
+        $sql$,
+        :'workspace_workspace_id'
+    ),
+    '55000',
+    NULL,
+    'A reinstated active member cannot be added again'
 );
 
 

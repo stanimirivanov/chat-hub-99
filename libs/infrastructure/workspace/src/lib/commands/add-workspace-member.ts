@@ -17,8 +17,8 @@ import {
 import type { SupabaseWorkspaceClient } from '../supabase-workspace-client';
 
 /**
- * Executes the transactional add-member RPC and validates its canonical
- * default-member projection before it crosses the adapter boundary.
+ * Executes the transactional add-or-reactivate RPC and validates its canonical
+ * active default-member projection before it crosses the adapter boundary.
  */
 export const addWorkspaceMember = (
   client: SupabaseWorkspaceClient,
@@ -52,7 +52,7 @@ const mapAdditionResult = (
     return Effect.fail(
       new InvalidWorkspaceMemberDataError({
         cause:
-          'Member addition returned no matching active default-member projection.',
+          'Member addition or reactivation returned no matching active default-member projection.',
       })
     );
   }

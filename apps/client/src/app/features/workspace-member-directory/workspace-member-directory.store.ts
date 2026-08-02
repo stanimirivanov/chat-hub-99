@@ -147,9 +147,9 @@ export const WorkspaceMemberDirectoryStore = signalStore(
         },
 
         /**
-         * Adds one active profile by exact username. The application result
-         * carries both canonical projections, so the directory can update
-         * without a second membership or profile query.
+         * Adds or reactivates one active profile by exact username. The
+         * application result carries both canonical projections, so the
+         * directory can update without a second membership or profile query.
          */
         async addMemberByUsername(username: string): Promise<boolean> {
           const workspaceId = store.workspaceId();
@@ -459,10 +459,13 @@ const presentMemberAdditionError = (
       return {
         message: 'That profile is no longer active.',
       };
-    case 'WorkspaceMembershipHistoryExistsError':
+    case 'WorkspaceMemberAlreadyActiveError':
       return {
-        message:
-          'That user already belongs, or previously belonged, to this workspace and cannot be added again.',
+        message: 'That user is already an active workspace member.',
+      };
+    case 'WorkspaceMemberReactivationNotAllowedError':
+      return {
+        message: 'That workspace membership cannot currently be reactivated.',
       };
     case 'InvalidProfileDataError':
     case 'ProfileRepositoryUnavailableError':

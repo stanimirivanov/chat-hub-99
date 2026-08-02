@@ -35,7 +35,7 @@ export interface UpdateWorkspaceCommand extends CreateWorkspaceCommand {
 }
 
 /**
- * Validated workspace and profile identities used to add a default member.
+ * Validated identities used to add or reactivate a default member.
  */
 export interface AddWorkspaceMemberCommand {
   readonly workspaceId: WorkspaceId;
@@ -79,7 +79,8 @@ export interface WorkspaceRepository {
   ) => Effect.Effect<void, WorkspaceRepositoryArchiveError>;
 
   /**
-   * Adds one active profile as a default member using session authorization.
+   * Adds or reactivates one active profile as a default member using session
+   * authorization.
    */
   readonly addMember: (
     command: AddWorkspaceMemberCommand
