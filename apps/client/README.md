@@ -172,8 +172,8 @@ parameters are cleared only while they still name that target. A final owner
 receives actionable guidance to assign another active owner first. The client
 does not accept or derive a departure target identity: the database command
 uses the authenticated Supabase session and protects the last-owner invariant.
-Reactivation of the preserved membership history remains outside this slice and
-is stated explicitly in the confirmation.
+An owner can restore that access through the exact-username member workflow
+described below.
 
 The nested `workspace-member-directory` slice loads active RLS-visible
 memberships for the selected workspace and batch-enriches their stable profile
@@ -190,14 +190,15 @@ commands reconcile only their validated canonical outcomes, and late results
 after workspace navigation are ignored. The database independently authorizes
 the actor and protects last-owner invariants.
 
-Owners can also add an existing active profile by exact username. Addition has
-its own form state because there is no target directory member yet. The
-application workflow returns the canonical profile and membership together, so
-the store updates both local projections without a follow-up query. Exact lookup
-does not introduce broad user search, invitations, or reactivation of immutable
-membership history. Late additions after workspace navigation are ignored, and
-the database independently authorizes the owner and assigns the default member
-role.
+Owners can also add or reactivate an existing active profile by exact username.
+The command has its own form state because there is no active target directory
+member yet. First-time addition creates the stable membership aggregate; a
+former member retains that identity and history while the database appends a
+`reinstated` event and restores the default member role. The application
+workflow returns the canonical profile and membership together, so the store
+updates both local projections without a follow-up query. Exact lookup does not
+introduce broad user search or invitations. Late results after workspace
+navigation are ignored, and the database independently authorizes the owner.
 
 The nested `channel-navigation` slice reacts to that selected workspace, loads
 only its active RLS-visible channels, and owns a separate feature-scoped

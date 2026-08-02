@@ -89,6 +89,7 @@ Migrations define:
 - immutable profile and workspace models;
 - workspace membership history;
 - session-derived workspace departure with final-owner protection;
+- owner-authorized reinstatement of preserved former-member history;
 - channel aggregates;
 - message aggregates;
 - command functions;

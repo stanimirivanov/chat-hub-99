@@ -5,7 +5,8 @@ import { ProfileRepositoryUnavailableError } from '@chat-hub/application/profile
 import {
   WorkspaceLastOwnerDemotionError,
   WorkspaceLastOwnerRemovalError,
-  WorkspaceMembershipHistoryExistsError,
+  WorkspaceMemberAlreadyActiveError,
+  WorkspaceMemberReactivationNotAllowedError,
   WorkspaceRepositoryUnavailableError,
   type AddedWorkspaceMember,
 } from '@chat-hub/application/workspace';
@@ -258,7 +259,7 @@ describe('WorkspaceMemberDirectoryStore', () => {
     expect(store.mutationError()).toBeNull();
   });
 
-  it('adds the canonical membership and profile returned by the application', async () => {
+  it('activates the canonical membership and profile returned by the application', async () => {
     const addWorkspaceMemberByUsername = vi.fn().mockResolvedValue(
       Either.right({
         member: addedMember,
@@ -288,35 +289,48 @@ describe('WorkspaceMemberDirectoryStore', () => {
     expect(store.additionError()).toBeNull();
   });
 
-  it('presents immutable membership history and permits dismissal', async () => {
-    const failure = new WorkspaceMembershipHistoryExistsError({
-      workspaceId,
-      profileId: candidateId,
-    });
-    const addWorkspaceMemberByUsername = vi
-      .fn()
-      .mockResolvedValue(Either.left(failure));
-    const { store } = configureStore(
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      addWorkspaceMemberByUsername
-    );
-    await store.load(workspaceId);
+  it.each([
+    {
+      caseName: 'an already-active membership',
+      failure: new WorkspaceMemberAlreadyActiveError({
+        workspaceId,
+        profileId: candidateId,
+      }),
+      message: 'That user is already an active workspace member.',
+    },
+    {
+      caseName: 'membership history that cannot be reactivated',
+      failure: new WorkspaceMemberReactivationNotAllowedError({
+        workspaceId,
+        profileId: candidateId,
+      }),
+      message: 'That workspace membership cannot currently be reactivated.',
+    },
+  ])(
+    'presents $caseName and permits dismissal',
+    async ({ failure, message }) => {
+      const addWorkspaceMemberByUsername = vi
+        .fn()
+        .mockResolvedValue(Either.left(failure));
+      const { store } = configureStore(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        addWorkspaceMemberByUsername
+      );
+      await store.load(workspaceId);
 
-    await expect(store.addMemberByUsername('candidate')).resolves.toBe(false);
+      await expect(store.addMemberByUsername('candidate')).resolves.toBe(false);
 
-    expect(store.additionStatus()).toBe('failed');
-    expect(store.additionError()).toEqual({
-      message:
-        'That user already belongs, or previously belonged, to this workspace and cannot be added again.',
-    });
+      expect(store.additionStatus()).toBe('failed');
+      expect(store.additionError()).toEqual({ message });
 
-    store.clearMemberAdditionError();
-    expect(store.additionStatus()).toBe('idle');
-    expect(store.additionError()).toBeNull();
-  });
+      store.clearMemberAdditionError();
+      expect(store.additionStatus()).toBe('idle');
+      expect(store.additionError()).toBeNull();
+    }
+  );
 
   it('ignores an add-member result after the selected workspace changes', async () => {
     let resolveAddition:

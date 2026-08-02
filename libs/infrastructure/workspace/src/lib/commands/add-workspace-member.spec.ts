@@ -19,7 +19,7 @@ const command: AddWorkspaceMemberCommand = {
 };
 
 describe('addWorkspaceMember', () => {
-  it('executes the RPC and returns its validated default-member projection', async () => {
+  it('executes the RPC and returns its validated active-member projection', async () => {
     const stub = makeWorkspaceCommandClientStub({
       data: addedWorkspaceMemberRow,
       error: null,
@@ -60,10 +60,16 @@ describe('addWorkspaceMember', () => {
       'WorkspaceMemberProfileNotActiveError',
     ],
     [
-      'existing membership history',
-      '23505',
-      `User ${command.profileId} already has a membership history in workspace ${command.workspaceId}`,
-      'WorkspaceMembershipHistoryExistsError',
+      'already-active membership',
+      '55000',
+      `User ${command.profileId} is already an active workspace member`,
+      'WorkspaceMemberAlreadyActiveError',
+    ],
+    [
+      'non-reactivatable membership',
+      '55000',
+      'Only memberships that were left or removed may be reinstated',
+      'WorkspaceMemberReactivationNotAllowedError',
     ],
   ])('maps %s to a typed failure', async (_label, code, message, tag) => {
     const stub = makeWorkspaceCommandClientStub({

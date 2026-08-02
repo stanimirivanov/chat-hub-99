@@ -2,8 +2,9 @@ import {
   WorkspaceArchiveNotAllowedError,
   WorkspaceDepartureNotAllowedError,
   WorkspaceMemberAdditionNotAllowedError,
+  WorkspaceMemberAlreadyActiveError,
   WorkspaceMemberProfileNotActiveError,
-  WorkspaceMembershipHistoryExistsError,
+  WorkspaceMemberReactivationNotAllowedError,
   WorkspaceLastOwnerDemotionError,
   WorkspaceLastOwnerRemovalError,
   WorkspaceLastOwnerDepartureError,
@@ -191,10 +192,20 @@ export const mapWorkspaceMemberAdditionError = (
   }
 
   if (
-    error.code === '23505' &&
-    message.includes('already has a membership history')
+    error.code === '55000' &&
+    message.includes('already an active workspace member')
   ) {
-    return new WorkspaceMembershipHistoryExistsError({
+    return new WorkspaceMemberAlreadyActiveError({
+      workspaceId: command.workspaceId,
+      profileId: command.profileId,
+    });
+  }
+
+  if (
+    error.code === '55000' &&
+    message === 'only memberships that were left or removed may be reinstated'
+  ) {
+    return new WorkspaceMemberReactivationNotAllowedError({
       workspaceId: command.workspaceId,
       profileId: command.profileId,
     });

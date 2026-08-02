@@ -8,7 +8,7 @@ import {
 import { ProfileIdSchema, type Profile } from '@chat-hub/domain/profile';
 import type { WorkspaceMember } from '@chat-hub/domain/workspace';
 import {
-  WorkspaceMembershipHistoryExistsError,
+  WorkspaceMemberAlreadyActiveError,
   type AddWorkspaceMemberCommand,
 } from '../repository';
 import { makeAddWorkspaceMemberRepository, workspace } from '../testing';
@@ -49,7 +49,7 @@ const makeProfileLookupRepository = (
 };
 
 describe('addWorkspaceMemberByUsername', () => {
-  it('resolves the normalized username and adds the profile as a member', async () => {
+  it('resolves the normalized username and activates the profile as a member', async () => {
     const profileStub = makeProfileLookupRepository(() =>
       Effect.succeed(candidateProfile)
     );
@@ -178,8 +178,8 @@ describe('addWorkspaceMemberByUsername', () => {
     expect(workspaceStub.addMember).not.toHaveBeenCalled();
   });
 
-  it('preserves an existing membership-history failure', async () => {
-    const failure = new WorkspaceMembershipHistoryExistsError({
+  it('preserves an already-active membership failure', async () => {
+    const failure = new WorkspaceMemberAlreadyActiveError({
       workspaceId: workspace.id,
       profileId: candidateProfile.id,
     });

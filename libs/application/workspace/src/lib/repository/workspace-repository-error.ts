@@ -80,10 +80,21 @@ export class WorkspaceMemberProfileNotActiveError extends Data.TaggedError(
 }> {}
 
 /**
- * Indicates that the profile already has immutable membership history.
+ * Indicates that the profile already has an active workspace membership.
  */
-export class WorkspaceMembershipHistoryExistsError extends Data.TaggedError(
-  'WorkspaceMembershipHistoryExistsError'
+export class WorkspaceMemberAlreadyActiveError extends Data.TaggedError(
+  'WorkspaceMemberAlreadyActiveError'
+)<{
+  readonly workspaceId: WorkspaceId;
+  readonly profileId: ProfileId;
+}> {}
+
+/**
+ * Indicates that preserved membership history is not in a state that the
+ * add-member command may reactivate.
+ */
+export class WorkspaceMemberReactivationNotAllowedError extends Data.TaggedError(
+  'WorkspaceMemberReactivationNotAllowedError'
 )<{
   readonly workspaceId: WorkspaceId;
   readonly profileId: ProfileId;
@@ -204,7 +215,8 @@ export type WorkspaceMemberAddRepositoryError =
   | InvalidWorkspaceMemberDataError
   | WorkspaceMemberAdditionNotAllowedError
   | WorkspaceMemberProfileNotActiveError
-  | WorkspaceMembershipHistoryExistsError;
+  | WorkspaceMemberAlreadyActiveError
+  | WorkspaceMemberReactivationNotAllowedError;
 
 export type WorkspaceMemberRoleChangeRepositoryError =
   | WorkspaceRepositoryUnavailableError

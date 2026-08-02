@@ -3,7 +3,8 @@
 `@chat-hub/application/workspace` owns provider-independent workflows for
 discovering accessible workspaces and active members, creating and editing
 workspaces, archiving workspaces, adding active profiles as members, changing
-active member roles, removing active members, and leaving a workspace.
+active member roles, reactivating former members, removing active members, and
+leaving a workspace.
 
 ## Responsibilities
 
@@ -21,7 +22,8 @@ active member roles, removing active members, and leaving a workspace.
 - Archive a workspace without accepting client-supplied actor identity or
   representing the archived version as an active domain workspace.
 - Resolve an exact active username through the profile port and add that stable
-  profile identity with the default member role.
+  profile identity with the default member role, reactivating its preserved
+  left or removed history when present.
 - Normalize and validate role-change targets and roles before repository access.
 - Change roles without accepting client-supplied actor identity.
 - Normalize removal targets and optional audit reasons before repository access.
@@ -39,7 +41,7 @@ state, profile persistence, channels, or workspace restoration/deletion.
 Angular caller
   -> addWorkspaceMemberByUsername(input)
   -> ProfileRepositoryTag exact active-profile lookup
-  -> WorkspaceRepositoryTag.addMember
+  -> WorkspaceRepositoryTag.addMember create-or-reactivate command
   -> canonical WorkspaceMember + Profile
 
 Angular caller

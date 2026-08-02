@@ -8,7 +8,9 @@
 
   @if (canManageMembers()) {
     <form (submit)="addMember($event, usernameInput)">
-      <label for="workspace-member-username">Add member by username</label>
+      <label for="workspace-member-username">
+        Add or reactivate member by username
+      </label>
       <input
         #usernameInput
         id="workspace-member-username"
