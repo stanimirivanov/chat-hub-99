@@ -19,11 +19,13 @@ import {
   listPendingWorkspaceInvitationsForWorkspace,
   listWorkspaceMembers,
 } from './queries';
+import { makeWorkspaceAccessChangesStream } from './realtime';
 import type { SupabaseWorkspaceClient } from './supabase-workspace-client';
 
 export const makeSupabaseWorkspaceRepository = (
   client: SupabaseWorkspaceClient
 ): WorkspaceRepository => ({
+  accessChanges: () => makeWorkspaceAccessChangesStream(client),
   archive: (workspaceId) => archiveWorkspace(client, workspaceId),
   addMember: (command) => addWorkspaceMember(client, command),
   acceptInvitation: (invitationId) =>

@@ -76,6 +76,8 @@ describe('makeApplicationInfrastructureLayer', () => {
       'function'
     );
 
+    expect(repository.workspaceRepository.accessChanges).toBeTypeOf('function');
+
     expect(repository.workspaceRepository.listActiveMembers).toBeTypeOf(
       'function'
     );

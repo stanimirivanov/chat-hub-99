@@ -16,6 +16,13 @@
     (invitationAccepted)="handleInvitationAccepted($event)"
   />
 
+  @if (store.realtimeError(); as error) {
+    <p role="alert">{{ error.message }}</p>
+    <button type="button" (click)="store.retryRealtime()">
+      Retry live updates
+    </button>
+  }
+
   @if (store.isLoading()) {
     <p>Loading workspaces…</p>
   } @else if (store.error(); as error) {

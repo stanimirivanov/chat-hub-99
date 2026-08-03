@@ -13,10 +13,14 @@ Consent-based access uses `invite_workspace_member`,
 `decline_workspace_invitation`. Owner management uses
 `list_pending_workspace_invitations_for_workspace` and
 `cancel_workspace_invitation`.
+Per-user workspace-access invalidations use a private Supabase Broadcast topic
+and refresh through the ordinary RLS-protected workspace query.
 
 ## Responsibilities
 
 - Query active workspaces visible to the authenticated user.
+- Observe one authenticated user's private workspace-access topic and release
+  it when the Effect Stream is interrupted.
 - Query active members visible in one selected workspace.
 - Execute workspace creation without exposing owner identity as an argument.
 - Execute workspace updates without exposing actor identity as an argument.
@@ -55,6 +59,13 @@ listAccessibleWorkspaces use case
   -> SupabaseWorkspaceRepositoryLayer
   -> current_workspaces view + RLS
   -> WorkspaceSchema decoding
+
+observeAccessibleWorkspaces stream
+  -> resolve and validate the current Supabase Auth user
+  -> private workspace-access:<user-id> Broadcast topic
+  -> membership-head invalidation
+  -> current_workspaces view + RLS
+  -> authoritative Workspace snapshot
 
 createWorkspace use case
   -> WorkspaceRepositoryTag
@@ -183,6 +194,17 @@ that the RPC acknowledged the requested identity in the archived state, then
 returns `void`: an archived row must not cross the application boundary as an
 active `Workspace`. Restoration and hard deletion are intentionally outside
 this slice.
+
+Workspace access observation deliberately uses a database Broadcast trigger
+rather than publishing membership heads through Postgres Changes. Suspension,
+removal, and departure make the updated membership row unreadable to the
+affected user, so that row cannot be the dependable revocation signal under
+its ordinary SELECT policy. The trigger sends only a workspace identity to a
+private topic derived from the affected user identity. Realtime Authorization
+allows a client to join only its own topic, and the adapter treats every event
+as an invalidation rather than trusting its payload. Subscription readiness
+emits the first invalidation, closing the query-before-subscribe gap. Stream
+interruption removes the channel from the shared Supabase client.
 
 ## Public API
 

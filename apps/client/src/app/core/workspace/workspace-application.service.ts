@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Effect, Either } from 'effect';
+import { Effect, Either, Fiber, Stream } from 'effect';
 import {
   acceptWorkspaceInvitation,
   archiveWorkspace,
@@ -11,6 +11,7 @@ import {
   listPendingWorkspaceInvitations,
   listPendingWorkspaceInvitationsForOwner,
   listAccessibleWorkspaces,
+  observeAccessibleWorkspaces,
   listWorkspaceMembers,
   leaveWorkspace,
   removeWorkspaceMember,
@@ -86,6 +87,36 @@ export class WorkspaceApplicationService {
     return applicationRuntime.runPromise(
       listAccessibleWorkspaces.pipe(Effect.either)
     );
+  }
+
+  /**
+   * Starts a private observation of authoritative accessible-workspace
+   * snapshots for the authenticated user.
+   *
+   * The returned cleanup function interrupts the Effect Fiber, which releases
+   * the underlying Supabase Realtime channel.
+   */
+  observeAccessibleWorkspaces(
+    onWorkspaces: (workspaces: readonly Workspace[]) => void,
+    onError: (error: WorkspaceRepositoryReadError) => void
+  ): () => void {
+    const program = observeAccessibleWorkspaces.pipe(
+      Stream.runForEach((workspaces) =>
+        Effect.sync(() => {
+          onWorkspaces(workspaces);
+        })
+      ),
+      Effect.catchAll((error) =>
+        Effect.sync(() => {
+          onError(error);
+        })
+      )
+    );
+    const fiber = applicationRuntime.runFork(program);
+
+    return () => {
+      void applicationRuntime.runPromise(Fiber.interrupt(fiber));
+    };
   }
 
   /**

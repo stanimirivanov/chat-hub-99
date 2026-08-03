@@ -65,7 +65,7 @@ libs/infrastructure/authentication/ Supabase authentication adapter
 libs/infrastructure/channel/    Supabase channel query and command adapter
 libs/infrastructure/message/    Supabase implementation of the message repository
 libs/infrastructure/profile/    Supabase current-profile query and command adapter
-libs/infrastructure/workspace/  Supabase workspace/member/invitation adapter
+libs/infrastructure/workspace/  Supabase workspace/member/invitation and access-realtime adapter
 libs/shared/database/           Generated and derived database types
 supabase/                       Migrations, seed data, configuration, and pgTAP tests
 tools/database/                 Database type-generation tooling

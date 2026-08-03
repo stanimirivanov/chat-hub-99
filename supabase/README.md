@@ -17,6 +17,7 @@ The `supabase` directory is responsible for:
 - implementing database command functions;
 - enforcing persisted profile-avatar URL integrity;
 - enforcing authorization through Row Level Security;
+- broadcasting private per-user workspace-access invalidations;
 - providing deterministic local development data;
 - verifying database behavior with pgTAP tests;
 - supporting generation of TypeScript database types;
@@ -99,6 +100,8 @@ Migrations define:
 - read models and projections;
 - Row Level Security policies;
 - Realtime publication of RLS-protected message-head changes.
+- private Realtime Broadcast authorization and membership-head access
+  invalidations.
 
 Migrations are append-only after they have been shared or applied outside an
 individual disposable development database.
@@ -141,6 +144,7 @@ Contains pgTAP tests for:
 - channel read policies;
 - message read policies;
 - message Realtime publication configuration.
+- workspace-access Broadcast policy, trigger, and payload configuration.
 
 Database tests should verify externally observable behavior rather than internal
 implementation details wherever possible.

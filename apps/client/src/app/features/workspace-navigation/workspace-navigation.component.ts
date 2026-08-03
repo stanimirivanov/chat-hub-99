@@ -12,6 +12,7 @@ import { ChannelNavigationComponent } from '@client/features/channel-navigation/
 import { WorkspaceMemberDirectoryComponent } from '@client/features/workspace-member-directory/workspace-member-directory.component';
 import { WorkspaceInvitationsComponent } from '@client/features/workspace-invitations/workspace-invitations.component';
 import { WorkspaceNavigationStore } from './workspace-navigation.store';
+import type { WorkspaceLoadStatus } from './workspace-navigation.state';
 
 /**
  * Lists accessible workspaces and owns one feature-scoped selection store.
@@ -42,9 +43,14 @@ export class WorkspaceNavigationComponent {
   });
 
   constructor() {
+    void this.store.load();
+
     effect(() => {
       const workspaceSlug = this.queryParamMap().get('workspace');
-      void this.selectWorkspaceFromRoute(workspaceSlug);
+      const loadStatus = this.store.loadStatus();
+      const workspaces = this.store.workspaces();
+
+      this.selectWorkspaceFromRoute(workspaceSlug, loadStatus, workspaces);
     });
   }
 
@@ -214,12 +220,12 @@ export class WorkspaceNavigationComponent {
     this.navigateToWorkspace(workspace.slug);
   }
 
-  private async selectWorkspaceFromRoute(
-    workspaceSlug: string | null
-  ): Promise<void> {
-    await this.store.load();
-
-    if (this.queryParamMap().get('workspace') !== workspaceSlug) {
+  private selectWorkspaceFromRoute(
+    workspaceSlug: string | null,
+    loadStatus: WorkspaceLoadStatus,
+    workspaces: readonly Workspace[]
+  ): void {
+    if (loadStatus !== 'loaded') {
       return;
     }
 
@@ -235,13 +241,9 @@ export class WorkspaceNavigationComponent {
       return;
     }
 
-    if (this.store.loadStatus() !== 'loaded') {
-      return;
-    }
-
-    const workspace = this.store
-      .workspaces()
-      .find((candidate) => candidate.slug === workspaceSlug);
+    const workspace = workspaces.find(
+      (candidate) => candidate.slug === workspaceSlug
+    );
 
     if (workspace !== undefined) {
       this.store.select(workspace.id);

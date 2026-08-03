@@ -144,6 +144,16 @@ Creation has independent pending/error state and inserts only the canonical RPC
 result into navigation. The component then writes the returned slug to the URL,
 leaving the existing route effect as the selection authority.
 
+After initial discovery succeeds, workspace navigation starts one private
+per-user access observation. Every invalidation reloads the authoritative
+RLS-visible collection and preserves the existing selection-generation guards.
+If membership suspension, removal, or departure makes the selected workspace
+inaccessible, the store clears that selection; Angular then removes the nested
+channel and message features and replaces both workspace and channel URL
+parameters. Destroying the feature interrupts the Effect Fiber and releases
+the Supabase channel. A stream failure keeps the last readable snapshot and
+offers an explicit retry.
+
 The same navigation slice lets an owner replace the selected workspace's name,
 slug, and description. It receives the owner affordance derived by the existing
 member-directory feature rather than issuing a duplicate membership query;

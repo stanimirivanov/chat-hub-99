@@ -76,6 +76,16 @@ const configureStore = (
 ) => {
   const service = {
     listAccessibleWorkspaces: vi.fn().mockResolvedValue(result),
+    observeAccessibleWorkspaces: vi.fn(
+      (
+        _onWorkspaces: (workspaces: readonly Workspace[]) => void,
+        _onError: (error: WorkspaceRepositoryReadError) => void
+      ) => {
+        void _onWorkspaces;
+        void _onError;
+        return vi.fn();
+      }
+    ),
     createWorkspace: vi.fn().mockResolvedValue(creationResult),
     updateWorkspace: vi.fn().mockResolvedValue(updateResult),
     archiveWorkspace: vi.fn().mockResolvedValue(archiveResult),
@@ -112,10 +122,51 @@ describe('WorkspaceNavigationStore', () => {
     expect(store.workspaces()).toEqual([workspace]);
     expect(store.loadStatus()).toBe('loaded');
     expect(service.listAccessibleWorkspaces).toHaveBeenCalledOnce();
+    expect(service.observeAccessibleWorkspaces).toHaveBeenCalledOnce();
 
     await store.load();
 
     expect(service.listAccessibleWorkspaces).toHaveBeenCalledOnce();
+  });
+
+  it('reconciles realtime access loss and clears an inaccessible selection', async () => {
+    const { store, service } = configureStore(
+      Either.right([workspace, otherWorkspace])
+    );
+    await store.load();
+    store.select(workspace.id);
+
+    const onWorkspaces = service.observeAccessibleWorkspaces.mock.calls[0]?.[0];
+    onWorkspaces?.([otherWorkspace]);
+
+    expect(store.workspaces()).toEqual([otherWorkspace]);
+    expect(store.selectedWorkspace()).toBeNull();
+    expect(store.realtimeStatus()).toBe('observing');
+    expect(store.realtimeError()).toBeNull();
+  });
+
+  it('keeps the loaded snapshot and exposes retry after realtime failure', async () => {
+    const failure = new WorkspaceRepositoryUnavailableError({
+      cause: new Error('Realtime unavailable'),
+    });
+    const { store, service } = configureStore();
+    await store.load();
+
+    const onError = service.observeAccessibleWorkspaces.mock.calls[0]?.[1];
+    onError?.(failure);
+
+    expect(store.workspaces()).toEqual([workspace]);
+    expect(store.realtimeStatus()).toBe('failed');
+    expect(store.realtimeError()).toEqual({
+      message:
+        'Live workspace access updates are unavailable. Retry to reconnect.',
+    });
+
+    store.retryRealtime();
+
+    expect(service.observeAccessibleWorkspaces).toHaveBeenCalledTimes(2);
+    expect(store.realtimeStatus()).toBe('observing');
+    expect(store.realtimeError()).toBeNull();
   });
 
   it('reconciles invitation access while initial discovery is in flight', async () => {
@@ -337,6 +388,11 @@ describe('WorkspaceNavigationStore', () => {
     expect(store.selectedWorkspace()).toBeNull();
     expect(store.archiveStatus()).toBe('idle');
     expect(store.archiveError()).toBeNull();
+
+    const onWorkspaces = service.observeAccessibleWorkspaces.mock.calls[0]?.[0];
+    onWorkspaces?.([workspace, otherWorkspace]);
+
+    expect(store.workspaces()).toEqual([otherWorkspace]);
   });
 
   it('retains navigation and presents a forbidden archive', async () => {

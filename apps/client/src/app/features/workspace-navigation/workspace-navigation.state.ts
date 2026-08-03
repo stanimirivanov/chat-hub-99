@@ -5,6 +5,9 @@ import type { Workspace, WorkspaceId } from '@chat-hub/domain/workspace';
  */
 export type WorkspaceLoadStatus = 'idle' | 'loading' | 'loaded' | 'failed';
 
+/** Lifecycle of the per-user workspace-access observation. */
+export type WorkspaceAccessRealtimeStatus = 'idle' | 'observing' | 'failed';
+
 /**
  * Lifecycle of the single in-flight workspace creation operation.
  */
@@ -40,6 +43,8 @@ export interface WorkspaceNavigationState {
   readonly selectedWorkspaceId: WorkspaceId | null;
   readonly loadStatus: WorkspaceLoadStatus;
   readonly error: WorkspaceNavigationError | null;
+  readonly realtimeStatus: WorkspaceAccessRealtimeStatus;
+  readonly realtimeError: WorkspaceNavigationError | null;
   readonly creationStatus: WorkspaceCreationStatus;
   readonly creationError: WorkspaceNavigationError | null;
   readonly updateStatus: WorkspaceUpdateStatus;
@@ -60,6 +65,8 @@ export const initialWorkspaceNavigationState: WorkspaceNavigationState = {
   selectedWorkspaceId: null,
   loadStatus: 'idle',
   error: null,
+  realtimeStatus: 'idle',
+  realtimeError: null,
   creationStatus: 'idle',
   creationError: null,
   updateStatus: 'idle',

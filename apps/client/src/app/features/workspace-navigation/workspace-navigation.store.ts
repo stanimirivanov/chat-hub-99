@@ -1,4 +1,4 @@
-import { computed, inject } from '@angular/core';
+import { computed, DestroyRef, inject } from '@angular/core';
 import { Either } from 'effect';
 import type {
   ArchiveWorkspaceError,
@@ -20,7 +20,8 @@ import { WorkspaceApplicationService } from '@client/core/workspace/workspace-ap
 import { initialWorkspaceNavigationState } from './workspace-navigation.state';
 
 /**
- * Owns accessible workspace discovery and the current navigation selection.
+ * Owns accessible workspace discovery, realtime reconciliation, and the
+ * current navigation selection.
  */
 export const WorkspaceNavigationStore = signalStore(
   withState(initialWorkspaceNavigationState),
@@ -44,10 +45,44 @@ export const WorkspaceNavigationStore = signalStore(
   })),
 
   withMethods(
-    (store, workspaceApplication = inject(WorkspaceApplicationService)) => {
+    (
+      store,
+      workspaceApplication = inject(WorkspaceApplicationService),
+      destroyRef = inject(DestroyRef)
+    ) => {
       let loading: Promise<void> | null = null;
       let selectionVersion = 0;
+      let stopAccessObservation: (() => void) | null = null;
+      let observationRevision = 0;
       const locallyIncludedWorkspaces = new Map<WorkspaceId, Workspace>();
+      const locallyExcludedWorkspaceIds = new Set<WorkspaceId>();
+
+      /**
+       * Merges access granted during an initial request and applies local
+       * removal tombstones until an authoritative snapshot confirms absence.
+       * This prevents an older query from undoing a completed leave/archive.
+       */
+      const reconcileAccessibleWorkspaces = (
+        workspaces: readonly Workspace[]
+      ): readonly Workspace[] => {
+        for (const workspaceId of locallyExcludedWorkspaceIds) {
+          if (!workspaces.some((workspace) => workspace.id === workspaceId)) {
+            locallyExcludedWorkspaceIds.delete(workspaceId);
+          }
+        }
+
+        const included: readonly Workspace[] = [
+          ...locallyIncludedWorkspaces.values(),
+        ];
+        locallyIncludedWorkspaces.clear();
+
+        return workspaces
+          .filter((workspace) => !locallyExcludedWorkspaceIds.has(workspace.id))
+          .reduce(
+            (result, workspace) => upsertWorkspace(result, workspace),
+            included
+          );
+      };
 
       const selectionIsObsolete = (
         workspaceId: WorkspaceId,
@@ -58,6 +93,7 @@ export const WorkspaceNavigationStore = signalStore(
 
       const removeAccessibleWorkspace = (workspaceId: WorkspaceId): void => {
         locallyIncludedWorkspaces.delete(workspaceId);
+        locallyExcludedWorkspaceIds.add(workspaceId);
         const targetStillSelected = store.selectedWorkspaceId() === workspaceId;
 
         if (targetStillSelected) {
@@ -72,18 +108,129 @@ export const WorkspaceNavigationStore = signalStore(
         });
       };
 
+      const stopRealtime = (updateState: boolean): void => {
+        observationRevision += 1;
+        stopAccessObservation?.();
+        stopAccessObservation = null;
+
+        if (updateState) {
+          patchState(store, {
+            realtimeStatus: 'idle',
+            realtimeError: null,
+          });
+        }
+      };
+
+      const applyAccessibleWorkspaces = (
+        revision: number,
+        workspaces: readonly Workspace[]
+      ): void => {
+        if (revision !== observationRevision) {
+          return;
+        }
+
+        const reconciled = reconcileAccessibleWorkspaces(workspaces);
+        const selectedWorkspaceId = store.selectedWorkspaceId();
+        const selectionLost =
+          selectedWorkspaceId !== null &&
+          !reconciled.some((workspace) => workspace.id === selectedWorkspaceId);
+
+        if (selectionLost) {
+          selectionVersion += 1;
+        }
+
+        patchState(store, {
+          workspaces: reconciled,
+          ...(selectionLost
+            ? {
+                selectedWorkspaceId: null,
+                updateStatus: 'idle' as const,
+                updateError: null,
+                archiveStatus: 'idle' as const,
+                archivingWorkspaceId: null,
+                archiveError: null,
+                departureStatus: 'idle' as const,
+                departingWorkspaceId: null,
+                departureError: null,
+              }
+            : {}),
+          realtimeStatus: 'observing',
+          realtimeError: null,
+        });
+      };
+
+      const applyRealtimeError = (revision: number): void => {
+        if (revision !== observationRevision) {
+          return;
+        }
+
+        stopAccessObservation = null;
+        patchState(store, {
+          realtimeStatus: 'failed',
+          realtimeError: {
+            message:
+              'Live workspace access updates are unavailable. Retry to reconnect.',
+          },
+        });
+      };
+
+      const startRealtime = (): void => {
+        if (store.loadStatus() !== 'loaded') {
+          return;
+        }
+
+        if (
+          stopAccessObservation !== null &&
+          store.realtimeStatus() === 'observing'
+        ) {
+          return;
+        }
+
+        stopRealtime(false);
+        const revision = observationRevision;
+
+        patchState(store, {
+          realtimeStatus: 'observing',
+          realtimeError: null,
+        });
+
+        const cleanup = workspaceApplication.observeAccessibleWorkspaces(
+          (workspaces) => {
+            applyAccessibleWorkspaces(revision, workspaces);
+          },
+          () => {
+            applyRealtimeError(revision);
+          }
+        );
+
+        if (
+          revision === observationRevision &&
+          store.realtimeStatus() === 'observing'
+        ) {
+          stopAccessObservation = cleanup;
+        } else {
+          cleanup();
+        }
+      };
+
+      destroyRef.onDestroy(() => {
+        stopRealtime(false);
+      });
+
       return {
         /**
          * Reconciles access granted by invitation acceptance, including while
          * the initial workspace query is still in flight.
          */
         includeAccessibleWorkspace(workspace: Workspace): void {
-          locallyIncludedWorkspaces.set(workspace.id, workspace);
+          locallyExcludedWorkspaceIds.delete(workspace.id);
 
           if (store.loadStatus() === 'loaded') {
             patchState(store, {
               workspaces: upsertWorkspace(store.workspaces(), workspace),
             });
+          } else {
+            locallyIncludedWorkspaces.set(workspace.id, workspace);
           }
         },
 
@@ -121,6 +268,7 @@ export const WorkspaceNavigationStore = signalStore(
               Either.match(result, {
                 onLeft: () => {
                   selectionVersion += 1;
+                  locallyIncludedWorkspaces.clear();
                   patchState(store, {
                     workspaces: [],
                     selectedWorkspaceId: null,
@@ -134,16 +282,12 @@ export const WorkspaceNavigationStore = signalStore(
                 onRight: (workspaces) => {
                   selectionVersion += 1;
                   patchState(store, {
-                    workspaces: [...workspaces].reduce(
-                      (result, workspace) => upsertWorkspace(result, workspace),
-                      [
-                        ...locallyIncludedWorkspaces.values(),
-                      ] as readonly Workspace[]
-                    ),
+                    workspaces: reconcileAccessibleWorkspaces(workspaces),
                     selectedWorkspaceId: null,
                     loadStatus: 'loaded',
                     error: null,
                   });
+                  startRealtime();
                 },
               });
             })
@@ -152,6 +296,11 @@ export const WorkspaceNavigationStore = signalStore(
             });
 
           return loading;
+        },
+
+        /** Restarts workspace-access observation after a visible failure. */
+        retryRealtime(): void {
+          startRealtime();
         },
 
         /**

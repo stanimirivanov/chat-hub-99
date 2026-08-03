@@ -1,4 +1,4 @@
-import { Context, type Effect } from 'effect';
+import { Context, type Effect, type Stream } from 'effect';
 import type { ProfileId } from '@chat-hub/domain/profile';
 import type {
   Workspace,
@@ -24,6 +24,7 @@ import type {
   WorkspaceRepositoryCreateError,
   WorkspaceRepositoryArchiveError,
   WorkspaceRepositoryReadError,
+  WorkspaceRepositoryUnavailableError,
   WorkspaceRepositoryUpdateError,
 } from './workspace-repository-error';
 
@@ -110,6 +111,20 @@ export interface PendingWorkspaceInvitationForOwner {
  * authenticated user and must validate external rows before returning them.
  */
 export interface WorkspaceRepository {
+  /**
+   * Signals when the authenticated user's accessible-workspace projection may
+   * have changed.
+   *
+   * The stream emits once after its provider listener is ready and again for
+   * every subsequent access invalidation. Interrupting it must release that
+   * listener. Callers reload through `listAccessible`; event payloads are not
+   * an authoritative workspace projection.
+   */
+  readonly accessChanges: () => Stream.Stream<
+    void,
+    WorkspaceRepositoryUnavailableError
+  >;
+
   /**
    * Archives one active workspace using provider-session authorization.
    *
