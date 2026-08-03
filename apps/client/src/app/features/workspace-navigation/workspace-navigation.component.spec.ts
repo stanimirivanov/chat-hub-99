@@ -96,6 +96,8 @@ const configureComponent = async ({
     hasWorkspaces: signal(workspaces.length > 0),
     loadStatus: signal('loaded'),
     error: signal(null),
+    realtimeStatus: signal('observing'),
+    realtimeError: signal<{ readonly message: string } | null>(null),
     creationError: signal(null),
     updateError: signal(null),
     archiveError: signal(null),
@@ -112,6 +114,7 @@ const configureComponent = async ({
     clearArchiveError: vi.fn(),
     clearDepartureError: vi.fn(),
     includeAccessibleWorkspace: vi.fn(),
+    retryRealtime: vi.fn(),
   };
 
   TestBed.overrideComponent(WorkspaceNavigationComponent, {
@@ -208,6 +211,56 @@ describe('WorkspaceNavigationComponent', () => {
       queryParamsHandling: 'merge',
       replaceUrl: true,
     });
+  });
+
+  it('clears workspace and channel URL state when realtime removes access', async () => {
+    const { fixture, route, router, store } = await configureComponent({
+      queryParams: {
+        workspace: workspace.slug,
+        channel: 'general',
+      },
+      selectedWorkspace: workspace,
+    });
+
+    expect(router.navigate).not.toHaveBeenCalled();
+
+    store.workspaces.set([]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(store.clearSelection).toHaveBeenCalledOnce();
+    expect(router.navigate).toHaveBeenCalledExactlyOnceWith([], {
+      relativeTo: route,
+      queryParams: {
+        workspace: null,
+        channel: null,
+      },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  });
+
+  it('renders a recoverable realtime failure and retries on request', async () => {
+    const { fixture, store } = await configureComponent({ queryParams: {} });
+
+    store.realtimeError.set({
+      message:
+        'Live workspace access updates are unavailable. Retry to reconnect.',
+    });
+    fixture.detectChanges();
+
+    const retryButton = Array.from(
+      fixture.nativeElement.querySelectorAll(
+        'button'
+      ) as NodeListOf<HTMLButtonElement>
+    ).find((button) => button.textContent?.trim() === 'Retry live updates');
+
+    expect(fixture.nativeElement.textContent).toContain(
+      'Live workspace access updates are unavailable.'
+    );
+    retryButton?.click();
+
+    expect(store.retryRealtime).toHaveBeenCalledOnce();
   });
 
   it('creates a workspace and navigates to its canonical slug', async () => {

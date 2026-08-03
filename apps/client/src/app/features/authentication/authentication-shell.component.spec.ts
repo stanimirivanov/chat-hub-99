@@ -101,6 +101,7 @@ describe('AuthenticationShellComponent', () => {
         {
           provide: WorkspaceApplicationService,
           useValue: {
+            observeAccessibleWorkspaces: vi.fn(() => vi.fn()),
             listAccessibleWorkspaces: vi
               .fn()
               .mockResolvedValue(Either.right([])),

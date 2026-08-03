@@ -1,4 +1,4 @@
-import { Effect, Layer } from 'effect';
+import { Effect, Layer, Stream } from 'effect';
 import { vi } from 'vitest';
 import {
   WorkspaceRepositoryTag,
@@ -8,6 +8,10 @@ import {
 export const makeWorkspaceRepositoryStub = (
   overrides: Partial<WorkspaceRepository> = {}
 ): WorkspaceRepository => ({
+  accessChanges: () =>
+    Stream.die(
+      new Error('Unexpected WorkspaceRepository.accessChanges call in test')
+    ),
   archive: () =>
     Effect.dieMessage('Unexpected WorkspaceRepository.archive call in test'),
   addMember: () =>

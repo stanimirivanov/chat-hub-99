@@ -5,6 +5,8 @@ discovering accessible workspaces and active members, creating and editing
 workspaces, archiving workspaces, adding active profiles as members, changing
 active member roles, suspending and reactivating members, removing active
 members, leaving a workspace, and consent-based invitations for existing users.
+It also owns the provider-independent stream that refreshes accessible
+workspace snapshots when the authenticated user's membership changes.
 
 ## Responsibilities
 
@@ -12,6 +14,8 @@ members, leaving a workspace, and consent-based invitations for existing users.
 - Define typed read, creation, update, archive, member-addition, role-change,
   removal, suspension, invitation, and expected command failures.
 - List active, accessible workspaces through an Effect use case.
+- Observe accessible-workspace invalidations and resolve every signal through
+  the same authoritative list operation.
 - List active, RLS-visible members for one selected workspace.
 - Normalize and validate workspace creation input before repository access.
 - Create a workspace without accepting client-supplied owner identity.
@@ -60,6 +64,12 @@ Angular caller
   -> listAccessibleWorkspaces
   -> WorkspaceRepositoryTag
   -> infrastructure adapter supplied by a Layer
+
+Angular caller
+  -> observeAccessibleWorkspaces Stream
+  -> WorkspaceRepositoryTag.accessChanges invalidations
+  -> WorkspaceRepositoryTag.listAccessible authoritative refresh
+  -> validated Workspace snapshots
 
 Angular caller
   -> createWorkspace
@@ -144,6 +154,7 @@ other application libraries.
 ## Public API
 
 - `listAccessibleWorkspaces`
+- `observeAccessibleWorkspaces`
 - `listWorkspaceMembers`
 - `createWorkspace` and its input/error contracts
 - `updateWorkspace` and its input/error contracts
@@ -160,6 +171,12 @@ other application libraries.
 - `cancelWorkspaceInvitation`
 - `WorkspaceRepositoryTag` and `WorkspaceRepository`
 - workspace repository error types
+
+The observation use case uses `Stream.unwrap` to obtain the repository from
+the Effect environment once per subscription. `Stream.mapEffect` then performs
+the repository read sequentially for every invalidation, preserving the typed
+failure channel and preventing provider event payloads from becoming
+application data.
 
 ## Verification
 
