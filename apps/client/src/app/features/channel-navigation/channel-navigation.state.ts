@@ -1,5 +1,5 @@
-import type { Channel, ChannelId } from '@chat-hub/domain/channel';
-import type { WorkspaceId } from '@chat-hub/domain/workspace';
+import type { Channel, ChannelId } from '@omoikane/domain/channel';
+import type { WorkspaceId } from '@omoikane/domain/workspace';
 
 export type ChannelLoadStatus = 'idle' | 'loading' | 'loaded' | 'failed';
 

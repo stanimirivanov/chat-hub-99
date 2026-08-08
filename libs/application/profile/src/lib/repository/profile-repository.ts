@@ -1,5 +1,5 @@
 import { Context, type Effect } from 'effect';
-import type { AvatarUrl, Profile, ProfileId } from '@chat-hub/domain/profile';
+import type { AvatarUrl, Profile, ProfileId } from '@omoikane/domain/profile';
 import type {
   ProfileRepositoryReadError,
   ProfileRepositoryUpdateError,
@@ -63,5 +63,5 @@ export interface ProfileRepository {
  * Typed Effect service key used to request current-profile discovery.
  */
 export const ProfileRepositoryTag = Context.GenericTag<ProfileRepository>(
-  '@chat-hub/application/profile/ProfileRepository'
+  '@omoikane/application/profile/ProfileRepository'
 );

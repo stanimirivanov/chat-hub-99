@@ -2,8 +2,8 @@ import { Effect } from 'effect';
 import {
   MessageNotFoundError,
   type MessageRepositoryError,
-} from '@chat-hub/application/message';
-import type { Message, MessageId } from '@chat-hub/domain/message';
+} from '@omoikane/application/message';
+import type { Message, MessageId } from '@omoikane/domain/message';
 import {
   mapPostgrestError,
   mapThrownRepositoryError,

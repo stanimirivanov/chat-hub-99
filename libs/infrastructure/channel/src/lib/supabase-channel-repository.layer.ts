@@ -1,5 +1,5 @@
 import { Effect, Layer } from 'effect';
-import { ChannelRepositoryTag } from '@chat-hub/application/channel';
+import { ChannelRepositoryTag } from '@omoikane/application/channel';
 import { SupabaseChannelClientTag } from './supabase-channel-client';
 import { makeSupabaseChannelRepository } from './supabase-channel-repository';
 

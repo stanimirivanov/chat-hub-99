@@ -3,7 +3,7 @@ import {
   AuthenticationUnavailableError,
   type AuthenticationError,
   type AuthenticationSessionChange,
-} from '@chat-hub/application/authentication';
+} from '@omoikane/application/authentication';
 import type { SupabaseAuthenticationClient } from '../supabase-authentication-client';
 import { mapAuthenticationSession } from '../mapping/map-authentication-session';
 

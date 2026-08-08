@@ -1,6 +1,6 @@
 import { Effect, Schema } from 'effect';
 import { describe, expect, it } from 'vitest';
-import { MessageRevisionNumberSchema } from '@chat-hub/domain/message';
+import { MessageRevisionNumberSchema } from '@omoikane/domain/message';
 import type { MessageRevisionPage } from '../pagination';
 import { makeListRevisionsRepository, messageId } from '../testing';
 import { listMessageRevisions } from './list-message-revisions';

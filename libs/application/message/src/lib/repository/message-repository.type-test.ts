@@ -1,10 +1,10 @@
 import type { Effect, Stream } from 'effect';
-import type { ChannelId } from '@chat-hub/domain/channel';
+import type { ChannelId } from '@omoikane/domain/channel';
 import type {
   Message,
   MessageId,
   MessageRevision,
-} from '@chat-hub/domain/message';
+} from '@omoikane/domain/message';
 
 import {
   CreateMessageCommand,

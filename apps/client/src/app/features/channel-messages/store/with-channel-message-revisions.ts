@@ -6,8 +6,8 @@ import {
   type,
   withMethods,
 } from '@ngrx/signals';
-import type { MessageId, MessageRevision } from '@chat-hub/domain/message';
-import type { ChannelId } from '@chat-hub/domain/channel';
+import type { MessageId, MessageRevision } from '@omoikane/domain/message';
+import type { ChannelId } from '@omoikane/domain/channel';
 import { MessageApplicationService } from '@client/core/message/message-application.service';
 import {
   clearedMessageRevisionHistoryState,

@@ -1,7 +1,7 @@
 import { Effect } from 'effect';
-import type { ChannelRepositoryReadError } from '@chat-hub/application/channel';
-import type { ArchivedChannel } from '@chat-hub/domain/channel';
-import type { WorkspaceId } from '@chat-hub/domain/workspace';
+import type { ChannelRepositoryReadError } from '@omoikane/application/channel';
+import type { ArchivedChannel } from '@omoikane/domain/channel';
+import type { WorkspaceId } from '@omoikane/domain/workspace';
 import { mapChannelRepositoryError } from '../errors';
 import { mapArchivedChannel } from '../mapping';
 import type { SupabaseChannelClient } from '../supabase-channel-client';

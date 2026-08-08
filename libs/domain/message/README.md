@@ -1,6 +1,6 @@
 # Message Domain
 
-`@chat-hub/domain/message` contains the technology-independent message model. It expresses what a valid message is, not how messages are stored, fetched, rendered, or synchronized.
+`@omoikane/domain/message` contains the technology-independent message model. It expresses what a valid message is, not how messages are stored, fetched, rendered, or synchronized.
 
 ## Responsibilities
 

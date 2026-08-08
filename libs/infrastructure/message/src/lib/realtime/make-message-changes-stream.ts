@@ -3,9 +3,9 @@ import {
   MessageRepositoryUnavailableError,
   type MessageChangeNotification,
   type MessageRepositoryError,
-} from '@chat-hub/application/message';
-import type { ChannelId } from '@chat-hub/domain/channel';
-import type { Database } from '@chat-hub/shared/database';
+} from '@omoikane/application/message';
+import type { ChannelId } from '@omoikane/domain/channel';
+import type { Database } from '@omoikane/shared/database';
 import { mapMessageHeadChange } from '../mapping';
 import type { ChatHubSupabaseClient } from '../supabase-message-client';
 

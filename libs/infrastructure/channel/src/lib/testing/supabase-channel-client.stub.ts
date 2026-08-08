@@ -4,7 +4,7 @@ import type {
   CurrentChannel,
   RestoreChannelResult,
   UpdateChannelResult,
-} from '@chat-hub/shared/database';
+} from '@omoikane/shared/database';
 import { vi } from 'vitest';
 import type { SupabaseChannelClient } from '../supabase-channel-client';
 

@@ -1,5 +1,5 @@
 import { Effect } from 'effect';
-import type { Channel } from '@chat-hub/domain/channel';
+import type { Channel } from '@omoikane/domain/channel';
 import { decodeChannelId } from '../channel-identity/decode-channel-id';
 import { ChannelRepositoryTag, type ChannelRepository } from '../repository';
 import {

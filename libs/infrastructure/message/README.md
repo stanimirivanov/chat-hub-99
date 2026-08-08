@@ -1,6 +1,6 @@
 # Message Infrastructure
 
-`@chat-hub/infrastructure/message` implements the application message repository
+`@omoikane/infrastructure/message` implements the application message repository
 with Supabase. It is an adapter: it translates application operations into
 database queries/RPC calls and translates database results back into validated
 domain values.

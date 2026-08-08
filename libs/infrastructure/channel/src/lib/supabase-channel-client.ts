@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { Context } from 'effect';
-import type { Database } from '@chat-hub/shared/database';
+import type { Database } from '@omoikane/shared/database';
 
 /**
  * Generated-database-aware Supabase client used by the channel adapter.
@@ -12,5 +12,5 @@ export type SupabaseChannelClient = SupabaseClient<Database>;
  */
 export const SupabaseChannelClientTag =
   Context.GenericTag<SupabaseChannelClient>(
-    '@chat-hub/infrastructure/channel/SupabaseChannelClient'
+    '@omoikane/infrastructure/channel/SupabaseChannelClient'
   );

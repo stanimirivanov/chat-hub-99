@@ -2,7 +2,7 @@ import { Effect, Schema } from 'effect';
 import {
   WorkspaceInvitationIdSchema,
   type WorkspaceInvitationId,
-} from '@chat-hub/domain/workspace';
+} from '@omoikane/domain/workspace';
 
 const decodeString = Schema.decodeUnknown(Schema.String);
 

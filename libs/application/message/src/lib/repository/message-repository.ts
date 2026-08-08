@@ -1,6 +1,6 @@
 import { Context, type Effect, type Stream } from 'effect';
-import type { ChannelId } from '@chat-hub/domain/channel';
-import type { Message, MessageId } from '@chat-hub/domain/message';
+import type { ChannelId } from '@omoikane/domain/channel';
+import type { Message, MessageId } from '@omoikane/domain/message';
 import type {
   CreateMessageCommand,
   DeleteMessageCommand,
@@ -111,5 +111,5 @@ export interface MessageRepository {
  * `MessageRepository` without depending on its infrastructure implementation.
  */
 export const MessageRepositoryTag = Context.GenericTag<MessageRepository>(
-  '@chat-hub/application/message/MessageRepository'
+  '@omoikane/application/message/MessageRepository'
 );

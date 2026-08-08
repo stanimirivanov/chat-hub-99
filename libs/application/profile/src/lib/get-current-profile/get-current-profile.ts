@@ -1,5 +1,5 @@
 import { Effect, Schema } from 'effect';
-import { ProfileIdSchema, type Profile } from '@chat-hub/domain/profile';
+import { ProfileIdSchema, type Profile } from '@omoikane/domain/profile';
 import { ProfileRepositoryTag, type ProfileRepository } from '../repository';
 import {
   CurrentProfileNotFoundError,

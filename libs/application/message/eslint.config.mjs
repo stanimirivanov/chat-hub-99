@@ -10,13 +10,13 @@ export default [
         {
           paths: [
             {
-              name: '@chat-hub/application/message',
+              name: '@omoikane/application/message',
               message: 'Use relative imports.',
             },
           ],
           patterns: [
             {
-              group: ['@chat-hub/application/message/*'],
+              group: ['@omoikane/application/message/*'],
               message:
                 'Deep imports through the public package alias are forbidden.',
             },

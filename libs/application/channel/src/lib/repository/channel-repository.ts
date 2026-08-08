@@ -3,8 +3,8 @@ import type {
   ArchivedChannel,
   Channel,
   ChannelId,
-} from '@chat-hub/domain/channel';
-import type { WorkspaceId } from '@chat-hub/domain/workspace';
+} from '@omoikane/domain/channel';
+import type { WorkspaceId } from '@omoikane/domain/workspace';
 import type {
   ChannelRepositoryArchiveError,
   ChannelRepositoryCreateError,
@@ -100,5 +100,5 @@ export interface ChannelRepository {
  * technology supplies its implementation.
  */
 export const ChannelRepositoryTag = Context.GenericTag<ChannelRepository>(
-  '@chat-hub/application/channel/ChannelRepository'
+  '@omoikane/application/channel/ChannelRepository'
 );

@@ -1,7 +1,7 @@
 import type {
   CurrentChannel,
   UpdateChannelResult,
-} from '@chat-hub/shared/database';
+} from '@omoikane/shared/database';
 
 export const updatedChannelVersionId: UpdateChannelResult =
   '00000000-0000-4000-8000-000000000005';

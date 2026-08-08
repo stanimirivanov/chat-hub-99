@@ -9,9 +9,9 @@ import {
   type UpdatedChannelDetails,
   type ArchiveChannelError,
   type UpdateChannelError,
-} from '@chat-hub/application/channel';
-import { ChannelIdSchema, type Channel } from '@chat-hub/domain/channel';
-import { WorkspaceIdSchema } from '@chat-hub/domain/workspace';
+} from '@omoikane/application/channel';
+import { ChannelIdSchema, type Channel } from '@omoikane/domain/channel';
+import { WorkspaceIdSchema } from '@omoikane/domain/workspace';
 import { ChannelApplicationService } from '@client/core/channel/channel-application.service';
 import { ChannelNavigationStore } from './channel-navigation.store';
 

@@ -3,9 +3,9 @@ import {
   InvalidWorkspaceInvitationDataError,
   type InviteWorkspaceMemberCommand,
   type WorkspaceInvitationCreationRepositoryError,
-} from '@chat-hub/application/workspace';
-import type { WorkspaceInvitation } from '@chat-hub/domain/workspace';
-import type { InviteWorkspaceMemberResult } from '@chat-hub/shared/database';
+} from '@omoikane/application/workspace';
+import type { WorkspaceInvitation } from '@omoikane/domain/workspace';
+import type { InviteWorkspaceMemberResult } from '@omoikane/shared/database';
 import {
   mapWorkspaceInvitationCreationError,
   mapWorkspaceRepositoryError,

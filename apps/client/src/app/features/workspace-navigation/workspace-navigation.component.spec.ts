@@ -10,7 +10,7 @@ import {
 import { Schema } from 'effect';
 import { BehaviorSubject } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
-import { WorkspaceIdSchema, type Workspace } from '@chat-hub/domain/workspace';
+import { WorkspaceIdSchema, type Workspace } from '@omoikane/domain/workspace';
 import { ArchivedWorkspaceListComponent } from '@client/features/archived-workspace-list/archived-workspace-list.component';
 import { ChannelNavigationComponent } from '@client/features/channel-navigation/channel-navigation.component';
 import { WorkspaceMemberDirectoryComponent } from '@client/features/workspace-member-directory/workspace-member-directory.component';

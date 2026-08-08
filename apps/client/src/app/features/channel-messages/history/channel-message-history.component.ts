@@ -7,8 +7,8 @@ import {
   input,
   signal,
 } from '@angular/core';
-import type { Message, MessageId } from '@chat-hub/domain/message';
-import type { AvatarUrl, Profile } from '@chat-hub/domain/profile';
+import type { Message, MessageId } from '@omoikane/domain/message';
+import type { AvatarUrl, Profile } from '@omoikane/domain/profile';
 import { AuthenticationStore } from '@client/features/authentication/store/authentication.store';
 import { ProfileAvatarComponent } from '@client/shared/profile-avatar/profile-avatar.component';
 import { ChannelMessagesStore } from '../channel-messages.store';

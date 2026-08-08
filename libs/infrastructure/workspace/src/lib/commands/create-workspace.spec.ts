@@ -1,6 +1,6 @@
 import { Effect, Either } from 'effect';
 import { describe, expect, it } from 'vitest';
-import type { CreateWorkspaceCommand } from '@chat-hub/application/workspace';
+import type { CreateWorkspaceCommand } from '@omoikane/application/workspace';
 import {
   createdWorkspaceRow,
   makeWorkspaceCommandClientStub,

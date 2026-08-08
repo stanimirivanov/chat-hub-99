@@ -2,7 +2,7 @@ import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Schema } from 'effect';
 import { describe, expect, it, vi } from 'vitest';
-import { ProfileSchema, type Profile } from '@chat-hub/domain/profile';
+import { ProfileSchema, type Profile } from '@omoikane/domain/profile';
 import { CurrentProfileComponent } from './current-profile.component';
 import { CurrentProfileStore } from './current-profile.store';
 

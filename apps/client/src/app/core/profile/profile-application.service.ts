@@ -8,8 +8,8 @@ import {
   type UpdateCurrentProfileError,
   type UpdateCurrentProfileInput,
   type ListCurrentProfilesError,
-} from '@chat-hub/application/profile';
-import type { Profile, ProfileId } from '@chat-hub/domain/profile';
+} from '@omoikane/application/profile';
+import type { Profile, ProfileId } from '@omoikane/domain/profile';
 import { applicationRuntime } from '../effect/application-runtime';
 
 /**

@@ -1,6 +1,6 @@
 import { Effect, Schema } from 'effect';
-import { ChannelSlugSchema, type Channel } from '@chat-hub/domain/channel';
-import { WorkspaceIdSchema } from '@chat-hub/domain/workspace';
+import { ChannelSlugSchema, type Channel } from '@omoikane/domain/channel';
+import { WorkspaceIdSchema } from '@omoikane/domain/workspace';
 import {
   ChannelRepositoryTag,
   type ChannelRepository,

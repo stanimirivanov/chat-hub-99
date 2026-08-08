@@ -1,6 +1,6 @@
 import { Effect, Either, Fiber, Schema, Stream } from 'effect';
 import { describe, expect, it, vi } from 'vitest';
-import { WorkspaceIdSchema } from '@chat-hub/domain/workspace';
+import { WorkspaceIdSchema } from '@omoikane/domain/workspace';
 import type { SupabaseChannelClient } from '../supabase-channel-client';
 import { makeWorkspaceChannelChangesStream } from './make-workspace-channel-changes-stream';
 

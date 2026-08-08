@@ -13,7 +13,7 @@ import {
   PasswordUnchangedError,
   type AuthenticationError,
   type AuthenticationOperation,
-} from '@chat-hub/application/authentication';
+} from '@omoikane/application/authentication';
 
 /**
  * Translates a Supabase authentication failure into application terminology.

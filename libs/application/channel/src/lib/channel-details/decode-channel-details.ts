@@ -1,5 +1,5 @@
 import { Effect, Schema } from 'effect';
-import { ChannelNameSchema } from '@chat-hub/domain/channel';
+import { ChannelNameSchema } from '@omoikane/domain/channel';
 
 const decodeString = Schema.decodeUnknown(Schema.String);
 const decodeChannelName = Schema.decodeUnknown(ChannelNameSchema);

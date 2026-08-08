@@ -108,5 +108,5 @@ export interface AuthenticationService {
  */
 export const AuthenticationServiceTag =
   Context.GenericTag<AuthenticationService>(
-    '@chat-hub/application/authentication/AuthenticationService'
+    '@omoikane/application/authentication/AuthenticationService'
   );

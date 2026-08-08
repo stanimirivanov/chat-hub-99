@@ -1,5 +1,5 @@
-import type { MessageChange } from '@chat-hub/application/message';
-import type { Message } from '@chat-hub/domain/message';
+import type { MessageChange } from '@omoikane/application/message';
+import type { Message } from '@omoikane/domain/message';
 import { replaceMessage } from './replace-message';
 
 /**

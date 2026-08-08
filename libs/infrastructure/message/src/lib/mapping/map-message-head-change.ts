@@ -2,9 +2,9 @@ import { Either, Schema } from 'effect';
 import {
   type MessageChangeNotification,
   InvalidMessageDataError,
-} from '@chat-hub/application/message';
-import { ChannelIdSchema, type ChannelId } from '@chat-hub/domain/channel';
-import { MessageIdSchema } from '@chat-hub/domain/message';
+} from '@omoikane/application/message';
+import { ChannelIdSchema, type ChannelId } from '@omoikane/domain/channel';
+import { MessageIdSchema } from '@omoikane/domain/message';
 
 const MessageHeadChangePayloadSchema = Schema.Struct({
   eventType: Schema.Literal('INSERT', 'UPDATE'),

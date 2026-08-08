@@ -1,6 +1,6 @@
 import { Effect, Either } from 'effect';
 import { describe, expect, it } from 'vitest';
-import type { Channel } from '@chat-hub/domain/channel';
+import type { Channel } from '@omoikane/domain/channel';
 import { ChannelRepositoryUnavailableError } from '../repository';
 import { makeListByWorkspaceChannelRepository, workspaceId } from '../testing';
 import { listWorkspaceChannels } from './list-workspace-channels';

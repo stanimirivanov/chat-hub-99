@@ -1,5 +1,5 @@
-import type { ArchivedWorkspace } from '@chat-hub/domain/workspace';
-import type { WorkspaceId } from '@chat-hub/domain/workspace';
+import type { ArchivedWorkspace } from '@omoikane/domain/workspace';
+import type { WorkspaceId } from '@omoikane/domain/workspace';
 
 export type ArchivedWorkspaceLoadStatus =
   | 'idle'

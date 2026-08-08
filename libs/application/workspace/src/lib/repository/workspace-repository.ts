@@ -1,5 +1,5 @@
 import { Context, type Effect, type Stream } from 'effect';
-import type { ProfileId } from '@chat-hub/domain/profile';
+import type { ProfileId } from '@omoikane/domain/profile';
 import type {
   ArchivedWorkspace,
   Workspace,
@@ -8,7 +8,7 @@ import type {
   WorkspaceInvitationId,
   WorkspaceMember,
   WorkspaceMemberRole,
-} from '@chat-hub/domain/workspace';
+} from '@omoikane/domain/workspace';
 import type {
   WorkspaceMemberCursor,
   WorkspaceMemberPage,
@@ -286,5 +286,5 @@ export interface WorkspaceRepository {
  * Infrastructure supplies the concrete implementation through a Layer.
  */
 export const WorkspaceRepositoryTag = Context.GenericTag<WorkspaceRepository>(
-  '@chat-hub/application/workspace/WorkspaceRepository'
+  '@omoikane/application/workspace/WorkspaceRepository'
 );

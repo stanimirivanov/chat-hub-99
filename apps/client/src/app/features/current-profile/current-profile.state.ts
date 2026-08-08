@@ -1,4 +1,4 @@
-import type { Profile } from '@chat-hub/domain/profile';
+import type { Profile } from '@omoikane/domain/profile';
 
 export type CurrentProfileLoadStatus = 'idle' | 'loading' | 'loaded' | 'failed';
 export type CurrentProfileUpdateStatus = 'idle' | 'updating' | 'failed';

@@ -2,12 +2,12 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Schema } from 'effect';
 import { describe, expect, it, vi } from 'vitest';
-import { ProfileIdSchema } from '@chat-hub/domain/profile';
+import { ProfileIdSchema } from '@omoikane/domain/profile';
 import {
   WorkspaceIdSchema,
   WorkspaceInvitationIdSchema,
   type Workspace,
-} from '@chat-hub/domain/workspace';
+} from '@omoikane/domain/workspace';
 import { WorkspaceInvitationsComponent } from './workspace-invitations.component';
 import { WorkspaceInvitationsStore } from './workspace-invitations.store';
 

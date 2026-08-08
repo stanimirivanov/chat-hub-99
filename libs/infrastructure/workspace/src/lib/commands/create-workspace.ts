@@ -3,9 +3,9 @@ import {
   InvalidWorkspaceDataError,
   type CreateWorkspaceCommand,
   type WorkspaceRepositoryCreateError,
-} from '@chat-hub/application/workspace';
-import type { Workspace } from '@chat-hub/domain/workspace';
-import type { CreateWorkspaceResult } from '@chat-hub/shared/database';
+} from '@omoikane/application/workspace';
+import type { Workspace } from '@omoikane/domain/workspace';
+import type { CreateWorkspaceResult } from '@omoikane/shared/database';
 import {
   mapWorkspaceCreateError,
   mapWorkspaceRepositoryError,

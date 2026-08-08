@@ -10,8 +10,8 @@ import {
 import type {
   RestoreWorkspaceError,
   WorkspaceRepositoryReadError,
-} from '@chat-hub/application/workspace';
-import type { Workspace, WorkspaceId } from '@chat-hub/domain/workspace';
+} from '@omoikane/application/workspace';
+import type { Workspace, WorkspaceId } from '@omoikane/domain/workspace';
 import { WorkspaceApplicationService } from '@client/core/workspace/workspace-application.service';
 import { initialArchivedWorkspaceListState } from './archived-workspace-list.state';
 

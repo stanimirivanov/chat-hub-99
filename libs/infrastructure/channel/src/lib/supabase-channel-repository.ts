@@ -1,4 +1,4 @@
-import type { ChannelRepository } from '@chat-hub/application/channel';
+import type { ChannelRepository } from '@omoikane/application/channel';
 import {
   archiveChannel,
   createChannel,

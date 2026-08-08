@@ -1,6 +1,6 @@
 # Workspace Infrastructure
 
-`@chat-hub/infrastructure/workspace` implements workspace and active-membership
+`@omoikane/infrastructure/workspace` implements workspace and active-membership
 discovery with RLS-protected Supabase views, creation with the transactional
 `create_workspace` RPC, detail replacement with `update_workspace`, member
 workspace archiving with `archive_workspace`, restoration with

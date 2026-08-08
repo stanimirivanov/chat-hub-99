@@ -1,6 +1,6 @@
 import { Effect } from 'effect';
-import { InvalidMessageDataError } from '@chat-hub/application/message';
-import type { MessageRevision } from '@chat-hub/domain/message';
+import { InvalidMessageDataError } from '@omoikane/application/message';
+import type { MessageRevision } from '@omoikane/domain/message';
 import {
   toMessageRevision,
   type MessageRevisionRow,

@@ -2,7 +2,7 @@ import { Effect, Schema } from 'effect';
 import {
   WorkspaceIdSchema,
   type WorkspaceId,
-} from '@chat-hub/domain/workspace';
+} from '@omoikane/domain/workspace';
 
 export type WorkspaceMemberCandidateField = 'workspaceId' | 'username';
 

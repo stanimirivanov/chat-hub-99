@@ -1,7 +1,7 @@
 import { Either, Schema } from 'effect';
 import { TestBed } from '@angular/core/testing';
 import { describe, expect, it, vi } from 'vitest';
-import { ProfileRepositoryUnavailableError } from '@chat-hub/application/profile';
+import { ProfileRepositoryUnavailableError } from '@omoikane/application/profile';
 import {
   type WorkspaceMemberCursor,
   type WorkspaceMemberPage,
@@ -9,12 +9,12 @@ import {
   WorkspaceLastOwnerRemovalError,
   WorkspaceLastOwnerSuspensionError,
   WorkspaceRepositoryUnavailableError,
-} from '@chat-hub/application/workspace';
-import { ProfileIdSchema, type Profile } from '@chat-hub/domain/profile';
+} from '@omoikane/application/workspace';
+import { ProfileIdSchema, type Profile } from '@omoikane/domain/profile';
 import {
   WorkspaceIdSchema,
   type WorkspaceMember,
-} from '@chat-hub/domain/workspace';
+} from '@omoikane/domain/workspace';
 import { ProfileApplicationService } from '@client/core/profile/profile-application.service';
 import { WorkspaceApplicationService } from '@client/core/workspace/workspace-application.service';
 import { WorkspaceMemberDirectoryStore } from './workspace-member-directory.store';

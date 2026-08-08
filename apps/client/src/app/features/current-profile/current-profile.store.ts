@@ -3,7 +3,7 @@ import { Either } from 'effect';
 import {
   type UpdateCurrentProfileError,
   type UpdateCurrentProfileInput,
-} from '@chat-hub/application/profile';
+} from '@omoikane/application/profile';
 import {
   patchState,
   signalStore,

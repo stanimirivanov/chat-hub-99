@@ -4,9 +4,9 @@ import type {
   ListMessageRevisionsQuery,
   MessageRevisionPage,
   MessageRepositoryError,
-} from '@chat-hub/application/message';
-import type { MessageRevision } from '@chat-hub/domain/message';
-import type { TableRow } from '@chat-hub/shared/database';
+} from '@omoikane/application/message';
+import type { MessageRevision } from '@omoikane/domain/message';
+import type { TableRow } from '@omoikane/shared/database';
 import {
   mapPostgrestError,
   mapThrownRepositoryError,

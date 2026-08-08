@@ -11,16 +11,16 @@ import {
   type MessageChange,
   type MessageCursor,
   type ObserveChannelMessagesError,
-} from '@chat-hub/application/message';
-import type { ChannelId } from '@chat-hub/domain/channel';
+} from '@omoikane/application/message';
+import type { ChannelId } from '@omoikane/domain/channel';
 import type {
   Message,
   MessageContent,
   MessageId,
   MessageRevision,
   MessageRevisionNumber,
-} from '@chat-hub/domain/message';
-import type { Profile, ProfileId } from '@chat-hub/domain/profile';
+} from '@omoikane/domain/message';
+import type { Profile, ProfileId } from '@omoikane/domain/profile';
 import { MessageApplicationService } from '@client/core/message/message-application.service';
 import { ProfileApplicationService } from '@client/core/profile/profile-application.service';
 import { ChannelMessagesStore } from './channel-messages.store';

@@ -1,10 +1,10 @@
-import type { WorkspaceMemberCursor } from '@chat-hub/application/workspace';
-import type { AvatarUrl, Profile, ProfileId } from '@chat-hub/domain/profile';
+import type { WorkspaceMemberCursor } from '@omoikane/application/workspace';
+import type { AvatarUrl, Profile, ProfileId } from '@omoikane/domain/profile';
 import type {
   WorkspaceId,
   WorkspaceMember,
   WorkspaceMemberRole,
-} from '@chat-hub/domain/workspace';
+} from '@omoikane/domain/workspace';
 
 export type WorkspaceMemberLoadStatus =
   | 'idle'

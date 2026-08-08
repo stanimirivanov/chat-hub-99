@@ -1,6 +1,6 @@
 import { Effect, Either } from 'effect';
 import { describe, expect, it } from 'vitest';
-import type { UpdateCurrentProfileCommand } from '@chat-hub/application/profile';
+import type { UpdateCurrentProfileCommand } from '@omoikane/application/profile';
 import { makeProfileCommandClientStub, updatedProfileRow } from '../testing';
 import { updateCurrentProfile } from './update-current-profile';
 

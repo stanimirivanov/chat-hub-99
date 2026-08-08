@@ -1,6 +1,6 @@
 # Workspace Application
 
-`@chat-hub/application/workspace` owns provider-independent workflows for
+`@omoikane/application/workspace` owns provider-independent workflows for
 discovering active and archived workspaces and active members, creating and
 editing workspaces, archiving and restoring workspaces, adding active profiles as members, changing
 active member roles, suspending and reactivating members, removing active

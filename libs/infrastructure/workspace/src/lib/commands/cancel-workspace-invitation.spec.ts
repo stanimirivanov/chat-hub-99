@@ -1,6 +1,6 @@
 import { Effect, Schema } from 'effect';
 import { describe, expect, it } from 'vitest';
-import { WorkspaceInvitationIdSchema } from '@chat-hub/domain/workspace';
+import { WorkspaceInvitationIdSchema } from '@omoikane/domain/workspace';
 import {
   cancelledWorkspaceInvitationRow,
   invitedWorkspaceMemberRow,

@@ -3,11 +3,11 @@ import {
   InvalidWorkspaceInvitationDataError,
   type PendingWorkspaceInvitation,
   type PendingWorkspaceInvitationForOwner,
-} from '@chat-hub/application/workspace';
+} from '@omoikane/application/workspace';
 import {
   WorkspaceInvitationSchema,
   type WorkspaceInvitation,
-} from '@chat-hub/domain/workspace';
+} from '@omoikane/domain/workspace';
 import { mapCurrentWorkspace } from './map-current-workspace';
 
 const decodeInvitation = Schema.decodeUnknown(WorkspaceInvitationSchema);

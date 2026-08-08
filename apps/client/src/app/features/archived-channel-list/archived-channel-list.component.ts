@@ -8,8 +8,8 @@ import {
   output,
   signal,
 } from '@angular/core';
-import type { Channel, ChannelId } from '@chat-hub/domain/channel';
-import type { WorkspaceId } from '@chat-hub/domain/workspace';
+import type { Channel, ChannelId } from '@omoikane/domain/channel';
+import type { WorkspaceId } from '@omoikane/domain/workspace';
 import { ArchivedChannelListStore } from './archived-channel-list.store';
 
 /** Presents owner-only archived-channel history and explicit restoration consent. */

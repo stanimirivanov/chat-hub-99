@@ -1,5 +1,5 @@
 import { Schema } from 'effect';
-import { ProfileIdSchema } from '@chat-hub/domain/profile';
+import { ProfileIdSchema } from '@omoikane/domain/profile';
 import { WorkspaceIdSchema } from './workspace-id';
 
 /**

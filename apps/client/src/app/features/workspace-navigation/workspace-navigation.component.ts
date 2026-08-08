@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import type { Workspace } from '@chat-hub/domain/workspace';
+import type { Workspace } from '@omoikane/domain/workspace';
 import { ArchivedWorkspaceListComponent } from '@client/features/archived-workspace-list/archived-workspace-list.component';
 import { ChannelNavigationComponent } from '@client/features/channel-navigation/channel-navigation.component';
 import { WorkspaceMemberDirectoryComponent } from '@client/features/workspace-member-directory/workspace-member-directory.component';

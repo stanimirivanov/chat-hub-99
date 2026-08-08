@@ -1,6 +1,6 @@
 import { Effect, Either, Schema } from 'effect';
 import { describe, expect, it } from 'vitest';
-import { WorkspaceIdSchema } from '@chat-hub/domain/workspace';
+import { WorkspaceIdSchema } from '@omoikane/domain/workspace';
 import { archivedChannelRow, makeChannelListClientStub } from '../testing';
 import { listArchivedWorkspaceChannels } from './list-archived-workspace-channels';
 

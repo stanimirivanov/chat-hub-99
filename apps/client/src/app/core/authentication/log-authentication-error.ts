@@ -1,7 +1,7 @@
 import type {
   AuthenticationError,
   AuthenticationOperation,
-} from '@chat-hub/application/authentication';
+} from '@omoikane/application/authentication';
 import { environment } from '@client-environments/environment';
 
 /**

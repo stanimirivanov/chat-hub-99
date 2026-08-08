@@ -8,11 +8,11 @@ import {
   output,
   signal,
 } from '@angular/core';
-import type { ProfileId } from '@chat-hub/domain/profile';
+import type { ProfileId } from '@omoikane/domain/profile';
 import type {
   WorkspaceId,
   WorkspaceMemberRole,
-} from '@chat-hub/domain/workspace';
+} from '@omoikane/domain/workspace';
 import { AuthenticationStore } from '@client/features/authentication/store/authentication.store';
 import { ProfileAvatarComponent } from '@client/shared/profile-avatar/profile-avatar.component';
 import { WorkspaceMemberDirectoryStore } from './workspace-member-directory.store';

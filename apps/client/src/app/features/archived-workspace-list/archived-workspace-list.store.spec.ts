@@ -4,11 +4,11 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   WorkspaceRepositoryUnavailableError,
   WorkspaceRestoreNotAllowedError,
-} from '@chat-hub/application/workspace';
+} from '@omoikane/application/workspace';
 import {
   ArchivedWorkspaceSchema,
   type ArchivedWorkspace,
-} from '@chat-hub/domain/workspace';
+} from '@omoikane/domain/workspace';
 import { WorkspaceApplicationService } from '@client/core/workspace/workspace-application.service';
 import { ArchivedWorkspaceListStore } from './archived-workspace-list.store';
 

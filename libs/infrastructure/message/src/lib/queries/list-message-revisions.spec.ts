@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest';
 import {
   MessageRevisionPageSizeSchema,
   type ListMessageRevisionsQuery,
-} from '@chat-hub/application/message';
-import { MessageRevisionNumberSchema } from '@chat-hub/domain/message';
+} from '@omoikane/application/message';
+import { MessageRevisionNumberSchema } from '@omoikane/domain/message';
 import {
   makeListMessageRevisionsClientStub,
   messageId,

@@ -12,7 +12,7 @@ import type {
   RestoreWorkspaceResult,
   SuspendWorkspaceMemberResult,
   UpdateWorkspaceResult,
-} from '@chat-hub/shared/database';
+} from '@omoikane/shared/database';
 import { vi } from 'vitest';
 import type { SupabaseWorkspaceClient } from '../supabase-workspace-client';
 

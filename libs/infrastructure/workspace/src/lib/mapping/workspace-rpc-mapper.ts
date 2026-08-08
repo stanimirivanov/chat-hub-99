@@ -6,11 +6,11 @@ import type {
   RemoveWorkspaceMemberCommand,
   SuspendWorkspaceMemberCommand,
   UpdateWorkspaceCommand,
-} from '@chat-hub/application/workspace';
+} from '@omoikane/application/workspace';
 import type {
   WorkspaceId,
   WorkspaceInvitationId,
-} from '@chat-hub/domain/workspace';
+} from '@omoikane/domain/workspace';
 import type {
   AddWorkspaceMemberArgs,
   ArchiveWorkspaceArgs,
@@ -26,7 +26,7 @@ import type {
   RemoveWorkspaceMemberArgs,
   SuspendWorkspaceMemberArgs,
   UpdateWorkspaceArgs,
-} from '@chat-hub/shared/database';
+} from '@omoikane/shared/database';
 
 /**
  * Maps a validated workspace identity to generated archive RPC arguments.

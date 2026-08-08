@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { Schema } from 'effect';
 
-import { ChannelIdSchema } from '@chat-hub/domain/channel';
-import { MessageIdSchema } from '@chat-hub/domain/message';
+import { ChannelIdSchema } from '@omoikane/domain/channel';
+import { MessageIdSchema } from '@omoikane/domain/message';
 import {
   mapCreateMessagePostgrestError,
   mapEditMessagePostgrestError,

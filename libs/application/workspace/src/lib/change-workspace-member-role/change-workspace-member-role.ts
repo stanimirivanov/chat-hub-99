@@ -1,10 +1,10 @@
 import { Effect, Schema } from 'effect';
-import { ProfileIdSchema } from '@chat-hub/domain/profile';
+import { ProfileIdSchema } from '@omoikane/domain/profile';
 import {
   WorkspaceIdSchema,
   WorkspaceMemberRoleSchema,
   type WorkspaceMember,
-} from '@chat-hub/domain/workspace';
+} from '@omoikane/domain/workspace';
 import {
   WorkspaceRepositoryTag,
   type ChangeWorkspaceMemberRoleCommand,

@@ -19,9 +19,9 @@ import {
   type UpdatedChannelDetails,
   type UpdateChannelError,
   type UpdateChannelInput,
-} from '@chat-hub/application/channel';
-import type { ArchivedChannel, Channel } from '@chat-hub/domain/channel';
-import type { WorkspaceId } from '@chat-hub/domain/workspace';
+} from '@omoikane/application/channel';
+import type { ArchivedChannel, Channel } from '@omoikane/domain/channel';
+import type { WorkspaceId } from '@omoikane/domain/workspace';
 import { applicationRuntime } from '../effect/application-runtime';
 
 /**

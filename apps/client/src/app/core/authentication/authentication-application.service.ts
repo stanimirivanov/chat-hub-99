@@ -17,7 +17,7 @@ import {
   type SignUpInput,
   type SignUpResult,
   type UpdatePasswordInput,
-} from '@chat-hub/application/authentication';
+} from '@omoikane/application/authentication';
 import { applicationRuntime } from '../effect/application-runtime';
 import { logAuthenticationError } from './log-authentication-error';
 

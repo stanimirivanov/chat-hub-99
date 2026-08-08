@@ -8,7 +8,7 @@ import {
   output,
   signal,
 } from '@angular/core';
-import type { Workspace, WorkspaceId } from '@chat-hub/domain/workspace';
+import type { Workspace, WorkspaceId } from '@omoikane/domain/workspace';
 import { ArchivedWorkspaceListStore } from './archived-workspace-list.store';
 
 /** Presents archived-workspace history and explicit restoration consent. */

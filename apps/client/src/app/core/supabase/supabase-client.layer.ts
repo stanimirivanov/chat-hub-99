@@ -2,23 +2,23 @@ import { Layer } from 'effect';
 import {
   SupabaseAuthenticationClientTag,
   type SupabaseAuthenticationClient,
-} from '@chat-hub/infrastructure/authentication';
+} from '@omoikane/infrastructure/authentication';
 import {
   SupabaseChannelClientTag,
   type SupabaseChannelClient,
-} from '@chat-hub/infrastructure/channel';
+} from '@omoikane/infrastructure/channel';
 import {
   SupabaseMessageClientTag,
   type ChatHubSupabaseClient,
-} from '@chat-hub/infrastructure/message';
+} from '@omoikane/infrastructure/message';
 import {
   SupabaseProfileClientTag,
   type SupabaseProfileClient,
-} from '@chat-hub/infrastructure/profile';
+} from '@omoikane/infrastructure/profile';
 import {
   SupabaseWorkspaceClientTag,
   type SupabaseWorkspaceClient,
-} from '@chat-hub/infrastructure/workspace';
+} from '@omoikane/infrastructure/workspace';
 import { makeSupabaseClient } from './make-supabase-client';
 import type { SupabaseClientConfig } from './supabase-client-config';
 

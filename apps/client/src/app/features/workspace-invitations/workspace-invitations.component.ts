@@ -11,7 +11,7 @@ import type {
   Workspace,
   WorkspaceId,
   WorkspaceInvitationId,
-} from '@chat-hub/domain/workspace';
+} from '@omoikane/domain/workspace';
 import { WorkspaceInvitationsStore } from './workspace-invitations.store';
 
 /** Presents recipient consent and selected-owner invitation creation. */

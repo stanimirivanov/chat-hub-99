@@ -2,9 +2,9 @@ import { Effect } from 'effect';
 import {
   InvalidWorkspaceDataError,
   type WorkspaceRepositoryRestoreError,
-} from '@chat-hub/application/workspace';
-import type { Workspace, WorkspaceId } from '@chat-hub/domain/workspace';
-import type { RestoreWorkspaceResult } from '@chat-hub/shared/database';
+} from '@omoikane/application/workspace';
+import type { Workspace, WorkspaceId } from '@omoikane/domain/workspace';
+import type { RestoreWorkspaceResult } from '@omoikane/shared/database';
 import {
   mapWorkspaceRepositoryError,
   mapWorkspaceRestoreError,

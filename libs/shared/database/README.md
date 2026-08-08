@@ -1,6 +1,6 @@
 # Shared Database Types
 
-`@chat-hub/shared/database` contains compile-time descriptions of the Supabase schema and small aliases derived from those generated types.
+`@omoikane/shared/database` contains compile-time descriptions of the Supabase schema and small aliases derived from those generated types.
 
 ## Responsibilities
 

@@ -1,4 +1,4 @@
-import type { MessageRepository } from '@chat-hub/application/message';
+import type { MessageRepository } from '@omoikane/application/message';
 
 import { makeSupabaseMessageRepository } from './supabase-message-repository';
 import type { ChatHubSupabaseClient } from './supabase-message-client';

@@ -1,5 +1,5 @@
 import { Effect, Schema, Stream } from 'effect';
-import { ChannelIdSchema } from '@chat-hub/domain/channel';
+import { ChannelIdSchema } from '@omoikane/domain/channel';
 import { MessageRepositoryTag, type MessageRepository } from '../repository';
 import type { MessageChange } from './message-change';
 import {

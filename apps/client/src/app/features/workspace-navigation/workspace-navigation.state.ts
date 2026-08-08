@@ -1,4 +1,4 @@
-import type { Workspace, WorkspaceId } from '@chat-hub/domain/workspace';
+import type { Workspace, WorkspaceId } from '@omoikane/domain/workspace';
 
 /**
  * Lifecycle of accessible-workspace discovery.

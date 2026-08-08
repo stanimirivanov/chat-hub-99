@@ -2,8 +2,8 @@ import { Effect } from 'effect';
 import {
   InvalidProfileDataError,
   type ProfileRepositoryReadError,
-} from '@chat-hub/application/profile';
-import type { Profile } from '@chat-hub/domain/profile';
+} from '@omoikane/application/profile';
+import type { Profile } from '@omoikane/domain/profile';
 import { mapProfileRepositoryError } from '../errors';
 import { mapCurrentProfile } from '../mapping';
 import type { SupabaseProfileClient } from '../supabase-profile-client';

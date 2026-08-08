@@ -1,7 +1,7 @@
 import type {
   CurrentWorkspace,
   CurrentWorkspaceMembership,
-} from '@chat-hub/shared/database';
+} from '@omoikane/shared/database';
 import { vi } from 'vitest';
 import type { SupabaseWorkspaceClient } from '../supabase-workspace-client';
 

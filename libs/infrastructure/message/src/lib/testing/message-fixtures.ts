@@ -1,20 +1,20 @@
 import { Schema } from 'effect';
 
-import { ChannelIdSchema } from '@chat-hub/domain/channel';
-import { ProfileIdSchema, type ProfileId } from '@chat-hub/domain/profile';
-import type { CurrentMessage, TableRow } from '@chat-hub/shared/database';
+import { ChannelIdSchema } from '@omoikane/domain/channel';
+import { ProfileIdSchema, type ProfileId } from '@omoikane/domain/profile';
+import type { CurrentMessage, TableRow } from '@omoikane/shared/database';
 import {
   ActiveMessageSchema,
   MessageContentSchema,
   MessageIdSchema,
   type ActiveMessage,
   type MessageId,
-} from '@chat-hub/domain/message';
+} from '@omoikane/domain/message';
 import type {
   CreateMessageCommand,
   DeleteMessageCommand,
   EditMessageCommand,
-} from '@chat-hub/application/message';
+} from '@omoikane/application/message';
 
 /**
  * Stable identifiers used by infrastructure unit tests.

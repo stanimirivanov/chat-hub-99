@@ -1,4 +1,4 @@
-import type { ChannelId } from '@chat-hub/domain/channel';
+import type { ChannelId } from '@omoikane/domain/channel';
 
 /**
  * Input accepted by the create-message use case.

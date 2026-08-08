@@ -4,7 +4,7 @@ import type {
   EditMessageError,
   ListChannelMessagesError,
   ListMessageRevisionsError,
-} from '@chat-hub/application/message';
+} from '@omoikane/application/message';
 import type { ChannelMessagesError } from '../channel-messages.state';
 
 type ChannelMessagesApplicationError =

@@ -3,8 +3,8 @@ import {
   ArchivedChannelSchema,
   ChannelIdSchema,
   type Channel,
-} from '@chat-hub/domain/channel';
-import { WorkspaceIdSchema } from '@chat-hub/domain/workspace';
+} from '@omoikane/domain/channel';
+import { WorkspaceIdSchema } from '@omoikane/domain/workspace';
 
 export const workspaceId = Schema.decodeUnknownSync(WorkspaceIdSchema)(
   '00000000-0000-4000-8000-000000000002'

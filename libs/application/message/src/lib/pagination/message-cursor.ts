@@ -1,4 +1,4 @@
-import type { MessageId } from '@chat-hub/domain/message';
+import type { MessageId } from '@omoikane/domain/message';
 
 /**
  * Stable keyset-pagination cursor for a message page.

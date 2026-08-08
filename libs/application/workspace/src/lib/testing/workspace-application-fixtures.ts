@@ -4,7 +4,7 @@ import {
   WorkspaceInvitationSchema,
   WorkspaceMemberSchema,
   WorkspaceSchema,
-} from '@chat-hub/domain/workspace';
+} from '@omoikane/domain/workspace';
 
 export const archivedWorkspace = Schema.decodeUnknownSync(
   ArchivedWorkspaceSchema

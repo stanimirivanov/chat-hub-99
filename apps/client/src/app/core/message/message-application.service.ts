@@ -21,9 +21,9 @@ import {
   type MessageRevisionPage,
   type MessageChange,
   type ObserveChannelMessagesError,
-} from '@chat-hub/application/message';
-import type { ChannelId } from '@chat-hub/domain/channel';
-import type { Message } from '@chat-hub/domain/message';
+} from '@omoikane/application/message';
+import type { ChannelId } from '@omoikane/domain/channel';
+import type { Message } from '@omoikane/domain/message';
 import { applicationRuntime } from '../effect/application-runtime';
 
 /**

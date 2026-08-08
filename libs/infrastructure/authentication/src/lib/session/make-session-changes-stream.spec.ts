@@ -5,7 +5,7 @@ import type {
 } from '@supabase/supabase-js';
 import { Effect, Fiber, Stream } from 'effect';
 import { describe, expect, it, vi } from 'vitest';
-import type { AuthenticationSessionChange } from '@chat-hub/application/authentication';
+import type { AuthenticationSessionChange } from '@omoikane/application/authentication';
 import {
   authenticationSession,
   makeSupabaseAuthenticationClientStub,

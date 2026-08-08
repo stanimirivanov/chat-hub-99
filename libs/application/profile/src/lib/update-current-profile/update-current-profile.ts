@@ -3,7 +3,7 @@ import {
   AvatarUrlSchema,
   type AvatarUrl,
   type Profile,
-} from '@chat-hub/domain/profile';
+} from '@omoikane/domain/profile';
 import {
   ProfileRepositoryTag,
   type ProfileRepository,

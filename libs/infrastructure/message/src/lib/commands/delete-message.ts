@@ -2,7 +2,7 @@ import { Effect } from 'effect';
 import type {
   DeleteMessageCommand,
   MessageRepositoryDeleteError,
-} from '@chat-hub/application/message';
+} from '@omoikane/application/message';
 import {
   mapMessageCommandPostgrestError,
   mapThrownRepositoryError,

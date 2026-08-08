@@ -1,5 +1,5 @@
 import { Effect, Schema } from 'effect';
-import { MessageContentSchema, type Message } from '@chat-hub/domain/message';
+import { MessageContentSchema, type Message } from '@omoikane/domain/message';
 import { MessageRepositoryTag, type MessageRepository } from '../repository';
 import {
   InvalidEditedMessageContentError,

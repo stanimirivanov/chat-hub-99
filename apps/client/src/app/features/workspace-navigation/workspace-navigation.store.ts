@@ -7,7 +7,7 @@ import type {
   LeaveWorkspaceError,
   UpdateWorkspaceError,
   UpdateWorkspaceInput,
-} from '@chat-hub/application/workspace';
+} from '@omoikane/application/workspace';
 import {
   patchState,
   signalStore,
@@ -15,7 +15,7 @@ import {
   withMethods,
   withState,
 } from '@ngrx/signals';
-import type { Workspace, WorkspaceId } from '@chat-hub/domain/workspace';
+import type { Workspace, WorkspaceId } from '@omoikane/domain/workspace';
 import { WorkspaceApplicationService } from '@client/core/workspace/workspace-application.service';
 import { initialWorkspaceNavigationState } from './workspace-navigation.state';
 

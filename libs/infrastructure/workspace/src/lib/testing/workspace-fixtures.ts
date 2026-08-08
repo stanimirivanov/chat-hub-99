@@ -15,7 +15,7 @@ import type {
   RestoreWorkspaceResult,
   SuspendWorkspaceMemberResult,
   UpdateWorkspaceResult,
-} from '@chat-hub/shared/database';
+} from '@omoikane/shared/database';
 
 export const addedWorkspaceMemberRow: AddWorkspaceMemberResult = {
   workspace_membership_id: '00000000-0000-4000-8000-000000000015',

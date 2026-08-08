@@ -3,9 +3,9 @@ import { describe, expect, it } from 'vitest';
 import {
   WORKSPACE_MEMBER_PAGE_SIZE,
   type ListActiveWorkspaceMembersQuery,
-} from '@chat-hub/application/workspace';
-import { ProfileIdSchema } from '@chat-hub/domain/profile';
-import { WorkspaceIdSchema } from '@chat-hub/domain/workspace';
+} from '@omoikane/application/workspace';
+import { ProfileIdSchema } from '@omoikane/domain/profile';
+import { WorkspaceIdSchema } from '@omoikane/domain/workspace';
 import {
   currentWorkspaceMemberRow,
   makeWorkspaceMemberListClientStub,

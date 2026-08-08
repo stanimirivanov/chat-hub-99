@@ -1,5 +1,5 @@
 import { Data } from 'effect';
-import type { ProfileId } from '@chat-hub/domain/profile';
+import type { ProfileId } from '@omoikane/domain/profile';
 import type { ProfileRepositoryReadError } from '../repository';
 
 /**

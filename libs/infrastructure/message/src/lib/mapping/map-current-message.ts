@@ -1,8 +1,8 @@
 import { Effect } from 'effect';
 
-import type { CurrentMessage } from '@chat-hub/shared/database';
-import { InvalidMessageDataError } from '@chat-hub/application/message';
-import type { Message } from '@chat-hub/domain/message';
+import type { CurrentMessage } from '@omoikane/shared/database';
+import { InvalidMessageDataError } from '@omoikane/application/message';
+import type { Message } from '@omoikane/domain/message';
 import { toMessage } from './message-row-mapper';
 
 /**
