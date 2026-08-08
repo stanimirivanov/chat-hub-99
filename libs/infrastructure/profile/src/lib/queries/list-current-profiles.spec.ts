@@ -1,6 +1,6 @@
 import { Effect, Either, Schema } from 'effect';
 import { describe, expect, it } from 'vitest';
-import { ProfileIdSchema } from '@chat-hub/domain/profile';
+import { ProfileIdSchema } from '@omoikane/domain/profile';
 import { currentProfileRow, makeProfileListClientStub } from '../testing';
 import { listCurrentProfiles } from './list-current-profiles';
 

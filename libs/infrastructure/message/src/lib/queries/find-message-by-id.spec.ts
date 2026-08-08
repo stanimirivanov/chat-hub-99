@@ -1,7 +1,7 @@
 import { Effect } from 'effect';
 import { describe, expect, it } from 'vitest';
 
-import { CurrentMessage } from '@chat-hub/shared/database';
+import { CurrentMessage } from '@omoikane/shared/database';
 import { findMessageById } from './find-message-by-id';
 import {
   activeMessageRow,

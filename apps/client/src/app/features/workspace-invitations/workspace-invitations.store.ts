@@ -14,12 +14,12 @@ import type {
   InviteWorkspaceMemberByUsernameError,
   ListPendingWorkspaceInvitationsForOwnerError,
   PendingWorkspaceInvitation,
-} from '@chat-hub/application/workspace';
+} from '@omoikane/application/workspace';
 import type {
   Workspace,
   WorkspaceId,
   WorkspaceInvitationId,
-} from '@chat-hub/domain/workspace';
+} from '@omoikane/domain/workspace';
 import { WorkspaceApplicationService } from '@client/core/workspace/workspace-application.service';
 import {
   initialWorkspaceInvitationsState,

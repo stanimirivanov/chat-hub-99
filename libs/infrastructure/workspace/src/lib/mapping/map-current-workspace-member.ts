@@ -1,9 +1,9 @@
 import { Effect, Schema } from 'effect';
-import { InvalidWorkspaceMemberDataError } from '@chat-hub/application/workspace';
+import { InvalidWorkspaceMemberDataError } from '@omoikane/application/workspace';
 import {
   WorkspaceMemberSchema,
   type WorkspaceMember,
-} from '@chat-hub/domain/workspace';
+} from '@omoikane/domain/workspace';
 
 const decodeWorkspaceMember = Schema.decodeUnknown(WorkspaceMemberSchema);
 

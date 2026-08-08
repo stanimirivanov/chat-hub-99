@@ -6,8 +6,8 @@ import {
   ArchivedChannelSchema,
   ChannelIdSchema,
   type Channel,
-} from '@chat-hub/domain/channel';
-import { WorkspaceIdSchema } from '@chat-hub/domain/workspace';
+} from '@omoikane/domain/channel';
+import { WorkspaceIdSchema } from '@omoikane/domain/workspace';
 import { ArchivedChannelListComponent } from './archived-channel-list.component';
 import { ArchivedChannelListStore } from './archived-channel-list.store';
 

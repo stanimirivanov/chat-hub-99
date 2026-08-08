@@ -1,6 +1,6 @@
 import type { Effect } from 'effect';
 
-import type { Message } from '@chat-hub/domain/message';
+import type { Message } from '@omoikane/domain/message';
 
 import type { CreateMessageError } from './create-message-error';
 import { createMessage } from './create-message';

@@ -2,9 +2,9 @@ import { Effect } from 'effect';
 import {
   InvalidWorkspaceMemberDataError,
   type WorkspaceDepartureRepositoryError,
-} from '@chat-hub/application/workspace';
-import type { WorkspaceId } from '@chat-hub/domain/workspace';
-import type { LeaveWorkspaceResult } from '@chat-hub/shared/database';
+} from '@omoikane/application/workspace';
+import type { WorkspaceId } from '@omoikane/domain/workspace';
+import type { LeaveWorkspaceResult } from '@omoikane/shared/database';
 import {
   mapWorkspaceDepartureError,
   mapWorkspaceRepositoryError,

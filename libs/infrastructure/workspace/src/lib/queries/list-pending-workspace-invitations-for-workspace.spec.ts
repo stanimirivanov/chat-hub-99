@@ -1,6 +1,6 @@
 import { Effect, Schema } from 'effect';
 import { describe, expect, it, vi } from 'vitest';
-import { WorkspaceIdSchema } from '@chat-hub/domain/workspace';
+import { WorkspaceIdSchema } from '@omoikane/domain/workspace';
 import type { SupabaseWorkspaceClient } from '../supabase-workspace-client';
 import { pendingWorkspaceInvitationForOwnerRows } from '../testing';
 import { listPendingWorkspaceInvitationsForWorkspace } from './list-pending-workspace-invitations-for-workspace';

@@ -1,5 +1,5 @@
-import type { UpdateCurrentProfileCommand } from '@chat-hub/application/profile';
-import type { UpdateMyProfileArgs } from '@chat-hub/shared/database';
+import type { UpdateCurrentProfileCommand } from '@omoikane/application/profile';
+import type { UpdateMyProfileArgs } from '@omoikane/shared/database';
 
 /**
  * Maps a validated self-service profile command to generated RPC arguments.

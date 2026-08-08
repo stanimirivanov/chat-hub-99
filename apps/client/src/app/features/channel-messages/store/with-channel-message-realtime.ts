@@ -8,8 +8,8 @@ import {
 import type {
   MessageChange,
   ObserveChannelMessagesError,
-} from '@chat-hub/application/message';
-import type { ChannelId } from '@chat-hub/domain/channel';
+} from '@omoikane/application/message';
+import type { ChannelId } from '@omoikane/domain/channel';
 import { MessageApplicationService } from '@client/core/message/message-application.service';
 import {
   clearedMessageRevisionHistoryState,

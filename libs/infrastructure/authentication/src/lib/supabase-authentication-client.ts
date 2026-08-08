@@ -86,5 +86,5 @@ export interface SupabaseAuthenticationClient {
  */
 export const SupabaseAuthenticationClientTag =
   Context.GenericTag<SupabaseAuthenticationClient>(
-    '@chat-hub/infrastructure/authentication/SupabaseAuthenticationClient'
+    '@omoikane/infrastructure/authentication/SupabaseAuthenticationClient'
   );

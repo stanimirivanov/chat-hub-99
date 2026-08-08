@@ -3,8 +3,8 @@ import {
   InvalidChannelDataError,
   type ChannelRepositoryUpdateError,
   type UpdateChannelCommand,
-} from '@chat-hub/application/channel';
-import type { UpdateChannelResult } from '@chat-hub/shared/database';
+} from '@omoikane/application/channel';
+import type { UpdateChannelResult } from '@omoikane/shared/database';
 import { mapChannelRepositoryError, mapChannelUpdateError } from '../errors';
 import { toUpdateChannelArgs } from '../mapping';
 import type { SupabaseChannelClient } from '../supabase-channel-client';

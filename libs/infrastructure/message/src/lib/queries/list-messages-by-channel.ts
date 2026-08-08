@@ -6,9 +6,9 @@ import type {
   MessageCursor,
   MessagePage,
   MessageRepositoryError,
-} from '@chat-hub/application/message';
-import type { Message } from '@chat-hub/domain/message';
-import type { CurrentMessage } from '@chat-hub/shared/database';
+} from '@omoikane/application/message';
+import type { Message } from '@omoikane/domain/message';
+import type { CurrentMessage } from '@omoikane/shared/database';
 import {
   mapPostgrestError,
   mapThrownRepositoryError,

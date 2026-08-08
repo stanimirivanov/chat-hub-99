@@ -13,8 +13,8 @@ import {
   type LeaveWorkspaceError,
   type UpdateWorkspaceError,
   type WorkspaceRepositoryReadError,
-} from '@chat-hub/application/workspace';
-import { WorkspaceIdSchema, type Workspace } from '@chat-hub/domain/workspace';
+} from '@omoikane/application/workspace';
+import { WorkspaceIdSchema, type Workspace } from '@omoikane/domain/workspace';
 import { WorkspaceApplicationService } from '@client/core/workspace/workspace-application.service';
 import { WorkspaceNavigationStore } from './workspace-navigation.store';
 

@@ -1,10 +1,10 @@
 import { Effect } from 'effect';
 import { describe, expect, it } from 'vitest';
-import { AuthenticationServiceTag } from '@chat-hub/application/authentication';
-import { ChannelRepositoryTag } from '@chat-hub/application/channel';
-import { MessageRepositoryTag } from '@chat-hub/application/message';
-import { ProfileRepositoryTag } from '@chat-hub/application/profile';
-import { WorkspaceRepositoryTag } from '@chat-hub/application/workspace';
+import { AuthenticationServiceTag } from '@omoikane/application/authentication';
+import { ChannelRepositoryTag } from '@omoikane/application/channel';
+import { MessageRepositoryTag } from '@omoikane/application/message';
+import { ProfileRepositoryTag } from '@omoikane/application/profile';
+import { WorkspaceRepositoryTag } from '@omoikane/application/workspace';
 import { makeApplicationInfrastructureLayer } from './application-infrastructure.layer';
 
 describe('makeApplicationInfrastructureLayer', () => {

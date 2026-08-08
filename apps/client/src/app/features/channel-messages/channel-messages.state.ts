@@ -1,10 +1,10 @@
 import type {
   MessagePage,
   MessageRevisionPage,
-} from '@chat-hub/application/message';
-import type { ChannelId } from '@chat-hub/domain/channel';
-import type { MessageId } from '@chat-hub/domain/message';
-import type { Profile } from '@chat-hub/domain/profile';
+} from '@omoikane/application/message';
+import type { ChannelId } from '@omoikane/domain/channel';
+import type { MessageId } from '@omoikane/domain/message';
+import type { Profile } from '@omoikane/domain/profile';
 
 /**
  * Lifecycle of the newest-page request for the selected channel.

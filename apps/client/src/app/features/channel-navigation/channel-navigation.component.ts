@@ -8,8 +8,8 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import type { Channel } from '@chat-hub/domain/channel';
-import type { WorkspaceId } from '@chat-hub/domain/workspace';
+import type { Channel } from '@omoikane/domain/channel';
+import type { WorkspaceId } from '@omoikane/domain/workspace';
 import { ArchivedChannelListComponent } from '@client/features/archived-channel-list/archived-channel-list.component';
 import { ChannelMessagesComponent } from '@client/features/channel-messages/channel-messages.component';
 import { ChannelNavigationStore } from './channel-navigation.store';

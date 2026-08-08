@@ -1,10 +1,10 @@
 import { Data } from 'effect';
-import type { ProfileId } from '@chat-hub/domain/profile';
+import type { ProfileId } from '@omoikane/domain/profile';
 import type {
   WorkspaceId,
   WorkspaceInvitationId,
   WorkspaceMemberRole,
-} from '@chat-hub/domain/workspace';
+} from '@omoikane/domain/workspace';
 
 /**
  * Indicates that a workspace or membership operation could not reach its

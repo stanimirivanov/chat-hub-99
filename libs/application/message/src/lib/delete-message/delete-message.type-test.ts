@@ -1,5 +1,5 @@
 import type { Effect } from 'effect';
-import type { Message } from '@chat-hub/domain/message';
+import type { Message } from '@omoikane/domain/message';
 import { deleteMessage } from './delete-message';
 import type { DeleteMessageError } from './delete-message-error';
 import type { MessageRepository } from '../repository';

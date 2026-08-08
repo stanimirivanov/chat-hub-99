@@ -6,39 +6,39 @@
     "paths": {
       "@client/*": ["./apps/client/src/app/*"],
       "@client-environments/*": ["./apps/client/src/environments/*"],
-      "@chat-hub/shared/database": ["./libs/shared/database/src/index.ts"],
-      "@chat-hub/domain/channel": ["./libs/domain/channel/src/index.ts"],
-      "@chat-hub/domain/message": ["./libs/domain/message/src/index.ts"],
-      "@chat-hub/domain/profile": ["./libs/domain/profile/src/index.ts"],
-      "@chat-hub/domain/workspace": ["./libs/domain/workspace/src/index.ts"],
-      "@chat-hub/application/authentication": [
+      "@omoikane/shared/database": ["./libs/shared/database/src/index.ts"],
+      "@omoikane/domain/channel": ["./libs/domain/channel/src/index.ts"],
+      "@omoikane/domain/message": ["./libs/domain/message/src/index.ts"],
+      "@omoikane/domain/profile": ["./libs/domain/profile/src/index.ts"],
+      "@omoikane/domain/workspace": ["./libs/domain/workspace/src/index.ts"],
+      "@omoikane/application/authentication": [
         "./libs/application/authentication/src/index.ts"
       ],
-      "@chat-hub/application/channel": [
+      "@omoikane/application/channel": [
         "./libs/application/channel/src/index.ts"
       ],
-      "@chat-hub/application/message": [
+      "@omoikane/application/message": [
         "./libs/application/message/src/index.ts"
       ],
-      "@chat-hub/application/profile": [
+      "@omoikane/application/profile": [
         "./libs/application/profile/src/index.ts"
       ],
-      "@chat-hub/application/workspace": [
+      "@omoikane/application/workspace": [
         "./libs/application/workspace/src/index.ts"
       ],
-      "@chat-hub/infrastructure/message": [
+      "@omoikane/infrastructure/message": [
         "./libs/infrastructure/message/src/index.ts"
       ],
-      "@chat-hub/infrastructure/profile": [
+      "@omoikane/infrastructure/profile": [
         "./libs/infrastructure/profile/src/index.ts"
       ],
-      "@chat-hub/infrastructure/channel": [
+      "@omoikane/infrastructure/channel": [
         "./libs/infrastructure/channel/src/index.ts"
       ],
-      "@chat-hub/infrastructure/authentication": [
+      "@omoikane/infrastructure/authentication": [
         "./libs/infrastructure/authentication/src/index.ts"
       ],
-      "@chat-hub/infrastructure/workspace": [
+      "@omoikane/infrastructure/workspace": [
         "./libs/infrastructure/workspace/src/index.ts"
       ]
     },

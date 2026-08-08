@@ -1,9 +1,9 @@
 import { Effect, Schema } from 'effect';
-import type { TableRow } from '@chat-hub/shared/database';
+import type { TableRow } from '@omoikane/shared/database';
 import {
   MessageRevisionSchema,
   type MessageRevision,
-} from '@chat-hub/domain/message';
+} from '@omoikane/domain/message';
 import { MessageRowMappingError } from './message-row-mapping-error';
 import { parseRequiredTimestamp } from './parse-required-timestamp';
 

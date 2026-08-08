@@ -8,14 +8,14 @@ import {
   WorkspaceRepositoryUnavailableError,
   type PendingWorkspaceInvitation,
   type PendingWorkspaceInvitationForOwner,
-} from '@chat-hub/application/workspace';
-import { ProfileIdSchema } from '@chat-hub/domain/profile';
+} from '@omoikane/application/workspace';
+import { ProfileIdSchema } from '@omoikane/domain/profile';
 import {
   WorkspaceIdSchema,
   WorkspaceInvitationIdSchema,
   type Workspace,
   type WorkspaceInvitation,
-} from '@chat-hub/domain/workspace';
+} from '@omoikane/domain/workspace';
 import { WorkspaceApplicationService } from '@client/core/workspace/workspace-application.service';
 import { WorkspaceInvitationsStore } from './workspace-invitations.store';
 

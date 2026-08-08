@@ -1,4 +1,4 @@
-import type { Message } from '@chat-hub/domain/message';
+import type { Message } from '@omoikane/domain/message';
 import type { MessageCursor } from './message-cursor';
 
 /**

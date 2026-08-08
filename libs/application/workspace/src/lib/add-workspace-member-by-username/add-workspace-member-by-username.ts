@@ -2,9 +2,9 @@ import { Effect } from 'effect';
 import {
   ProfileRepositoryTag,
   type ProfileRepository,
-} from '@chat-hub/application/profile';
-import type { Profile } from '@chat-hub/domain/profile';
-import { type WorkspaceMember } from '@chat-hub/domain/workspace';
+} from '@omoikane/application/profile';
+import type { Profile } from '@omoikane/domain/profile';
+import { type WorkspaceMember } from '@omoikane/domain/workspace';
 import {
   WorkspaceRepositoryTag,
   type AddWorkspaceMemberCommand,

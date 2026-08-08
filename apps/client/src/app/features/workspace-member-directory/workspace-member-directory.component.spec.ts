@@ -6,8 +6,8 @@ import {
   AvatarUrlSchema,
   ProfileIdSchema,
   type ProfileId,
-} from '@chat-hub/domain/profile';
-import { WorkspaceIdSchema } from '@chat-hub/domain/workspace';
+} from '@omoikane/domain/profile';
+import { WorkspaceIdSchema } from '@omoikane/domain/workspace';
 import { AuthenticationStore } from '@client/features/authentication/store/authentication.store';
 import { WorkspaceMemberDirectoryComponent } from './workspace-member-directory.component';
 import { WorkspaceMemberDirectoryStore } from './workspace-member-directory.store';

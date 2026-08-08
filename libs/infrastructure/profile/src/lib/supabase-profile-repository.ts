@@ -1,4 +1,4 @@
-import type { ProfileRepository } from '@chat-hub/application/profile';
+import type { ProfileRepository } from '@omoikane/application/profile';
 import { updateCurrentProfile } from './commands';
 import {
   findActiveProfileByUsername,

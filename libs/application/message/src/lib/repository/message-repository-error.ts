@@ -1,6 +1,6 @@
 import { Data } from 'effect';
-import type { ChannelId } from '@chat-hub/domain/channel';
-import type { MessageId } from '@chat-hub/domain/message';
+import type { ChannelId } from '@omoikane/domain/channel';
+import type { MessageId } from '@omoikane/domain/message';
 
 export type MessageRepositoryOperation = 'create' | 'edit' | 'delete' | 'read';
 

@@ -5,8 +5,8 @@ import {
   InvalidProfileUpdateInputError,
   ProfileRepositoryUnavailableError,
   ProfileUsernameUnavailableError,
-} from '@chat-hub/application/profile';
-import { ProfileIdSchema, type Profile } from '@chat-hub/domain/profile';
+} from '@omoikane/application/profile';
+import { ProfileIdSchema, type Profile } from '@omoikane/domain/profile';
 import { ProfileApplicationService } from '@client/core/profile/profile-application.service';
 import { CurrentProfileStore } from './current-profile.store';
 

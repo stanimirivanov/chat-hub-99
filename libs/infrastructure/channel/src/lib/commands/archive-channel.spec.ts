@@ -1,6 +1,6 @@
 import { Effect, Either, Schema } from 'effect';
 import { describe, expect, it } from 'vitest';
-import { ChannelIdSchema } from '@chat-hub/domain/channel';
+import { ChannelIdSchema } from '@omoikane/domain/channel';
 import { makeChannelCommandClientStub } from '../testing';
 import { archiveChannel } from './archive-channel';
 

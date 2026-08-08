@@ -1,4 +1,4 @@
-import type { MessageId } from '@chat-hub/domain/message';
+import type { MessageId } from '@omoikane/domain/message';
 
 /**
  * Technology-independent notification that one message projection changed.

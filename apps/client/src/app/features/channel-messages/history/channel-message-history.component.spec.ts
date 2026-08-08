@@ -2,13 +2,13 @@ import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Schema } from 'effect';
 import { describe, expect, it, vi } from 'vitest';
-import type { AuthenticationSession } from '@chat-hub/application/authentication';
+import type { AuthenticationSession } from '@omoikane/application/authentication';
 import {
   MessageRevisionSchema,
   MessageSchema,
   type Message,
-} from '@chat-hub/domain/message';
-import { ProfileSchema, type Profile } from '@chat-hub/domain/profile';
+} from '@omoikane/domain/message';
+import { ProfileSchema, type Profile } from '@omoikane/domain/profile';
 import { AuthenticationStore } from '@client/features/authentication/store/authentication.store';
 import { ChannelMessagesStore } from '../channel-messages.store';
 import { ChannelMessageHistoryComponent } from './channel-message-history.component';

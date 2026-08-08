@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Schema } from 'effect';
 import { describe, expect, it } from 'vitest';
-import { AvatarUrlSchema, type AvatarUrl } from '@chat-hub/domain/profile';
+import { AvatarUrlSchema, type AvatarUrl } from '@omoikane/domain/profile';
 import { ProfileAvatarComponent } from './profile-avatar.component';
 
 const avatarUrl = Schema.decodeUnknownSync(AvatarUrlSchema)(

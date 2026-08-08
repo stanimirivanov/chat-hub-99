@@ -2,13 +2,13 @@ import { Effect, Schema } from 'effect';
 import {
   InvalidChannelDataError,
   type ChannelRepositoryReadError,
-} from '@chat-hub/application/channel';
+} from '@omoikane/application/channel';
 import {
   ArchivedChannelSchema,
   ChannelSchema,
   type ArchivedChannel,
   type Channel,
-} from '@chat-hub/domain/channel';
+} from '@omoikane/domain/channel';
 
 const decodeChannel = Schema.decodeUnknown(ChannelSchema);
 const decodeArchivedChannel = Schema.decodeUnknown(ArchivedChannelSchema);

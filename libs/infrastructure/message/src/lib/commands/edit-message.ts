@@ -2,9 +2,9 @@ import { Effect, Schema } from 'effect';
 import {
   InvalidMessageDataError,
   type MessageRepositoryEditError,
-} from '@chat-hub/application/message';
-import type { EditMessageResult } from '@chat-hub/shared/database';
-import type { EditMessageCommand } from '@chat-hub/application/message';
+} from '@omoikane/application/message';
+import type { EditMessageResult } from '@omoikane/shared/database';
+import type { EditMessageCommand } from '@omoikane/application/message';
 import {
   mapEditMessagePostgrestError,
   mapThrownRepositoryError,

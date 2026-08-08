@@ -2,9 +2,9 @@ import { Effect } from 'effect';
 import type {
   PendingWorkspaceInvitationForOwner,
   WorkspaceInvitationOwnerRepositoryReadError,
-} from '@chat-hub/application/workspace';
-import type { WorkspaceId } from '@chat-hub/domain/workspace';
-import type { ListPendingWorkspaceInvitationsForWorkspaceResult } from '@chat-hub/shared/database';
+} from '@omoikane/application/workspace';
+import type { WorkspaceId } from '@omoikane/domain/workspace';
+import type { ListPendingWorkspaceInvitationsForWorkspaceResult } from '@omoikane/shared/database';
 import {
   mapWorkspaceInvitationOwnerReadError,
   mapWorkspaceRepositoryError,

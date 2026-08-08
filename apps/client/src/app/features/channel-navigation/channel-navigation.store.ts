@@ -6,7 +6,7 @@ import type {
   CreateChannelInput,
   UpdateChannelError,
   UpdateChannelInput,
-} from '@chat-hub/application/channel';
+} from '@omoikane/application/channel';
 import {
   patchState,
   signalStore,
@@ -14,8 +14,8 @@ import {
   withMethods,
   withState,
 } from '@ngrx/signals';
-import type { Channel, ChannelId } from '@chat-hub/domain/channel';
-import type { WorkspaceId } from '@chat-hub/domain/workspace';
+import type { Channel, ChannelId } from '@omoikane/domain/channel';
+import type { WorkspaceId } from '@omoikane/domain/workspace';
 import { ChannelApplicationService } from '@client/core/channel/channel-application.service';
 import { initialChannelNavigationState } from './channel-navigation.state';
 

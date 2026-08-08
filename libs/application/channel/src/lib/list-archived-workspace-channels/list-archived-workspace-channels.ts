@@ -1,6 +1,6 @@
 import { Effect } from 'effect';
-import type { ArchivedChannel } from '@chat-hub/domain/channel';
-import type { WorkspaceId } from '@chat-hub/domain/workspace';
+import type { ArchivedChannel } from '@omoikane/domain/channel';
+import type { WorkspaceId } from '@omoikane/domain/workspace';
 import {
   ChannelRepositoryTag,
   type ChannelRepository,

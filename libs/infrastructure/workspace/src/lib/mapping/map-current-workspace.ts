@@ -1,11 +1,11 @@
 import { Effect, Schema } from 'effect';
-import { InvalidWorkspaceDataError } from '@chat-hub/application/workspace';
+import { InvalidWorkspaceDataError } from '@omoikane/application/workspace';
 import {
   ArchivedWorkspaceSchema,
   WorkspaceSchema,
   type ArchivedWorkspace,
   type Workspace,
-} from '@chat-hub/domain/workspace';
+} from '@omoikane/domain/workspace';
 
 const decodeWorkspace = Schema.decodeUnknown(WorkspaceSchema);
 const decodeArchivedWorkspace = Schema.decodeUnknown(ArchivedWorkspaceSchema);

@@ -1,5 +1,5 @@
 import { Effect, Schema } from 'effect';
-import { WorkspaceIdSchema } from '@chat-hub/domain/workspace';
+import { WorkspaceIdSchema } from '@omoikane/domain/workspace';
 import {
   WorkspaceRepositoryTag,
   type WorkspaceRepository,

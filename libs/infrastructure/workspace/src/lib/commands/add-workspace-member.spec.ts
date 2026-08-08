@@ -1,8 +1,8 @@
 import { Effect, Either, Schema } from 'effect';
 import { describe, expect, it } from 'vitest';
-import type { AddWorkspaceMemberCommand } from '@chat-hub/application/workspace';
-import { ProfileIdSchema } from '@chat-hub/domain/profile';
-import { WorkspaceIdSchema } from '@chat-hub/domain/workspace';
+import type { AddWorkspaceMemberCommand } from '@omoikane/application/workspace';
+import { ProfileIdSchema } from '@omoikane/domain/profile';
+import { WorkspaceIdSchema } from '@omoikane/domain/workspace';
 import {
   addedWorkspaceMemberRow,
   makeWorkspaceCommandClientStub,

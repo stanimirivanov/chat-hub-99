@@ -2,8 +2,8 @@ import { Effect } from 'effect';
 import type {
   PendingWorkspaceInvitation,
   WorkspaceInvitationRepositoryReadError,
-} from '@chat-hub/application/workspace';
-import type { ListPendingWorkspaceInvitationsResult } from '@chat-hub/shared/database';
+} from '@omoikane/application/workspace';
+import type { ListPendingWorkspaceInvitationsResult } from '@omoikane/shared/database';
 import { mapWorkspaceRepositoryError } from '../errors';
 import { mapPendingWorkspaceInvitation } from '../mapping';
 import type { SupabaseWorkspaceClient } from '../supabase-workspace-client';

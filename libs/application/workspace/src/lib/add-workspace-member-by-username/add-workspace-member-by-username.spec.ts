@@ -4,9 +4,9 @@ import {
   ProfileRepositoryTag,
   ProfileRepositoryUnavailableError,
   type ProfileRepository,
-} from '@chat-hub/application/profile';
-import { ProfileIdSchema, type Profile } from '@chat-hub/domain/profile';
-import type { WorkspaceMember } from '@chat-hub/domain/workspace';
+} from '@omoikane/application/profile';
+import { ProfileIdSchema, type Profile } from '@omoikane/domain/profile';
+import type { WorkspaceMember } from '@omoikane/domain/workspace';
 import {
   WorkspaceMemberAlreadyActiveError,
   type AddWorkspaceMemberCommand,

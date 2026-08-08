@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   ArchivedWorkspaceSchema,
   type Workspace,
-} from '@chat-hub/domain/workspace';
+} from '@omoikane/domain/workspace';
 import { ArchivedWorkspaceListComponent } from './archived-workspace-list.component';
 import { ArchivedWorkspaceListStore } from './archived-workspace-list.store';
 

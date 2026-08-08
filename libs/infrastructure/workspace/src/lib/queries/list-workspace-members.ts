@@ -4,8 +4,8 @@ import type {
   WorkspaceMemberCursor,
   WorkspaceMemberPage,
   WorkspaceMemberRepositoryReadError,
-} from '@chat-hub/application/workspace';
-import type { WorkspaceMember } from '@chat-hub/domain/workspace';
+} from '@omoikane/application/workspace';
+import type { WorkspaceMember } from '@omoikane/domain/workspace';
 import { mapWorkspaceRepositoryError } from '../errors';
 import { mapCurrentWorkspaceMember } from '../mapping';
 import type { SupabaseWorkspaceClient } from '../supabase-workspace-client';

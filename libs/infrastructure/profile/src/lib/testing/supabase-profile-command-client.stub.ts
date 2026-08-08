@@ -1,4 +1,4 @@
-import type { UpdateMyProfileResult } from '@chat-hub/shared/database';
+import type { UpdateMyProfileResult } from '@omoikane/shared/database';
 import { vi } from 'vitest';
 import type { SupabaseProfileClient } from '../supabase-profile-client';
 

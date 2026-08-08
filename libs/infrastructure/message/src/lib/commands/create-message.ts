@@ -3,9 +3,9 @@ import {
   CreateMessageCommand,
   InvalidMessageDataError,
   type MessageRepositoryCreateError,
-} from '@chat-hub/application/message';
-import { MessageIdSchema, type MessageId } from '@chat-hub/domain/message';
-import type { CreateMessageResult } from '@chat-hub/shared/database';
+} from '@omoikane/application/message';
+import { MessageIdSchema, type MessageId } from '@omoikane/domain/message';
+import type { CreateMessageResult } from '@omoikane/shared/database';
 import {
   mapCreateMessagePostgrestError,
   mapThrownRepositoryError,

@@ -1,4 +1,4 @@
-import type { MessagePage } from '@chat-hub/application/message';
+import type { MessagePage } from '@omoikane/application/message';
 
 type Message = MessagePage['messages'][number];
 

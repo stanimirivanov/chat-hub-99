@@ -1,6 +1,6 @@
 {
   "componentsPath": "libs/ui",
-  "importAlias": "@chat-hub/ui",
+  "importAlias": "@omoikane/ui",
   "buildable": true,
   "generateAs": "entrypoint",
   "style": "nova"

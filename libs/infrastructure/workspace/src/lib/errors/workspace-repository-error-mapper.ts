@@ -47,11 +47,11 @@ import {
   type WorkspaceInvitationCancellationRepositoryError,
   type WorkspaceInvitationDeclineRepositoryError,
   type WorkspaceInvitationOwnerRepositoryReadError,
-} from '@chat-hub/application/workspace';
+} from '@omoikane/application/workspace';
 import type {
   WorkspaceId,
   WorkspaceInvitationId,
-} from '@chat-hub/domain/workspace';
+} from '@omoikane/domain/workspace';
 
 interface PostgrestErrorLike {
   readonly code: string;

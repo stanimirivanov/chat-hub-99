@@ -1,6 +1,6 @@
 import { Effect, Schema } from 'effect';
-import { InvalidProfileDataError } from '@chat-hub/application/profile';
-import { ProfileSchema, type Profile } from '@chat-hub/domain/profile';
+import { InvalidProfileDataError } from '@omoikane/application/profile';
+import { ProfileSchema, type Profile } from '@omoikane/domain/profile';
 
 const decodeProfile = Schema.decodeUnknown(ProfileSchema);
 

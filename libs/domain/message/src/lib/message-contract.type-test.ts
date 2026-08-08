@@ -1,5 +1,5 @@
-import type { ChannelId } from '@chat-hub/domain/channel';
-import type { ProfileId } from '@chat-hub/domain/profile';
+import type { ChannelId } from '@omoikane/domain/channel';
+import type { ProfileId } from '@omoikane/domain/profile';
 import type { MessageContent, MessageId, MessageRevisionId } from '../index';
 
 type Equal<Left, Right> =

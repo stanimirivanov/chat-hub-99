@@ -2,9 +2,9 @@ import { Effect } from 'effect';
 import {
   InvalidWorkspaceInvitationDataError,
   type WorkspaceInvitationDeclineRepositoryError,
-} from '@chat-hub/application/workspace';
-import type { WorkspaceInvitationId } from '@chat-hub/domain/workspace';
-import type { DeclineWorkspaceInvitationResult } from '@chat-hub/shared/database';
+} from '@omoikane/application/workspace';
+import type { WorkspaceInvitationId } from '@omoikane/domain/workspace';
+import type { DeclineWorkspaceInvitationResult } from '@omoikane/shared/database';
 import {
   mapWorkspaceInvitationDeclineError,
   mapWorkspaceRepositoryError,

@@ -1,4 +1,4 @@
-import type { AuthenticationError } from '@chat-hub/application/authentication';
+import type { AuthenticationError } from '@omoikane/application/authentication';
 import type { AuthenticationPresentationError } from './authentication.state';
 
 /**

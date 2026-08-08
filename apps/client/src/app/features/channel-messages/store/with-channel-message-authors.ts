@@ -6,9 +6,9 @@ import {
   type,
   withMethods,
 } from '@ngrx/signals';
-import type { ChannelId } from '@chat-hub/domain/channel';
-import type { Message } from '@chat-hub/domain/message';
-import type { Profile, ProfileId } from '@chat-hub/domain/profile';
+import type { ChannelId } from '@omoikane/domain/channel';
+import type { Message } from '@omoikane/domain/message';
+import type { Profile, ProfileId } from '@omoikane/domain/profile';
 import { ProfileApplicationService } from '@client/core/profile/profile-application.service';
 import type { ChannelMessagesState } from '../channel-messages.state';
 

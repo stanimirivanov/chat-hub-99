@@ -1,11 +1,11 @@
 import { Effect, Either, Schema } from 'effect';
 import { describe, expect, it } from 'vitest';
-import type { ChangeWorkspaceMemberRoleCommand } from '@chat-hub/application/workspace';
-import { ProfileIdSchema } from '@chat-hub/domain/profile';
+import type { ChangeWorkspaceMemberRoleCommand } from '@omoikane/application/workspace';
+import { ProfileIdSchema } from '@omoikane/domain/profile';
 import {
   WorkspaceIdSchema,
   WorkspaceMemberRoleSchema,
-} from '@chat-hub/domain/workspace';
+} from '@omoikane/domain/workspace';
 import {
   changedWorkspaceMemberRoleRow,
   makeWorkspaceCommandClientStub,

@@ -1,4 +1,4 @@
-import type { WorkspaceRepository } from '@chat-hub/application/workspace';
+import type { WorkspaceRepository } from '@omoikane/application/workspace';
 import {
   addWorkspaceMember,
   acceptWorkspaceInvitation,

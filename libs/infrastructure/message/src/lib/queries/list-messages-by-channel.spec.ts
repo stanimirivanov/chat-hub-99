@@ -4,8 +4,8 @@ import { describe, expect, it } from 'vitest';
 import {
   ListChannelMessagesQuery,
   MessagePageSizeSchema,
-} from '@chat-hub/application/message';
-import type { CurrentMessage } from '@chat-hub/shared/database';
+} from '@omoikane/application/message';
+import type { CurrentMessage } from '@omoikane/shared/database';
 import {
   listMessagesByChannel,
   toBeforeCursorFilter,

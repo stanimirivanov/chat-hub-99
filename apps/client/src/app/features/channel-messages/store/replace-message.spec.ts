@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import type { ChannelId } from '@chat-hub/domain/channel';
+import type { ChannelId } from '@omoikane/domain/channel';
 import type {
   Message,
   MessageContent,
   MessageId,
-} from '@chat-hub/domain/message';
-import type { ProfileId } from '@chat-hub/domain/profile';
+} from '@omoikane/domain/message';
+import type { ProfileId } from '@omoikane/domain/profile';
 import { replaceMessage } from './replace-message';
 
 const channelId = '00000000-0000-4000-8000-000000000001' as ChannelId;

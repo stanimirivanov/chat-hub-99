@@ -1,6 +1,6 @@
 import { Effect } from 'effect';
-import type { WorkspaceRepositoryReadError } from '@chat-hub/application/workspace';
-import type { Workspace } from '@chat-hub/domain/workspace';
+import type { WorkspaceRepositoryReadError } from '@omoikane/application/workspace';
+import type { Workspace } from '@omoikane/domain/workspace';
 import { mapWorkspaceRepositoryError } from '../errors';
 import { mapCurrentWorkspace } from '../mapping';
 import type { SupabaseWorkspaceClient } from '../supabase-workspace-client';

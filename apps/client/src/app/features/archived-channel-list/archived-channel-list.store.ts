@@ -10,9 +10,9 @@ import {
 import type {
   ChannelRepositoryReadError,
   RestoreChannelError,
-} from '@chat-hub/application/channel';
-import type { Channel, ChannelId } from '@chat-hub/domain/channel';
-import type { WorkspaceId } from '@chat-hub/domain/workspace';
+} from '@omoikane/application/channel';
+import type { Channel, ChannelId } from '@omoikane/domain/channel';
+import type { WorkspaceId } from '@omoikane/domain/workspace';
 import { ChannelApplicationService } from '@client/core/channel/channel-application.service';
 import { initialArchivedChannelListState } from './archived-channel-list.state';
 

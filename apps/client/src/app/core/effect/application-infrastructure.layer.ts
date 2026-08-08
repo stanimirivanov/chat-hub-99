@@ -1,9 +1,9 @@
 import { Layer } from 'effect';
-import { SupabaseAuthenticationServiceLayer } from '@chat-hub/infrastructure/authentication';
-import { SupabaseChannelRepositoryLayer } from '@chat-hub/infrastructure/channel';
-import { SupabaseMessageRepositoryLayer } from '@chat-hub/infrastructure/message';
-import { SupabaseProfileRepositoryLayer } from '@chat-hub/infrastructure/profile';
-import { SupabaseWorkspaceRepositoryLayer } from '@chat-hub/infrastructure/workspace';
+import { SupabaseAuthenticationServiceLayer } from '@omoikane/infrastructure/authentication';
+import { SupabaseChannelRepositoryLayer } from '@omoikane/infrastructure/channel';
+import { SupabaseMessageRepositoryLayer } from '@omoikane/infrastructure/message';
+import { SupabaseProfileRepositoryLayer } from '@omoikane/infrastructure/profile';
+import { SupabaseWorkspaceRepositoryLayer } from '@omoikane/infrastructure/workspace';
 import type { SupabaseClientConfig } from '../supabase/supabase-client-config';
 import { makeSupabaseClientLayer } from '../supabase/supabase-client.layer';
 

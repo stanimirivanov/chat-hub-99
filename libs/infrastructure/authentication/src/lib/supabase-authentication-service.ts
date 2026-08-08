@@ -6,7 +6,7 @@ import {
   type AuthenticationService,
   type AuthenticationSession,
   type SignUpResult,
-} from '@chat-hub/application/authentication';
+} from '@omoikane/application/authentication';
 import { mapAuthenticationError } from './errors';
 import { mapAuthenticationSession } from './mapping';
 import { makeSessionChangesStream } from './session';

@@ -15,4 +15,4 @@ export interface UpdatedChannelDetails {
   readonly name: string;
   readonly description: string | null;
 }
-import type { ChannelId } from '@chat-hub/domain/channel';
+import type { ChannelId } from '@omoikane/domain/channel';

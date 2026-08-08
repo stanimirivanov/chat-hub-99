@@ -11,7 +11,7 @@ import type {
   AuthenticationError,
   AuthenticationSession,
   AuthenticationSessionChange,
-} from '@chat-hub/application/authentication';
+} from '@omoikane/application/authentication';
 import { AuthenticationApplicationService } from '@client/core/authentication/authentication-application.service';
 import { initialAuthenticationState } from './authentication.state';
 import { toAuthenticationPresentationError } from './to-authentication-presentation-error';

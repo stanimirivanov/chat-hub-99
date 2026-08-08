@@ -1,6 +1,6 @@
 import { Effect } from 'effect';
-import type { ProfileRepositoryReadError } from '@chat-hub/application/profile';
-import type { Profile, ProfileId } from '@chat-hub/domain/profile';
+import type { ProfileRepositoryReadError } from '@omoikane/application/profile';
+import type { Profile, ProfileId } from '@omoikane/domain/profile';
 import { mapProfileRepositoryError } from '../errors';
 import { mapCurrentProfile } from '../mapping';
 import type { SupabaseProfileClient } from '../supabase-profile-client';

@@ -1,9 +1,9 @@
 import { Schema } from 'effect';
-import { ProfileIdSchema } from '@chat-hub/domain/profile';
+import { ProfileIdSchema } from '@omoikane/domain/profile';
 import {
   WorkspaceMemberRoleSchema,
   type WorkspaceMember,
-} from '@chat-hub/domain/workspace';
+} from '@omoikane/domain/workspace';
 
 /** Fixed page size for the workspace-specific member directory. */
 export const WORKSPACE_MEMBER_PAGE_SIZE = 25 as const;

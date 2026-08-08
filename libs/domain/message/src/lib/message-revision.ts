@@ -1,5 +1,5 @@
 import { Schema } from 'effect';
-import { ProfileIdSchema } from '@chat-hub/domain/profile';
+import { ProfileIdSchema } from '@omoikane/domain/profile';
 import { MessageContentSchema } from './message-content';
 import { MessageIdSchema } from './message-id';
 import { MessageRevisionIdSchema } from './message-revision-id';

@@ -1,6 +1,6 @@
 # Workspace Domain
 
-`@chat-hub/domain/workspace` contains the technology-independent active and
+`@omoikane/domain/workspace` contains the technology-independent active and
 archived workspace projections and active-membership projections required by
 presentation.
 

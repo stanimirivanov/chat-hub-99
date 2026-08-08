@@ -3,7 +3,7 @@ import {
   ProfileUsernameUnavailableError,
   type ProfileRepositoryUpdateError,
   type UpdateCurrentProfileCommand,
-} from '@chat-hub/application/profile';
+} from '@omoikane/application/profile';
 
 interface PostgrestErrorLike {
   readonly code: string;

@@ -3,9 +3,9 @@ import {
   InvalidWorkspaceMemberDataError,
   type AddWorkspaceMemberCommand,
   type WorkspaceMemberAddRepositoryError,
-} from '@chat-hub/application/workspace';
-import type { WorkspaceMember } from '@chat-hub/domain/workspace';
-import type { AddWorkspaceMemberResult } from '@chat-hub/shared/database';
+} from '@omoikane/application/workspace';
+import type { WorkspaceMember } from '@omoikane/domain/workspace';
+import type { AddWorkspaceMemberResult } from '@omoikane/shared/database';
 import {
   mapWorkspaceMemberAdditionError,
   mapWorkspaceRepositoryError,

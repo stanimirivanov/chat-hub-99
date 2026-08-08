@@ -3,8 +3,8 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   ProfileRepositoryTag,
   type ProfileRepository,
-} from '@chat-hub/application/profile';
-import { ProfileIdSchema, type Profile } from '@chat-hub/domain/profile';
+} from '@omoikane/application/profile';
+import { ProfileIdSchema, type Profile } from '@omoikane/domain/profile';
 import { WorkspaceInvitationAlreadyPendingError } from '../repository';
 import {
   makeInviteWorkspaceMemberRepository,

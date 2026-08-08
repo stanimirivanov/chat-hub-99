@@ -2,7 +2,7 @@ import { Effect, Schema } from 'effect';
 import {
   WorkspaceNameSchema,
   WorkspaceSlugSchema,
-} from '@chat-hub/domain/workspace';
+} from '@omoikane/domain/workspace';
 
 const decodeString = Schema.decodeUnknown(Schema.String);
 const decodeWorkspaceName = Schema.decodeUnknown(WorkspaceNameSchema);

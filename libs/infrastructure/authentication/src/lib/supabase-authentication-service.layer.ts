@@ -1,5 +1,5 @@
 import { Effect, Layer } from 'effect';
-import { AuthenticationServiceTag } from '@chat-hub/application/authentication';
+import { AuthenticationServiceTag } from '@omoikane/application/authentication';
 import { makeSupabaseAuthenticationService } from './supabase-authentication-service';
 import { SupabaseAuthenticationClientTag } from './supabase-authentication-client';
 

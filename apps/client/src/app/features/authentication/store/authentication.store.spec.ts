@@ -12,7 +12,7 @@ import {
   type AuthenticationSession,
   type AuthenticationSessionChange,
   type SignUpResult,
-} from '@chat-hub/application/authentication';
+} from '@omoikane/application/authentication';
 import { AuthenticationApplicationService } from '@client/core/authentication/authentication-application.service';
 import { AuthenticationStore } from './authentication.store';
 

@@ -1,7 +1,7 @@
 import { Effect, Either, Schema } from 'effect';
 import { describe, expect, it } from 'vitest';
-import type { UpdateChannelCommand } from '@chat-hub/application/channel';
-import { ChannelIdSchema } from '@chat-hub/domain/channel';
+import type { UpdateChannelCommand } from '@omoikane/application/channel';
+import { ChannelIdSchema } from '@omoikane/domain/channel';
 import {
   makeChannelCommandClientStub,
   updatedChannelVersionId,

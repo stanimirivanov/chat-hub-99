@@ -1,5 +1,5 @@
 import { Effect, Layer } from 'effect';
-import { ProfileRepositoryTag } from '@chat-hub/application/profile';
+import { ProfileRepositoryTag } from '@omoikane/application/profile';
 import { SupabaseProfileClientTag } from './supabase-profile-client';
 import { makeSupabaseProfileRepository } from './supabase-profile-repository';
 

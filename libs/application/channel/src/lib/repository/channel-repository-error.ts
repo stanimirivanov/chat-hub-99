@@ -1,6 +1,6 @@
 import { Data } from 'effect';
-import type { ChannelId } from '@chat-hub/domain/channel';
-import type { WorkspaceId } from '@chat-hub/domain/workspace';
+import type { ChannelId } from '@omoikane/domain/channel';
+import type { WorkspaceId } from '@omoikane/domain/workspace';
 
 /**
  * Indicates that a channel operation could not reach or query its provider.

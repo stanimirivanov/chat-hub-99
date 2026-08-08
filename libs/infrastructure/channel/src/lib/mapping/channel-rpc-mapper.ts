@@ -1,14 +1,14 @@
 import type {
   CreateChannelCommand,
   UpdateChannelCommand,
-} from '@chat-hub/application/channel';
-import type { ChannelId } from '@chat-hub/domain/channel';
+} from '@omoikane/application/channel';
+import type { ChannelId } from '@omoikane/domain/channel';
 import type {
   ArchiveChannelArgs,
   CreateChannelArgs,
   RestoreChannelArgs,
   UpdateChannelArgs,
-} from '@chat-hub/shared/database';
+} from '@omoikane/shared/database';
 
 /**
  * Maps a validated channel identity to generated archive RPC arguments.

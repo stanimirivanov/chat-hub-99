@@ -1,9 +1,9 @@
 import { Effect, Schema } from 'effect';
-import { ProfileIdSchema, type ProfileId } from '@chat-hub/domain/profile';
+import { ProfileIdSchema, type ProfileId } from '@omoikane/domain/profile';
 import {
   WorkspaceIdSchema,
   type WorkspaceId,
-} from '@chat-hub/domain/workspace';
+} from '@omoikane/domain/workspace';
 
 export type WorkspaceMemberMutationField =
   | 'workspaceId'

@@ -1,6 +1,6 @@
 import { Effect } from 'effect';
-import type { ChannelRepositoryArchiveError } from '@chat-hub/application/channel';
-import type { ChannelId } from '@chat-hub/domain/channel';
+import type { ChannelRepositoryArchiveError } from '@omoikane/application/channel';
+import type { ChannelId } from '@omoikane/domain/channel';
 import { mapChannelArchiveError, mapChannelRepositoryError } from '../errors';
 import { toArchiveChannelArgs } from '../mapping';
 import type { SupabaseChannelClient } from '../supabase-channel-client';

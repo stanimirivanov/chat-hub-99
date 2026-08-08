@@ -1,6 +1,6 @@
 # Message Application
 
-`@chat-hub/application/message` coordinates message use cases and defines the
+`@omoikane/application/message` coordinates message use cases and defines the
 ports required to execute them. It is the policy layer between the domain and
 external systems.
 
@@ -89,9 +89,9 @@ Imports communicate architectural boundaries:
 
 - Same-folder and cross-folder internal modules use explicit relative imports.
 - External packages use the library public entry point.
-- Internal modules must not self-import through @chat-hub/application/message.
-- Domain contracts use `@chat-hub/domain/message`.
-- External consumers use only `@chat-hub/application/message`.
+- Internal modules must not self-import through @omoikane/application/message.
+- Domain contracts use `@omoikane/domain/message`.
+- External consumers use only `@omoikane/application/message`.
 - Internal code must not import the library through its own public entry point.
 - Infrastructure, database, Angular, NgRx, Node, and browser APIs are forbidden
   in production application source code.

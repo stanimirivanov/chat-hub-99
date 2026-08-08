@@ -1,7 +1,7 @@
 import type {
   MessageId,
   MessageRevisionNumber,
-} from '@chat-hub/domain/message';
+} from '@omoikane/domain/message';
 
 /** Pagination cursor accepted by the list-message-revisions use case. */
 export interface ListMessageRevisionsCursorInput {

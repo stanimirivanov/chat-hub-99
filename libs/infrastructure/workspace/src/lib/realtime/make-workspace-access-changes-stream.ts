@@ -1,6 +1,6 @@
 import { Effect, Schema, Stream } from 'effect';
-import { ProfileIdSchema, type ProfileId } from '@chat-hub/domain/profile';
-import { WorkspaceRepositoryUnavailableError } from '@chat-hub/application/workspace';
+import { ProfileIdSchema, type ProfileId } from '@omoikane/domain/profile';
+import { WorkspaceRepositoryUnavailableError } from '@omoikane/application/workspace';
 import type { SupabaseWorkspaceClient } from '../supabase-workspace-client';
 
 const workspaceAccessTopic = (userId: ProfileId): string =>

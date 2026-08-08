@@ -2,12 +2,12 @@ import { Effect } from 'effect';
 import {
   InvalidWorkspaceMemberDataError,
   type WorkspaceInvitationAcceptanceRepositoryError,
-} from '@chat-hub/application/workspace';
+} from '@omoikane/application/workspace';
 import type {
   WorkspaceInvitationId,
   WorkspaceMember,
-} from '@chat-hub/domain/workspace';
-import type { AcceptWorkspaceInvitationResult } from '@chat-hub/shared/database';
+} from '@omoikane/domain/workspace';
+import type { AcceptWorkspaceInvitationResult } from '@omoikane/shared/database';
 import {
   mapWorkspaceInvitationAcceptanceError,
   mapWorkspaceRepositoryError,

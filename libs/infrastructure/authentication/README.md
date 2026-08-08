@@ -1,6 +1,6 @@
 # Authentication Infrastructure
 
-`@chat-hub/infrastructure/authentication` implements the application
+`@omoikane/infrastructure/authentication` implements the application
 authentication port with Supabase Auth.
 
 It translates Supabase sessions, promises, callbacks, and errors into

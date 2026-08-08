@@ -2,8 +2,8 @@ import { Effect } from 'effect';
 import {
   ProfileRepositoryTag,
   type ProfileRepository,
-} from '@chat-hub/application/profile';
-import type { WorkspaceInvitation } from '@chat-hub/domain/workspace';
+} from '@omoikane/application/profile';
+import type { WorkspaceInvitation } from '@omoikane/domain/workspace';
 import {
   WorkspaceRepositoryTag,
   type InviteWorkspaceMemberCommand,

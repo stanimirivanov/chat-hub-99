@@ -5,7 +5,7 @@ import {
   input,
   signal,
 } from '@angular/core';
-import type { AvatarUrl } from '@chat-hub/domain/profile';
+import type { AvatarUrl } from '@omoikane/domain/profile';
 
 /**
  * Renders a validated external avatar with a deterministic initials fallback.

@@ -1,11 +1,11 @@
-import type { MessageChange } from '@chat-hub/application/message';
+import type { MessageChange } from '@omoikane/application/message';
 import type {
   Message,
   MessageContent,
   MessageId,
-} from '@chat-hub/domain/message';
-import type { ChannelId } from '@chat-hub/domain/channel';
-import type { ProfileId } from '@chat-hub/domain/profile';
+} from '@omoikane/domain/message';
+import type { ChannelId } from '@omoikane/domain/channel';
+import type { ProfileId } from '@omoikane/domain/profile';
 import { describe, expect, it } from 'vitest';
 import { reconcileMessageChange } from './reconcile-message-change';
 

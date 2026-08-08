@@ -2,12 +2,12 @@ import type {
   CreateMessageArgs,
   DeleteMessageArgs,
   EditMessageArgs,
-} from '@chat-hub/shared/database';
+} from '@omoikane/shared/database';
 import type {
   CreateMessageCommand,
   DeleteMessageCommand,
   EditMessageCommand,
-} from '@chat-hub/application/message';
+} from '@omoikane/application/message';
 
 /**
  * Maps an application create-message command to the arguments expected by the

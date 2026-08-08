@@ -3,9 +3,9 @@ import {
   InvalidChannelDataError,
   type ChannelRepositoryReadError,
   type ChannelRepositoryRestoreError,
-} from '@chat-hub/application/channel';
-import type { Channel, ChannelId } from '@chat-hub/domain/channel';
-import type { RestoreChannelResult } from '@chat-hub/shared/database';
+} from '@omoikane/application/channel';
+import type { Channel, ChannelId } from '@omoikane/domain/channel';
+import type { RestoreChannelResult } from '@omoikane/shared/database';
 import { mapChannelRepositoryError, mapChannelRestoreError } from '../errors';
 import { mapCurrentChannel, toRestoreChannelArgs } from '../mapping';
 import type { SupabaseChannelClient } from '../supabase-channel-client';

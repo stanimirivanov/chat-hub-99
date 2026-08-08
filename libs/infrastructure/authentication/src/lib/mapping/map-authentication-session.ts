@@ -4,7 +4,7 @@ import {
   AuthenticationUnavailableError,
   type AuthenticationOperation,
   type AuthenticationSession,
-} from '@chat-hub/application/authentication';
+} from '@omoikane/application/authentication';
 
 const decodeAuthenticationSession = Schema.decodeUnknownEither(
   AuthenticationSessionSchema

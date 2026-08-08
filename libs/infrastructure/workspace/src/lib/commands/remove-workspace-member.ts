@@ -3,8 +3,8 @@ import {
   InvalidWorkspaceMemberDataError,
   type RemoveWorkspaceMemberCommand,
   type WorkspaceMemberRemovalRepositoryError,
-} from '@chat-hub/application/workspace';
-import type { RemoveWorkspaceMemberResult } from '@chat-hub/shared/database';
+} from '@omoikane/application/workspace';
+import type { RemoveWorkspaceMemberResult } from '@omoikane/shared/database';
 import {
   mapWorkspaceMemberRemovalError,
   mapWorkspaceRepositoryError,

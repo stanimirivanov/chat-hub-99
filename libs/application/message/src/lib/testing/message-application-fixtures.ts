@@ -1,12 +1,12 @@
 import { Schema } from 'effect';
-import { ChannelIdSchema } from '@chat-hub/domain/channel';
-import { ProfileIdSchema } from '@chat-hub/domain/profile';
+import { ChannelIdSchema } from '@omoikane/domain/channel';
+import { ProfileIdSchema } from '@omoikane/domain/profile';
 
 import {
   MessageContentSchema,
   MessageIdSchema,
   type Message,
-} from '@chat-hub/domain/message';
+} from '@omoikane/domain/message';
 
 export const channelId = Schema.decodeUnknownSync(ChannelIdSchema)(
   '00000000-0000-4000-8000-000000000001'

@@ -11,8 +11,8 @@ import {
   type ChannelRepositoryRestoreError,
   type CreateChannelCommand,
   type UpdateChannelCommand,
-} from '@chat-hub/application/channel';
-import type { ChannelId } from '@chat-hub/domain/channel';
+} from '@omoikane/application/channel';
+import type { ChannelId } from '@omoikane/domain/channel';
 
 interface PostgrestErrorLike {
   readonly code: string;

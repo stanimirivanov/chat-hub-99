@@ -12,9 +12,9 @@ import {
   MessageMutationNotAllowedError,
   MessageNotFoundError,
   MessageRepositoryUnavailableError,
-} from '@chat-hub/application/message';
-import { ChannelIdSchema } from '@chat-hub/domain/channel';
-import { MessageIdSchema } from '@chat-hub/domain/message';
+} from '@omoikane/application/message';
+import { ChannelIdSchema } from '@omoikane/domain/channel';
+import { MessageIdSchema } from '@omoikane/domain/message';
 import {
   toChannelMessagesError,
   toMessageRevisionsError,

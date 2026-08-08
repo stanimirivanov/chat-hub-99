@@ -1,7 +1,7 @@
 import type {
   CurrentProfile,
   UpdateMyProfileResult,
-} from '@chat-hub/shared/database';
+} from '@omoikane/shared/database';
 
 export const currentProfileRow: CurrentProfile = {
   user_id: '00000000-0000-4000-8000-000000000001',

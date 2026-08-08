@@ -3,8 +3,8 @@ import {
   InvalidWorkspaceMemberDataError,
   type SuspendWorkspaceMemberCommand,
   type WorkspaceMemberSuspensionRepositoryError,
-} from '@chat-hub/application/workspace';
-import type { SuspendWorkspaceMemberResult } from '@chat-hub/shared/database';
+} from '@omoikane/application/workspace';
+import type { SuspendWorkspaceMemberResult } from '@omoikane/shared/database';
 import {
   mapWorkspaceMemberSuspensionError,
   mapWorkspaceRepositoryError,

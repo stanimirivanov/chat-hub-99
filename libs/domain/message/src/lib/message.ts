@@ -1,6 +1,6 @@
 import { Schema } from 'effect';
-import { ChannelIdSchema } from '@chat-hub/domain/channel';
-import { ProfileIdSchema } from '@chat-hub/domain/profile';
+import { ChannelIdSchema } from '@omoikane/domain/channel';
+import { ProfileIdSchema } from '@omoikane/domain/profile';
 import { MessageContentSchema } from './message-content';
 import { MessageIdSchema } from './message-id';
 

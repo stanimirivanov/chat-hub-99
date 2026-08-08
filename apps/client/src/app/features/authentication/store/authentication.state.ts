@@ -1,4 +1,4 @@
-import type { AuthenticationSession } from '@chat-hub/application/authentication';
+import type { AuthenticationSession } from '@omoikane/application/authentication';
 
 /**
  * Overall authentication state visible to the application shell.

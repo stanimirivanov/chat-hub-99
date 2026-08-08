@@ -1,5 +1,5 @@
 import { Data } from 'effect';
-import type { ProfileRepositoryReadError } from '@chat-hub/application/profile';
+import type { ProfileRepositoryReadError } from '@omoikane/application/profile';
 import type { WorkspaceInvitationCreationRepositoryError } from '../repository';
 import type { WorkspaceMemberCandidateField } from '../workspace-member-candidate/decode-workspace-member-candidate';
 

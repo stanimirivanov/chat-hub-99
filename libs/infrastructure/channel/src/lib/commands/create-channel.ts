@@ -3,9 +3,9 @@ import {
   InvalidChannelDataError,
   type ChannelRepositoryCreateError,
   type CreateChannelCommand,
-} from '@chat-hub/application/channel';
-import { ChannelIdSchema, type ChannelId } from '@chat-hub/domain/channel';
-import type { CreateChannelResult } from '@chat-hub/shared/database';
+} from '@omoikane/application/channel';
+import { ChannelIdSchema, type ChannelId } from '@omoikane/domain/channel';
+import type { CreateChannelResult } from '@omoikane/shared/database';
 import { mapChannelCreateError, mapChannelRepositoryError } from '../errors';
 import { toCreateChannelArgs } from '../mapping';
 import type { SupabaseChannelClient } from '../supabase-channel-client';

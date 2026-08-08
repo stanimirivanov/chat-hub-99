@@ -1,4 +1,4 @@
-import type { MessageRepository } from '@chat-hub/application/message';
+import type { MessageRepository } from '@omoikane/application/message';
 
 import { createMessage, deleteMessage, editMessage } from './commands';
 import { findMessageById } from './queries/find-message-by-id';

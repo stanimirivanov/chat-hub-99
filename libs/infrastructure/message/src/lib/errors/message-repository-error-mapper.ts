@@ -1,5 +1,5 @@
-import type { ChannelId } from '@chat-hub/domain/channel';
-import type { MessageId } from '@chat-hub/domain/message';
+import type { ChannelId } from '@omoikane/domain/channel';
+import type { MessageId } from '@omoikane/domain/message';
 import {
   MessageAccessDeniedError,
   MessageContentUnchangedError,
@@ -10,7 +10,7 @@ import {
   type MessageRepositoryCreateError,
   type MessageRepositoryEditError,
   type MessageRepositoryError,
-} from '@chat-hub/application/message';
+} from '@omoikane/application/message';
 
 type MessageCommandRepositoryError =
   | MessageRepositoryError

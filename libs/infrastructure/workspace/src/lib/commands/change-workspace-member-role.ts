@@ -3,9 +3,9 @@ import {
   InvalidWorkspaceMemberDataError,
   type ChangeWorkspaceMemberRoleCommand,
   type WorkspaceMemberRoleChangeRepositoryError,
-} from '@chat-hub/application/workspace';
-import type { WorkspaceMember } from '@chat-hub/domain/workspace';
-import type { ChangeWorkspaceMemberRoleResult } from '@chat-hub/shared/database';
+} from '@omoikane/application/workspace';
+import type { WorkspaceMember } from '@omoikane/domain/workspace';
+import type { ChangeWorkspaceMemberRoleResult } from '@omoikane/shared/database';
 import {
   mapWorkspaceMemberRoleChangeError,
   mapWorkspaceRepositoryError,

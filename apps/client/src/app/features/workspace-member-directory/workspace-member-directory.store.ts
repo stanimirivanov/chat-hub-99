@@ -12,13 +12,13 @@ import type {
   RemoveWorkspaceMemberError,
   SuspendWorkspaceMemberError,
   WorkspaceMemberCursor,
-} from '@chat-hub/application/workspace';
-import type { Profile, ProfileId } from '@chat-hub/domain/profile';
+} from '@omoikane/application/workspace';
+import type { Profile, ProfileId } from '@omoikane/domain/profile';
 import type {
   WorkspaceId,
   WorkspaceMember,
   WorkspaceMemberRole,
-} from '@chat-hub/domain/workspace';
+} from '@omoikane/domain/workspace';
 import { ProfileApplicationService } from '@client/core/profile/profile-application.service';
 import { WorkspaceApplicationService } from '@client/core/workspace/workspace-application.service';
 import {

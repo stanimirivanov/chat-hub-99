@@ -10,8 +10,8 @@ import {
 import { Schema } from 'effect';
 import { BehaviorSubject } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
-import { ChannelIdSchema, type Channel } from '@chat-hub/domain/channel';
-import { WorkspaceIdSchema } from '@chat-hub/domain/workspace';
+import { ChannelIdSchema, type Channel } from '@omoikane/domain/channel';
+import { WorkspaceIdSchema } from '@omoikane/domain/workspace';
 import { ArchivedChannelListComponent } from '@client/features/archived-channel-list/archived-channel-list.component';
 import { ChannelMessagesComponent } from '@client/features/channel-messages/channel-messages.component';
 import { ChannelNavigationComponent } from './channel-navigation.component';

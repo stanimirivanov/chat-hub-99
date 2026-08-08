@@ -1,4 +1,4 @@
-import type { MessageId } from '@chat-hub/domain/message';
+import type { MessageId } from '@omoikane/domain/message';
 
 /**
  * Input accepted by the edit-message use case before content validation.

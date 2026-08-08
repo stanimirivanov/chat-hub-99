@@ -1,5 +1,5 @@
 import { Effect } from 'effect';
-import type { Workspace } from '@chat-hub/domain/workspace';
+import type { Workspace } from '@omoikane/domain/workspace';
 import {
   WorkspaceRepositoryTag,
   type WorkspaceRepository,

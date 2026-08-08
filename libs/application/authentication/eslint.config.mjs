@@ -10,13 +10,13 @@ export default [
         {
           paths: [
             {
-              name: '@chat-hub/application/authentication',
+              name: '@omoikane/application/authentication',
               message: 'Use relative imports.',
             },
           ],
           patterns: [
             {
-              group: ['@chat-hub/application/authentication/*'],
+              group: ['@omoikane/application/authentication/*'],
               message:
                 'Deep imports through the public package alias are forbidden.',
             },

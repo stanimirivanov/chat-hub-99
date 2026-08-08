@@ -4,12 +4,12 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   ChannelRepositoryUnavailableError,
   ChannelRestoreNotAllowedError,
-} from '@chat-hub/application/channel';
+} from '@omoikane/application/channel';
 import {
   ArchivedChannelSchema,
   type ArchivedChannel,
-} from '@chat-hub/domain/channel';
-import { WorkspaceIdSchema } from '@chat-hub/domain/workspace';
+} from '@omoikane/domain/channel';
+import { WorkspaceIdSchema } from '@omoikane/domain/workspace';
 import { ChannelApplicationService } from '@client/core/channel/channel-application.service';
 import { ArchivedChannelListStore } from './archived-channel-list.store';
 

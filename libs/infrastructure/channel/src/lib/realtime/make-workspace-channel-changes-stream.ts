@@ -1,6 +1,6 @@
 import { Effect, Stream } from 'effect';
-import { ChannelRepositoryUnavailableError } from '@chat-hub/application/channel';
-import type { WorkspaceId } from '@chat-hub/domain/workspace';
+import { ChannelRepositoryUnavailableError } from '@omoikane/application/channel';
+import type { WorkspaceId } from '@omoikane/domain/workspace';
 import type { SupabaseChannelClient } from '../supabase-channel-client';
 
 const workspaceChannelTopic = (workspaceId: WorkspaceId): string =>

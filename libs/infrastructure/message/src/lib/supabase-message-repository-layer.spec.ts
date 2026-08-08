@@ -4,8 +4,8 @@ import { Effect, Layer, Schema } from 'effect';
 import {
   MessageRepositoryTag,
   type DeleteMessageCommand,
-} from '@chat-hub/application/message';
-import { MessageIdSchema } from '@chat-hub/domain/message';
+} from '@omoikane/application/message';
+import { MessageIdSchema } from '@omoikane/domain/message';
 import {
   SupabaseMessageClientTag,
   type ChatHubSupabaseClient,

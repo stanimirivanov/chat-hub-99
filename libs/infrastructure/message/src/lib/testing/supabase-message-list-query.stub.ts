@@ -1,4 +1,4 @@
-import type { CurrentMessage } from '@chat-hub/shared/database';
+import type { CurrentMessage } from '@omoikane/shared/database';
 import { vi, type Mock } from 'vitest';
 
 import type { ChatHubSupabaseClient } from '../supabase-message-client';

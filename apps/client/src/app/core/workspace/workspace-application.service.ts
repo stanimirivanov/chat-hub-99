@@ -52,14 +52,14 @@ import {
   type WorkspaceRepositoryReadError,
   type UpdateWorkspaceError,
   type UpdateWorkspaceInput,
-} from '@chat-hub/application/workspace';
+} from '@omoikane/application/workspace';
 import type {
   ArchivedWorkspace,
   Workspace,
   WorkspaceId,
   WorkspaceInvitation,
   WorkspaceMember,
-} from '@chat-hub/domain/workspace';
+} from '@omoikane/domain/workspace';
 import { applicationRuntime } from '../effect/application-runtime';
 
 /**
