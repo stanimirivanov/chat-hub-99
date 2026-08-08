@@ -1,10 +1,14 @@
-# Chat Hub
+# Omoikane
 
-Chat Hub is an educational, portfolio-oriented collaboration application
-inspired by Slack. Its purpose is not only to deliver features, but also to
-demonstrate how an Angular application can use domain boundaries, Effect, NgRx
-Signal Store, and Supabase without turning those technologies into unnecessary
-framework layers.
+Omoikane is Izanagi's **Collaborative Intelligence Platform**. Channels and
+messaging are its first collaboration capability; the longer-term product
+direction combines collaboration, organizational knowledge, and auditable
+intelligence workflows.
+
+This repository also demonstrates how Angular, Effect, NgRx Signal Store, and
+Supabase can support strict domain boundaries without becoming unnecessary
+framework layers. The approved product and architecture direction is indexed in
+the [Omoikane documentation](docs/README.md).
 
 ## Technology
 
@@ -243,7 +247,9 @@ Seeded users
 | Workspace member   | `member@chat-hub.local`   | `Password123!` |
 | Workspace outsider | `outsider@chat-hub.local` | `Password123!` |
 
-The owner and member belong to the seeded Chat Hub Development workspace. The
+The owner and member belong to the seeded Chat Hub Development workspace. That
+name and the `@chat-hub.local` addresses are transitional local Supabase data
+and remain accurate until the runtime-identity change in Phase 0 / PR 4. The
 outsider has an active profile but no workspace membership.
 
 These credentials are explicitly local development credentials. Do not place

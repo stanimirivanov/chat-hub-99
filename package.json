@@ -1,5 +1,6 @@
 {
-  "name": "@chat-hub-99/source",
+  "name": "omoikane",
+  "description": "Izanagi's Collaborative Intelligence Platform",
   "version": "0.1.0",
   "license": "MIT",
   "packageManager": "pnpm@11.16.0",

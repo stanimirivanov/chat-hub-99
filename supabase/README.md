@@ -1,8 +1,12 @@
-# Chat Hub Supabase
+# Omoikane Supabase
 
 This directory contains the local Supabase configuration, PostgreSQL migrations,
 development seed data, generated database types, and database verification tests
-for Chat Hub.
+for Omoikane.
+
+The local Supabase project ID, container names, seeded workspace, and seeded
+email domain still use their legacy values. They remain documented as-is until
+the coordinated runtime-identity migration in Phase 0 / PR 4.
 
 The database is treated as an architectural boundary rather than as passive
 storage. It owns persistence invariants, authorization policies, immutable
