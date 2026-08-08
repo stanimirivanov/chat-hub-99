@@ -6,11 +6,14 @@ import {
   listWorkspaceChannels,
   listArchivedWorkspaceChannels,
   observeWorkspaceChannels,
+  restoreChannel,
   updateChannel,
   type CreateChannelError,
   type CreateChannelInput,
   type ChannelRepositoryReadError,
   type ObserveWorkspaceChannelsError,
+  type RestoreChannelError,
+  type RestoreChannelInput,
   type ArchiveChannelError,
   type ArchiveChannelInput,
   type UpdatedChannelDetails,
@@ -61,6 +64,15 @@ export class ChannelApplicationService {
   > {
     return applicationRuntime.runPromise(
       listArchivedWorkspaceChannels(workspaceId).pipe(Effect.either)
+    );
+  }
+
+  /** Restores one archived channel through authenticated owner authority. */
+  restoreChannel(
+    input: RestoreChannelInput
+  ): Promise<Either.Either<Channel, RestoreChannelError>> {
+    return applicationRuntime.runPromise(
+      restoreChannel(input).pipe(Effect.either)
     );
   }
 

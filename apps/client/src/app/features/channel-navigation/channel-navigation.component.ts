@@ -183,6 +183,15 @@ export class ChannelNavigationComponent {
     });
   }
 
+  /** Adds a restored channel to navigation and lets the route select it. */
+  protected onChannelRestored(channel: Channel): void {
+    if (!this.store.includeRestoredChannel(channel)) {
+      return;
+    }
+
+    this.navigateToChannel(channel.slug);
+  }
+
   private selectChannelFromRoute(
     channelSlug: string | null,
     channels: readonly Channel[]

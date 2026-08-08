@@ -128,6 +128,10 @@ export type ArchiveChannelArgs = DatabaseFunctionArgs<'archive_channel'>;
 
 export type ArchiveChannelResult = DatabaseFunctionReturns<'archive_channel'>;
 
+export type RestoreChannelArgs = DatabaseFunctionArgs<'restore_channel'>;
+
+export type RestoreChannelResult = DatabaseFunctionReturns<'restore_channel'>;
+
 /**
  * Message commands.
  */

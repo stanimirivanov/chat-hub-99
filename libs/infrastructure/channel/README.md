@@ -3,8 +3,9 @@
 ## Purpose
 
 Implements active and archived channel discovery, realtime invalidation,
-creation, detail updates, and archiving with Supabase while keeping generated
-database types and provider failures outside the application boundary.
+creation, detail updates, archiving, and restoration with Supabase while
+keeping generated database types and provider failures outside the application
+boundary.
 
 ## Responsibilities and non-responsibilities
 
@@ -15,6 +16,7 @@ database types and provider failures outside the application boundary.
 - Execute the transactional `create_channel` RPC.
 - Execute the transactional `update_channel` RPC.
 - Execute the transactional `archive_channel` RPC.
+- Execute the transactional `restore_channel` RPC.
 - Map validated application commands to generated RPC arguments.
 - Decode external rows and validate returned channel/version UUIDs.
 - Translate provider failures into application-owned errors.
@@ -59,6 +61,12 @@ workspace ownership and changes the mutable channel head status without
 deleting the channel, messages, or history. Its `void` success remains a `void`
 repository acknowledgment; no inactive channel projection is manufactured.
 
+Restoration also sends only the stable channel identity. It locks the archived
+channel and active workspace, verifies active ownership, and changes only the
+mutable lifecycle head. Descriptive history is not duplicated. The command
+returns the now-active `current_channels` projection, which the adapter checks
+for the requested identity and active status before domain decoding.
+
 Archived discovery reads `current_channels.updated_at` as the archive time
 because the archive command updates the mutable head timestamp in the same
 transaction. Existing row-level security exposes archived rows only to active
@@ -78,8 +86,10 @@ repository-unavailable errors. Code `42501` becomes the stable creation-not-
 allowed error. Stable update authorization and archived-lifecycle rejections
 become `ChannelUpdateNotAllowedError`; unrelated provider failures remain
 repository-unavailable. Archive authorization and stable archived-lifecycle
-failures receive the parallel `ChannelArchiveNotAllowedError` translation. Raw
-PostgREST values never escape this library.
+failures receive the parallel `ChannelArchiveNotAllowedError` translation.
+Restoration authorization, non-archived lifecycle, and archived-workspace
+failures become `ChannelRestoreNotAllowedError`. Raw PostgREST values never
+escape this library.
 
 ## Runtime flow
 
@@ -103,6 +113,13 @@ archiveChannel use case
   -> SupabaseChannelRepositoryLayer
   -> archive_channel RPC (authenticated session + owner authorization)
   -> void repository acknowledgment
+
+restoreChannel use case
+  -> ChannelRepositoryTag
+  -> SupabaseChannelRepositoryLayer
+  -> restore_channel RPC (authenticated session + owner authorization)
+  -> matching active projection validation
+  -> application Channel value
 
 listArchivedWorkspaceChannels use case
   -> ChannelRepositoryTag

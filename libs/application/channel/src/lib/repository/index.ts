@@ -8,11 +8,13 @@ export {
   ChannelArchiveNotAllowedError,
   ChannelCreationNotAllowedError,
   ChannelRepositoryUnavailableError,
+  ChannelRestoreNotAllowedError,
   ChannelSlugUnavailableError,
   ChannelUpdateNotAllowedError,
   InvalidChannelDataError,
   type ChannelRepositoryCreateError,
   type ChannelRepositoryArchiveError,
   type ChannelRepositoryReadError,
+  type ChannelRepositoryRestoreError,
   type ChannelRepositoryUpdateError,
 } from './channel-repository-error';

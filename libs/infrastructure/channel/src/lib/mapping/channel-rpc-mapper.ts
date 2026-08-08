@@ -6,6 +6,7 @@ import type { ChannelId } from '@chat-hub/domain/channel';
 import type {
   ArchiveChannelArgs,
   CreateChannelArgs,
+  RestoreChannelArgs,
   UpdateChannelArgs,
 } from '@chat-hub/shared/database';
 
@@ -15,6 +16,13 @@ import type {
 export const toArchiveChannelArgs = (
   channelId: ChannelId
 ): ArchiveChannelArgs => ({
+  p_channel_id: channelId,
+});
+
+/** Maps a validated channel identity to generated restoration RPC arguments. */
+export const toRestoreChannelArgs = (
+  channelId: ChannelId
+): RestoreChannelArgs => ({
   p_channel_id: channelId,
 });
 

@@ -252,6 +252,7 @@
       <app-archived-channel-list
         [workspaceId]="workspaceId()"
         [activeChannels]="store.channels()"
+        (channelRestored)="onChannelRestored($event)"
       />
     }
   }

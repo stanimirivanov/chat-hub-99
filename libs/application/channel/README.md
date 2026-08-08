@@ -17,15 +17,17 @@ and mutating workspace channels.
   excluding the immutable workspace association and slug.
 - `archiveChannel` validates a stable channel identity and acknowledges the
   inactive transition without producing an active projection.
+- `restoreChannel` validates a stable channel identity and returns the restored
+  active projection.
 - `ChannelRepository` defines only the scoped observation, read, create,
-  update, archive, and archived-discovery capabilities required by those use
-  cases.
+  update, archive, restore, and archived-discovery capabilities required by
+  those use cases.
 - Tagged errors distinguish invalid input, unavailable providers, invalid
   external data, slug conflicts, and authorization failures.
 
 This library does not query Supabase, run Effects, inspect sessions, own Angular
-state, or define restoration/hard deletion. It depends only on domain and Effect
-contracts.
+state, authorization policy, or hard deletion. It depends only on domain and
+Effect contracts.
 
 ## Structure
 
@@ -38,6 +40,7 @@ list-archived-workspace-channels/ archived discovery workflow
 list-workspace-channels/    workspace-scoped discovery workflow
 observe-workspace-channels/ validated realtime snapshot workflow
 repository/                 outbound port and technology-neutral failures
+restore-channel/            restoration workflow, input, and errors
 testing/                    isolated repository Layers and fixtures
 update-channel/             update workflow, input, result, and errors
 ```
@@ -47,11 +50,12 @@ update-channel/             update workflow, input, result, and errors
 - `createChannel` and its input/error contracts
 - `updateChannel` and its input/result/error contracts
 - `archiveChannel` and its input/error contracts
+- `restoreChannel` and its input/error contracts
 - `listArchivedWorkspaceChannels`
 - `listWorkspaceChannels`
 - `observeWorkspaceChannels` and its input/error contracts
 - `ChannelRepositoryTag`, `ChannelRepository`, and command contracts
-- channel repository read/create/update/archive errors
+- channel repository read/create/update/archive/restore errors
 
 ## Design decisions
 
@@ -75,9 +79,11 @@ database command returns no projection and archived channels must not be
 represented as active `Channel` values. The shared channel-ID decoder exists
 only because update and archive now enforce the same unknown-input boundary.
 
-Archived discovery returns the separate `ArchivedChannel` projection. It is a
-read-only workflow: restoration, hard deletion, and authorization policy are
-not implied by making archive history visible.
+Archived discovery returns the separate `ArchivedChannel` projection.
+Restoration accepts only the stable identity and returns a repository-validated
+active `Channel`; application code neither trusts the archived presentation
+value as the command result nor owns the authorization decision. Hard deletion
+remains outside this lifecycle.
 
 ## Runtime flow
 
@@ -98,6 +104,10 @@ Angular caller -> archiveChannel -> validate channel identity
 Angular caller -> listArchivedWorkspaceChannels -> ChannelRepositoryTag
                -> repository.listArchivedByWorkspace
                -> readonly ArchivedChannel collection
+
+Angular caller -> restoreChannel -> validate channel identity
+               -> ChannelRepositoryTag -> repository.restore
+               -> validated active Channel
 
 Angular caller -> observeWorkspaceChannels -> validate workspace identity
                -> repository.changesByWorkspace invalidations

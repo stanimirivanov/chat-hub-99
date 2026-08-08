@@ -2,6 +2,7 @@ import type {
   ArchiveChannelResult,
   CreateChannelResult,
   CurrentChannel,
+  RestoreChannelResult,
   UpdateChannelResult,
 } from '@chat-hub/shared/database';
 import { vi } from 'vitest';
@@ -19,6 +20,7 @@ interface ChannelCommandResult {
   readonly data:
     | ArchiveChannelResult
     | CreateChannelResult
+    | RestoreChannelResult
     | UpdateChannelResult
     | null;
   readonly error: {

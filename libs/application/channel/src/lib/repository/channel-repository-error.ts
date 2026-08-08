@@ -57,6 +57,15 @@ export class ChannelArchiveNotAllowedError extends Data.TaggedError(
   readonly channelId: ChannelId;
 }> {}
 
+/**
+ * Indicates that the current session or channel lifecycle forbids restoration.
+ */
+export class ChannelRestoreNotAllowedError extends Data.TaggedError(
+  'ChannelRestoreNotAllowedError'
+)<{
+  readonly channelId: ChannelId;
+}> {}
+
 export type ChannelRepositoryReadError =
   | ChannelRepositoryUnavailableError
   | InvalidChannelDataError;
@@ -73,3 +82,8 @@ export type ChannelRepositoryUpdateError =
 export type ChannelRepositoryArchiveError =
   | ChannelRepositoryUnavailableError
   | ChannelArchiveNotAllowedError;
+
+export type ChannelRepositoryRestoreError =
+  | ChannelRepositoryUnavailableError
+  | InvalidChannelDataError
+  | ChannelRestoreNotAllowedError;
