@@ -12,6 +12,7 @@ describe('makeSupabaseChannelRepository', () => {
       'archive',
       'changesByWorkspace',
       'create',
+      'listArchivedByWorkspace',
       'listByWorkspace',
       'update',
     ]);
@@ -19,6 +20,7 @@ describe('makeSupabaseChannelRepository', () => {
     expect(repository.changesByWorkspace).toBeTypeOf('function');
     expect(repository.create).toBeTypeOf('function');
     expect(repository.listByWorkspace).toBeTypeOf('function');
+    expect(repository.listArchivedByWorkspace).toBeTypeOf('function');
     expect(repository.update).toBeTypeOf('function');
   });
 });

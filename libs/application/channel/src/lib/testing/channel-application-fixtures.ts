@@ -1,5 +1,9 @@
 import { Schema } from 'effect';
-import { ChannelIdSchema, type Channel } from '@chat-hub/domain/channel';
+import {
+  ArchivedChannelSchema,
+  ChannelIdSchema,
+  type Channel,
+} from '@chat-hub/domain/channel';
 import { WorkspaceIdSchema } from '@chat-hub/domain/workspace';
 
 export const workspaceId = Schema.decodeUnknownSync(WorkspaceIdSchema)(
@@ -17,3 +21,8 @@ export const channel: Channel = {
   slug: 'general',
   description: null,
 };
+
+export const archivedChannel = Schema.decodeUnknownSync(ArchivedChannelSchema)({
+  ...channel,
+  archivedAt: '2026-08-08T14:00:00.000Z',
+});

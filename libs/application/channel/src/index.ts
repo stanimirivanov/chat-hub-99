@@ -12,6 +12,7 @@ export {
   type CreateChannelInput,
 } from './lib/create-channel';
 export { listWorkspaceChannels } from './lib/list-workspace-channels';
+export { listArchivedWorkspaceChannels } from './lib/list-archived-workspace-channels';
 export {
   observeWorkspaceChannels,
   InvalidWorkspaceChannelObservationInputError,

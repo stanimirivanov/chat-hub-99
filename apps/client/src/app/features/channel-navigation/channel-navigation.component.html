@@ -248,5 +248,11 @@
         <p>Select a channel to view its messages.</p>
       }
     }
+    @if (canManageChannels()) {
+      <app-archived-channel-list
+        [workspaceId]="workspaceId()"
+        [activeChannels]="store.channels()"
+      />
+    }
   }
 </section>

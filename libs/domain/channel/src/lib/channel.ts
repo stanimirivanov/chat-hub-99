@@ -30,3 +30,15 @@ export const ChannelSchema = Schema.Struct({
 });
 
 export type Channel = typeof ChannelSchema.Type;
+
+/** Archived channel projection available to active workspace owners. */
+export const ArchivedChannelSchema = Schema.Struct({
+  id: ChannelIdSchema,
+  workspaceId: WorkspaceIdSchema,
+  name: ChannelNameSchema,
+  slug: ChannelSlugSchema,
+  description: Schema.NullOr(Schema.String),
+  archivedAt: Schema.Date,
+});
+
+export type ArchivedChannel = typeof ArchivedChannelSchema.Type;

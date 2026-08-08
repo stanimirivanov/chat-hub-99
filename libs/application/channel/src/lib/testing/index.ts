@@ -1,4 +1,5 @@
 export {
+  archivedChannel,
   channel,
   channelId,
   workspaceId,
@@ -10,5 +11,6 @@ export {
   makeChangesByWorkspaceChannelRepository,
   makeCreateChannelRepository,
   makeListByWorkspaceChannelRepository,
+  makeListArchivedByWorkspaceChannelRepository,
   makeUpdateChannelRepository,
 } from './channel-repository.stub';

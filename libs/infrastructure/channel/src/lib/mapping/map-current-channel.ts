@@ -3,9 +3,15 @@ import {
   InvalidChannelDataError,
   type ChannelRepositoryReadError,
 } from '@chat-hub/application/channel';
-import { ChannelSchema, type Channel } from '@chat-hub/domain/channel';
+import {
+  ArchivedChannelSchema,
+  ChannelSchema,
+  type ArchivedChannel,
+  type Channel,
+} from '@chat-hub/domain/channel';
 
 const decodeChannel = Schema.decodeUnknown(ChannelSchema);
+const decodeArchivedChannel = Schema.decodeUnknown(ArchivedChannelSchema);
 
 /**
  * Narrow database-row projection selected by channel navigation.
@@ -21,6 +27,12 @@ export interface CurrentChannelNavigationRow {
   readonly description: string | null;
 }
 
+/** Provider projection required to identify an archived channel snapshot. */
+export interface ArchivedChannelNavigationRow
+  extends CurrentChannelNavigationRow {
+  readonly updated_at: string | null;
+}
+
 /**
  * Decodes one current-channel row into the channel domain projection.
  */
@@ -33,6 +45,26 @@ export const mapCurrentChannel = (
     name: row.name,
     slug: row.slug,
     description: row.description,
+  }).pipe(
+    Effect.mapError(
+      (cause) =>
+        new InvalidChannelDataError({
+          cause,
+        })
+    )
+  );
+
+/** Decodes one archived row without admitting it to active navigation. */
+export const mapArchivedChannel = (
+  row: ArchivedChannelNavigationRow
+): Effect.Effect<ArchivedChannel, ChannelRepositoryReadError> =>
+  decodeArchivedChannel({
+    id: row.channel_id,
+    workspaceId: row.workspace_id,
+    name: row.name,
+    slug: row.slug,
+    description: row.description,
+    archivedAt: row.updated_at,
   }).pipe(
     Effect.mapError(
       (cause) =>

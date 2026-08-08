@@ -8,6 +8,8 @@ and mutating workspace channels.
 ## Responsibilities and non-responsibilities
 
 - `listWorkspaceChannels` orchestrates workspace-scoped discovery.
+- `listArchivedWorkspaceChannels` discovers the archived channels still visible
+  to the current session through persistence authorization.
 - `observeWorkspaceChannels` converts scoped invalidations into authoritative
   active-channel snapshots through the ordinary repository read.
 - `createChannel` normalizes and validates untrusted creation input.
@@ -16,7 +18,8 @@ and mutating workspace channels.
 - `archiveChannel` validates a stable channel identity and acknowledges the
   inactive transition without producing an active projection.
 - `ChannelRepository` defines only the scoped observation, read, create,
-  update, and archive capabilities required by those use cases.
+  update, archive, and archived-discovery capabilities required by those use
+  cases.
 - Tagged errors distinguish invalid input, unavailable providers, invalid
   external data, slug conflicts, and authorization failures.
 
@@ -31,6 +34,7 @@ archive-channel/            archive workflow, input, and errors
 create-channel/             creation workflow, input, and errors
 channel-details/            shared mutable-detail decoding
 channel-identity/           shared command identity decoding
+list-archived-workspace-channels/ archived discovery workflow
 list-workspace-channels/    workspace-scoped discovery workflow
 observe-workspace-channels/ validated realtime snapshot workflow
 repository/                 outbound port and technology-neutral failures
@@ -43,6 +47,7 @@ update-channel/             update workflow, input, result, and errors
 - `createChannel` and its input/error contracts
 - `updateChannel` and its input/result/error contracts
 - `archiveChannel` and its input/error contracts
+- `listArchivedWorkspaceChannels`
 - `listWorkspaceChannels`
 - `observeWorkspaceChannels` and its input/error contracts
 - `ChannelRepositoryTag`, `ChannelRepository`, and command contracts
@@ -70,6 +75,10 @@ database command returns no projection and archived channels must not be
 represented as active `Channel` values. The shared channel-ID decoder exists
 only because update and archive now enforce the same unknown-input boundary.
 
+Archived discovery returns the separate `ArchivedChannel` projection. It is a
+read-only workflow: restoration, hard deletion, and authorization policy are
+not implied by making archive history visible.
+
 ## Runtime flow
 
 ```text
@@ -85,6 +94,10 @@ Angular caller -> updateChannel -> validate identity, name, and description
 Angular caller -> archiveChannel -> validate channel identity
                -> ChannelRepositoryTag -> repository.archive
                -> void acknowledgment
+
+Angular caller -> listArchivedWorkspaceChannels -> ChannelRepositoryTag
+               -> repository.listArchivedByWorkspace
+               -> readonly ArchivedChannel collection
 
 Angular caller -> observeWorkspaceChannels -> validate workspace identity
                -> repository.changesByWorkspace invalidations

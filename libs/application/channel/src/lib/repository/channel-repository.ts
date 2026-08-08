@@ -1,5 +1,9 @@
 import { Context, type Effect, type Stream } from 'effect';
-import type { Channel, ChannelId } from '@chat-hub/domain/channel';
+import type {
+  ArchivedChannel,
+  Channel,
+  ChannelId,
+} from '@chat-hub/domain/channel';
 import type { WorkspaceId } from '@chat-hub/domain/workspace';
 import type {
   ChannelRepositoryArchiveError,
@@ -59,6 +63,11 @@ export interface ChannelRepository {
   readonly listByWorkspace: (
     workspaceId: WorkspaceId
   ) => Effect.Effect<readonly Channel[], ChannelRepositoryReadError>;
+
+  /** Returns archived channels visible to the selected workspace owner. */
+  readonly listArchivedByWorkspace: (
+    workspaceId: WorkspaceId
+  ) => Effect.Effect<readonly ArchivedChannel[], ChannelRepositoryReadError>;
 
   /**
    * Creates a channel for the provider-authenticated workspace member.

@@ -1,6 +1,6 @@
 import { Schema } from 'effect';
 import { describe, expect, it } from 'vitest';
-import { ChannelSchema } from './channel';
+import { ArchivedChannelSchema, ChannelSchema } from './channel';
 
 const decodeChannel = Schema.decodeUnknownEither(ChannelSchema);
 
@@ -33,5 +33,20 @@ describe('ChannelSchema', () => {
     });
 
     expect(result._tag).toBe('Left');
+  });
+});
+
+describe('ArchivedChannelSchema', () => {
+  it('decodes a valid archive timestamp', () => {
+    const channel = Schema.decodeUnknownSync(ArchivedChannelSchema)({
+      id: '00000000-0000-4000-8000-000000000001',
+      workspaceId: '00000000-0000-4000-8000-000000000002',
+      name: 'General',
+      slug: 'general',
+      description: null,
+      archivedAt: '2026-08-08T14:00:00.000Z',
+    });
+
+    expect(channel.archivedAt).toEqual(new Date('2026-08-08T14:00:00.000Z'));
   });
 });
