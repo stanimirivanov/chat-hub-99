@@ -61,9 +61,11 @@ export class WorkspaceMemberDirectoryComponent {
   constructor() {
     effect(() => {
       const workspaceId = this.workspaceId();
+      const currentProfileId =
+        this.authenticationStore.session()?.userId ?? null;
       this.pendingRemovalProfileId.set(null);
       this.pendingSuspensionProfileId.set(null);
-      void this.store.load(workspaceId);
+      void this.store.load(workspaceId, currentProfileId);
     });
 
     effect(() => {
@@ -73,6 +75,21 @@ export class WorkspaceMemberDirectoryComponent {
 
   protected isCurrentUser(profileId: ProfileId): boolean {
     return this.authenticationStore.session()?.userId === profileId;
+  }
+
+  protected retryLoad(): void {
+    void this.store.load(
+      this.workspaceId(),
+      this.authenticationStore.session()?.userId ?? null
+    );
+  }
+
+  protected refreshMembers(): void {
+    void this.store.load(
+      this.workspaceId(),
+      this.authenticationStore.session()?.userId ?? null,
+      { force: true }
+    );
   }
 
   protected changeRole(

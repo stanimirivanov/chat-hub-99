@@ -60,7 +60,7 @@ libs/application/authentication/ Provider-independent authentication workflows
 libs/application/channel/       Workspace-scoped channel lifecycle workflows
 libs/application/message/       Message lifecycle, history queries, and repository port
 libs/application/profile/       Current-profile discovery/update port and use cases
-libs/application/workspace/     Workspace lifecycle, membership, and invitation workflows
+libs/application/workspace/     Workspace lifecycle, paginated membership, and invitation workflows
 libs/infrastructure/authentication/ Supabase authentication adapter
 libs/infrastructure/channel/    Supabase channel query, command, and realtime adapter
 libs/infrastructure/message/    Supabase implementation of the message repository

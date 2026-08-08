@@ -11,6 +11,7 @@ import type {
   ChangeWorkspaceMemberRoleError,
   RemoveWorkspaceMemberError,
   SuspendWorkspaceMemberError,
+  WorkspaceMemberCursor,
 } from '@chat-hub/application/workspace';
 import type { Profile, ProfileId } from '@chat-hub/domain/profile';
 import type {
@@ -34,6 +35,8 @@ export const WorkspaceMemberDirectoryStore = signalStore(
 
   withComputed((store) => ({
     isLoading: computed(() => store.loadStatus() === 'loading'),
+    isLoadingMore: computed(() => store.paginationStatus() === 'loading'),
+    hasMoreMembers: computed(() => store.nextCursor() !== null),
     isMutatingMember: computed(() => store.mutationStatus() === 'pending'),
     isChangingRole: computed(
       () =>
@@ -67,6 +70,7 @@ export const WorkspaceMemberDirectoryStore = signalStore(
         readonly workspaceId: WorkspaceId;
         readonly promise: Promise<void>;
       } | null = null;
+      let activePageRequest: Promise<void> | null = null;
 
       const deactivateMember = async (
         profileId: ProfileId,
@@ -85,6 +89,7 @@ export const WorkspaceMemberDirectoryStore = signalStore(
         if (
           workspaceId === null ||
           store.loadStatus() !== 'loaded' ||
+          store.paginationStatus() === 'loading' ||
           store.mutationStatus() === 'pending'
         ) {
           return false;
@@ -131,11 +136,17 @@ export const WorkspaceMemberDirectoryStore = signalStore(
       return {
         /**
          * Loads active memberships once per workspace and enriches their
-         * stable profile identities in one batch. Profile lookup is
-         * best-effort, so a profile failure retains a usable role directory.
+         * stable profile identities in one batch. `force` replaces all loaded
+         * pages with a new authoritative first-page sequence. Profile lookup
+         * is best-effort, so a profile failure retains a usable role directory.
          */
-        load(workspaceId: WorkspaceId): Promise<void> {
+        load(
+          workspaceId: WorkspaceId,
+          currentProfileId: string | null = null,
+          options: { readonly force?: boolean } = {}
+        ): Promise<void> {
           if (
+            options.force !== true &&
             store.workspaceId() === workspaceId &&
             store.loadStatus() === 'loaded'
           ) {
@@ -147,6 +158,7 @@ export const WorkspaceMemberDirectoryStore = signalStore(
           }
 
           const version = ++requestVersion;
+          activePageRequest = null;
 
           patchState(store, {
             workspaceId,
@@ -154,6 +166,9 @@ export const WorkspaceMemberDirectoryStore = signalStore(
             profiles: [],
             loadStatus: 'loading',
             error: null,
+            nextCursor: null,
+            paginationStatus: 'idle',
+            paginationError: null,
             mutationStatus: 'idle',
             mutationKind: null,
             mutatingProfileId: null,
@@ -161,27 +176,52 @@ export const WorkspaceMemberDirectoryStore = signalStore(
           });
 
           const promise = (async () => {
-            const membershipResult =
-              await workspaceApplication.listWorkspaceMembers(workspaceId);
+            let members: readonly WorkspaceMember[] = [];
+            let nextCursor: WorkspaceMemberCursor | null = null;
 
-            if (version !== requestVersion) {
-              return;
-            }
+            do {
+              const membershipResult =
+                await workspaceApplication.listWorkspaceMembers(
+                  workspaceId,
+                  nextCursor ?? undefined
+                );
 
-            if (Either.isLeft(membershipResult)) {
-              patchState(store, {
-                members: [],
-                profiles: [],
-                loadStatus: 'failed',
-                error: {
-                  message:
-                    'Workspace members are currently unavailable. Please try again.',
-                },
-              });
-              return;
-            }
+              if (version !== requestVersion) {
+                return;
+              }
 
-            const members = membershipResult.right;
+              if (Either.isLeft(membershipResult)) {
+                patchState(store, {
+                  members: [],
+                  profiles: [],
+                  nextCursor: null,
+                  loadStatus: 'failed',
+                  error: {
+                    message:
+                      'Workspace members are currently unavailable. Please try again.',
+                  },
+                });
+                return;
+              }
+
+              members = mergeMembers(members, membershipResult.right.members);
+              nextCursor = membershipResult.right.nextCursor;
+
+              const currentRoleKnown =
+                currentProfileId === null ||
+                members.some(
+                  (member) => member.profileId === currentProfileId
+                ) ||
+                membershipResult.right.members.some(
+                  (member) => member.role === 'member'
+                ) ||
+                nextCursor === null;
+
+              if (currentRoleKnown) {
+                break;
+              }
+            } while (nextCursor !== null);
+
             const profileResult = await profileApplication.listCurrentProfiles(
               members.map((member) => member.profileId)
             );
@@ -195,6 +235,7 @@ export const WorkspaceMemberDirectoryStore = signalStore(
               profiles: Either.isRight(profileResult)
                 ? profileResult.right
                 : [],
+              nextCursor,
               loadStatus: 'loaded',
               error: null,
             });
@@ -205,6 +246,83 @@ export const WorkspaceMemberDirectoryStore = signalStore(
           });
 
           activeRequest = { workspaceId, promise };
+          return promise;
+        },
+
+        /** Loads and enriches the next stable member page exactly once. */
+        loadMore(): Promise<void> {
+          const workspaceId = store.workspaceId();
+          const after = store.nextCursor();
+
+          if (
+            workspaceId === null ||
+            after === null ||
+            store.loadStatus() !== 'loaded' ||
+            store.paginationStatus() === 'loading' ||
+            store.mutationStatus() === 'pending'
+          ) {
+            return activePageRequest ?? Promise.resolve();
+          }
+
+          const version = requestVersion;
+          patchState(store, {
+            paginationStatus: 'loading',
+            paginationError: null,
+          });
+
+          const promise = (async () => {
+            const membershipResult =
+              await workspaceApplication.listWorkspaceMembers(
+                workspaceId,
+                after
+              );
+
+            if (
+              version !== requestVersion ||
+              store.workspaceId() !== workspaceId
+            ) {
+              return;
+            }
+
+            if (Either.isLeft(membershipResult)) {
+              patchState(store, {
+                paginationStatus: 'failed',
+                paginationError: {
+                  message:
+                    'More workspace members could not be loaded. Please try again.',
+                },
+              });
+              return;
+            }
+
+            const page = membershipResult.right;
+            const profileResult = await profileApplication.listCurrentProfiles(
+              page.members.map((member) => member.profileId)
+            );
+
+            if (
+              version !== requestVersion ||
+              store.workspaceId() !== workspaceId
+            ) {
+              return;
+            }
+
+            patchState(store, {
+              members: mergeMembers(store.members(), page.members),
+              profiles: Either.isRight(profileResult)
+                ? mergeProfiles(store.profiles(), profileResult.right)
+                : store.profiles(),
+              nextCursor: page.nextCursor,
+              paginationStatus: 'idle',
+              paginationError: null,
+            });
+          })().finally(() => {
+            if (version === requestVersion) {
+              activePageRequest = null;
+            }
+          });
+
+          activePageRequest = promise;
           return promise;
         },
 
@@ -222,6 +340,7 @@ export const WorkspaceMemberDirectoryStore = signalStore(
           if (
             workspaceId === null ||
             store.loadStatus() !== 'loaded' ||
+            store.paginationStatus() === 'loading' ||
             store.mutationStatus() === 'pending'
           ) {
             return false;
@@ -323,6 +442,36 @@ export const WorkspaceMemberDirectoryStore = signalStore(
     }
   )
 );
+
+const mergeMembers = (
+  current: readonly WorkspaceMember[],
+  incoming: readonly WorkspaceMember[]
+): readonly WorkspaceMember[] => {
+  const byProfileId = new Map(
+    current.map((member) => [member.profileId, member] as const)
+  );
+
+  for (const member of incoming) {
+    byProfileId.set(member.profileId, member);
+  }
+
+  return [...byProfileId.values()];
+};
+
+const mergeProfiles = (
+  current: readonly Profile[],
+  incoming: readonly Profile[]
+): readonly Profile[] => {
+  const byProfileId = new Map(
+    current.map((profile) => [profile.id, profile] as const)
+  );
+
+  for (const profile of incoming) {
+    byProfileId.set(profile.id, profile);
+  }
+
+  return [...byProfileId.values()];
+};
 
 const toDirectoryEntries = (
   members: readonly WorkspaceMember[],

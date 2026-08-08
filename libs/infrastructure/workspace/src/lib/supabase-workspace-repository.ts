@@ -33,7 +33,7 @@ export const makeSupabaseWorkspaceRepository = (
   cancelInvitation: (invitationId) =>
     cancelWorkspaceInvitation(client, invitationId),
   listAccessible: () => listAccessibleWorkspaces(client),
-  listActiveMembers: (workspaceId) => listWorkspaceMembers(client, workspaceId),
+  listActiveMembers: (query) => listWorkspaceMembers(client, query),
   leave: (workspaceId) => leaveWorkspace(client, workspaceId),
   create: (command) => createWorkspace(client, command),
   declineInvitation: (invitationId) =>

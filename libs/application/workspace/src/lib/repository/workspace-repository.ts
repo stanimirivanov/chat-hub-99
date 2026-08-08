@@ -9,6 +9,11 @@ import type {
   WorkspaceMemberRole,
 } from '@chat-hub/domain/workspace';
 import type {
+  WorkspaceMemberCursor,
+  WorkspaceMemberPage,
+  WorkspaceMemberPageSize,
+} from '../workspace-member-pagination';
+import type {
   WorkspaceMemberAddRepositoryError,
   WorkspaceDepartureRepositoryError,
   WorkspaceMemberRepositoryReadError,
@@ -88,6 +93,13 @@ export interface InviteWorkspaceMemberCommand {
   readonly profileId: ProfileId;
 }
 
+/** Validated keyset query for one active workspace-member page. */
+export interface ListActiveWorkspaceMembersQuery {
+  readonly workspaceId: WorkspaceId;
+  readonly after?: WorkspaceMemberCursor;
+  readonly limit: WorkspaceMemberPageSize;
+}
+
 /**
  * Pending invitation enriched with the independently mutable workspace
  * projection needed by recipient presentation.
@@ -155,11 +167,8 @@ export interface WorkspaceRepository {
    * Returns active RLS-visible members belonging to one workspace.
    */
   readonly listActiveMembers: (
-    workspaceId: WorkspaceId
-  ) => Effect.Effect<
-    readonly WorkspaceMember[],
-    WorkspaceMemberRepositoryReadError
-  >;
+    query: ListActiveWorkspaceMembersQuery
+  ) => Effect.Effect<WorkspaceMemberPage, WorkspaceMemberRepositoryReadError>;
 
   /**
    * Leaves the provider-authenticated user's own active membership.

@@ -62,7 +62,18 @@ export {
 } from './lib/create-workspace';
 export { listAccessibleWorkspaces } from './lib/list-accessible-workspaces';
 export { observeAccessibleWorkspaces } from './lib/observe-accessible-workspaces';
-export { listWorkspaceMembers } from './lib/list-workspace-members';
+export {
+  listWorkspaceMembers,
+  InvalidWorkspaceMemberListInputError,
+  type ListWorkspaceMembersError,
+} from './lib/list-workspace-members';
+export {
+  WORKSPACE_MEMBER_PAGE_SIZE,
+  WorkspaceMemberCursorSchema,
+  type WorkspaceMemberCursor,
+  type WorkspaceMemberPage,
+  type WorkspaceMemberPageSize,
+} from './lib/workspace-member-pagination';
 export {
   InvalidWorkspaceDepartureInputError,
   leaveWorkspace,
@@ -96,6 +107,7 @@ export {
   type ChangeWorkspaceMemberRoleCommand,
   type CreateWorkspaceCommand,
   type InviteWorkspaceMemberCommand,
+  type ListActiveWorkspaceMembersQuery,
   type PendingWorkspaceInvitation,
   type PendingWorkspaceInvitationForOwner,
   type RemoveWorkspaceMemberCommand,

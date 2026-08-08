@@ -188,8 +188,9 @@ exact username; acceptance preserves the stable membership identity and its
 history.
 
 The nested `workspace-member-directory` slice loads active RLS-visible
-memberships for the selected workspace and batch-enriches their stable profile
-identities. Owners are displayed before members and the authenticated user is
+memberships for the selected workspace in stable 25-row keyset pages and
+batch-enriches each page's profile identities. Owners are displayed before
+members and the authenticated user is
 labelled locally. Profile enrichment is best-effort: valid roles remain visible
 with a neutral fallback name if profiles are unavailable. Displayed roles are
 not an authorization decision; database policies and commands remain the
@@ -201,6 +202,15 @@ member-mutation state independent from directory loading. Successful commands
 reconcile only their validated canonical outcomes, and late results after
 workspace navigation are ignored. The database independently authorizes the
 actor and protects last-owner invariants.
+
+The store appends pages by stable profile identity, prevents duplicates, and
+keeps page failures separate from the readable directory. Because owner
+capability is derived here and reused by workspace and channel controls, the
+initial request automatically advances through owner-only pages until the
+authenticated user's role is known. An explicit refresh replaces all loaded
+pages, reconciling additions, role changes, removals, and suspensions against
+the current authoritative projection without introducing a generic pagination
+framework.
 
 The nested `workspace-invitations` slice lets an owner invite an existing
 active profile by exact username without granting immediate access. Invitation

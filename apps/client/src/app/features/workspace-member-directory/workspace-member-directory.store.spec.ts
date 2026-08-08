@@ -3,6 +3,8 @@ import { TestBed } from '@angular/core/testing';
 import { describe, expect, it, vi } from 'vitest';
 import { ProfileRepositoryUnavailableError } from '@chat-hub/application/profile';
 import {
+  type WorkspaceMemberCursor,
+  type WorkspaceMemberPage,
   WorkspaceLastOwnerDemotionError,
   WorkspaceLastOwnerRemovalError,
   WorkspaceLastOwnerSuspensionError,
@@ -55,10 +57,14 @@ const profiles: readonly Profile[] = [
     status: 'active',
   },
 ];
+const page = (
+  members: readonly WorkspaceMember[],
+  nextCursor: WorkspaceMemberCursor | null = null
+): WorkspaceMemberPage => ({ members, nextCursor });
 const configureStore = (
   listWorkspaceMembers = vi
     .fn()
-    .mockResolvedValue(Either.right([member, owner])),
+    .mockResolvedValue(Either.right(page([member, owner]))),
   listCurrentProfiles = vi.fn().mockResolvedValue(Either.right(profiles)),
   changeWorkspaceMemberRole = vi
     .fn()
@@ -104,7 +110,10 @@ describe('WorkspaceMemberDirectoryStore', () => {
     expect(store.load(workspaceId)).toBe(firstLoad);
     await firstLoad;
 
-    expect(listWorkspaceMembers).toHaveBeenCalledExactlyOnceWith(workspaceId);
+    expect(listWorkspaceMembers).toHaveBeenCalledExactlyOnceWith(
+      workspaceId,
+      undefined
+    );
     expect(listCurrentProfiles).toHaveBeenCalledExactlyOnceWith([
       memberId,
       ownerId,
@@ -128,6 +137,101 @@ describe('WorkspaceMemberDirectoryStore', () => {
     expect(listWorkspaceMembers).toHaveBeenCalledOnce();
   });
 
+  it('appends and enriches the next member page without duplicating identities', async () => {
+    const cursor: WorkspaceMemberCursor = {
+      role: 'owner',
+      profileId: ownerId,
+    };
+    const listWorkspaceMembers = vi
+      .fn()
+      .mockResolvedValueOnce(Either.right(page([owner], cursor)))
+      .mockResolvedValueOnce(Either.right(page([owner, member])));
+    const listCurrentProfiles = vi
+      .fn()
+      .mockResolvedValueOnce(Either.right([profiles[1]]))
+      .mockResolvedValueOnce(Either.right(profiles));
+    const { store } = configureStore(listWorkspaceMembers, listCurrentProfiles);
+    await store.load(workspaceId);
+
+    const loading = store.loadMore();
+    expect(store.isLoadingMore()).toBe(true);
+    await loading;
+
+    expect(listWorkspaceMembers).toHaveBeenNthCalledWith(
+      2,
+      workspaceId,
+      cursor
+    );
+    expect(store.members()).toEqual([owner, member]);
+    expect(store.profiles()).toEqual([profiles[1], profiles[0]]);
+    expect(store.hasMoreMembers()).toBe(false);
+    expect(store.paginationError()).toBeNull();
+  });
+
+  it('loads owner-only pages until the current user role is known', async () => {
+    const cursor: WorkspaceMemberCursor = {
+      role: 'owner',
+      profileId: ownerId,
+    };
+    const listWorkspaceMembers = vi
+      .fn()
+      .mockResolvedValueOnce(Either.right(page([owner], cursor)))
+      .mockResolvedValueOnce(Either.right(page([member])));
+    const { store } = configureStore(listWorkspaceMembers);
+
+    await store.load(workspaceId, memberId);
+
+    expect(listWorkspaceMembers).toHaveBeenCalledTimes(2);
+    expect(listWorkspaceMembers).toHaveBeenNthCalledWith(
+      2,
+      workspaceId,
+      cursor
+    );
+    expect(store.members()).toEqual([owner, member]);
+  });
+
+  it('retains loaded pages and permits retry after pagination fails', async () => {
+    const cursor: WorkspaceMemberCursor = {
+      role: 'member',
+      profileId: memberId,
+    };
+    const failure = new WorkspaceRepositoryUnavailableError({
+      cause: new Error('Provider unavailable'),
+    });
+    const listWorkspaceMembers = vi
+      .fn()
+      .mockResolvedValueOnce(Either.right(page([member], cursor)))
+      .mockResolvedValueOnce(Either.left(failure))
+      .mockResolvedValueOnce(Either.right(page([owner])));
+    const { store } = configureStore(listWorkspaceMembers);
+    await store.load(workspaceId);
+
+    await store.loadMore();
+    expect(store.members()).toEqual([member]);
+    expect(store.paginationStatus()).toBe('failed');
+    expect(store.paginationError()).toEqual({
+      message: 'More workspace members could not be loaded. Please try again.',
+    });
+
+    await store.loadMore();
+    expect(store.members()).toEqual([member, owner]);
+    expect(store.paginationStatus()).toBe('idle');
+  });
+
+  it('replaces loaded pages during an authoritative refresh', async () => {
+    const listWorkspaceMembers = vi
+      .fn()
+      .mockResolvedValueOnce(Either.right(page([member])))
+      .mockResolvedValueOnce(Either.right(page([owner])));
+    const { store } = configureStore(listWorkspaceMembers);
+    await store.load(workspaceId);
+
+    await store.load(workspaceId, memberId, { force: true });
+
+    expect(listWorkspaceMembers).toHaveBeenCalledTimes(2);
+    expect(store.members()).toEqual([owner]);
+  });
+
   it('exposes a safe membership error and permits retry', async () => {
     const failure = new WorkspaceRepositoryUnavailableError({
       cause: new Error('Provider unavailable'),
@@ -135,7 +239,7 @@ describe('WorkspaceMemberDirectoryStore', () => {
     const listWorkspaceMembers = vi
       .fn()
       .mockResolvedValueOnce(Either.left(failure))
-      .mockResolvedValueOnce(Either.right([owner]));
+      .mockResolvedValueOnce(Either.right(page([owner])));
     const { store, listCurrentProfiles } = configureStore(listWorkspaceMembers);
 
     await store.load(workspaceId);
@@ -181,13 +285,13 @@ describe('WorkspaceMemberDirectoryStore', () => {
 
   it('ignores a stale membership result after the workspace changes', async () => {
     let resolveFirst:
-      | ((result: Either.Either<readonly WorkspaceMember[], never>) => void)
+      | ((result: Either.Either<WorkspaceMemberPage, never>) => void)
       | undefined;
-    const firstResult = new Promise<
-      Either.Either<readonly WorkspaceMember[], never>
-    >((resolve) => {
-      resolveFirst = resolve;
-    });
+    const firstResult = new Promise<Either.Either<WorkspaceMemberPage, never>>(
+      (resolve) => {
+        resolveFirst = resolve;
+      }
+    );
     const nextMember: WorkspaceMember = {
       workspaceId: nextWorkspaceId,
       profileId: memberId,
@@ -196,12 +300,12 @@ describe('WorkspaceMemberDirectoryStore', () => {
     const listWorkspaceMembers = vi
       .fn()
       .mockReturnValueOnce(firstResult)
-      .mockResolvedValueOnce(Either.right([nextMember]));
+      .mockResolvedValueOnce(Either.right(page([nextMember])));
     const { store } = configureStore(listWorkspaceMembers);
 
     const oldLoad = store.load(workspaceId);
     await store.load(nextWorkspaceId);
-    resolveFirst?.(Either.right([owner]));
+    resolveFirst?.(Either.right(page([owner])));
     await oldLoad;
 
     expect(store.workspaceId()).toBe(nextWorkspaceId);
@@ -244,7 +348,7 @@ describe('WorkspaceMemberDirectoryStore', () => {
       .fn()
       .mockResolvedValue(Either.left(failure));
     const { store } = configureStore(
-      vi.fn().mockResolvedValue(Either.right([owner])),
+      vi.fn().mockResolvedValue(Either.right(page([owner]))),
       undefined,
       changeWorkspaceMemberRole
     );
@@ -281,8 +385,8 @@ describe('WorkspaceMemberDirectoryStore', () => {
     };
     const listWorkspaceMembers = vi
       .fn()
-      .mockResolvedValueOnce(Either.right([member]))
-      .mockResolvedValueOnce(Either.right([nextMember]));
+      .mockResolvedValueOnce(Either.right(page([member])))
+      .mockResolvedValueOnce(Either.right(page([nextMember])));
     const { store } = configureStore(
       listWorkspaceMembers,
       undefined,
@@ -336,7 +440,7 @@ describe('WorkspaceMemberDirectoryStore', () => {
       .fn()
       .mockResolvedValue(Either.left(failure));
     const { store } = configureStore(
-      vi.fn().mockResolvedValue(Either.right([owner])),
+      vi.fn().mockResolvedValue(Either.right(page([owner]))),
       undefined,
       undefined,
       removeWorkspaceMember
@@ -388,7 +492,7 @@ describe('WorkspaceMemberDirectoryStore', () => {
       .fn()
       .mockResolvedValue(Either.left(failure));
     const { store } = configureStore(
-      vi.fn().mockResolvedValue(Either.right([owner])),
+      vi.fn().mockResolvedValue(Either.right(page([owner]))),
       undefined,
       undefined,
       undefined,
@@ -418,8 +522,8 @@ describe('WorkspaceMemberDirectoryStore', () => {
     };
     const listWorkspaceMembers = vi
       .fn()
-      .mockResolvedValueOnce(Either.right([member]))
-      .mockResolvedValueOnce(Either.right([nextMember]));
+      .mockResolvedValueOnce(Either.right(page([member])))
+      .mockResolvedValueOnce(Either.right(page([nextMember])));
     const { store } = configureStore(
       listWorkspaceMembers,
       undefined,

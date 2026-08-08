@@ -1,8 +1,20 @@
 <section
   aria-labelledby="workspace-member-directory-heading"
-  [attr.aria-busy]="store.isLoading() || store.isMutatingMember()"
+  [attr.aria-busy]="
+    store.isLoading() || store.isLoadingMore() || store.isMutatingMember()
+  "
 >
   <h3 id="workspace-member-directory-heading">Members</h3>
+
+  @if (store.loadStatus() === 'loaded') {
+    <button
+      type="button"
+      [disabled]="store.isLoadingMore() || store.isMutatingMember()"
+      (click)="refreshMembers()"
+    >
+      Refresh members
+    </button>
+  }
 
   @if (store.mutationError(); as error) {
     <p role="alert">{{ error.message }}</p>
@@ -15,7 +27,7 @@
     <p>Loading workspace members&hellip;</p>
   } @else if (store.error(); as error) {
     <p role="alert">{{ error.message }}</p>
-    <button type="button" (click)="store.load(workspaceId())">Try again</button>
+    <button type="button" (click)="retryLoad()">Try again</button>
   } @else if (!store.hasMembers()) {
     <p>No active workspace members are visible.</p>
   } @else {
@@ -36,7 +48,7 @@
           @if (canManageMembers()) {
             <button
               type="button"
-              [disabled]="store.isMutatingMember()"
+              [disabled]="store.isMutatingMember() || store.isLoadingMore()"
               [attr.aria-label]="
                 (entry.role === 'owner' ? 'Make member: ' : 'Make owner: ') +
                 entry.displayName
@@ -61,7 +73,7 @@
                 </span>
                 <button
                   type="button"
-                  [disabled]="store.isMutatingMember()"
+                  [disabled]="store.isMutatingMember() || store.isLoadingMore()"
                   [attr.aria-label]="'Confirm suspension: ' + entry.displayName"
                   (click)="confirmSuspension(entry.profileId)"
                 >
@@ -74,7 +86,7 @@
                 <span>Remove {{ entry.displayName }} from this workspace?</span>
                 <button
                   type="button"
-                  [disabled]="store.isMutatingMember()"
+                  [disabled]="store.isMutatingMember() || store.isLoadingMore()"
                   [attr.aria-label]="'Confirm removal: ' + entry.displayName"
                   (click)="confirmRemoval(entry.profileId)"
                 >
@@ -84,7 +96,7 @@
               } @else {
                 <button
                   type="button"
-                  [disabled]="store.isMutatingMember()"
+                  [disabled]="store.isMutatingMember() || store.isLoadingMore()"
                   [attr.aria-label]="'Suspend: ' + entry.displayName"
                   (click)="requestSuspension(entry.profileId)"
                 >
@@ -99,7 +111,7 @@
                 </button>
                 <button
                   type="button"
-                  [disabled]="store.isMutatingMember()"
+                  [disabled]="store.isMutatingMember() || store.isLoadingMore()"
                   [attr.aria-label]="'Remove: ' + entry.displayName"
                   (click)="requestRemoval(entry.profileId)"
                 >
@@ -118,5 +130,23 @@
         </li>
       }
     </ul>
+
+    @if (store.paginationError(); as error) {
+      <p role="alert">{{ error.message }}</p>
+    }
+
+    @if (store.hasMoreMembers()) {
+      <button
+        type="button"
+        [disabled]="store.isLoadingMore() || store.isMutatingMember()"
+        (click)="store.loadMore()"
+      >
+        @if (store.isLoadingMore()) {
+          Loading more members&hellip;
+        } @else {
+          Load more members
+        }
+      </button>
+    }
   }
 </section>

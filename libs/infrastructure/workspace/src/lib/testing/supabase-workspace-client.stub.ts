@@ -29,15 +29,17 @@ const makeWorkspaceQueryClientStub = (result: {
   const query = {
     then: resolved.then.bind(resolved),
     eq: vi.fn(() => query),
+    limit: vi.fn(() => query),
+    or: vi.fn(() => query),
     order: vi.fn(() => query),
   };
-  const { eq, order } = query;
+  const { eq, limit, or, order } = query;
   const select = vi.fn(() => query);
   const from = vi.fn(() => ({ select }));
 
   const client = { from } as unknown as SupabaseWorkspaceClient;
 
-  return { client, from, select, eq, order };
+  return { client, from, select, eq, limit, or, order };
 };
 
 export const makeWorkspaceListClientStub = (result: WorkspaceQueryResult) => {

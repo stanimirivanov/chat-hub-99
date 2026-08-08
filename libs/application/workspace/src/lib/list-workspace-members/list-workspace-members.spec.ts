@@ -2,24 +2,60 @@ import { Effect, Either } from 'effect';
 import { describe, expect, it } from 'vitest';
 import { WorkspaceRepositoryUnavailableError } from '../repository';
 import {
+  WORKSPACE_MEMBER_PAGE_SIZE,
+  type WorkspaceMemberPage,
+} from '../workspace-member-pagination';
+import {
   makeListWorkspaceMembersRepository,
   workspace,
   workspaceMember,
 } from '../testing';
-import { listWorkspaceMembers } from './list-workspace-members';
+import {
+  InvalidWorkspaceMemberListInputError,
+  listWorkspaceMembers,
+} from './index';
+
+const page: WorkspaceMemberPage = {
+  members: [workspaceMember],
+  nextCursor: null,
+};
 
 describe('listWorkspaceMembers', () => {
-  it('delegates selected-workspace discovery to the repository', async () => {
-    const members = [workspaceMember];
+  it('validates and delegates one fixed-size member page', async () => {
     const { listActiveMembers, repositoryLayer } =
-      makeListWorkspaceMembersRepository(() => Effect.succeed(members));
+      makeListWorkspaceMembersRepository(() => Effect.succeed(page));
 
     const result = await Effect.runPromise(
-      listWorkspaceMembers(workspace.id).pipe(Effect.provide(repositoryLayer))
+      listWorkspaceMembers({
+        workspaceId: workspace.id,
+        after: undefined,
+      }).pipe(Effect.provide(repositoryLayer))
     );
 
-    expect(result).toBe(members);
-    expect(listActiveMembers).toHaveBeenCalledExactlyOnceWith(workspace.id);
+    expect(result).toBe(page);
+    expect(listActiveMembers).toHaveBeenCalledExactlyOnceWith({
+      workspaceId: workspace.id,
+      after: undefined,
+      limit: WORKSPACE_MEMBER_PAGE_SIZE,
+    });
+  });
+
+  it('validates compound cursor input before repository access', async () => {
+    const { listActiveMembers, repositoryLayer } =
+      makeListWorkspaceMembersRepository(() => Effect.succeed(page));
+
+    const result = await Effect.runPromise(
+      listWorkspaceMembers({
+        workspaceId: workspace.id,
+        after: { role: 'owner', profileId: 'not-a-profile-id' },
+      }).pipe(Effect.provide(repositoryLayer), Effect.either)
+    );
+
+    expect(Either.isLeft(result)).toBe(true);
+    if (Either.isLeft(result)) {
+      expect(result.left).toBeInstanceOf(InvalidWorkspaceMemberListInputError);
+    }
+    expect(listActiveMembers).not.toHaveBeenCalled();
   });
 
   it('preserves the repository failure channel', async () => {
@@ -31,7 +67,7 @@ describe('listWorkspaceMembers', () => {
     );
 
     const result = await Effect.runPromise(
-      listWorkspaceMembers(workspace.id).pipe(
+      listWorkspaceMembers({ workspaceId: workspace.id }).pipe(
         Effect.provide(repositoryLayer),
         Effect.either
       )

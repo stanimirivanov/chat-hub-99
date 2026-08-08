@@ -4,6 +4,7 @@ export {
   type ChangeWorkspaceMemberRoleCommand,
   type CreateWorkspaceCommand,
   type InviteWorkspaceMemberCommand,
+  type ListActiveWorkspaceMembersQuery,
   type PendingWorkspaceInvitation,
   type PendingWorkspaceInvitationForOwner,
   type RemoveWorkspaceMemberCommand,
