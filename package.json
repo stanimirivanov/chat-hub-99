@@ -11,7 +11,9 @@
     "preinstall": "node tools/development/verify-node-version.mjs && npx only-allow pnpm",
 
     "start": "nx serve client",
+    "dev:up": "pnpm supabase:start",
     "dev:status": "node tools/development/show-status.mjs",
+    "dev:down": "pnpm supabase:stop",
 
     "build": "nx run-many -t build",
     "test": "nx run-many -t test",
@@ -43,7 +45,7 @@
     "supabase:status": "supabase status",
 
     "db:reset": "supabase db reset",
-    "db:prepare": "pnpm supabase:start && pnpm db:reset",
+    "db:prepare": "pnpm dev:up && pnpm db:reset",
     "db:migration:new": "supabase migration new",
     "db:types": "pnpm db:types:generate",
     "db:types:generate": "node tools/database/generate-types.mjs",
