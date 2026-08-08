@@ -1,6 +1,9 @@
 import { Layer } from 'effect';
 import { SupabaseAuthenticationServiceLayer } from '@omoikane/infrastructure/authentication';
-import { SupabaseChannelRepositoryLayer } from '@omoikane/infrastructure/channel';
+import {
+  SupabaseChannelRepositoryLayer,
+  SupabaseChannelTypingServiceLayer,
+} from '@omoikane/infrastructure/channel';
 import { SupabaseMessageRepositoryLayer } from '@omoikane/infrastructure/message';
 import { SupabaseProfileRepositoryLayer } from '@omoikane/infrastructure/profile';
 import {
@@ -32,6 +35,7 @@ export const makeApplicationInfrastructureLayer = (
     SupabaseMessageRepositoryLayer,
     SupabaseAuthenticationServiceLayer,
     SupabaseChannelRepositoryLayer,
+    SupabaseChannelTypingServiceLayer,
     SupabaseProfileRepositoryLayer,
     SupabaseWorkspacePresenceServiceLayer,
     SupabaseWorkspaceRepositoryLayer

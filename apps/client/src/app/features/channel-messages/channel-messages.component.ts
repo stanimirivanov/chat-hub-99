@@ -9,6 +9,7 @@ import type { ChannelId } from '@omoikane/domain/channel';
 import { ChannelMessageComposerComponent } from './composer/channel-message-composer.component';
 import { ChannelMessageHistoryComponent } from './history/channel-message-history.component';
 import { ChannelMessagesStore } from './channel-messages.store';
+import { ChannelTypingStore } from '@client/features/channel-typing/channel-typing.store';
 
 /** Coordinates one selected channel's message store and child views. */
 @Component({
@@ -17,17 +18,19 @@ import { ChannelMessagesStore } from './channel-messages.store';
   imports: [ChannelMessageHistoryComponent, ChannelMessageComposerComponent],
   templateUrl: './channel-messages.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [ChannelMessagesStore],
+  providers: [ChannelMessagesStore, ChannelTypingStore],
 })
 export class ChannelMessagesComponent {
   readonly channelId = input.required<ChannelId>();
   readonly canModerateMessages = input(false);
 
   private readonly store = inject(ChannelMessagesStore);
+  protected readonly typingStore = inject(ChannelTypingStore);
 
   constructor() {
     effect(() => {
       void this.store.selectChannel(this.channelId());
+      this.typingStore.connect(this.channelId());
     });
   }
 }

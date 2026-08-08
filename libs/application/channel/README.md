@@ -4,6 +4,8 @@
 
 Defines technology-independent workflows and the outbound port for discovering
 and mutating workspace channels.
+It also defines a separate provider-independent, scoped connection for
+ephemeral channel typing events.
 
 ## Responsibilities and non-responsibilities
 
@@ -19,6 +21,8 @@ and mutating workspace channels.
   inactive transition without producing an active projection.
 - `restoreChannel` validates a stable channel identity and returns the restored
   active projection.
+- `connectChannelTyping` validates the selected channel and opens one scoped,
+  bidirectional advisory typing connection.
 - `ChannelRepository` defines only the scoped observation, read, create,
   update, archive, restore, and archived-discovery capabilities required by
   those use cases.
@@ -39,6 +43,7 @@ channel-identity/           shared command identity decoding
 list-archived-workspace-channels/ archived discovery workflow
 list-workspace-channels/    workspace-scoped discovery workflow
 observe-workspace-channels/ validated realtime snapshot workflow
+channel-typing/             scoped typing connection, events, and failures
 repository/                 outbound port and technology-neutral failures
 restore-channel/            restoration workflow, input, and errors
 testing/                    isolated repository Layers and fixtures
@@ -55,6 +60,7 @@ update-channel/             update workflow, input, result, and errors
 - `listWorkspaceChannels`
 - `observeWorkspaceChannels` and its input/error contracts
 - `ChannelRepositoryTag`, `ChannelRepository`, and command contracts
+- `connectChannelTyping`, `ChannelTypingServiceTag`, and connection contracts
 - channel repository read/create/update/archive/restore errors
 
 ## Design decisions
@@ -112,6 +118,9 @@ Angular caller -> restoreChannel -> validate channel identity
 Angular caller -> observeWorkspaceChannels -> validate workspace identity
                -> repository.changesByWorkspace invalidations
                -> repository.listByWorkspace authoritative snapshots
+
+Angular caller -> connectChannelTyping -> validate channel identity
+               -> ChannelTypingServiceTag -> scoped event stream + publisher
 ```
 
 In Effect, a Tag is the typed key used to request the repository. The use cases

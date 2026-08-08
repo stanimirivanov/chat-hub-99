@@ -15,7 +15,7 @@ The implemented collaboration baseline includes authentication, profiles,
 workspace and channel lifecycle, membership and invitations, persisted
 messages, message revision history, archive restoration, keyset pagination,
 and selected realtime reconciliation, including advisory workspace presence.
-Typing, search, and unread tracking remain explicit Phase 2 work.
+Search and unread tracking remain explicit Phase 2 work.
 
 ## Capability map
 
@@ -29,6 +29,7 @@ Typing, search, and unread tracking remain explicit Phase 2 work.
 | Channels       | Active and archived lists, selection, creation, editing, archive, and restoration                                              | `ChannelRepository`          | `ChannelNavigationStore` plus an independently scoped archived-list store                      |
 | Messages       | Newest-first keyset pagination, create, edit, soft delete, realtime updates, author enrichment, and immutable revision history | `MessageRepository`          | `ChannelMessagesStore`                                                                         |
 | Presence       | Active-workspace private Presence observation and a deduplicated online-member count                                           | `WorkspacePresenceService`   | `WorkspacePresenceStore`                                                                       |
+| Typing         | Active-channel start/stop Broadcast events with throttling and expiry                                                          | `ChannelTypingService`       | `ChannelTypingStore`                                                                           |
 
 Workspace administration and invitations currently share one application port.
 That reflects their common persistence and authorization boundary; it should be
@@ -124,6 +125,7 @@ AuthenticationStore (root session)
        -> ArchivedWorkspaceListStore
        -> ChannelNavigationStore (selected workspace's channels and selection)
             -> ArchivedChannelListStore
+            -> ChannelTypingStore
             -> ChannelMessagesStore (selected channel's messages and history)
 ```
 
@@ -169,6 +171,7 @@ Realtime is capability-specific; there is no generic realtime framework.
 | Channel navigation   | Private Broadcast topic for one workspace             | Active channel collection       | Treat events as invalidations and reload the authoritative list; clear an archived or inaccessible selection |
 | Channel messages     | Channel-filtered Postgres Changes on message heads    | One selected channel            | Validate the changed stable identity, then reconcile the authoritative current message projection            |
 | Workspace presence   | Private Supabase Presence topic                       | One selected workspace          | Validate and deduplicate profile keys for advisory display; never use them for authorization                 |
+| Channel typing       | Private Supabase Broadcast topic                      | One selected channel            | Validate start/stop events; throttle local starts and expire remote state after missed stops                 |
 
 Workspace and channel streams emit once when their provider subscription is
 ready. The subsequent authoritative load closes the query-before-subscribe race.
@@ -215,7 +218,6 @@ by RLS; enrichment does not redefine the authorization of the primary record.
 The following capabilities are not implemented and must not be inferred from
 the existing realtime infrastructure:
 
-- typing indicators;
 - workspace-scoped message search and exact-result navigation;
 - per-member read positions, unread counts, and realtime unread reconciliation.
 
@@ -223,9 +225,10 @@ Reactions, threads, attachments, notification delivery, invitation delivery,
 and avatar uploads are optional product expansions rather than Phase 2 exit
 gates.
 
-The next conservative vertical slice is typing. It should reuse only the
-provider-channel and lifecycle decisions that presence has now proven, while
-retaining its own scope, throttling, expiry, and presentation behavior.
+The next conservative vertical slice is workspace-scoped message search with
+exact-result navigation. Search should begin with its concrete authorization,
+ranking, pagination, and navigation behavior rather than a generic search
+framework.
 
 ## Verification references
 

@@ -64,4 +64,21 @@ describe('ChannelMessageComposerComponent', () => {
     expect(store.send).toHaveBeenCalledExactlyOnceWith('Keep this draft');
     expect(input.value).toBe('Keep this draft');
   });
+
+  it('reports activity and stops typing on blur', async () => {
+    const { fixture } = await configureComponent(true);
+    const activity = vi.fn();
+    const stopped = vi.fn();
+    fixture.componentInstance.typingActivity.subscribe(activity);
+    fixture.componentInstance.typingStopped.subscribe(stopped);
+    const input = fixture.nativeElement.querySelector(
+      'input'
+    ) as HTMLInputElement;
+
+    input.dispatchEvent(new Event('input'));
+    input.dispatchEvent(new Event('blur'));
+
+    expect(activity).toHaveBeenCalledOnce();
+    expect(stopped).toHaveBeenCalledOnce();
+  });
 });

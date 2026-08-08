@@ -6,6 +6,7 @@ Implements active and archived channel discovery, realtime invalidation,
 creation, detail updates, archiving, and restoration with Supabase while
 keeping generated database types and provider failures outside the application
 boundary.
+It also implements channel-scoped typing with private Supabase Broadcast.
 
 ## Responsibilities and non-responsibilities
 
@@ -13,6 +14,8 @@ boundary.
   `current_channels` view.
 - Query archived channels newest first through the same RLS-protected view.
 - Observe payload-minimal private Broadcast invalidations for one workspace.
+- Open one bidirectional private Broadcast connection for advisory typing
+  events in an active channel.
 - Execute the transactional `create_channel` RPC.
 - Execute the transactional `update_channel` RPC.
 - Execute the transactional `archive_channel` RPC.
@@ -21,6 +24,7 @@ boundary.
 - Decode external rows and validate returned channel/version UUIDs.
 - Translate provider failures into application-owned errors.
 - Supply `ChannelRepository` through an Effect Layer.
+- Supply `ChannelTypingService` through a separate Effect Layer.
 
 This library does not own input normalization, Angular state, route selection,
 or authorization policy. PostgreSQL remains the enforcement boundary for
@@ -41,6 +45,7 @@ testing/     focused Supabase client stubs and fixtures
 
 - `SupabaseChannelClientTag` and `SupabaseChannelClient`
 - `SupabaseChannelRepositoryLayer`
+- `SupabaseChannelTypingServiceLayer`
 
 Command, query, and mapping modules remain private adapter details.
 
@@ -79,6 +84,13 @@ PostgreSQL authorizes receipt from active membership, while the adapter treats
 every event only as an invalidation and reuses the ordinary active-channel
 query. The stream emits once after subscription readiness to close the
 query-before-listen race and removes its Supabase channel when interrupted.
+
+Typing uses a separate private `channel-typing:<channel-id>` topic. Realtime
+read and write policies require active membership in the active channel's
+active workspace. The adapter derives the normal-client profile identity from
+Supabase Auth, validates every received event and channel identity, and removes
+the connection with its Effect Scope. Payload identities remain client-reported
+advisory data and are never used for authorization or message commands.
 
 PostgreSQL code `23505` is translated to a slug conflict only when the RPC's
 channel-slug message is also present; unrelated uniqueness failures remain
@@ -130,6 +142,12 @@ listArchivedWorkspaceChannels use case
 observeWorkspaceChannels stream
   -> changesByWorkspace private invalidations
   -> listByWorkspace RLS-protected snapshots
+
+connectChannelTyping use case
+  -> ChannelTypingServiceTag
+  -> SupabaseChannelTypingServiceLayer
+  -> private bidirectional Broadcast connection
+  -> validated ChannelTypingEvent stream
 ```
 
 A Tag is the typed key through which application code requests a capability. A

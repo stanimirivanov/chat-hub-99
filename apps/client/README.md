@@ -280,6 +280,13 @@ interrupts the old subscription when workspace selection changes or the
 component is destroyed. Presence is intentionally advisory and never changes
 the workspace capabilities passed to child features.
 
+The selected channel owns an independent `channel-typing` Signal Store. The
+message composer reports input activity without publishing every keystroke:
+one start event is sent per burst and a stop event follows inactivity, blur, or
+submission. Remote typists expire locally when a stop event is lost. The UI
+renders only a deduplicated count, and switching channels or destroying the
+message feature releases the scoped Broadcast connection and its timers.
+
 The workspace owner capability already derived by the parent member directory
 is passed into channel navigation as a presentation affordance; this avoids a
 duplicate membership query while Supabase remains the authorization boundary.
