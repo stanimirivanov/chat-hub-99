@@ -4,8 +4,11 @@
   "version": "0.1.0",
   "license": "MIT",
   "packageManager": "pnpm@11.16.0",
+  "engines": {
+    "node": ">=24.15.0 <25"
+  },
   "scripts": {
-    "preinstall": "npx only-allow pnpm",
+    "preinstall": "node tools/development/verify-node-version.mjs && npx only-allow pnpm",
 
     "start": "nx serve client",
 

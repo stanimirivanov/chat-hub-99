@@ -106,15 +106,15 @@ with the first implemented capability that owns them.
 
 ## 4. Version and tool policy
 
-| Tool                    | Policy                                                                   | Reason                                                                                             |
-| ----------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
-| Node.js                 | Pin 24.15.x in `.node-version` or `.tool-versions` during Phase 1        | Prevent workstation drift while retaining the Angular 22-compatible target chosen by the baseline. |
-| pnpm                    | Pin 11.16.0 through `packageManager` and Corepack                        | Match the current project baseline.                                                                |
-| Angular                 | Retain 22.x during the platform work                                     | Avoid combining environment changes with a client upgrade.                                         |
-| Nx                      | Keep all `nx` and `@nx/*` packages on the same repository-pinned version | Do not combine the local-platform change with an Nx upgrade.                                       |
-| Supabase CLI            | Use a pinned project development dependency                              | Give contributors and CI the same CLI version.                                                     |
-| Docker Desktop          | Use a stable Linux-container release                                     | Required by the Supabase CLI and Omoikane Compose profiles.                                        |
-| JavaScript installation | Use `pnpm install --frozen-lockfile` in CI                               | Treat the lockfile as authoritative.                                                               |
+| Tool                    | Policy                                                                    | Reason                                                                                  |
+| ----------------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Node.js                 | Pin 24.15.0 in `.node-version`; support `>=24.15.0 <25` through `engines` | Prevent workstation drift while allowing compatible Node 24 security and patch updates. |
+| pnpm                    | Pin 11.16.0 through `packageManager` and Corepack                         | Match the current project baseline.                                                     |
+| Angular                 | Retain 22.x during the platform work                                      | Avoid combining environment changes with a client upgrade.                              |
+| Nx                      | Keep all `nx` and `@nx/*` packages on the same repository-pinned version  | Do not combine the local-platform change with an Nx upgrade.                            |
+| Supabase CLI            | Use a pinned project development dependency                               | Give contributors and CI the same CLI version.                                          |
+| Docker Desktop          | Use a stable Linux-container release                                      | Required by the Supabase CLI and Omoikane Compose profiles.                             |
+| JavaScript installation | Use `pnpm install --frozen-lockfile` in CI                                | Treat the lockfile as authoritative.                                                    |
 
 Target root metadata:
 
@@ -128,6 +128,11 @@ Target root metadata:
   }
 }
 ```
+
+The dependency-free preinstall check makes the supported Node range an
+installation gate rather than advisory metadata. `.node-version` selects the
+reproducible reference version, while the engine range admits later compatible
+Node 24 patch releases.
 
 ## 5. Environment configuration
 

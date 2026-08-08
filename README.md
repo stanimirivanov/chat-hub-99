@@ -101,15 +101,27 @@ dependency rule or reusable capability.
 
 ### Requirements
 
-- Node.js compatible with the version declared by the project tooling
-- pnpm 11.16.0
-- Docker Desktop for local Supabase
+- Node.js 24.15.0 for the reference environment; supported installations must
+  satisfy `>=24.15.0 <25`
+- Corepack with pnpm 11.16.0, as pinned by `packageManager`
+- Docker Desktop using Linux containers for local Supabase
+
+The `.node-version` file is the authoritative reference-runtime pin. The
+`engines.node` range allows later Node 24 patch releases while rejecting older
+or next-major runtimes during package installation.
 
 ### Install
 
 ```bash
+corepack enable
+node --version
+pnpm --version
 pnpm install --frozen-lockfile
 ```
+
+The version commands should report Node 24.15.0 or a later Node 24 release and
+pnpm 11.16.0. The install fails on an unsupported Node version because the
+preinstall check enforces the same range declared by `engines.node`.
 
 ### Run the client
 
