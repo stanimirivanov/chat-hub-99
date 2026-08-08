@@ -21,3 +21,9 @@ export const currentChannelRow: CurrentChannel = {
   version_created_by: '00000000-0000-4000-8000-000000000004',
   version_number: 1,
 };
+
+export const archivedChannelRow: CurrentChannel = {
+  ...currentChannelRow,
+  channel_status: 'archived',
+  updated_at: '2026-08-08T14:00:00.000Z',
+};

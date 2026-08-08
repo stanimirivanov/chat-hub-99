@@ -1,4 +1,8 @@
-export { currentChannelRow, updatedChannelVersionId } from './channel-fixtures';
+export {
+  archivedChannelRow,
+  currentChannelRow,
+  updatedChannelVersionId,
+} from './channel-fixtures';
 export {
   makeChannelCommandClientStub,
   makeChannelListClientStub,

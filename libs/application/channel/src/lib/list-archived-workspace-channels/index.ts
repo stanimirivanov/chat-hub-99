@@ -1,2 +1,1 @@
-export { listWorkspaceChannels } from './list-workspace-channels';
 export { listArchivedWorkspaceChannels } from './list-archived-workspace-channels';

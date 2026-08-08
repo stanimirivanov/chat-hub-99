@@ -2,14 +2,15 @@
 
 ## Purpose
 
-Implements channel discovery, realtime invalidation, creation, detail updates,
-and archiving with Supabase while keeping generated database types and provider
-failures outside the application boundary.
+Implements active and archived channel discovery, realtime invalidation,
+creation, detail updates, and archiving with Supabase while keeping generated
+database types and provider failures outside the application boundary.
 
 ## Responsibilities and non-responsibilities
 
 - Query active channels in stable order through the RLS-protected
   `current_channels` view.
+- Query archived channels newest first through the same RLS-protected view.
 - Observe payload-minimal private Broadcast invalidations for one workspace.
 - Execute the transactional `create_channel` RPC.
 - Execute the transactional `update_channel` RPC.
@@ -58,6 +59,13 @@ workspace ownership and changes the mutable channel head status without
 deleting the channel, messages, or history. Its `void` success remains a `void`
 repository acknowledgment; no inactive channel projection is manufactured.
 
+Archived discovery reads `current_channels.updated_at` as the archive time
+because the archive command updates the mutable head timestamp in the same
+transaction. Existing row-level security exposes archived rows only to active
+workspace owners and excludes archived workspaces; the adapter does not repeat
+that policy in TypeScript. Rows are decoded into the distinct
+`ArchivedChannel` projection before crossing the infrastructure boundary.
+
 Realtime uses one private `workspace-channels:<workspace-id>` Broadcast topic.
 PostgreSQL authorizes receipt from active membership, while the adapter treats
 every event only as an invalidation and reuses the ordinary active-channel
@@ -95,6 +103,12 @@ archiveChannel use case
   -> SupabaseChannelRepositoryLayer
   -> archive_channel RPC (authenticated session + owner authorization)
   -> void repository acknowledgment
+
+listArchivedWorkspaceChannels use case
+  -> ChannelRepositoryTag
+  -> SupabaseChannelRepositoryLayer
+  -> current_channels archived rows (owner-only RLS visibility)
+  -> validated ArchivedChannel collection, newest first
 
 observeWorkspaceChannels stream
   -> changesByWorkspace private invalidations

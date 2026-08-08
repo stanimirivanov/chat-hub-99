@@ -15,6 +15,10 @@ export const makeChannelRepositoryStub = (
     Effect.dieMessage(
       'Unexpected ChannelRepository.listByWorkspace call in test'
     ),
+  listArchivedByWorkspace: () =>
+    Effect.dieMessage(
+      'Unexpected ChannelRepository.listArchivedByWorkspace call in test'
+    ),
   create: () =>
     Effect.dieMessage('Unexpected ChannelRepository.create call in test'),
   update: () =>
@@ -35,6 +39,17 @@ export const makeListByWorkspaceChannelRepository = (
   return {
     listByWorkspace,
     repositoryLayer: makeChannelRepositoryLayer({ listByWorkspace }),
+  };
+};
+
+export const makeListArchivedByWorkspaceChannelRepository = (
+  implementation: ChannelRepository['listArchivedByWorkspace']
+) => {
+  const listArchivedByWorkspace = vi.fn(implementation);
+
+  return {
+    listArchivedByWorkspace,
+    repositoryLayer: makeChannelRepositoryLayer({ listArchivedByWorkspace }),
   };
 };
 

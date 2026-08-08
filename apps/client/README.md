@@ -291,6 +291,20 @@ channel query parameter are cleared only when they still refer to the archived
 target, including a workspace-identity check for same-slug channels. Restoration
 and hard deletion remain outside this slice.
 
+Owners also see a read-only archived-channel history beneath active navigation.
+It has independent feature-scoped loading and retry state, so an archive-history
+failure cannot erase or block active navigation. The list is newest first and
+uses the database-updated archive timestamp. It is instantiated only when the
+existing member-directory capability says the user can manage channels, while
+row-level security remains the actual authorization boundary.
+
+The history reuses the active channel collection as an invalidation signal:
+when the set of active channel identities changes, it reloads its authoritative
+archived snapshot. This lets the existing channel realtime owner reconcile
+local and remote archival without opening a second listener. Archived channels
+never enter active selection, message rendering, or URL state. Restoration and
+hard deletion remain outside this discovery slice.
+
 The `current-profile` slice enriches the authenticated header with the
 RLS-visible profile belonging to the session identity. It keeps the
 authentication session email as a reliable fallback while profile data loads

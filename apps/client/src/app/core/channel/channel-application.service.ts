@@ -4,6 +4,7 @@ import {
   archiveChannel,
   createChannel,
   listWorkspaceChannels,
+  listArchivedWorkspaceChannels,
   observeWorkspaceChannels,
   updateChannel,
   type CreateChannelError,
@@ -16,7 +17,7 @@ import {
   type UpdateChannelError,
   type UpdateChannelInput,
 } from '@chat-hub/application/channel';
-import type { Channel } from '@chat-hub/domain/channel';
+import type { ArchivedChannel, Channel } from '@chat-hub/domain/channel';
 import type { WorkspaceId } from '@chat-hub/domain/workspace';
 import { applicationRuntime } from '../effect/application-runtime';
 
@@ -49,6 +50,17 @@ export class ChannelApplicationService {
   ): Promise<Either.Either<readonly Channel[], ChannelRepositoryReadError>> {
     return applicationRuntime.runPromise(
       listWorkspaceChannels(workspaceId).pipe(Effect.either)
+    );
+  }
+
+  /** Lists owner-visible archived channels for one selected workspace. */
+  listArchivedWorkspaceChannels(
+    workspaceId: WorkspaceId
+  ): Promise<
+    Either.Either<readonly ArchivedChannel[], ChannelRepositoryReadError>
+  > {
+    return applicationRuntime.runPromise(
+      listArchivedWorkspaceChannels(workspaceId).pipe(Effect.either)
     );
   }
 

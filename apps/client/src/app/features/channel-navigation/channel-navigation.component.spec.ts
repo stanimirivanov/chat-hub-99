@@ -12,6 +12,7 @@ import { BehaviorSubject } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
 import { ChannelIdSchema, type Channel } from '@chat-hub/domain/channel';
 import { WorkspaceIdSchema } from '@chat-hub/domain/workspace';
+import { ArchivedChannelListComponent } from '@client/features/archived-channel-list/archived-channel-list.component';
 import { ChannelMessagesComponent } from '@client/features/channel-messages/channel-messages.component';
 import { ChannelNavigationComponent } from './channel-navigation.component';
 import { ChannelNavigationStore } from './channel-navigation.store';
@@ -48,6 +49,16 @@ const updatedChannel: Channel = {
 class ChannelMessagesStubComponent {
   readonly channelId = input.required<typeof channel.id>();
   readonly canModerateMessages = input(false);
+}
+
+@Component({
+  selector: 'app-archived-channel-list',
+  standalone: true,
+  template: '',
+})
+class ArchivedChannelListStubComponent {
+  readonly workspaceId = input.required<typeof workspaceId>();
+  readonly activeChannels = input.required<readonly Channel[]>();
 }
 
 const configureComponent = async ({
@@ -103,10 +114,10 @@ const configureComponent = async ({
 
   TestBed.overrideComponent(ChannelNavigationComponent, {
     remove: {
-      imports: [ChannelMessagesComponent],
+      imports: [ArchivedChannelListComponent, ChannelMessagesComponent],
     },
     add: {
-      imports: [ChannelMessagesStubComponent],
+      imports: [ArchivedChannelListStubComponent, ChannelMessagesStubComponent],
     },
   });
 
@@ -146,6 +157,28 @@ const configureComponent = async ({
 };
 
 describe('ChannelNavigationComponent', () => {
+  it('shows archived channel history only with owner capability', async () => {
+    const managed = await configureComponent({
+      queryParams: {},
+      canManageChannels: true,
+    });
+
+    const archivedList = managed.fixture.debugElement.query(
+      By.directive(ArchivedChannelListStubComponent)
+    ).componentInstance as ArchivedChannelListStubComponent;
+
+    expect(archivedList.workspaceId()).toBe(workspaceId);
+    expect(archivedList.activeChannels()).toEqual([channel]);
+
+    managed.fixture.componentRef.setInput('canManageChannels', false);
+    managed.fixture.detectChanges();
+    expect(
+      managed.fixture.debugElement.query(
+        By.directive(ArchivedChannelListStubComponent)
+      )
+    ).toBeNull();
+  });
+
   it('forwards message moderation capability to the selected channel', async () => {
     const { fixture } = await configureComponent({
       queryParams: {

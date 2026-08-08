@@ -1,6 +1,9 @@
 import type { ChannelRepository } from '@chat-hub/application/channel';
 import { archiveChannel, createChannel, updateChannel } from './commands';
-import { listWorkspaceChannels } from './queries';
+import {
+  listArchivedWorkspaceChannels,
+  listWorkspaceChannels,
+} from './queries';
 import { makeWorkspaceChannelChangesStream } from './realtime';
 import type { SupabaseChannelClient } from './supabase-channel-client';
 
@@ -11,6 +14,8 @@ export const makeSupabaseChannelRepository = (
     makeWorkspaceChannelChangesStream(client, workspaceId),
   archive: (channelId) => archiveChannel(client, channelId),
   listByWorkspace: (workspaceId) => listWorkspaceChannels(client, workspaceId),
+  listArchivedByWorkspace: (workspaceId) =>
+    listArchivedWorkspaceChannels(client, workspaceId),
   create: (command) => createChannel(client, command),
   update: (command) => updateChannel(client, command),
 });

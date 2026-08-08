@@ -2,7 +2,8 @@
 
 ## Purpose
 
-Owns channel identity and the validated channel projection used for navigation.
+Owns channel identity and the validated active and archived channel projections
+used for navigation.
 
 ## Boundary
 
@@ -18,10 +19,13 @@ is owned here.
 - `ChannelNameSchema`
 - `ChannelSlugSchema`
 - `ChannelSchema` and `Channel`
+- `ArchivedChannelSchema` and `ArchivedChannel`
 
-`ChannelSchema` validates unknown adapter data at runtime. Required identifiers
-must be UUIDs, names must not be blank, slugs use lowercase kebab case, and
-descriptions may be `null`.
+The schemas validate unknown adapter data at runtime. Required identifiers must
+be UUIDs, names must not be blank, slugs use lowercase kebab case, and
+descriptions may be `null`. `ArchivedChannel` is deliberately distinct from the
+active `Channel` projection and additionally carries the validated time at
+which the channel became archived.
 
 ## Extension
 

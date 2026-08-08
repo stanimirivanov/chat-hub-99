@@ -10,6 +10,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import type { Channel } from '@chat-hub/domain/channel';
 import type { WorkspaceId } from '@chat-hub/domain/workspace';
+import { ArchivedChannelListComponent } from '@client/features/archived-channel-list/archived-channel-list.component';
 import { ChannelMessagesComponent } from '@client/features/channel-messages/channel-messages.component';
 import { ChannelNavigationStore } from './channel-navigation.store';
 
@@ -23,7 +24,7 @@ import { ChannelNavigationStore } from './channel-navigation.store';
 @Component({
   selector: 'app-channel-navigation',
   standalone: true,
-  imports: [ChannelMessagesComponent],
+  imports: [ArchivedChannelListComponent, ChannelMessagesComponent],
   providers: [ChannelNavigationStore],
   templateUrl: './channel-navigation.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
