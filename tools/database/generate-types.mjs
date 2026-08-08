@@ -26,6 +26,13 @@ const header = `/**
 
 `;
 
-writeFileSync(outputPath, header + generatedTypes, 'utf8');
+// Supabase CLI output has varied in line endings and trailing blank lines
+// across operating systems. Normalize only that whitespace boundary so the
+// checked-in generated contract remains byte-identical locally and in CI.
+const normalizedGeneratedTypes = generatedTypes
+  .replace(/\r\n?/gu, '\n')
+  .trimEnd();
+
+writeFileSync(outputPath, `${header}${normalizedGeneratedTypes}\n`, 'utf8');
 
 console.log(`Generated database types: ${outputPath}`);
