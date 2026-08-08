@@ -18,7 +18,7 @@ import { AuthenticationStore } from './authentication.store';
 
 const session: AuthenticationSession = {
   userId: '00000000-0000-4000-8000-000000000001',
-  email: 'owner@chat-hub.local',
+  email: 'owner@omoikane.local',
 };
 
 const makeDeferred = <T>() => {
@@ -284,7 +284,7 @@ describe('AuthenticationStore', () => {
 
     await store.initialize();
 
-    const result = await store.signIn('owner@chat-hub.local', 'Password123!');
+    const result = await store.signIn('owner@omoikane.local', 'Password123!');
 
     expect(result).toBe(true);
 
@@ -306,7 +306,7 @@ describe('AuthenticationStore', () => {
 
     await store.initialize();
 
-    const result = await store.signIn('owner@chat-hub.local', 'wrong-password');
+    const result = await store.signIn('owner@omoikane.local', 'wrong-password');
 
     expect(result).toBe(false);
 
@@ -338,12 +338,12 @@ describe('AuthenticationStore', () => {
 
     await store.initialize();
 
-    const firstResult = store.signIn('owner@chat-hub.local', 'Password123!');
+    const firstResult = store.signIn('owner@omoikane.local', 'Password123!');
 
     expect(store.signInStatus()).toBe('pending');
 
     const duplicateResult = await store.signIn(
-      'owner@chat-hub.local',
+      'owner@omoikane.local',
       'Password123!'
     );
 
@@ -368,7 +368,7 @@ describe('AuthenticationStore', () => {
 
     await store.initialize();
 
-    const result = store.signIn('owner@chat-hub.local', 'Password123!');
+    const result = store.signIn('owner@omoikane.local', 'Password123!');
 
     observer.emitSession(session);
 
@@ -384,7 +384,7 @@ describe('AuthenticationStore', () => {
   it('does not let a stale sign-in result replace a newer observed session', async () => {
     const newerSession: AuthenticationSession = {
       userId: '00000000-0000-4000-8000-000000000002',
-      email: 'newer@chat-hub.local',
+      email: 'newer@omoikane.local',
     };
 
     const observer = makeSessionObserver();
@@ -398,7 +398,7 @@ describe('AuthenticationStore', () => {
 
     await store.initialize();
 
-    const result = store.signIn('owner@chat-hub.local', 'Password123!');
+    const result = store.signIn('owner@omoikane.local', 'Password123!');
 
     observer.emitSession(newerSession);
 
@@ -579,7 +579,7 @@ describe('AuthenticationStore', () => {
     await store.initialize();
 
     await expect(
-      store.signUp('owner@chat-hub.local', 'Password123!')
+      store.signUp('owner@omoikane.local', 'Password123!')
     ).resolves.toBe(false);
     expect(store.signUpStatus()).toBe('failed');
     expect(store.error()).toEqual({
@@ -600,7 +600,7 @@ describe('AuthenticationStore', () => {
 
     expect(store.isSigningUp()).toBe(true);
     await expect(
-      store.signIn('owner@chat-hub.local', 'Password123!')
+      store.signIn('owner@omoikane.local', 'Password123!')
     ).resolves.toBe(false);
     expect(signIn).not.toHaveBeenCalled();
 
@@ -616,7 +616,7 @@ describe('AuthenticationStore', () => {
   it('does not let a stale registration result replace an observed session', async () => {
     const newerSession: AuthenticationSession = {
       userId: '00000000-0000-4000-8000-000000000002',
-      email: 'newer@chat-hub.local',
+      email: 'newer@omoikane.local',
     };
     const observer = makeSessionObserver();
     const signUp =
@@ -651,10 +651,10 @@ describe('AuthenticationStore', () => {
     await store.initialize();
 
     await expect(
-      store.requestPasswordReset('owner@chat-hub.local')
+      store.requestPasswordReset('owner@omoikane.local')
     ).resolves.toBe(true);
     expect(requestPasswordReset).toHaveBeenCalledExactlyOnceWith(
-      'owner@chat-hub.local'
+      'owner@omoikane.local'
     );
     expect(store.isPasswordResetEmailSent()).toBe(true);
     expect(store.error()).toBeNull();
@@ -674,7 +674,7 @@ describe('AuthenticationStore', () => {
     await store.initialize();
 
     await expect(
-      store.requestPasswordReset('owner@chat-hub.local')
+      store.requestPasswordReset('owner@omoikane.local')
     ).resolves.toBe(false);
     expect(store.passwordResetRequestStatus()).toBe('failed');
     expect(store.error()).toEqual({
@@ -692,11 +692,11 @@ describe('AuthenticationStore', () => {
 
     await store.initialize();
 
-    const recoveryRequest = store.requestPasswordReset('owner@chat-hub.local');
+    const recoveryRequest = store.requestPasswordReset('owner@omoikane.local');
 
     expect(store.isRequestingPasswordReset()).toBe(true);
     await expect(
-      store.signIn('owner@chat-hub.local', 'Password123!')
+      store.signIn('owner@omoikane.local', 'Password123!')
     ).resolves.toBe(false);
     expect(signIn).not.toHaveBeenCalled();
 
@@ -776,7 +776,7 @@ describe('AuthenticationStore', () => {
   it('does not complete recovery for a replaced session', async () => {
     const newerSession: AuthenticationSession = {
       userId: '00000000-0000-4000-8000-000000000002',
-      email: 'newer@chat-hub.local',
+      email: 'newer@omoikane.local',
     };
     const observer = makeSessionObserver();
     const update = makeDeferred<Either.Either<void, AuthenticationError>>();
@@ -843,7 +843,7 @@ describe('AuthenticationStore', () => {
   it('does not let a stale sign-out result clear a newer observed session', async () => {
     const newerSession: AuthenticationSession = {
       userId: '00000000-0000-4000-8000-000000000002',
-      email: 'newer@chat-hub.local',
+      email: 'newer@omoikane.local',
     };
 
     const observer = makeSessionObserver();

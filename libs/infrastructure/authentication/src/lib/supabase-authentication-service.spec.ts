@@ -39,7 +39,7 @@ describe('makeSupabaseAuthenticationService', () => {
 
     expect(result).toEqual({
       userId: '00000000-0000-4000-8000-000000000001',
-      email: 'owner@chat-hub.local',
+      email: 'owner@omoikane.local',
     });
   });
 
@@ -60,18 +60,18 @@ describe('makeSupabaseAuthenticationService', () => {
 
     const result = await Effect.runPromise(
       service.signIn({
-        email: 'owner@chat-hub.local',
+        email: 'owner@omoikane.local',
         password: 'Password123!',
       })
     );
 
     expect(result).toEqual({
       userId: '00000000-0000-4000-8000-000000000001',
-      email: 'owner@chat-hub.local',
+      email: 'owner@omoikane.local',
     });
 
     expect(signInWithPassword).toHaveBeenCalledExactlyOnceWith({
-      email: 'owner@chat-hub.local',
+      email: 'owner@omoikane.local',
       password: 'Password123!',
     });
   });
@@ -92,7 +92,7 @@ describe('makeSupabaseAuthenticationService', () => {
     const result = await Effect.runPromise(
       service
         .signIn({
-          email: 'owner@chat-hub.local',
+          email: 'owner@omoikane.local',
           password: 'wrong-password',
         })
         .pipe(Effect.either)
@@ -133,7 +133,7 @@ describe('makeSupabaseAuthenticationService', () => {
       status: 'authenticated',
       session: {
         userId: '00000000-0000-4000-8000-000000000001',
-        email: 'owner@chat-hub.local',
+        email: 'owner@omoikane.local',
       },
     });
     expect(signUp).toHaveBeenCalledExactlyOnceWith({
@@ -249,7 +249,7 @@ describe('makeSupabaseAuthenticationService', () => {
     const result = await Effect.runPromise(
       service
         .signUp({
-          email: 'owner@chat-hub.local',
+          email: 'owner@omoikane.local',
           password: 'Password123!',
         })
         .pipe(Effect.either)

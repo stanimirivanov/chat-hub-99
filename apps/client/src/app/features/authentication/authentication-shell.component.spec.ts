@@ -140,11 +140,11 @@ describe('AuthenticationShellComponent', () => {
       session: {
         userId: '00000000-0000-4000-8000-000000000001',
 
-        email: 'owner@chat-hub.local',
+        email: 'owner@omoikane.local',
       },
     });
 
-    expect(fixture.nativeElement.textContent).toContain('owner@chat-hub.local');
+    expect(fixture.nativeElement.textContent).toContain('owner@omoikane.local');
   });
 
   it('renders sign-in content for an anonymous user', async () => {
@@ -199,7 +199,7 @@ describe('AuthenticationShellComponent', () => {
       recovering: true,
       session: {
         userId: '00000000-0000-4000-8000-000000000001',
-        email: 'owner@chat-hub.local',
+        email: 'owner@omoikane.local',
       },
     });
 
@@ -207,7 +207,7 @@ describe('AuthenticationShellComponent', () => {
       'Choose a new password'
     );
     expect(fixture.nativeElement.textContent).not.toContain(
-      'owner@chat-hub.local'
+      'owner@omoikane.local'
     );
   });
 });

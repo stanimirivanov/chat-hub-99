@@ -1,7 +1,7 @@
 import type { CurrentMessage } from '@omoikane/shared/database';
 import { vi, type Mock } from 'vitest';
 
-import type { ChatHubSupabaseClient } from '../supabase-message-client';
+import type { SupabaseMessageClient } from '../supabase-message-client';
 
 /**
  * Simplified PostgREST error returned by the Supabase query double.
@@ -93,7 +93,7 @@ type FromMock = Mock<
  * verify both the executed query and the resulting repository behavior.
  */
 interface ListMessageClientStub {
-  readonly client: ChatHubSupabaseClient;
+  readonly client: SupabaseMessageClient;
   readonly from: FromMock;
   readonly select: SelectMock;
   readonly eq: EqMock;
@@ -160,7 +160,7 @@ export const makeListMessageClientStub = (
   return {
     client: {
       from,
-    } as unknown as ChatHubSupabaseClient,
+    } as unknown as SupabaseMessageClient,
     from,
     select,
     eq,

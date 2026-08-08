@@ -77,7 +77,7 @@ const configureComponent = async (
 ) => {
   const session = signal<AuthenticationSession | null>({
     userId: currentUserId,
-    email: 'owner@chat-hub.local',
+    email: 'owner@omoikane.local',
   });
   const store = {
     messages: signal(messages),
@@ -275,7 +275,7 @@ describe('ChannelMessageHistoryComponent', () => {
     const { fixture, session } = await configureComponent();
     session.set({
       userId: otherUserId,
-      email: 'member@chat-hub.local',
+      email: 'member@omoikane.local',
     });
     fixture.detectChanges();
 

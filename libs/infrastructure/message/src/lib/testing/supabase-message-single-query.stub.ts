@@ -1,7 +1,7 @@
 import type { CurrentMessage } from '@omoikane/shared/database';
 import { vi, type Mock } from 'vitest';
 
-import type { ChatHubSupabaseClient } from '../supabase-message-client';
+import type { SupabaseMessageClient } from '../supabase-message-client';
 
 interface StubError {
   readonly code: string;
@@ -39,7 +39,7 @@ type FromMock = Mock<
 >;
 
 interface FindMessageClientStub {
-  readonly client: ChatHubSupabaseClient;
+  readonly client: SupabaseMessageClient;
   readonly from: FromMock;
   readonly select: SelectMock;
   readonly eq: EqMock;
@@ -73,7 +73,7 @@ export const makeFindMessageClientStub = (
   return {
     client: {
       from,
-    } as unknown as ChatHubSupabaseClient,
+    } as unknown as SupabaseMessageClient,
     from,
     select,
     eq,

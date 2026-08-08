@@ -26,7 +26,7 @@ const nextWorkspaceId = Schema.decodeUnknownSync(WorkspaceIdSchema)(
 const channelId = Schema.decodeUnknownSync(ChannelIdSchema)(
   '00000000-0000-4000-8000-000000000002'
 );
-const workspaceSlug = 'chat-hub-development';
+const workspaceSlug = 'omoikane-development';
 const channel: Channel = {
   id: channelId,
   workspaceId,

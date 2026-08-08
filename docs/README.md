@@ -28,7 +28,7 @@ change through an ADR.
 | ID          | Document                                                                                 | Purpose                                                           |
 | ----------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
 | OMO-ARC-000 | [Decision Baseline and Documentation Map](architecture/decision-baseline.md)             | Canonical decisions, authority, and execution order               |
-| OMO-BRD-001 | [Rebranding Implementation Plan](product/rebranding-implementation-plan.md)              | Controlled migration from Chat Hub 99 to Omoikane                 |
+| OMO-BRD-001 | [Rebranding Implementation Plan](product/rebranding-implementation-plan.md)              | Controlled migration to the approved Omoikane identity            |
 | OMO-DEV-001 | [Local Development Environment](development/local-development-environment.md)            | Target workstation, runtime topology, scripts, and verification   |
 | OMO-OPS-001 | [Deployment and Environment Strategy](operations/deployment-and-environment-strategy.md) | Local, Cloud Run, Kubernetes, and service-mesh profiles           |
 | OMO-RMP-001 | [Product and Architecture Roadmap](product/product-and-architecture-roadmap.md)          | Ordered product and architecture phases                           |

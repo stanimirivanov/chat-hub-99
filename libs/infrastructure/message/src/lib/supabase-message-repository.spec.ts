@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import type { ChatHubSupabaseClient } from './supabase-message-client';
+import type { SupabaseMessageClient } from './supabase-message-client';
 import { makeSupabaseMessageRepository } from './supabase-message-repository';
 
 describe('makeSupabaseMessageRepository', () => {
   it('provides every operation required by MessageRepository', () => {
     const repository = makeSupabaseMessageRepository(
-      {} as ChatHubSupabaseClient
+      {} as SupabaseMessageClient
     );
 
     expect(repository).toEqual({

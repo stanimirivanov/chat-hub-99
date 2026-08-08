@@ -10,13 +10,13 @@ import {
   mapThrownRepositoryError,
 } from '../errors';
 import { toEditMessageArgs } from '../mapping';
-import type { ChatHubSupabaseClient } from '../supabase-message-client';
+import type { SupabaseMessageClient } from '../supabase-message-client';
 
 const decodeMessageVersionId = Schema.decodeUnknown(Schema.UUID);
 
 /** Appends a new immutable version to an existing message. */
 export const editMessage = (
-  client: ChatHubSupabaseClient,
+  client: SupabaseMessageClient,
   command: EditMessageCommand
 ): Effect.Effect<void, MessageRepositoryEditError> =>
   Effect.tryPromise({

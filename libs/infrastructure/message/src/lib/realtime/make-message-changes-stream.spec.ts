@@ -1,6 +1,6 @@
 import { Effect, Either, Fiber, Stream } from 'effect';
 import { describe, expect, it, vi } from 'vitest';
-import type { ChatHubSupabaseClient } from '../supabase-message-client';
+import type { SupabaseMessageClient } from '../supabase-message-client';
 import { channelId, messageId } from '../testing';
 import { makeMessageChangesStream } from './make-message-changes-stream';
 
@@ -29,7 +29,7 @@ const makeRealtimeClientStub = () => {
   const client = {
     channel,
     removeChannel,
-  } as unknown as ChatHubSupabaseClient;
+  } as unknown as SupabaseMessageClient;
 
   return {
     client,

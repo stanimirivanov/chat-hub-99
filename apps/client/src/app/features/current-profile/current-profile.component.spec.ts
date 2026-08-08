@@ -53,7 +53,7 @@ describe('CurrentProfileComponent', () => {
       'userId',
       '00000000-0000-4000-8000-000000000001'
     );
-    fixture.componentRef.setInput('fallbackEmail', 'owner@chat-hub.local');
+    fixture.componentRef.setInput('fallbackEmail', 'owner@omoikane.local');
     fixture.detectChanges();
 
     return { fixture, store };
@@ -65,7 +65,7 @@ describe('CurrentProfileComponent', () => {
     expect(store.load).toHaveBeenCalledWith(profile.id);
     expect(fixture.nativeElement.textContent).toContain('Workspace Owner');
     expect(fixture.nativeElement.textContent).toContain('@owner');
-    expect(fixture.nativeElement.textContent).toContain('owner@chat-hub.local');
+    expect(fixture.nativeElement.textContent).toContain('owner@omoikane.local');
   });
 
   it('renders the validated current-profile avatar', async () => {
@@ -139,6 +139,6 @@ describe('CurrentProfileComponent', () => {
   it('keeps the session email visible while profile data is unavailable', async () => {
     const { fixture } = await configureComponent(null);
 
-    expect(fixture.nativeElement.textContent).toContain('owner@chat-hub.local');
+    expect(fixture.nativeElement.textContent).toContain('owner@omoikane.local');
   });
 });

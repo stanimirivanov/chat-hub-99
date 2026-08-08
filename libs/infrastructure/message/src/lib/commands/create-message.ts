@@ -11,7 +11,7 @@ import {
   mapThrownRepositoryError,
 } from '../errors';
 import { toCreateMessageArgs } from '../mapping';
-import type { ChatHubSupabaseClient } from '../supabase-message-client';
+import type { SupabaseMessageClient } from '../supabase-message-client';
 
 const decodeMessageId = Schema.decodeUnknown(MessageIdSchema);
 
@@ -19,7 +19,7 @@ const decodeMessageId = Schema.decodeUnknown(MessageIdSchema);
  * Executes the immutable `create_message` database command.
  */
 export const createMessage = (
-  client: ChatHubSupabaseClient,
+  client: SupabaseMessageClient,
   command: CreateMessageCommand
 ): Effect.Effect<MessageId, MessageRepositoryCreateError> =>
   Effect.tryPromise({

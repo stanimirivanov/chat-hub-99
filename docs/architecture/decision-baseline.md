@@ -42,7 +42,7 @@ multiple deployment profiles.
 | Document ID | Document                                                                                    | Role                                                                                                                                                                   |
 | ----------- | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | OMO-ARC-000 | This decision baseline                                                                      | Defines canonical decisions, document authority, and implementation order.                                                                                             |
-| OMO-BRD-001 | [Rebranding Implementation Plan](../product/rebranding-implementation-plan.md)              | Implements the change from Chat Hub 99 to Omoikane without mixing unrelated domain refactors.                                                                          |
+| OMO-BRD-001 | [Rebranding Implementation Plan](../product/rebranding-implementation-plan.md)              | Records the completed Omoikane migration without mixing unrelated domain refactors.                                                                                    |
 | OMO-DEV-001 | [Local Development Environment](../development/local-development-environment.md)            | Defines the reproducible workstation, runtime topology, scripts, environment policy, and verification steps.                                                           |
 | OMO-OPS-001 | [Deployment and Environment Strategy](../operations/deployment-and-environment-strategy.md) | Defines local, public cloud, Kubernetes, and service-mesh deployment profiles.                                                                                         |
 | OMO-RMP-001 | [Product and Architecture Roadmap](../product/product-and-architecture-roadmap.md)          | Defines the sequence of product, architecture, AI, and platform milestones.                                                                                            |
@@ -90,8 +90,8 @@ the first document it owns.
 
 ## 5. Immediate execution order
 
-1. Apply the rebranding implementation plan and remove Chat Hub 99 from active
-   product surfaces.
+1. Preserve the completed Omoikane identity and prevent legacy branding from
+   returning to active product surfaces.
 2. Create the documented local development platform and verify that a clean
    clone starts with the approved commands.
 3. Stabilize the collaboration MVP and its architectural boundaries.

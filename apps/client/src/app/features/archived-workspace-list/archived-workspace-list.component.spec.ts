@@ -13,8 +13,8 @@ describe('ArchivedWorkspaceListComponent', () => {
   it('confirms restoration and emits the restored workspace', async () => {
     const workspace = Schema.decodeUnknownSync(ArchivedWorkspaceSchema)({
       id: '00000000-0000-4000-8000-000000000001',
-      name: 'Archived Chat Hub',
-      slug: 'archived-chat-hub',
+      name: 'Archived Omoikane',
+      slug: 'archived-omoikane',
       description: 'Preserved history',
       archivedAt: '2026-08-08T09:00:00.000Z',
     });
@@ -49,7 +49,7 @@ describe('ArchivedWorkspaceListComponent', () => {
     fixture.componentInstance.workspaceRestored.subscribe(restored);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Archived Chat Hub');
+    expect(fixture.nativeElement.textContent).toContain('Archived Omoikane');
     expect(fixture.nativeElement.querySelector('time').dateTime).toBe(
       '2026-08-08T09:00:00.000Z'
     );

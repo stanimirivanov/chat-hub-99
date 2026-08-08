@@ -1,5 +1,5 @@
 import { vi, type Mock } from 'vitest';
-import type { ChatHubSupabaseClient } from '../supabase-message-client';
+import type { SupabaseMessageClient } from '../supabase-message-client';
 import type { MessageRevisionRow } from '../mapping/message-revision-row-mapper';
 
 interface RevisionQueryStubError {
@@ -56,7 +56,7 @@ export const makeListMessageRevisionsClientStub = (
   const from: FromMock = vi.fn(() => ({ select }));
 
   return {
-    client: { from } as unknown as ChatHubSupabaseClient,
+    client: { from } as unknown as SupabaseMessageClient,
     from,
     select,
     eq,

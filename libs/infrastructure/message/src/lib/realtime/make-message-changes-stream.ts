@@ -7,7 +7,7 @@ import {
 import type { ChannelId } from '@omoikane/domain/channel';
 import type { Database } from '@omoikane/shared/database';
 import { mapMessageHeadChange } from '../mapping';
-import type { ChatHubSupabaseClient } from '../supabase-message-client';
+import type { SupabaseMessageClient } from '../supabase-message-client';
 
 type MessageHeadRow = Database['public']['Tables']['message_heads']['Row'];
 
@@ -20,7 +20,7 @@ type MessageHeadRow = Database['public']['Tables']['message_heads']['Row'];
  * client, so channel navigation cannot leak listeners.
  */
 export const makeMessageChangesStream = (
-  client: ChatHubSupabaseClient,
+  client: SupabaseMessageClient,
   channelId: ChannelId
 ): Stream.Stream<MessageChangeNotification, MessageRepositoryError> =>
   Stream.asyncPush<MessageChangeNotification, MessageRepositoryError>(

@@ -51,12 +51,12 @@ describe('PasswordRecoveryComponent', () => {
     ) as HTMLInputElement;
     const form = fixture.nativeElement.querySelector('form') as HTMLFormElement;
 
-    emailInput.value = 'owner@chat-hub.local';
+    emailInput.value = 'owner@omoikane.local';
     form.dispatchEvent(new Event('submit'));
     await fixture.whenStable();
 
     expect(store.requestPasswordReset).toHaveBeenCalledExactlyOnceWith(
-      'owner@chat-hub.local'
+      'owner@omoikane.local'
     );
   });
 

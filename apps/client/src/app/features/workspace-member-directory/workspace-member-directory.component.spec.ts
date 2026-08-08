@@ -81,7 +81,7 @@ const renderComponent = async (currentProfileId: ProfileId) => {
         useValue: {
           session: signal({
             userId: currentProfileId,
-            email: 'member@chat-hub.local',
+            email: 'member@omoikane.local',
           }),
         },
       },
