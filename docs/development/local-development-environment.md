@@ -1,0 +1,281 @@
+# Local Development Environment
+
+> **Document ID:** OMO-DEV-001  
+> **Version:** 1.0  
+> **Status:** Approved target baseline, repository-reconciled 8 August 2026  
+> **Date:** 2 August 2026  
+> **Product:** Omoikane - The Collaborative Intelligence Platform
+
+This document defines the target local development environment. Sections that
+name the server, worker, Redis, observability stack, or local AI describe future
+phase capabilities until those artifacts are implemented.
+
+## 1. Baseline workstation
+
+The reference environment is Windows 11 with WSL2 Ubuntu, Docker Desktop using
+Linux containers and WSL integration, and Visual Studio Code Remote WSL. The
+repository is cloned inside the WSL filesystem. Native Windows execution remains
+secondary.
+
+- WSL2 avoids cross-filesystem performance penalties and reduces CRLF and
+  executable-bit problems in Docker and Supabase assets.
+- Docker Desktop owns the container runtime; commands run from the WSL terminal.
+- VS Code opens the repository through Remote WSL so extensions, Node.js, pnpm,
+  and Git run in the same Linux environment as project scripts.
+- Version-controlled migrations, seed data, Compose files, and example
+  configuration make the local environment reproducible.
+
+## 2. Target runtime topology
+
+The target local stack has two infrastructure owners:
+
+- The Supabase CLI owns local Supabase containers. Its generated topology is not
+  copied into the Omoikane Compose file.
+- The Omoikane Docker Compose project owns Redis, OpenTelemetry, Prometheus,
+  Grafana, Tempo, Loki, and optional Ollama.
+- Angular, the application server, and the worker run natively through Nx during
+  normal development for fast rebuilds and debugging. A full-container profile
+  provides deployment parity and integration testing after release images exist.
+
+Ownership must stay explicit: neither Compose nor custom scripts reimplement
+the Supabase CLI's container lifecycle.
+
+```mermaid
+flowchart LR
+  workstation["Developer workstation<br/>WSL2 + VS Code + pnpm"]
+  client["Angular client<br/>Nx serve :4200"]
+  server["NestJS + Effect server<br/>Nx serve :3333"]
+  worker["Effect AI worker<br/>Nx serve :3334"]
+  supabase["Supabase CLI stack<br/>API :54321 | DB :54322 | Studio :54323"]
+  telemetry["OpenTelemetry stack<br/>Grafana :3000 | Prometheus :9090<br/>Tempo :3200 | Loki :3100"]
+  redis["Redis :6379"]
+  ollama["Optional Ollama :11434"]
+
+  workstation --> client
+  workstation --> server
+  workstation --> worker
+  client --> supabase
+  client --> server
+  client -.-> telemetry
+  server --> supabase
+  server --> telemetry
+  server --> redis
+  worker --> supabase
+  worker --> telemetry
+  worker --> redis
+  worker -.-> ollama
+```
+
+The server, worker, and their dependent arrows describe the target topology and
+become operational only in their designated phases.
+
+## 3. Target repository layout
+
+```text
+apps/
+  client/                  # Angular application
+  server/                  # NestJS HTTP/API modular monolith (Phase 3)
+  ai-worker/               # asynchronous Effect runtime (Phase 4)
+
+libs/
+  domain/
+  application/
+  infrastructure/
+  contracts/               # introduced only when a real cross-runtime contract exists
+  platform/                # introduced only when a real platform capability exists
+
+supabase/
+  config.toml
+  migrations/
+  seed.sql
+  tests/
+  functions/
+
+deploy/
+  compose/
+  containers/
+  kubernetes/
+  helm/
+
+docs/
+tools/
+```
+
+The layout is directional, not scaffolding instructions. Directories are added
+with the first implemented capability that owns them.
+
+## 4. Version and tool policy
+
+| Tool                    | Policy                                                                   | Reason                                                                                             |
+| ----------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| Node.js                 | Pin 24.15.x in `.node-version` or `.tool-versions` during Phase 1        | Prevent workstation drift while retaining the Angular 22-compatible target chosen by the baseline. |
+| pnpm                    | Pin 11.16.0 through `packageManager` and Corepack                        | Match the current project baseline.                                                                |
+| Angular                 | Retain 22.x during the platform work                                     | Avoid combining environment changes with a client upgrade.                                         |
+| Nx                      | Keep all `nx` and `@nx/*` packages on the same repository-pinned version | Do not combine the local-platform change with an Nx upgrade.                                       |
+| Supabase CLI            | Use a pinned project development dependency                              | Give contributors and CI the same CLI version.                                                     |
+| Docker Desktop          | Use a stable Linux-container release                                     | Required by the Supabase CLI and Omoikane Compose profiles.                                        |
+| JavaScript installation | Use `pnpm install --frozen-lockfile` in CI                               | Treat the lockfile as authoritative.                                                               |
+
+Target root metadata:
+
+```json
+{
+  "name": "omoikane",
+  "private": true,
+  "packageManager": "pnpm@11.16.0",
+  "engines": {
+    "node": ">=24.15.0 <25"
+  }
+}
+```
+
+## 5. Environment configuration
+
+| File or source                                          | Git policy       | Purpose                                                                                                          |
+| ------------------------------------------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `.env.example`                                          | Committed        | Documents server, worker, Compose, and provider variables with safe placeholders as capabilities are introduced. |
+| `.env.local`                                            | Ignored          | Developer-specific secrets and service-role credentials.                                                         |
+| Client development environment or runtime public config | Committed        | Public local values only, such as Supabase URL and anonymous key.                                                |
+| `supabase/config.toml`                                  | Committed        | Reproducible local Supabase project.                                                                             |
+| Cloud secret stores                                     | Not used locally | Production secrets are never copied into repository files.                                                       |
+
+- Standard Supabase variables retain the `SUPABASE_` prefix.
+- Omoikane-specific runtime variables use `OMOIKANE_`.
+- The service-role key is available only to the server and worker, never to
+  Angular.
+- External AI provider keys are optional. Ollama provides a no-cloud local
+  profile.
+
+Target example, expanded only as the owning runtimes are implemented:
+
+```dotenv
+OMOIKANE_ENV=local
+OMOIKANE_SERVER_PORT=3333
+OMOIKANE_WORKER_HEALTH_PORT=3334
+OMOIKANE_REDIS_URL=redis://localhost:6379
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
+
+SUPABASE_URL=http://127.0.0.1:54321
+SUPABASE_ANON_KEY=<from-supabase-status>
+SUPABASE_SERVICE_ROLE_KEY=<local-only-service-role-key>
+SUPABASE_DB_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
+
+OPENAI_API_KEY=
+ANTHROPIC_API_KEY=
+OLLAMA_BASE_URL=http://localhost:11434
+```
+
+## 6. Target port allocation
+
+| Runtime             |  Port |
+| ------------------- | ----: |
+| Angular client      |  4200 |
+| Omoikane server     |  3333 |
+| AI worker health    |  3334 |
+| Supabase API        | 54321 |
+| Supabase PostgreSQL | 54322 |
+| Supabase Studio     | 54323 |
+| Redis               |  6379 |
+| Grafana             |  3000 |
+| Prometheus          |  9090 |
+| Loki                |  3100 |
+| Tempo               |  3200 |
+| OTLP gRPC           |  4317 |
+| OTLP HTTP           |  4318 |
+| Ollama              | 11434 |
+
+## 7. Target startup scripts
+
+Scripts are added in the phase that implements their dependencies. Until then,
+their names document the intended operator contract rather than an available
+command.
+
+| Command                  | Contract                                                                                         |
+| ------------------------ | ------------------------------------------------------------------------------------------------ |
+| `pnpm dev:bootstrap`     | Validate tools, install dependencies, create `.env.local` when absent, and pull required images. |
+| `pnpm dev:up`            | Start Supabase and core Compose infrastructure.                                                  |
+| `pnpm dev`               | Run the implemented client, server, and worker applications through Nx.                          |
+| `pnpm dev:observability` | Start OpenTelemetry, Prometheus, Grafana, Tempo, and Loki.                                       |
+| `pnpm dev:ai-local`      | Start Ollama and provision the documented local model.                                           |
+| `pnpm dev:status`        | Show Supabase, Compose, and implemented application health.                                      |
+| `pnpm dev:logs`          | Follow infrastructure and implemented runtime logs.                                              |
+| `pnpm dev:down`          | Stop Omoikane infrastructure and Supabase without deleting volumes.                              |
+| `pnpm dev:clean`         | After confirmation, stop the stack and remove disposable local volumes.                          |
+
+## 8. Database workflow
+
+1. Implement database changes as versioned migrations under
+   `supabase/migrations`.
+2. Keep seed data deterministic and provide documented test users, profiles,
+   workspaces, channels, and messages.
+3. Cover command functions, RLS policies, triggers, and projections with pgTAP
+   tests.
+4. Make `pnpm db:verify` reset the database, lint it, and run tests from a clean
+   state when that aggregate command is introduced.
+5. Check generated database types into the repository only when project policy
+   requires it; a check command must prove that they match the schema.
+6. Enable the `vector` extension by migration before creating embedding tables.
+
+Individual database commands remain valid building blocks:
+
+```text
+pnpm db:migration:new <name>
+pnpm db:reset
+pnpm db:verify
+pnpm db:types
+pnpm db:types:check
+```
+
+## 9. Observability and local AI target
+
+- Runtimes emit OpenTelemetry traces and metrics with consistent resource
+  attributes and correlation IDs once their observability phase is implemented.
+- Grafana is the local dashboard entry point. Tempo stores traces, Loki stores
+  logs, and Prometheus stores metrics.
+- Ollama starts only for local AI development. Hosted-provider adapters remain
+  disabled when their keys are absent.
+- AI jobs record provider, model, prompt version, token or compute usage,
+  latency, and result status as Analysis Run metadata.
+
+## 10. Staged verification
+
+### Phase 1 exit gate
+
+- A contributor can clone the repository, run the documented bootstrap
+  sequence, and open the existing Angular application without editing source.
+- The client authenticates against local Supabase and executes the collaboration
+  capabilities implemented at that point.
+- The current database, lint, test, typecheck, and build commands pass from the
+  reference environment and in CI.
+- Supabase and any Phase 1 Compose services report useful status.
+
+### Deferred runtime gates
+
+- **Phase 3:** server readiness verifies its required dependencies, and a client
+  request produces a server trace.
+- **Phase 4:** the worker acquires and completes a deterministic test job, and
+  server-to-worker trace correlation is visible.
+- **Observability increment:** Grafana, Tempo, Loki, and Prometheus are verified
+  when their owning Compose profile is introduced.
+
+This staging removes the circular requirement to verify runtimes before they
+exist while preserving the final target environment.
+
+### Troubleshooting
+
+| Symptom                                                   | Resolution                                                                                                            |
+| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Supabase containers fail with entrypoint or format errors | Confirm Docker uses Linux containers, clone in WSL, preserve LF line endings, remove the affected image, and restart. |
+| Ports are occupied                                        | Use the available status command. Stop conflicting processes rather than silently changing team defaults.             |
+| Studio starts but the schema is missing                   | Run the database reset command and inspect migration output before starting the client.                               |
+| Server cannot connect through a pooler                    | Use the direct local PostgreSQL connection. Test pooler-specific behavior in hosted environments.                     |
+| Ollama consumes excessive resources                       | Stop the local-AI profile. Keep hosted-provider tests opt-in and mocked in the default test suite.                    |
+
+## 11. Official references
+
+- [Supabase CLI getting started](https://supabase.com/docs/guides/local-development/cli/getting-started)
+- [Supabase local development workflow](https://supabase.com/docs/guides/local-development/cli-workflows)
+- [Supabase testing and linting](https://supabase.com/docs/guides/local-development/cli/testing-and-linting)
+- [Supabase pgvector](https://supabase.com/docs/guides/database/extensions/pgvector)
+- [Angular version compatibility](https://angular.dev/reference/versions)
+- [Nx and Angular compatibility](https://nx.dev/docs/technologies/angular/guides/angular-nx-version-matrix)

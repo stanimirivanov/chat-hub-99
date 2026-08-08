@@ -1,0 +1,52 @@
+# Omoikane documentation
+
+This directory contains the version-controlled product, architecture,
+development, and operations documentation for Omoikane, an Izanagi product.
+Omoikane is positioned as a **Collaborative Intelligence Platform**; channels
+and messaging are its first collaboration capability, not its product category.
+
+## Authority and precedence
+
+Documentation is interpreted in this order:
+
+1. An accepted Architecture Decision Record (ADR) has authority for the
+   decision it covers.
+2. The [decision baseline](architecture/decision-baseline.md) governs where no
+   later ADR exists.
+3. Approved implementation plans define execution details and acceptance
+   criteria.
+4. Architecture descriptions explain the integrated system as it exists after
+   implementation.
+5. Code, tests, migrations, deployment manifests, and documentation must agree.
+
+When implementation and documentation disagree, do not silently preserve the
+discrepancy. Correct factual drift in the same pull request or record a decision
+change through an ADR.
+
+## Approved baseline set
+
+| ID          | Document                                                                                 | Purpose                                                           |
+| ----------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| OMO-ARC-000 | [Decision Baseline and Documentation Map](architecture/decision-baseline.md)             | Canonical decisions, authority, and execution order               |
+| OMO-BRD-001 | [Rebranding Implementation Plan](product/rebranding-implementation-plan.md)              | Controlled migration from Chat Hub 99 to Omoikane                 |
+| OMO-DEV-001 | [Local Development Environment](development/local-development-environment.md)            | Target workstation, runtime topology, scripts, and verification   |
+| OMO-OPS-001 | [Deployment and Environment Strategy](operations/deployment-and-environment-strategy.md) | Local, Cloud Run, Kubernetes, and service-mesh profiles           |
+| OMO-RMP-001 | [Product and Architecture Roadmap](product/product-and-architecture-roadmap.md)          | Ordered product and architecture phases                           |
+| OMO-SAD-001 | Software Architecture Document                                                           | Planned; no approved source was supplied for this baseline import |
+| ADR series  | [Architecture Decision Records](architecture/adr/README.md)                              | Later decisions that amend or supersede the baseline              |
+
+## Repository reconciliation
+
+The approved Word documents were imported as reviewable Markdown on
+8 August 2026. The repository copy makes three factual clarifications:
+
+- the current database model already uses `channels`, so no legacy `rooms`
+  table is retained by the rebrand;
+- server and worker readiness, Redis connectivity, and distributed trace gates
+  are evaluated when those runtimes are introduced in Phases 3 and 4, not in
+  Phase 1;
+- presence and typing indicators are planned Phase 2 capabilities and are not
+  described as existing behavior.
+
+These clarifications align the approved direction with the repository without
+changing application behavior.
