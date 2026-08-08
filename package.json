@@ -11,6 +11,7 @@
     "preinstall": "node tools/development/verify-node-version.mjs && npx only-allow pnpm",
 
     "start": "nx serve client",
+    "dev:bootstrap": "node tools/development/bootstrap.mjs",
     "dev:up": "pnpm supabase:start",
     "dev:status": "node tools/development/show-status.mjs",
     "dev:down": "pnpm supabase:stop",

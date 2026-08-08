@@ -198,17 +198,17 @@ Scripts are added in the phase that implements their dependencies. Until then,
 their names document the intended operator contract rather than an available
 command.
 
-| Command                  | Contract                                                                                         |
-| ------------------------ | ------------------------------------------------------------------------------------------------ |
-| `pnpm dev:bootstrap`     | Validate tools, install dependencies, create `.env.local` when absent, and pull required images. |
-| `pnpm dev:up`            | Start currently implemented infrastructure; this is Supabase-only until Compose is introduced.   |
-| `pnpm dev`               | Run the implemented client, server, and worker applications through Nx.                          |
-| `pnpm dev:observability` | Start OpenTelemetry, Prometheus, Grafana, Tempo, and Loki.                                       |
-| `pnpm dev:ai-local`      | Start Ollama and provision the documented local model.                                           |
-| `pnpm dev:status`        | Show implemented Node.js, pnpm, Docker, and local Supabase health.                               |
-| `pnpm dev:logs`          | Follow infrastructure and implemented runtime logs.                                              |
-| `pnpm dev:down`          | Stop currently implemented infrastructure without deleting local Supabase data.                  |
-| `pnpm dev:clean`         | After confirmation, stop the stack and remove disposable local volumes.                          |
+| Command                  | Contract                                                                                       |
+| ------------------------ | ---------------------------------------------------------------------------------------------- |
+| `pnpm dev:bootstrap`     | Validate current tools, install locked dependencies, and start the implemented infrastructure. |
+| `pnpm dev:up`            | Start currently implemented infrastructure; this is Supabase-only until Compose is introduced. |
+| `pnpm dev`               | Run the implemented client, server, and worker applications through Nx.                        |
+| `pnpm dev:observability` | Start OpenTelemetry, Prometheus, Grafana, Tempo, and Loki.                                     |
+| `pnpm dev:ai-local`      | Start Ollama and provision the documented local model.                                         |
+| `pnpm dev:status`        | Show implemented Node.js, pnpm, Docker, and local Supabase health.                             |
+| `pnpm dev:logs`          | Follow infrastructure and implemented runtime logs.                                            |
+| `pnpm dev:down`          | Stop currently implemented infrastructure without deleting local Supabase data.                |
+| `pnpm dev:clean`         | After confirmation, stop the stack and remove disposable local volumes.                        |
 
 `pnpm dev:status` is implemented for the current client-and-Supabase topology.
 It is read-only, suppresses Supabase's credential-bearing status output, and
@@ -221,6 +221,13 @@ Starting is non-destructive when local data already exists. Stopping uses the
 Supabase CLI's default backup-preserving behavior; destructive `--no-backup`
 cleanup remains an explicit direct operation rather than part of the aggregate
 lifecycle.
+
+`pnpm dev:bootstrap` validates the supported Node.js range, exact pnpm version,
+and an available Docker engine before running a frozen-lockfile install and
+`dev:up`. The current Angular client uses committed public local configuration,
+so bootstrap does not manufacture an unused `.env.local`. Creation of that file
+belongs to the first server, worker, or Compose slice that consumes
+developer-specific configuration.
 
 ## 8. Database workflow
 

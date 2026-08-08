@@ -1,41 +1,11 @@
-import { spawnSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-
-const packageMetadata = JSON.parse(
-  readFileSync(new URL('../../package.json', import.meta.url), 'utf8')
-);
-const expectedPnpmVersion = packageMetadata.packageManager.replace('pnpm@', '');
-const verifyNodeVersionPath = fileURLToPath(
-  new URL('./verify-node-version.mjs', import.meta.url)
-);
-const pnpmCommand = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
-const dockerCommand = process.platform === 'win32' ? 'docker.exe' : 'docker';
-
-const runCommand = (command, args) => {
-  const isWindowsCommandScript =
-    process.platform === 'win32' && command.endsWith('.cmd');
-
-  return spawnSync(
-    isWindowsCommandScript ? (process.env.ComSpec ?? 'cmd.exe') : command,
-    isWindowsCommandScript ? ['/d', '/s', '/c', command, ...args] : args,
-    {
-      encoding: 'utf8',
-      windowsHide: true,
-    }
-  );
-};
-
-const firstOutputLine = (result) =>
-  (result.stderr ?? result.stdout ?? '')
-    .split(/\r?\n/u)
-    .map((line) => line.trim())
-    .find(Boolean);
-
-const commandFailure = (result) =>
-  result.error?.code === 'ENOENT'
-    ? 'command not found'
-    : (firstOutputLine(result) ?? result.error?.message ?? 'command failed');
+import {
+  commandFailure,
+  dockerCommand,
+  expectedPnpmVersion,
+  pnpmCommand,
+  runCommand,
+  verifyNodeVersionPath,
+} from './local-toolchain.mjs';
 
 let isReady = true;
 

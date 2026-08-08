@@ -194,6 +194,16 @@ Confirm that Docker is running before starting Supabase.
 
 Run commands from the repository root.
 
+From a fresh clone, validate the local toolchain, install locked dependencies,
+and start Supabase with:
+
+```shell
+corepack enable
+pnpm dev:bootstrap
+```
+
+The bootstrap command is idempotent and preserves an existing local database.
+
 ### Start the local Supabase stack
 
 ```shell
