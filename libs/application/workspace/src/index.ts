@@ -61,6 +61,7 @@ export {
   type WorkspaceCreationField,
 } from './lib/create-workspace';
 export { listAccessibleWorkspaces } from './lib/list-accessible-workspaces';
+export { listArchivedWorkspaces } from './lib/list-archived-workspaces';
 export { observeAccessibleWorkspaces } from './lib/observe-accessible-workspaces';
 export {
   listWorkspaceMembers,

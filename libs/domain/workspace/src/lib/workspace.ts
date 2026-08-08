@@ -22,3 +22,19 @@ export const WorkspaceSchema = Schema.Struct({
 });
 
 export type Workspace = typeof WorkspaceSchema.Type;
+
+/**
+ * Archived workspace projection available for history discovery.
+ *
+ * Keeping this distinct from `Workspace` prevents inactive data from entering
+ * active navigation while retaining the timestamp of the lifecycle change.
+ */
+export const ArchivedWorkspaceSchema = Schema.Struct({
+  id: WorkspaceIdSchema,
+  name: WorkspaceNameSchema,
+  slug: WorkspaceSlugSchema,
+  description: Schema.NullOr(Schema.String),
+  archivedAt: Schema.Date,
+});
+
+export type ArchivedWorkspace = typeof ArchivedWorkspaceSchema.Type;

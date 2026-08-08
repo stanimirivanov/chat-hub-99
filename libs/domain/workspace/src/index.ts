@@ -16,8 +16,10 @@ export {
   type WorkspaceMemberRole,
 } from './lib/workspace-member';
 export {
+  ArchivedWorkspaceSchema,
   WorkspaceNameSchema,
   WorkspaceSchema,
   WorkspaceSlugSchema,
+  type ArchivedWorkspace,
   type Workspace,
 } from './lib/workspace';

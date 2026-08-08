@@ -1,9 +1,20 @@
 import { Schema } from 'effect';
 import {
+  ArchivedWorkspaceSchema,
   WorkspaceInvitationSchema,
   WorkspaceMemberSchema,
   WorkspaceSchema,
 } from '@chat-hub/domain/workspace';
+
+export const archivedWorkspace = Schema.decodeUnknownSync(
+  ArchivedWorkspaceSchema
+)({
+  id: '00000000-0000-4000-8000-000000000004',
+  name: 'Archived Chat Hub',
+  slug: 'archived-chat-hub',
+  description: null,
+  archivedAt: '2026-08-08T09:00:00.000Z',
+});
 
 export const workspace = Schema.decodeUnknownSync(WorkspaceSchema)({
   id: '00000000-0000-4000-8000-000000000001',

@@ -11,6 +11,7 @@ import {
   listPendingWorkspaceInvitations,
   listPendingWorkspaceInvitationsForOwner,
   listAccessibleWorkspaces,
+  listArchivedWorkspaces,
   observeAccessibleWorkspaces,
   listWorkspaceMembers,
   leaveWorkspace,
@@ -50,6 +51,7 @@ import {
   type UpdateWorkspaceInput,
 } from '@chat-hub/application/workspace';
 import type {
+  ArchivedWorkspace,
   Workspace,
   WorkspaceId,
   WorkspaceInvitation,
@@ -88,6 +90,15 @@ export class WorkspaceApplicationService {
   > {
     return applicationRuntime.runPromise(
       listAccessibleWorkspaces.pipe(Effect.either)
+    );
+  }
+
+  /** Lists archived workspaces without admitting them to active navigation. */
+  listArchivedWorkspaces(): Promise<
+    Either.Either<readonly ArchivedWorkspace[], WorkspaceRepositoryReadError>
+  > {
+    return applicationRuntime.runPromise(
+      listArchivedWorkspaces.pipe(Effect.either)
     );
   }
 

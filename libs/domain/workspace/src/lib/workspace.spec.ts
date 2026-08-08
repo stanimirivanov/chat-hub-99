@@ -1,6 +1,6 @@
 import { Either, Schema } from 'effect';
 import { describe, expect, it } from 'vitest';
-import { WorkspaceSchema } from './workspace';
+import { ArchivedWorkspaceSchema, WorkspaceSchema } from './workspace';
 
 const decodeWorkspace = Schema.decodeUnknownEither(WorkspaceSchema);
 
@@ -30,5 +30,19 @@ describe('WorkspaceSchema', () => {
     });
 
     expect(Either.isLeft(result)).toBe(true);
+  });
+});
+
+describe('ArchivedWorkspaceSchema', () => {
+  it('decodes an archived projection timestamp to a Date', () => {
+    const result = Schema.decodeUnknownSync(ArchivedWorkspaceSchema)({
+      id: '00000000-0000-4000-8000-000000000001',
+      name: 'Chat Hub Development',
+      slug: 'chat-hub-development',
+      description: null,
+      archivedAt: '2026-08-08T09:00:00.000Z',
+    });
+
+    expect(result.archivedAt).toEqual(new Date('2026-08-08T09:00:00.000Z'));
   });
 });

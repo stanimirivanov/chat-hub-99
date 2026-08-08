@@ -20,6 +20,10 @@ export const makeWorkspaceRepositoryStub = (
     Effect.dieMessage(
       'Unexpected WorkspaceRepository.listAccessible call in test'
     ),
+  listArchived: () =>
+    Effect.dieMessage(
+      'Unexpected WorkspaceRepository.listArchived call in test'
+    ),
   listActiveMembers: () =>
     Effect.dieMessage(
       'Unexpected WorkspaceRepository.listActiveMembers call in test'
@@ -104,6 +108,17 @@ export const makeListAccessibleWorkspaceRepository = (
   return {
     listAccessible,
     repositoryLayer: makeWorkspaceRepositoryLayer({ listAccessible }),
+  };
+};
+
+export const makeListArchivedWorkspaceRepository = (
+  implementation: WorkspaceRepository['listArchived']
+) => {
+  const listArchived = vi.fn(implementation);
+
+  return {
+    listArchived,
+    repositoryLayer: makeWorkspaceRepositoryLayer({ listArchived }),
   };
 };
 

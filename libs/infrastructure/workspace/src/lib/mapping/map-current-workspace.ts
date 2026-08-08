@@ -1,8 +1,14 @@
 import { Effect, Schema } from 'effect';
 import { InvalidWorkspaceDataError } from '@chat-hub/application/workspace';
-import { WorkspaceSchema, type Workspace } from '@chat-hub/domain/workspace';
+import {
+  ArchivedWorkspaceSchema,
+  WorkspaceSchema,
+  type ArchivedWorkspace,
+  type Workspace,
+} from '@chat-hub/domain/workspace';
 
 const decodeWorkspace = Schema.decodeUnknown(WorkspaceSchema);
+const decodeArchivedWorkspace = Schema.decodeUnknown(ArchivedWorkspaceSchema);
 
 /**
  * Narrow external workspace projection shared by query and command adapters.
@@ -16,6 +22,11 @@ export interface WorkspaceProjectionRow {
   readonly name: string | null;
   readonly slug: string | null;
   readonly description: string | null;
+}
+
+/** Provider projection required to identify an archived workspace snapshot. */
+export interface ArchivedWorkspaceProjectionRow extends WorkspaceProjectionRow {
+  readonly version_created_at: string | null;
 }
 
 /**
@@ -32,6 +43,25 @@ export const mapCurrentWorkspace = (
     name: row.name,
     slug: row.slug,
     description: row.description,
+  }).pipe(
+    Effect.mapError(
+      (cause) =>
+        new InvalidWorkspaceDataError({
+          cause,
+        })
+    )
+  );
+
+/** Decodes one archived view row without representing it as active. */
+export const mapArchivedWorkspace = (
+  row: ArchivedWorkspaceProjectionRow
+): Effect.Effect<ArchivedWorkspace, InvalidWorkspaceDataError> =>
+  decodeArchivedWorkspace({
+    id: row.workspace_id,
+    name: row.name,
+    slug: row.slug,
+    description: row.description,
+    archivedAt: row.version_created_at,
   }).pipe(
     Effect.mapError(
       (cause) =>

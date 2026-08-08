@@ -1,7 +1,7 @@
 # Workspace Application
 
 `@chat-hub/application/workspace` owns provider-independent workflows for
-discovering accessible workspaces and active members, creating and editing
+discovering active and archived workspaces and active members, creating and editing
 workspaces, archiving workspaces, adding active profiles as members, changing
 active member roles, suspending and reactivating members, removing active
 members, leaving a workspace, and consent-based invitations for existing users.
@@ -14,6 +14,8 @@ workspace snapshots when the authenticated user's membership changes.
 - Define typed read, creation, update, archive, member-addition, role-change,
   removal, suspension, invitation, and expected command failures.
 - List active, accessible workspaces through an Effect use case.
+- List archived workspaces still visible through existing membership RLS as
+  distinct archived domain projections.
 - Observe accessible-workspace invalidations and resolve every signal through
   the same authoritative list operation.
 - List active, RLS-visible members in fixed-size owner-first keyset pages.
@@ -64,6 +66,11 @@ Angular caller
   -> listAccessibleWorkspaces
   -> WorkspaceRepositoryTag
   -> infrastructure adapter supplied by a Layer
+
+Angular caller
+  -> listArchivedWorkspaces
+  -> WorkspaceRepositoryTag.listArchived
+  -> validated ArchivedWorkspace snapshots
 
 Angular caller
   -> observeAccessibleWorkspaces Stream
@@ -154,6 +161,7 @@ other application libraries.
 ## Public API
 
 - `listAccessibleWorkspaces`
+- `listArchivedWorkspaces`
 - `observeAccessibleWorkspaces`
 - `listWorkspaceMembers`, `WorkspaceMemberPage`, and cursor contracts
 - `createWorkspace` and its input/error contracts

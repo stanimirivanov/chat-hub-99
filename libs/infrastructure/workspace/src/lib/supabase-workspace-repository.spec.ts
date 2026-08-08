@@ -24,6 +24,7 @@ describe('makeSupabaseWorkspaceRepository', () => {
       'leave',
       'listAccessible',
       'listActiveMembers',
+      'listArchived',
       'listPendingInvitations',
       'listPendingInvitationsForWorkspace',
       'removeMember',
@@ -44,6 +45,7 @@ describe('makeSupabaseWorkspaceRepository', () => {
     expect(repository.update).toBeTypeOf('function');
     expect(repository.listAccessible).toBeTypeOf('function');
     expect(repository.listActiveMembers).toBeTypeOf('function');
+    expect(repository.listArchived).toBeTypeOf('function');
     expect(repository.listPendingInvitations).toBeTypeOf('function');
     expect(repository.listPendingInvitationsForWorkspace).toBeTypeOf(
       'function'

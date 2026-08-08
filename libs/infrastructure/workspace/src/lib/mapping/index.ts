@@ -7,7 +7,10 @@ export {
   type PendingWorkspaceInvitationForOwnerRow,
   type WorkspaceInvitationProjectionRow,
 } from './map-workspace-invitation';
-export { mapCurrentWorkspace } from './map-current-workspace';
+export {
+  mapArchivedWorkspace,
+  mapCurrentWorkspace,
+} from './map-current-workspace';
 export {
   toAddWorkspaceMemberArgs,
   toArchiveWorkspaceArgs,

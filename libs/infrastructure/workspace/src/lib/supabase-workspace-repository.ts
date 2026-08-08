@@ -15,6 +15,7 @@ import {
 } from './commands';
 import {
   listAccessibleWorkspaces,
+  listArchivedWorkspaces,
   listPendingWorkspaceInvitations,
   listPendingWorkspaceInvitationsForWorkspace,
   listWorkspaceMembers,
@@ -33,6 +34,7 @@ export const makeSupabaseWorkspaceRepository = (
   cancelInvitation: (invitationId) =>
     cancelWorkspaceInvitation(client, invitationId),
   listAccessible: () => listAccessibleWorkspaces(client),
+  listArchived: () => listArchivedWorkspaces(client),
   listActiveMembers: (query) => listWorkspaceMembers(client, query),
   leave: (workspaceId) => leaveWorkspace(client, workspaceId),
   create: (command) => createWorkspace(client, command),
