@@ -44,19 +44,19 @@ jobs:
       - name: Enable the pinned package manager
         run: corepack enable
 
-      - name: Install locked dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Bootstrap local platform
+        id: platform-bootstrap
+        run: pnpm dev:bootstrap
+
+      - name: Verify local platform status
+        run: pnpm dev:status
 
       - name: Verify source
         run: pnpm verify
-
-      - name: Start local Supabase
-        id: supabase-start
-        run: pnpm dev:up
 
       - name: Verify database
         run: pnpm db:verify
 
       - name: Stop local Supabase
-        if: always() && steps.supabase-start.outcome == 'success'
+        if: always() && steps.platform-bootstrap.outcome == 'success'
         run: pnpm dev:down
