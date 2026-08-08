@@ -14,6 +14,7 @@ import type {
 import type {
   AddWorkspaceMemberArgs,
   ArchiveWorkspaceArgs,
+  RestoreWorkspaceArgs,
   ChangeWorkspaceMemberRoleArgs,
   CreateWorkspaceArgs,
   InviteWorkspaceMemberArgs,
@@ -33,6 +34,13 @@ import type {
 export const toArchiveWorkspaceArgs = (
   workspaceId: WorkspaceId
 ): ArchiveWorkspaceArgs => ({
+  p_workspace_id: workspaceId,
+});
+
+/** Maps a validated workspace identity to generated restoration arguments. */
+export const toRestoreWorkspaceArgs = (
+  workspaceId: WorkspaceId
+): RestoreWorkspaceArgs => ({
   p_workspace_id: workspaceId,
 });
 

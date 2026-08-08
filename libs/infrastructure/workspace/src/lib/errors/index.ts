@@ -12,5 +12,6 @@ export {
   mapWorkspaceInvitationDeclineError,
   mapWorkspaceInvitationOwnerReadError,
   mapWorkspaceRepositoryError,
+  mapWorkspaceRestoreError,
   mapWorkspaceUpdateError,
 } from './workspace-repository-error-mapper';

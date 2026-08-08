@@ -14,6 +14,7 @@ export {
 export {
   toAddWorkspaceMemberArgs,
   toArchiveWorkspaceArgs,
+  toRestoreWorkspaceArgs,
   toChangeWorkspaceMemberRoleArgs,
   toCreateWorkspaceArgs,
   toLeaveWorkspaceArgs,

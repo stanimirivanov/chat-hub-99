@@ -7,25 +7,39 @@ import {
   withMethods,
   withState,
 } from '@ngrx/signals';
-import type { WorkspaceRepositoryReadError } from '@chat-hub/application/workspace';
+import type {
+  RestoreWorkspaceError,
+  WorkspaceRepositoryReadError,
+} from '@chat-hub/application/workspace';
+import type { Workspace, WorkspaceId } from '@chat-hub/domain/workspace';
 import { WorkspaceApplicationService } from '@client/core/workspace/workspace-application.service';
 import { initialArchivedWorkspaceListState } from './archived-workspace-list.state';
 
-/** Owns the independent request lifecycle for archived-workspace discovery. */
+/** Owns independent archived-workspace discovery and restoration lifecycles. */
 export const ArchivedWorkspaceListStore = signalStore(
   withState(initialArchivedWorkspaceListState),
   withComputed((store) => ({
     isLoading: computed(() => store.loadStatus() === 'loading'),
     hasWorkspaces: computed(() => store.workspaces().length > 0),
+    isRestoring: computed(() => store.restorationStatus() === 'restoring'),
   })),
   withMethods(
     (store, workspaceApplication = inject(WorkspaceApplicationService)) => {
       let loading: Promise<void> | null = null;
 
       return {
+        clearRestorationError(): void {
+          if (store.restorationStatus() === 'failed') {
+            patchState(store, {
+              restorationStatus: 'idle',
+              restorationError: null,
+            });
+          }
+        },
+
         /**
          * Loads once and coalesces concurrent calls. `force` reconciles a
-         * successful local archive without coupling this store to commands.
+         * active-navigation identity change without another realtime listener.
          */
         load(force = false): Promise<void> {
           if (!force && store.loadStatus() === 'loaded') {
@@ -62,6 +76,48 @@ export const ArchivedWorkspaceListStore = signalStore(
 
           return loading;
         },
+
+        /** Restores one listed identity and removes its archived projection. */
+        async restore(workspaceId: WorkspaceId): Promise<Workspace | null> {
+          if (
+            store.loadStatus() !== 'loaded' ||
+            store.restorationStatus() === 'restoring' ||
+            !store
+              .workspaces()
+              .some((workspace) => workspace.id === workspaceId)
+          ) {
+            return null;
+          }
+
+          patchState(store, {
+            restorationStatus: 'restoring',
+            restoringWorkspaceId: workspaceId,
+            restorationError: null,
+          });
+
+          const result = await workspaceApplication.restoreWorkspace({
+            workspaceId,
+          });
+
+          if (Either.isLeft(result)) {
+            patchState(store, {
+              restorationStatus: 'failed',
+              restoringWorkspaceId: null,
+              restorationError: presentWorkspaceRestorationError(result.left),
+            });
+            return null;
+          }
+
+          patchState(store, {
+            workspaces: store
+              .workspaces()
+              .filter((workspace) => workspace.id !== workspaceId),
+            restorationStatus: 'idle',
+            restoringWorkspaceId: null,
+            restorationError: null,
+          });
+          return result.right;
+        },
       };
     }
   )
@@ -74,4 +130,13 @@ const presentArchivedWorkspaceError = (
     error._tag === 'InvalidWorkspaceDataError'
       ? 'Archived workspace data is invalid. Please contact support.'
       : 'Archived workspaces could not be loaded. Please try again.',
+});
+
+const presentWorkspaceRestorationError = (error: RestoreWorkspaceError) => ({
+  message:
+    error._tag === 'WorkspaceRestoreNotAllowedError'
+      ? 'This workspace cannot be restored. It may already be active, or your session may not have owner access.'
+      : error._tag === 'InvalidWorkspaceDataError'
+        ? 'The restored workspace data is invalid. Please contact support.'
+        : 'The workspace could not be restored. Please try again.',
 });

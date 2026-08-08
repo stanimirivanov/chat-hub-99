@@ -28,6 +28,7 @@ describe('makeSupabaseWorkspaceRepository', () => {
       'listPendingInvitations',
       'listPendingInvitationsForWorkspace',
       'removeMember',
+      'restore',
       'suspendMember',
       'update',
     ]);
@@ -41,6 +42,7 @@ describe('makeSupabaseWorkspaceRepository', () => {
     expect(repository.inviteMember).toBeTypeOf('function');
     expect(repository.changeMemberRole).toBeTypeOf('function');
     expect(repository.removeMember).toBeTypeOf('function');
+    expect(repository.restore).toBeTypeOf('function');
     expect(repository.suspendMember).toBeTypeOf('function');
     expect(repository.update).toBeTypeOf('function');
     expect(repository.listAccessible).toBeTypeOf('function');

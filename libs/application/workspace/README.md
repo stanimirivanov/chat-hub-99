@@ -1,17 +1,18 @@
 # Workspace Application
 
 `@chat-hub/application/workspace` owns provider-independent workflows for
-discovering active and archived workspaces and active members, creating and editing
-workspaces, archiving workspaces, adding active profiles as members, changing
+discovering active and archived workspaces and active members, creating and
+editing workspaces, archiving and restoring workspaces, adding active profiles as members, changing
 active member roles, suspending and reactivating members, removing active
 members, leaving a workspace, and consent-based invitations for existing users.
 It also owns the provider-independent stream that refreshes accessible
-workspace snapshots when the authenticated user's membership changes.
+workspace snapshots when membership or workspace lifecycle changes affect
+active navigation.
 
 ## Responsibilities
 
 - Define the `WorkspaceRepository` outbound port.
-- Define typed read, creation, update, archive, member-addition, role-change,
+- Define typed read, creation, update, archive, restoration, member-addition, role-change,
   removal, suspension, invitation, and expected command failures.
 - List active, accessible workspaces through an Effect use case.
 - List archived workspaces still visible through existing membership RLS as
@@ -27,6 +28,8 @@ workspace snapshots when the authenticated user's membership changes.
 - Normalize and validate the workspace identity before archiving.
 - Archive a workspace without accepting client-supplied actor identity or
   representing the archived version as an active domain workspace.
+- Restore an archived workspace without accepting client-supplied actor
+  identity and return only the validated active projection.
 - Resolve an exact active username through the profile port and add that stable
   profile identity with the default member role, reactivating its preserved
   left, removed, or suspended history when present.
@@ -51,7 +54,7 @@ workspace snapshots when the authenticated user's membership changes.
   or workspace authority as caller-supplied data.
 
 It does not know about Supabase, generated database rows, Angular, selection
-state, profile persistence, channels, or workspace restoration/deletion.
+state, profile persistence, channels, or workspace deletion.
 
 ## Runtime flow
 
@@ -95,6 +98,12 @@ Angular caller
   -> validated WorkspaceId
   -> WorkspaceRepositoryTag
   -> void acknowledgment
+
+Angular caller
+  -> restoreWorkspace
+  -> validated WorkspaceId
+  -> WorkspaceRepositoryTag.restore
+  -> canonical active Workspace
 
 Angular caller
   -> listWorkspaceMembers({ workspaceId, after })
@@ -167,6 +176,7 @@ other application libraries.
 - `createWorkspace` and its input/error contracts
 - `updateWorkspace` and its input/error contracts
 - `archiveWorkspace` and its input/error contracts
+- `restoreWorkspace` and its input/error contracts
 - `addWorkspaceMemberByUsername` and its input/result/error contracts
 - `changeWorkspaceMemberRole` and its input/error contracts
 - `removeWorkspaceMember` and its input/error contracts

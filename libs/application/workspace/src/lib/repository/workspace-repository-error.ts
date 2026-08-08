@@ -68,6 +68,13 @@ export class WorkspaceArchiveNotAllowedError extends Data.TaggedError(
   readonly workspaceId: WorkspaceId;
 }> {}
 
+/** Indicates that the current session or lifecycle forbids restoration. */
+export class WorkspaceRestoreNotAllowedError extends Data.TaggedError(
+  'WorkspaceRestoreNotAllowedError'
+)<{
+  readonly workspaceId: WorkspaceId;
+}> {}
+
 /**
  * Indicates that the current session or workspace state forbids member addition.
  */
@@ -288,6 +295,10 @@ export type WorkspaceRepositoryArchiveError =
   | WorkspaceRepositoryUnavailableError
   | InvalidWorkspaceDataError
   | WorkspaceArchiveNotAllowedError;
+
+export type WorkspaceRepositoryRestoreError =
+  | WorkspaceRepositoryReadError
+  | WorkspaceRestoreNotAllowedError;
 
 export type WorkspaceMemberAddRepositoryError =
   | WorkspaceRepositoryUnavailableError

@@ -9,6 +9,7 @@ import type {
   InviteWorkspaceMemberResult,
   LeaveWorkspaceResult,
   RemoveWorkspaceMemberResult,
+  RestoreWorkspaceResult,
   SuspendWorkspaceMemberResult,
   UpdateWorkspaceResult,
 } from '@chat-hub/shared/database';
@@ -27,6 +28,7 @@ interface WorkspaceCommandResult {
     | ChangeWorkspaceMemberRoleResult
     | LeaveWorkspaceResult
     | RemoveWorkspaceMemberResult
+    | RestoreWorkspaceResult
     | SuspendWorkspaceMemberResult
     | UpdateWorkspaceResult
     | null;

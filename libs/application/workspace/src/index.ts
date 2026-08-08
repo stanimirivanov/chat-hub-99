@@ -47,6 +47,12 @@ export {
   type ArchiveWorkspaceInput,
 } from './lib/archive-workspace';
 export {
+  restoreWorkspace,
+  InvalidWorkspaceRestoreInputError,
+  type RestoreWorkspaceError,
+  type RestoreWorkspaceInput,
+} from './lib/restore-workspace';
+export {
   changeWorkspaceMemberRole,
   InvalidWorkspaceMemberRoleChangeInputError,
   type ChangeWorkspaceMemberRoleError,
@@ -121,6 +127,7 @@ export {
   InvalidWorkspaceDataError,
   InvalidWorkspaceInvitationDataError,
   WorkspaceArchiveNotAllowedError,
+  WorkspaceRestoreNotAllowedError,
   WorkspaceDepartureNotAllowedError,
   WorkspaceLastOwnerDemotionError,
   WorkspaceLastOwnerRemovalError,
@@ -155,6 +162,7 @@ export {
   type WorkspaceRepositoryCreateError,
   type WorkspaceRepositoryArchiveError,
   type WorkspaceRepositoryReadError,
+  type WorkspaceRepositoryRestoreError,
   type WorkspaceRepositoryUpdateError,
   type WorkspaceInvitationAcceptanceRepositoryError,
   type WorkspaceInvitationCancellationRepositoryError,

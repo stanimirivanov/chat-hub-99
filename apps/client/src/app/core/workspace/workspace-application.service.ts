@@ -16,6 +16,7 @@ import {
   listWorkspaceMembers,
   leaveWorkspace,
   removeWorkspaceMember,
+  restoreWorkspace,
   suspendWorkspaceMember,
   updateWorkspace,
   type AcceptWorkspaceInvitationError,
@@ -41,6 +42,8 @@ import {
   type LeaveWorkspaceInput,
   type RemoveWorkspaceMemberError,
   type RemoveWorkspaceMemberInput,
+  type RestoreWorkspaceError,
+  type RestoreWorkspaceInput,
   type SuspendWorkspaceMemberError,
   type SuspendWorkspaceMemberInput,
   type ListWorkspaceMembersError,
@@ -79,6 +82,15 @@ export class WorkspaceApplicationService {
   ): Promise<Either.Either<void, ArchiveWorkspaceError>> {
     return applicationRuntime.runPromise(
       archiveWorkspace(input).pipe(Effect.either)
+    );
+  }
+
+  /** Restores one archived workspace using provider-session authorization. */
+  restoreWorkspace(
+    input: RestoreWorkspaceInput
+  ): Promise<Either.Either<Workspace, RestoreWorkspaceError>> {
+    return applicationRuntime.runPromise(
+      restoreWorkspace(input).pipe(Effect.either)
     );
   }
 

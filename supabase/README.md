@@ -94,14 +94,16 @@ Migrations define:
 - owner-authorized workspace-member suspension with final-owner protection;
 - session-derived `left` workspace departure with final-owner protection;
 - owner-authorized reinstatement of preserved former-member history;
+- owner-authorized immutable workspace restoration;
 - channel aggregates;
 - message aggregates;
 - command functions;
 - read models and projections;
 - Row Level Security policies;
-- Realtime publication of RLS-protected message-head changes.
+- Realtime publication of RLS-protected message-head changes;
 - private Realtime Broadcast authorization and membership-head access
-  invalidations.
+  invalidations;
+- workspace-lifecycle invalidations for every still-active member.
 
 Migrations are append-only after they have been shared or applied outside an
 individual disposable development database.
@@ -135,6 +137,7 @@ Contains pgTAP tests for:
 
 - profile commands;
 - workspace commands;
+- workspace restoration and immutable lifecycle history;
 - workspace membership commands;
 - workspace invitation commands plus recipient and owner read policies;
 - channel commands;
@@ -144,8 +147,8 @@ Contains pgTAP tests for:
 - active workspace-member keyset pagination index;
 - channel read policies;
 - message read policies;
-- message Realtime publication configuration.
-- workspace-access Broadcast policy, trigger, and payload configuration.
+- message Realtime publication configuration;
+- workspace-access Broadcast policy, trigger, and payload configuration;
 - workspace-channel Broadcast authorization, trigger, and payload
   configuration.
 

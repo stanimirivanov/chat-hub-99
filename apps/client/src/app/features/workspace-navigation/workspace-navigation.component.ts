@@ -44,6 +44,7 @@ export class WorkspaceNavigationComponent {
   private readonly queryParamMap = toSignal(this.route.queryParamMap, {
     initialValue: this.route.snapshot.queryParamMap,
   });
+  private accessibleWorkspaceIdentitySnapshot: string | null = null;
 
   constructor() {
     void this.store.load();
@@ -54,6 +55,28 @@ export class WorkspaceNavigationComponent {
       const workspaces = this.store.workspaces();
 
       this.selectWorkspaceFromRoute(workspaceSlug, loadStatus, workspaces);
+    });
+
+    effect(() => {
+      if (this.store.loadStatus() !== 'loaded') {
+        return;
+      }
+
+      const identitySnapshot = this.store
+        .workspaces()
+        .map((workspace) => workspace.id)
+        .sort()
+        .join(',');
+
+      if (this.accessibleWorkspaceIdentitySnapshot === null) {
+        this.accessibleWorkspaceIdentitySnapshot = identitySnapshot;
+        return;
+      }
+
+      if (this.accessibleWorkspaceIdentitySnapshot !== identitySnapshot) {
+        this.accessibleWorkspaceIdentitySnapshot = identitySnapshot;
+        this.archivedWorkspaceRefreshVersion.update((version) => version + 1);
+      }
     });
   }
 
@@ -176,10 +199,6 @@ export class WorkspaceNavigationComponent {
 
     const archivedWorkspaceId = await this.store.archiveSelectedWorkspace();
 
-    if (archivedWorkspaceId !== null) {
-      this.archivedWorkspaceRefreshVersion.update((version) => version + 1);
-    }
-
     this.clearRemovedWorkspaceRoute(workspace, archivedWorkspaceId);
   }
 
@@ -223,6 +242,12 @@ export class WorkspaceNavigationComponent {
 
   /** Reconciles newly accepted access and selects the joined workspace. */
   protected handleInvitationAccepted(workspace: Workspace): void {
+    this.store.includeAccessibleWorkspace(workspace);
+    this.navigateToWorkspace(workspace.slug);
+  }
+
+  /** Reconciles a restored workspace into active navigation and selects it. */
+  protected handleWorkspaceRestored(workspace: Workspace): void {
     this.store.includeAccessibleWorkspace(workspace);
     this.navigateToWorkspace(workspace.slug);
   }

@@ -1,6 +1,6 @@
 BEGIN;
 
-SELECT plan(5);
+SELECT plan(7);
 
 SELECT is(
     (
@@ -50,6 +50,24 @@ SELECT is(
 
 SELECT is(
     (
+        SELECT count(*)
+        FROM pg_trigger
+        INNER JOIN pg_class
+            ON pg_class.oid = pg_trigger.tgrelid
+        INNER JOIN pg_namespace
+            ON pg_namespace.oid = pg_class.relnamespace
+        WHERE pg_namespace.nspname = 'public'
+          AND pg_class.relname = 'workspace_heads'
+          AND pg_trigger.tgname =
+                'workspace_heads_broadcast_lifecycle_access_change'
+          AND NOT pg_trigger.tgisinternal
+    ),
+    1::BIGINT,
+    'Workspace heads broadcast lifecycle visibility changes'
+);
+
+SELECT is(
+    (
         SELECT prosecdef
         FROM pg_proc
         INNER JOIN pg_namespace
@@ -59,6 +77,20 @@ SELECT is(
     ),
     TRUE,
     'The workspace-access trigger function can publish through the protected Realtime schema'
+);
+
+SELECT is(
+    (
+        SELECT prosecdef
+        FROM pg_proc
+        INNER JOIN pg_namespace
+            ON pg_namespace.oid = pg_proc.pronamespace
+        WHERE pg_namespace.nspname = 'private'
+          AND pg_proc.proname =
+                'broadcast_workspace_lifecycle_access_change'
+    ),
+    TRUE,
+    'The workspace lifecycle trigger can publish through the protected Realtime schema'
 );
 
 SELECT ok(

@@ -1,5 +1,6 @@
 import {
   WorkspaceArchiveNotAllowedError,
+  WorkspaceRestoreNotAllowedError,
   WorkspaceDepartureNotAllowedError,
   WorkspaceMemberAdditionNotAllowedError,
   WorkspaceMemberAlreadyActiveError,
@@ -36,6 +37,7 @@ import {
   type WorkspaceMemberSuspensionRepositoryError,
   type WorkspaceMemberRoleChangeRepositoryError,
   type WorkspaceRepositoryArchiveError,
+  type WorkspaceRepositoryRestoreError,
   type WorkspaceDepartureRepositoryError,
   type WorkspaceRepositoryCreateError,
   type UpdateWorkspaceCommand,
@@ -145,6 +147,25 @@ export const mapWorkspaceArchiveError = (
     (error.code === '55000' && message.includes('already archived'))
   ) {
     return new WorkspaceArchiveNotAllowedError({ workspaceId });
+  }
+
+  return mapWorkspaceRepositoryError(error);
+};
+
+/** Translates stable restoration authorization and lifecycle failures. */
+export const mapWorkspaceRestoreError = (
+  workspaceId: WorkspaceId,
+  error: PostgrestErrorLike
+): WorkspaceRepositoryRestoreError => {
+  const message = error.message.toLowerCase();
+
+  if (
+    error.code === '28000' ||
+    error.code === '42501' ||
+    (error.code === 'P0002' && message.includes('workspace not found')) ||
+    (error.code === '55000' && message.includes('only archived workspaces'))
+  ) {
+    return new WorkspaceRestoreNotAllowedError({ workspaceId });
   }
 
   return mapWorkspaceRepositoryError(error);

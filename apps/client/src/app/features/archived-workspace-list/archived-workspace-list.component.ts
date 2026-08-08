@@ -5,10 +5,13 @@ import {
   effect,
   inject,
   input,
+  output,
+  signal,
 } from '@angular/core';
+import type { Workspace, WorkspaceId } from '@chat-hub/domain/workspace';
 import { ArchivedWorkspaceListStore } from './archived-workspace-list.store';
 
-/** Read-only archived-workspace history, intentionally without restoration. */
+/** Presents archived-workspace history and explicit restoration consent. */
 @Component({
   selector: 'app-archived-workspace-list',
   standalone: true,
@@ -18,14 +21,36 @@ import { ArchivedWorkspaceListStore } from './archived-workspace-list.store';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ArchivedWorkspaceListComponent {
-  /** Incremented after a local archive command changes the projection. */
+  /** Incremented when authoritative active workspace identities change. */
   readonly refreshVersion = input(0);
+  readonly workspaceRestored = output<Workspace>();
   protected readonly store = inject(ArchivedWorkspaceListStore);
+  protected readonly pendingRestorationWorkspaceId = signal<WorkspaceId | null>(
+    null
+  );
 
   constructor() {
     effect(() => {
       const refreshVersion = this.refreshVersion();
       void this.store.load(refreshVersion > 0);
     });
+  }
+
+  protected requestRestoration(workspaceId: WorkspaceId): void {
+    this.store.clearRestorationError();
+    this.pendingRestorationWorkspaceId.set(workspaceId);
+  }
+
+  protected cancelRestoration(): void {
+    this.pendingRestorationWorkspaceId.set(null);
+  }
+
+  protected async confirmRestoration(workspaceId: WorkspaceId): Promise<void> {
+    this.pendingRestorationWorkspaceId.set(null);
+    const workspace = await this.store.restore(workspaceId);
+
+    if (workspace !== null) {
+      this.workspaceRestored.emit(workspace);
+    }
   }
 }

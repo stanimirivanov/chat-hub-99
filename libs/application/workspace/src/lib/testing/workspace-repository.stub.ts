@@ -14,6 +14,8 @@ export const makeWorkspaceRepositoryStub = (
     ),
   archive: () =>
     Effect.dieMessage('Unexpected WorkspaceRepository.archive call in test'),
+  restore: () =>
+    Effect.dieMessage('Unexpected WorkspaceRepository.restore call in test'),
   addMember: () =>
     Effect.dieMessage('Unexpected WorkspaceRepository.addMember call in test'),
   listAccessible: () =>
@@ -97,6 +99,17 @@ export const makeArchiveWorkspaceRepository = (
   return {
     archive,
     repositoryLayer: makeWorkspaceRepositoryLayer({ archive }),
+  };
+};
+
+export const makeRestoreWorkspaceRepository = (
+  implementation: WorkspaceRepository['restore']
+) => {
+  const restore = vi.fn(implementation);
+
+  return {
+    restore,
+    repositoryLayer: makeWorkspaceRepositoryLayer({ restore }),
   };
 };
 

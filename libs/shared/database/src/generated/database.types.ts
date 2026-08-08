@@ -1466,6 +1466,27 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      restore_workspace: {
+        Args: { p_workspace_id: string }
+        Returns: {
+          created_at: string
+          created_by: string
+          description: string | null
+          name: string
+          slug: string
+          status: string
+          supersedes_workspace_version_id: string | null
+          version_number: number
+          workspace_id: string
+          workspace_version_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "workspace_versions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       suspend_workspace_member: {
         Args: { p_reason?: string; p_user_id: string; p_workspace_id: string }
         Returns: {
@@ -1669,4 +1690,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-

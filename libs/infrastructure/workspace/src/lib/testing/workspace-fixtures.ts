@@ -12,6 +12,7 @@ import type {
   CurrentWorkspace,
   LeaveWorkspaceResult,
   RemoveWorkspaceMemberResult,
+  RestoreWorkspaceResult,
   SuspendWorkspaceMemberResult,
   UpdateWorkspaceResult,
 } from '@chat-hub/shared/database';
@@ -36,6 +37,15 @@ export const archivedWorkspaceRow: ArchiveWorkspaceResult = {
   supersedes_workspace_version_id: '00000000-0000-4000-8000-000000000018',
   created_at: '2026-08-01T09:00:00.000Z',
   created_by: '00000000-0000-4000-8000-000000000002',
+};
+
+export const restoredWorkspaceRow: RestoreWorkspaceResult = {
+  ...archivedWorkspaceRow,
+  workspace_version_id: '00000000-0000-4000-8000-000000000021',
+  version_number: 4,
+  status: 'active',
+  supersedes_workspace_version_id: archivedWorkspaceRow.workspace_version_id,
+  created_at: '2026-08-08T12:00:00.000Z',
 };
 
 export const currentWorkspaceRow: CurrentWorkspace = {
