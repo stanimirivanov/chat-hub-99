@@ -105,7 +105,7 @@ Every exported use case and port operation must make all three Effect channels
 intentional:
 
 ```ts
-Effect.Effect<Success, Failure, Requirements>
+Effect.Effect<Success, Failure, Requirements>;
 ```
 
 - **Success** describes the produced value.
@@ -143,8 +143,8 @@ A `Data.TaggedError` constructor receives one payload object:
 
 ```ts
 new MessageRepositoryUnavailableError({
-    operation,
-    cause,
+  operation,
+  cause,
 });
 ```
 
