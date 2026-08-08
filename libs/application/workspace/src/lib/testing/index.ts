@@ -26,3 +26,4 @@ export {
   makeWorkspaceRepositoryLayer,
   makeWorkspaceRepositoryStub,
 } from './workspace-repository.stub';
+export { makeWorkspacePresenceServiceLayer } from './workspace-presence-service.stub';

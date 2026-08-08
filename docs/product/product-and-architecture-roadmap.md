@@ -100,7 +100,7 @@ Implementation scope:
 - Audit and document the collaboration architecture as it exists after the
   current vertical slices. **Completed:** OMO-ARC-001.
 - Complete presence and typing indicators as separate, conservative vertical
-  slices.
+  slices. **Presence completed; typing remains.**
 - Add workspace-scoped message search with exact-result navigation.
 - Add per-member read positions, unread counts, and realtime unread
   reconciliation.

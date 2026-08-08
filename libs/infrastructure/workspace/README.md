@@ -16,6 +16,8 @@ Consent-based access uses `invite_workspace_member`,
 `cancel_workspace_invitation`.
 Per-user workspace-access invalidations use a private Supabase Broadcast topic
 and refresh through the ordinary RLS-protected workspace query.
+Selected-workspace online state uses a separate private Supabase Presence topic
+authorized by active membership.
 
 ## Responsibilities
 
@@ -24,6 +26,8 @@ and refresh through the ordinary RLS-protected workspace query.
   newest archive first, and decode their lifecycle timestamps.
 - Observe one authenticated user's private workspace-access topic and release
   it when the Effect Stream is interrupted.
+- Track the authenticated profile on one selected workspace's private Presence
+  topic, validate synced profile keys, and release tracking on interruption.
 - Query active members through stable owner-first keyset pages backed by a
   partial active-directory index.
 - Execute workspace creation without exposing owner identity as an argument.
@@ -77,6 +81,12 @@ observeAccessibleWorkspaces stream
   -> membership-head invalidation
   -> current_workspaces view + RLS
   -> authoritative Workspace snapshot
+
+observeWorkspacePresence stream
+  -> WorkspacePresenceServiceTag
+  -> SupabaseWorkspacePresenceServiceLayer
+  -> authenticated profile identity + private workspace-presence topic
+  -> validated distinct ProfileId snapshot
 
 createWorkspace use case
   -> WorkspaceRepositoryTag
@@ -226,10 +236,21 @@ rather than trusting its payload. Subscription readiness emits the first
 invalidation, closing the query-before-subscribe gap. Stream interruption
 removes the channel from the shared Supabase client.
 
+Workspace presence uses Realtime Presence rather than a database table. Both
+receiving and tracking are authorized by `realtime.messages` RLS policies that
+require an active membership in the active workspace named by the topic. The
+adapter derives its custom Presence key from Supabase Auth, validates synced
+keys, and deduplicates multiple connections for display. Individual malformed
+keys are ignored so one advisory event cannot break all observers. Presence is
+not trusted for permissions, auditing, or durable activity history. Realtime
+RLS proves that a publisher is an active member, but the client-reported
+Presence key is not cryptographically bound to that publisher's JWT identity.
+
 ## Public API
 
 - `SupabaseWorkspaceClientTag` and `SupabaseWorkspaceClient`
 - `SupabaseWorkspaceRepositoryLayer`
+- `SupabaseWorkspacePresenceServiceLayer`
 
 ## Verification
 

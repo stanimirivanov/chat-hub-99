@@ -7,11 +7,13 @@ active member roles, suspending and reactivating members, removing active
 members, leaving a workspace, and consent-based invitations for existing users.
 It also owns the provider-independent stream that refreshes accessible
 workspace snapshots when membership or workspace lifecycle changes affect
-active navigation.
+active navigation. Ephemeral workspace presence is exposed through a separate
+provider-independent service because it is not repository persistence.
 
 ## Responsibilities
 
 - Define the `WorkspaceRepository` outbound port.
+- Define the advisory `WorkspacePresenceService` outbound port.
 - Define typed read, creation, update, archive, restoration, member-addition, role-change,
   removal, suspension, invitation, and expected command failures.
 - List active, accessible workspaces through an Effect use case.
@@ -19,6 +21,8 @@ active navigation.
   distinct archived domain projections.
 - Observe accessible-workspace invalidations and resolve every signal through
   the same authoritative list operation.
+- Validate a selected workspace identity and observe distinct online profile
+  identities without treating presence as authorization data.
 - List active, RLS-visible members in fixed-size owner-first keyset pages.
 - Normalize and validate workspace creation input before repository access.
 - Create a workspace without accepting client-supplied owner identity.
@@ -80,6 +84,11 @@ Angular caller
   -> WorkspaceRepositoryTag.accessChanges invalidations
   -> WorkspaceRepositoryTag.listAccessible authoritative refresh
   -> validated Workspace snapshots
+
+Angular caller
+  -> observeWorkspacePresence({ workspaceId }) Stream
+  -> WorkspacePresenceServiceTag
+  -> distinct advisory online ProfileId snapshots
 
 Angular caller
   -> createWorkspace
@@ -172,6 +181,7 @@ other application libraries.
 - `listAccessibleWorkspaces`
 - `listArchivedWorkspaces`
 - `observeAccessibleWorkspaces`
+- `observeWorkspacePresence` and its input/error contracts
 - `listWorkspaceMembers`, `WorkspaceMemberPage`, and cursor contracts
 - `createWorkspace` and its input/error contracts
 - `updateWorkspace` and its input/error contracts
@@ -188,6 +198,7 @@ other application libraries.
 - `acceptWorkspaceInvitation` and `declineWorkspaceInvitation`
 - `cancelWorkspaceInvitation`
 - `WorkspaceRepositoryTag` and `WorkspaceRepository`
+- `WorkspacePresenceServiceTag` and `WorkspacePresenceService`
 - workspace repository error types
 
 The observation use case uses `Stream.unwrap` to obtain the repository from

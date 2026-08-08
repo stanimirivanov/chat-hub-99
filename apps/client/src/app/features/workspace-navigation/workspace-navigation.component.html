@@ -135,6 +135,8 @@
             <p>{{ workspace.description }}</p>
           }
 
+          <app-workspace-presence [workspaceId]="workspace.id" />
+
           @if (
             canManageSelectedWorkspace() && !isConfirmingWorkspaceDeparture()
           ) {

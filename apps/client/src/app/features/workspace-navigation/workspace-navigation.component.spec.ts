@@ -15,6 +15,7 @@ import { ArchivedWorkspaceListComponent } from '@client/features/archived-worksp
 import { ChannelNavigationComponent } from '@client/features/channel-navigation/channel-navigation.component';
 import { WorkspaceMemberDirectoryComponent } from '@client/features/workspace-member-directory/workspace-member-directory.component';
 import { WorkspaceInvitationsComponent } from '@client/features/workspace-invitations/workspace-invitations.component';
+import { WorkspacePresenceComponent } from '@client/features/workspace-presence/workspace-presence.component';
 import { WorkspaceNavigationComponent } from './workspace-navigation.component';
 import { WorkspaceNavigationStore } from './workspace-navigation.store';
 
@@ -64,6 +65,15 @@ class WorkspaceInvitationsStubComponent {
   readonly workspaceId = input<typeof workspace.id | null>(null);
   readonly canInvite = input(false);
   readonly invitationAccepted = output<Workspace>();
+}
+
+@Component({
+  selector: 'app-workspace-presence',
+  standalone: true,
+  template: '',
+})
+class WorkspacePresenceStubComponent {
+  readonly workspaceId = input.required<typeof workspace.id>();
 }
 
 @Component({
@@ -135,6 +145,7 @@ const configureComponent = async ({
         ChannelNavigationComponent,
         WorkspaceInvitationsComponent,
         WorkspaceMemberDirectoryComponent,
+        WorkspacePresenceComponent,
       ],
     },
     add: {
@@ -143,6 +154,7 @@ const configureComponent = async ({
         ChannelNavigationStubComponent,
         WorkspaceInvitationsStubComponent,
         WorkspaceMemberDirectoryStubComponent,
+        WorkspacePresenceStubComponent,
       ],
     },
   });
