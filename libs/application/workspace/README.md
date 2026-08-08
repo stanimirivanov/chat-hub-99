@@ -16,7 +16,7 @@ workspace snapshots when the authenticated user's membership changes.
 - List active, accessible workspaces through an Effect use case.
 - Observe accessible-workspace invalidations and resolve every signal through
   the same authoritative list operation.
-- List active, RLS-visible members for one selected workspace.
+- List active, RLS-visible members in fixed-size owner-first keyset pages.
 - Normalize and validate workspace creation input before repository access.
 - Create a workspace without accepting client-supplied owner identity.
 - Normalize and validate complete workspace replacement details through the
@@ -90,9 +90,9 @@ Angular caller
   -> void acknowledgment
 
 Angular caller
-  -> listWorkspaceMembers(workspaceId)
+  -> listWorkspaceMembers({ workspaceId, after })
   -> WorkspaceRepositoryTag
-  -> validated WorkspaceMember values
+  -> validated WorkspaceMemberPage
 
 Angular caller
   -> changeWorkspaceMemberRole(input)
@@ -155,7 +155,7 @@ other application libraries.
 
 - `listAccessibleWorkspaces`
 - `observeAccessibleWorkspaces`
-- `listWorkspaceMembers`
+- `listWorkspaceMembers`, `WorkspaceMemberPage`, and cursor contracts
 - `createWorkspace` and its input/error contracts
 - `updateWorkspace` and its input/error contracts
 - `archiveWorkspace` and its input/error contracts

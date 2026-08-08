@@ -42,8 +42,12 @@ const renderComponent = async (currentProfileId: ProfileId) => {
       },
     ]),
     isLoading: signal(false),
+    loadStatus: signal('loaded'),
+    isLoadingMore: signal(false),
+    hasMoreMembers: signal(false),
     hasMembers: signal(true),
     error: signal(null),
+    paginationError: signal(null),
     mutationError: signal(null),
     isMutatingMember: signal(false),
     isChangingRole: signal(false),
@@ -51,6 +55,7 @@ const renderComponent = async (currentProfileId: ProfileId) => {
     isSuspendingMember: signal(false),
     mutatingProfileId: signal(null),
     load: vi.fn().mockResolvedValue(undefined),
+    loadMore: vi.fn().mockResolvedValue(undefined),
     changeMemberRole: vi.fn().mockResolvedValue(true),
     removeMember: vi.fn().mockResolvedValue(true),
     suspendMember: vi.fn().mockResolvedValue(true),
@@ -100,7 +105,7 @@ describe('WorkspaceMemberDirectoryComponent', () => {
     const { fixture, managementChanges, store } =
       await renderComponent(ownerId);
 
-    expect(store.load).toHaveBeenCalledExactlyOnceWith(workspaceId);
+    expect(store.load).toHaveBeenCalledExactlyOnceWith(workspaceId, ownerId);
     expect(managementChanges).toContain(true);
     expect(
       (
@@ -122,6 +127,22 @@ describe('WorkspaceMemberDirectoryComponent', () => {
       memberId,
       'owner'
     );
+  });
+
+  it('requests an authoritative refresh of the loaded member pages', async () => {
+    const { fixture, store } = await renderComponent(ownerId);
+    store.load.mockClear();
+
+    const refreshButton = Array.from(
+      fixture.nativeElement.querySelectorAll(
+        'button'
+      ) as NodeListOf<HTMLButtonElement>
+    ).find((button) => button.textContent?.trim() === 'Refresh members');
+    refreshButton?.click();
+
+    expect(store.load).toHaveBeenCalledExactlyOnceWith(workspaceId, ownerId, {
+      force: true,
+    });
   });
 
   it('does not offer role controls to a non-owner member', async () => {

@@ -141,6 +141,7 @@ Contains pgTAP tests for:
 - message commands;
 - profile and workspace read policies;
 - membership read policies;
+- active workspace-member keyset pagination index;
 - channel read policies;
 - message read policies;
 - message Realtime publication configuration.

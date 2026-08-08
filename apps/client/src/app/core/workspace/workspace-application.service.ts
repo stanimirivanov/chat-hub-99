@@ -42,7 +42,9 @@ import {
   type RemoveWorkspaceMemberInput,
   type SuspendWorkspaceMemberError,
   type SuspendWorkspaceMemberInput,
-  type WorkspaceMemberRepositoryReadError,
+  type ListWorkspaceMembersError,
+  type WorkspaceMemberCursor,
+  type WorkspaceMemberPage,
   type WorkspaceRepositoryReadError,
   type UpdateWorkspaceError,
   type UpdateWorkspaceInput,
@@ -123,15 +125,11 @@ export class WorkspaceApplicationService {
    * Lists active members visible in one selected workspace.
    */
   listWorkspaceMembers(
-    workspaceId: WorkspaceId
-  ): Promise<
-    Either.Either<
-      readonly WorkspaceMember[],
-      WorkspaceMemberRepositoryReadError
-    >
-  > {
+    workspaceId: WorkspaceId,
+    after?: WorkspaceMemberCursor
+  ): Promise<Either.Either<WorkspaceMemberPage, ListWorkspaceMembersError>> {
     return applicationRuntime.runPromise(
-      listWorkspaceMembers(workspaceId).pipe(Effect.either)
+      listWorkspaceMembers({ workspaceId, after }).pipe(Effect.either)
     );
   }
 

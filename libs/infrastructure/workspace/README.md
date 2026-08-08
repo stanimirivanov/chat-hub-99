@@ -21,7 +21,8 @@ and refresh through the ordinary RLS-protected workspace query.
 - Query active workspaces visible to the authenticated user.
 - Observe one authenticated user's private workspace-access topic and release
   it when the Effect Stream is interrupted.
-- Query active members visible in one selected workspace.
+- Query active members through stable owner-first keyset pages backed by a
+  partial active-directory index.
 - Execute workspace creation without exposing owner identity as an argument.
 - Execute workspace updates without exposing actor identity as an argument.
 - Execute workspace archiving without exposing actor identity as an argument.
@@ -88,8 +89,8 @@ archiveWorkspace use case
 listWorkspaceMembers use case
   -> WorkspaceRepositoryTag
   -> SupabaseWorkspaceRepositoryLayer
-  -> current_workspace_memberships view + RLS
-  -> WorkspaceMemberSchema decoding
+  -> current_workspace_memberships view + compound cursor + RLS
+  -> WorkspaceMemberPage decoding
 
 changeWorkspaceMemberRole use case
   -> WorkspaceRepositoryTag
@@ -148,7 +149,9 @@ cancelWorkspaceInvitation use case
   -> cancelled identity/status validation
 ```
 
-The membership query returns stable identities and roles only. Profile
+The membership query returns stable identities and roles only. It orders by
+role descending and profile identity ascending, fetches one look-ahead row,
+and derives the next application cursor without offset drift. Profile
 enrichment remains a separate application capability, preventing the workspace
 adapter from depending on profile persistence. Member-addition authorization,
 default role assignment, active-profile validation, and immutable membership

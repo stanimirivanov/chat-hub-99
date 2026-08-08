@@ -1,3 +1,4 @@
+import type { WorkspaceMemberCursor } from '@chat-hub/application/workspace';
 import type { AvatarUrl, Profile, ProfileId } from '@chat-hub/domain/profile';
 import type {
   WorkspaceId,
@@ -12,6 +13,8 @@ export type WorkspaceMemberLoadStatus =
   | 'failed';
 
 export type WorkspaceMemberMutationStatus = 'idle' | 'pending' | 'failed';
+
+export type WorkspaceMemberPaginationStatus = 'idle' | 'loading' | 'failed';
 
 export type WorkspaceMemberMutationKind =
   | 'role-change'
@@ -41,6 +44,9 @@ export interface WorkspaceMemberDirectoryState {
   readonly profiles: readonly Profile[];
   readonly loadStatus: WorkspaceMemberLoadStatus;
   readonly error: WorkspaceMemberDirectoryError | null;
+  readonly nextCursor: WorkspaceMemberCursor | null;
+  readonly paginationStatus: WorkspaceMemberPaginationStatus;
+  readonly paginationError: WorkspaceMemberDirectoryError | null;
   readonly mutationStatus: WorkspaceMemberMutationStatus;
   readonly mutationKind: WorkspaceMemberMutationKind | null;
   readonly mutatingProfileId: ProfileId | null;
@@ -54,6 +60,9 @@ export const initialWorkspaceMemberDirectoryState: WorkspaceMemberDirectoryState
     profiles: [],
     loadStatus: 'idle',
     error: null,
+    nextCursor: null,
+    paginationStatus: 'idle',
+    paginationError: null,
     mutationStatus: 'idle',
     mutationKind: null,
     mutatingProfileId: null,
