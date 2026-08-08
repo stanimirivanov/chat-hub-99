@@ -359,6 +359,23 @@ export const ChannelNavigationStore = signalStore(
           });
         },
 
+        /** Reconciles one restored channel into this workspace's active list. */
+        includeRestoredChannel(channel: Channel): boolean {
+          if (
+            store.loadStatus() !== 'loaded' ||
+            store.workspaceId() !== channel.workspaceId
+          ) {
+            return false;
+          }
+
+          archivedChannelIds.delete(channel.id);
+          locallyIncludedChannels.set(channel.id, channel);
+          patchState(store, {
+            channels: upsertChannel(store.channels(), channel),
+          });
+          return true;
+        },
+
         /**
          * Creates a channel in the loaded workspace and adds the validated
          * result without changing selection. Route navigation remains the

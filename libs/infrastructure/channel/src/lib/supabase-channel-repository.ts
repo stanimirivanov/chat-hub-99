@@ -1,5 +1,10 @@
 import type { ChannelRepository } from '@chat-hub/application/channel';
-import { archiveChannel, createChannel, updateChannel } from './commands';
+import {
+  archiveChannel,
+  createChannel,
+  restoreChannel,
+  updateChannel,
+} from './commands';
 import {
   listArchivedWorkspaceChannels,
   listWorkspaceChannels,
@@ -16,6 +21,7 @@ export const makeSupabaseChannelRepository = (
   listByWorkspace: (workspaceId) => listWorkspaceChannels(client, workspaceId),
   listArchivedByWorkspace: (workspaceId) =>
     listArchivedWorkspaceChannels(client, workspaceId),
+  restore: (channelId) => restoreChannel(client, channelId),
   create: (command) => createChannel(client, command),
   update: (command) => updateChannel(client, command),
 });

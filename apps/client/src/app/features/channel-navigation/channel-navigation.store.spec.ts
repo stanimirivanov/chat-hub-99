@@ -143,6 +143,32 @@ describe('ChannelNavigationStore', () => {
     expect(store.realtimeError()).toBeNull();
   });
 
+  it('includes a restored channel across the next stale realtime snapshot', async () => {
+    const observeWorkspaceChannels = makeObserveWorkspaceChannels();
+    const { store } = configureStore(
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      observeWorkspaceChannels
+    );
+    await store.load(workspaceId);
+
+    expect(store.includeRestoredChannel(createdChannel)).toBe(true);
+    expect(store.channels()).toEqual([createdChannel, channel]);
+
+    const onChannels = observeWorkspaceChannels.mock.calls[0]?.[1];
+    onChannels?.([channel]);
+
+    expect(store.channels()).toEqual([createdChannel, channel]);
+    expect(
+      store.includeRestoredChannel({
+        ...createdChannel,
+        workspaceId: nextWorkspaceId,
+      })
+    ).toBe(false);
+  });
+
   it('releases the old workspace listener and ignores its late snapshot', async () => {
     const cleanups = [vi.fn(), vi.fn()];
     const observeWorkspaceChannels = vi

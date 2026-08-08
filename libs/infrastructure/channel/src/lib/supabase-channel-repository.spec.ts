@@ -14,6 +14,7 @@ describe('makeSupabaseChannelRepository', () => {
       'create',
       'listArchivedByWorkspace',
       'listByWorkspace',
+      'restore',
       'update',
     ]);
     expect(repository.archive).toBeTypeOf('function');
@@ -21,6 +22,7 @@ describe('makeSupabaseChannelRepository', () => {
     expect(repository.create).toBeTypeOf('function');
     expect(repository.listByWorkspace).toBeTypeOf('function');
     expect(repository.listArchivedByWorkspace).toBeTypeOf('function');
+    expect(repository.restore).toBeTypeOf('function');
     expect(repository.update).toBeTypeOf('function');
   });
 });

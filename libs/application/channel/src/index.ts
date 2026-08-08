@@ -14,6 +14,12 @@ export {
 export { listWorkspaceChannels } from './lib/list-workspace-channels';
 export { listArchivedWorkspaceChannels } from './lib/list-archived-workspace-channels';
 export {
+  restoreChannel,
+  InvalidChannelRestoreInputError,
+  type RestoreChannelError,
+  type RestoreChannelInput,
+} from './lib/restore-channel';
+export {
   observeWorkspaceChannels,
   InvalidWorkspaceChannelObservationInputError,
   type ObserveWorkspaceChannelsError,
@@ -23,6 +29,7 @@ export {
   ChannelCreationNotAllowedError,
   ChannelRepositoryTag,
   ChannelRepositoryUnavailableError,
+  ChannelRestoreNotAllowedError,
   ChannelSlugUnavailableError,
   ChannelUpdateNotAllowedError,
   InvalidChannelDataError,
@@ -30,6 +37,7 @@ export {
   type ChannelRepositoryArchiveError,
   type ChannelRepositoryCreateError,
   type ChannelRepositoryReadError,
+  type ChannelRepositoryRestoreError,
   type ChannelRepositoryUpdateError,
   type CreateChannelCommand,
   type UpdateChannelCommand,

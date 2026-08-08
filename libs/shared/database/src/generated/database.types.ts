@@ -1466,6 +1466,30 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      restore_channel: {
+        Args: { p_channel_id: string }
+        Returns: {
+          channel_id: string | null
+          channel_status: string | null
+          channel_version_id: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          name: string | null
+          slug: string | null
+          updated_at: string | null
+          version_created_at: string | null
+          version_created_by: string | null
+          version_number: number | null
+          workspace_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "current_channels"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       restore_workspace: {
         Args: { p_workspace_id: string }
         Returns: {

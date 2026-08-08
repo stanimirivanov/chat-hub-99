@@ -289,9 +289,10 @@ are hidden. A store-local tombstone prevents an older workspace reload from
 reintroducing the archived channel. Selection, message rendering, and the
 channel query parameter are cleared only when they still refer to the archived
 target, including a workspace-identity check for same-slug channels. Restoration
-and hard deletion remain outside this slice.
+is handled by the adjacent archive-history feature; hard deletion remains
+outside this lifecycle.
 
-Owners also see a read-only archived-channel history beneath active navigation.
+Owners also see archived-channel history beneath active navigation.
 It has independent feature-scoped loading and retry state, so an archive-history
 failure cannot erase or block active navigation. The list is newest first and
 uses the database-updated archive timestamp. It is instantiated only when the
@@ -302,8 +303,16 @@ The history reuses the active channel collection as an invalidation signal:
 when the set of active channel identities changes, it reloads its authoritative
 archived snapshot. This lets the existing channel realtime owner reconcile
 local and remote archival without opening a second listener. Archived channels
-never enter active selection, message rendering, or URL state. Restoration and
-hard deletion remain outside this discovery slice.
+never enter active selection, message rendering, or URL state while archived.
+
+Restoration requires explicit inline confirmation and runs through an
+independent serialized command state. The database rechecks active workspace
+ownership and lifecycle atomically. Success removes the archived projection,
+reconciles the returned validated `Channel` into active navigation, and writes
+its immutable slug to the URL so the existing route effect remains selection
+authority. A local inclusion guard preserves the restored channel across one
+older realtime snapshot, while stale completions after a workspace switch are
+discarded. Hard deletion remains outside this slice.
 
 The `current-profile` slice enriches the authenticated header with the
 RLS-visible profile belonging to the session identity. It keeps the

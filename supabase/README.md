@@ -95,6 +95,7 @@ Migrations define:
 - session-derived `left` workspace departure with final-owner protection;
 - owner-authorized reinstatement of preserved former-member history;
 - owner-authorized immutable workspace restoration;
+- owner-authorized channel restoration without duplicating descriptive history;
 - channel aggregates;
 - message aggregates;
 - command functions;
@@ -141,6 +142,7 @@ Contains pgTAP tests for:
 - workspace membership commands;
 - workspace invitation commands plus recipient and owner read policies;
 - channel commands;
+- channel restoration and lifecycle preservation;
 - message commands;
 - profile and workspace read policies;
 - membership read policies;

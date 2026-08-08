@@ -12,5 +12,6 @@ export {
   makeCreateChannelRepository,
   makeListByWorkspaceChannelRepository,
   makeListArchivedByWorkspaceChannelRepository,
+  makeRestoreChannelRepository,
   makeUpdateChannelRepository,
 } from './channel-repository.stub';

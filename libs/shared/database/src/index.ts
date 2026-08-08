@@ -58,6 +58,8 @@ export type {
   UpdateChannelResult,
   ArchiveChannelArgs,
   ArchiveChannelResult,
+  RestoreChannelArgs,
+  RestoreChannelResult,
   CreateMessageArgs,
   CreateMessageResult,
   EditMessageArgs,

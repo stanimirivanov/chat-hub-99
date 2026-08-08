@@ -1,4 +1,4 @@
-import { Component, input, signal } from '@angular/core';
+import { Component, input, output, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import {
@@ -59,6 +59,7 @@ class ChannelMessagesStubComponent {
 class ArchivedChannelListStubComponent {
   readonly workspaceId = input.required<typeof workspaceId>();
   readonly activeChannels = input.required<readonly Channel[]>();
+  readonly channelRestored = output<Channel>();
 }
 
 const configureComponent = async ({
@@ -106,6 +107,7 @@ const configureComponent = async ({
     archiveSelectedChannel: vi.fn().mockResolvedValue(channel.id),
     select: vi.fn().mockReturnValue(true),
     clearSelection: vi.fn(),
+    includeRestoredChannel: vi.fn().mockReturnValue(true),
     clearCreationError: vi.fn(),
     clearUpdateError: vi.fn(),
     clearArchiveError: vi.fn(),
@@ -177,6 +179,28 @@ describe('ChannelNavigationComponent', () => {
         By.directive(ArchivedChannelListStubComponent)
       )
     ).toBeNull();
+  });
+
+  it('reconciles and selects a restored channel through route navigation', async () => {
+    const { fixture, route, router, store } = await configureComponent({
+      queryParams: {},
+      canManageChannels: true,
+    });
+    const archivedList = fixture.debugElement.query(
+      By.directive(ArchivedChannelListStubComponent)
+    ).componentInstance as ArchivedChannelListStubComponent;
+
+    archivedList.channelRestored.emit(updatedChannel);
+    fixture.detectChanges();
+
+    expect(store.includeRestoredChannel).toHaveBeenCalledExactlyOnceWith(
+      updatedChannel
+    );
+    expect(router.navigate).toHaveBeenCalledExactlyOnceWith([], {
+      relativeTo: route,
+      queryParams: { channel: updatedChannel.slug },
+      queryParamsHandling: 'merge',
+    });
   });
 
   it('forwards message moderation capability to the selected channel', async () => {

@@ -5,12 +5,14 @@ import {
   effect,
   inject,
   input,
+  output,
+  signal,
 } from '@angular/core';
-import type { Channel } from '@chat-hub/domain/channel';
+import type { Channel, ChannelId } from '@chat-hub/domain/channel';
 import type { WorkspaceId } from '@chat-hub/domain/workspace';
 import { ArchivedChannelListStore } from './archived-channel-list.store';
 
-/** Presents owner-only archived-channel history without restoration actions. */
+/** Presents owner-only archived-channel history and explicit restoration consent. */
 @Component({
   selector: 'app-archived-channel-list',
   standalone: true,
@@ -22,12 +24,17 @@ import { ArchivedChannelListStore } from './archived-channel-list.store';
 export class ArchivedChannelListComponent {
   readonly workspaceId = input.required<WorkspaceId>();
   readonly activeChannels = input.required<readonly Channel[]>();
+  readonly channelRestored = output<Channel>();
   protected readonly store = inject(ArchivedChannelListStore);
+  protected readonly pendingRestorationChannelId = signal<ChannelId | null>(
+    null
+  );
   private activeIdentitySnapshot: string | null = null;
 
   constructor() {
     effect(() => {
       const workspaceId = this.workspaceId();
+      this.pendingRestorationChannelId.set(null);
       const identitySnapshot = `${workspaceId}:${this.activeChannels()
         .map((channel) => channel.id)
         .sort()
@@ -41,5 +48,23 @@ export class ArchivedChannelListComponent {
       this.activeIdentitySnapshot = identitySnapshot;
       void this.store.load(workspaceId, force);
     });
+  }
+
+  protected requestRestoration(channelId: ChannelId): void {
+    this.store.clearRestorationError();
+    this.pendingRestorationChannelId.set(channelId);
+  }
+
+  protected cancelRestoration(): void {
+    this.pendingRestorationChannelId.set(null);
+  }
+
+  protected async confirmRestoration(channelId: ChannelId): Promise<void> {
+    this.pendingRestorationChannelId.set(null);
+    const channel = await this.store.restore(channelId);
+
+    if (channel !== null) {
+      this.channelRestored.emit(channel);
+    }
   }
 }

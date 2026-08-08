@@ -37,9 +37,19 @@ describe('ArchivedChannelListComponent', () => {
       workspaceId: signal<typeof workspaceId | null>(null),
       channels: signal([archivedChannel]),
       isLoading: signal(false),
+      isRestoring: signal(false),
       hasChannels: signal(true),
       error: signal(null),
+      restorationError: signal(null),
       load: vi.fn().mockResolvedValue(undefined),
+      clearRestorationError: vi.fn(),
+      restore: vi.fn().mockResolvedValue({
+        id: archivedChannel.id,
+        workspaceId,
+        name: archivedChannel.name,
+        slug: archivedChannel.slug,
+        description: archivedChannel.description,
+      }),
     };
 
     TestBed.overrideComponent(ArchivedChannelListComponent, {
@@ -67,5 +77,29 @@ describe('ArchivedChannelListComponent', () => {
     fixture.detectChanges();
 
     expect(store.load).toHaveBeenLastCalledWith(workspaceId, true);
+
+    const restored = vi.fn();
+    fixture.componentInstance.channelRestored.subscribe(restored);
+    const restoreButton = fixture.nativeElement.querySelector(
+      '[aria-label="Restore Planning"]'
+    ) as HTMLButtonElement;
+    restoreButton.click();
+    fixture.detectChanges();
+
+    expect(store.restore).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.textContent).toContain(
+      'Restore Planning to active channel navigation?'
+    );
+
+    const confirmButton = Array.from(
+      fixture.nativeElement.querySelectorAll(
+        'button'
+      ) as NodeListOf<HTMLButtonElement>
+    ).find((button) => button.textContent?.trim() === 'Confirm restoration');
+    confirmButton?.click();
+    await fixture.whenStable();
+
+    expect(store.restore).toHaveBeenCalledExactlyOnceWith(archivedChannel.id);
+    expect(restored).toHaveBeenCalledOnce();
   });
 });

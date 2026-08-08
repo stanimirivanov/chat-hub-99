@@ -9,6 +9,7 @@ import type {
   ChannelRepositoryArchiveError,
   ChannelRepositoryCreateError,
   ChannelRepositoryReadError,
+  ChannelRepositoryRestoreError,
   ChannelRepositoryUnavailableError,
   ChannelRepositoryUpdateError,
 } from './channel-repository-error';
@@ -68,6 +69,11 @@ export interface ChannelRepository {
   readonly listArchivedByWorkspace: (
     workspaceId: WorkspaceId
   ) => Effect.Effect<readonly ArchivedChannel[], ChannelRepositoryReadError>;
+
+  /** Restores one archived channel using provider-session authorization. */
+  readonly restore: (
+    channelId: ChannelId
+  ) => Effect.Effect<Channel, ChannelRepositoryRestoreError>;
 
   /**
    * Creates a channel for the provider-authenticated workspace member.
