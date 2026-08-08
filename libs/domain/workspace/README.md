@@ -1,13 +1,16 @@
 # Workspace Domain
 
-`@chat-hub/domain/workspace` contains the technology-independent workspace and
-active-membership projections required by presentation.
+`@chat-hub/domain/workspace` contains the technology-independent active and
+archived workspace projections and active-membership projections required by
+presentation.
 
 ## Responsibilities
 
 - Define branded workspace identity.
 - Validate workspace names, normalized slugs, and optional descriptions.
 - Expose the active workspace projection consumed by application use cases.
+- Expose a distinct archived projection with its lifecycle timestamp so it
+  cannot enter active navigation accidentally.
 - Validate active member identities and the closed owner/member role vocabulary.
 - Validate workspace-invitation identities and the closed `pending`,
   `accepted`, `declined`, and `cancelled` lifecycle.
@@ -27,6 +30,7 @@ types, or application services.
 - `WorkspaceIdSchema` and `WorkspaceId`
 - `WorkspaceNameSchema` and `WorkspaceSlugSchema`
 - `WorkspaceSchema` and `Workspace`
+- `ArchivedWorkspaceSchema` and `ArchivedWorkspace`
 - `WorkspaceMemberSchema`, `WorkspaceMember`, and their role schema/type
 - `WorkspaceInvitationIdSchema`, `WorkspaceInvitationSchema`, and their types
 

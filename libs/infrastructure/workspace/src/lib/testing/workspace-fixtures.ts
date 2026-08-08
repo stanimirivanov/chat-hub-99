@@ -51,6 +51,13 @@ export const currentWorkspaceRow: CurrentWorkspace = {
   version_number: 1,
 };
 
+export const currentArchivedWorkspaceRow: CurrentWorkspace = {
+  ...currentWorkspaceRow,
+  status: 'archived',
+  version_created_at: '2026-08-08T09:00:00.000Z',
+  version_number: 2,
+};
+
 export const changedWorkspaceMemberRoleRow: ChangeWorkspaceMemberRoleResult = {
   workspace_membership_id: '00000000-0000-4000-8000-000000000010',
   workspace_id: '00000000-0000-4000-8000-000000000001',

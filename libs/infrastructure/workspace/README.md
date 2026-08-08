@@ -19,6 +19,8 @@ and refresh through the ordinary RLS-protected workspace query.
 ## Responsibilities
 
 - Query active workspaces visible to the authenticated user.
+- Query archived workspaces visible under the same active-membership RLS rule,
+  newest archive first, and decode their lifecycle timestamps.
 - Observe one authenticated user's private workspace-access topic and release
   it when the Effect Stream is interrupted.
 - Query active members through stable owner-first keyset pages backed by a
@@ -60,6 +62,12 @@ listAccessibleWorkspaces use case
   -> SupabaseWorkspaceRepositoryLayer
   -> current_workspaces view + RLS
   -> WorkspaceSchema decoding
+
+listArchivedWorkspaces use case
+  -> WorkspaceRepositoryTag
+  -> SupabaseWorkspaceRepositoryLayer
+  -> archived current_workspaces rows + RLS
+  -> ArchivedWorkspaceSchema decoding
 
 observeAccessibleWorkspaces stream
   -> resolve and validate the current Supabase Auth user

@@ -1,4 +1,5 @@
 export {
+  archivedWorkspace,
   workspace,
   workspaceInvitation,
   workspaceMember,
@@ -9,6 +10,7 @@ export {
   makeChangeWorkspaceMemberRoleRepository,
   makeCreateWorkspaceRepository,
   makeListAccessibleWorkspaceRepository,
+  makeListArchivedWorkspaceRepository,
   makeListWorkspaceMembersRepository,
   makeLeaveWorkspaceRepository,
   makeRemoveWorkspaceMemberRepository,

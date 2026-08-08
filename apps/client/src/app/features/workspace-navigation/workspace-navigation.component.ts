@@ -8,6 +8,7 @@ import {
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import type { Workspace } from '@chat-hub/domain/workspace';
+import { ArchivedWorkspaceListComponent } from '@client/features/archived-workspace-list/archived-workspace-list.component';
 import { ChannelNavigationComponent } from '@client/features/channel-navigation/channel-navigation.component';
 import { WorkspaceMemberDirectoryComponent } from '@client/features/workspace-member-directory/workspace-member-directory.component';
 import { WorkspaceInvitationsComponent } from '@client/features/workspace-invitations/workspace-invitations.component';
@@ -21,6 +22,7 @@ import type { WorkspaceLoadStatus } from './workspace-navigation.state';
   selector: 'app-workspace-navigation',
   standalone: true,
   imports: [
+    ArchivedWorkspaceListComponent,
     ChannelNavigationComponent,
     WorkspaceInvitationsComponent,
     WorkspaceMemberDirectoryComponent,
@@ -35,6 +37,7 @@ export class WorkspaceNavigationComponent {
   protected readonly isEditingWorkspace = signal(false);
   protected readonly isConfirmingWorkspaceArchive = signal(false);
   protected readonly isConfirmingWorkspaceDeparture = signal(false);
+  protected readonly archivedWorkspaceRefreshVersion = signal(0);
   protected readonly canManageSelectedWorkspace = signal(false);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -172,6 +175,10 @@ export class WorkspaceNavigationComponent {
     this.isConfirmingWorkspaceArchive.set(false);
 
     const archivedWorkspaceId = await this.store.archiveSelectedWorkspace();
+
+    if (archivedWorkspaceId !== null) {
+      this.archivedWorkspaceRefreshVersion.update((version) => version + 1);
+    }
 
     this.clearRemovedWorkspaceRoute(workspace, archivedWorkspaceId);
   }

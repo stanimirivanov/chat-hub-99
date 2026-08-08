@@ -11,6 +11,7 @@ export {
   currentWorkspaceMemberRow,
   leftWorkspaceRow,
   currentWorkspaceRow,
+  currentArchivedWorkspaceRow,
   removedWorkspaceMemberRow,
   suspendedWorkspaceMemberRow,
   updatedWorkspaceRow,

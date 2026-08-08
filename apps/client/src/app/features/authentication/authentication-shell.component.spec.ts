@@ -105,6 +105,7 @@ describe('AuthenticationShellComponent', () => {
             listAccessibleWorkspaces: vi
               .fn()
               .mockResolvedValue(Either.right([])),
+            listArchivedWorkspaces: vi.fn().mockResolvedValue(Either.right([])),
             listPendingWorkspaceInvitations: vi
               .fn()
               .mockResolvedValue(Either.right([])),

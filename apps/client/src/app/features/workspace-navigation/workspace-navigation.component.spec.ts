@@ -11,6 +11,7 @@ import { Schema } from 'effect';
 import { BehaviorSubject } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
 import { WorkspaceIdSchema, type Workspace } from '@chat-hub/domain/workspace';
+import { ArchivedWorkspaceListComponent } from '@client/features/archived-workspace-list/archived-workspace-list.component';
 import { ChannelNavigationComponent } from '@client/features/channel-navigation/channel-navigation.component';
 import { WorkspaceMemberDirectoryComponent } from '@client/features/workspace-member-directory/workspace-member-directory.component';
 import { WorkspaceInvitationsComponent } from '@client/features/workspace-invitations/workspace-invitations.component';
@@ -63,6 +64,15 @@ class WorkspaceInvitationsStubComponent {
   readonly workspaceId = input<typeof workspace.id | null>(null);
   readonly canInvite = input(false);
   readonly invitationAccepted = output<Workspace>();
+}
+
+@Component({
+  selector: 'app-archived-workspace-list',
+  standalone: true,
+  template: '',
+})
+class ArchivedWorkspaceListStubComponent {
+  readonly refreshVersion = input(0);
 }
 
 const configureComponent = async ({
@@ -120,6 +130,7 @@ const configureComponent = async ({
   TestBed.overrideComponent(WorkspaceNavigationComponent, {
     remove: {
       imports: [
+        ArchivedWorkspaceListComponent,
         ChannelNavigationComponent,
         WorkspaceInvitationsComponent,
         WorkspaceMemberDirectoryComponent,
@@ -127,6 +138,7 @@ const configureComponent = async ({
     },
     add: {
       imports: [
+        ArchivedWorkspaceListStubComponent,
         ChannelNavigationStubComponent,
         WorkspaceInvitationsStubComponent,
         WorkspaceMemberDirectoryStubComponent,

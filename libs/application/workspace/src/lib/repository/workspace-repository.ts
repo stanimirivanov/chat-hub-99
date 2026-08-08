@@ -1,6 +1,7 @@
 import { Context, type Effect, type Stream } from 'effect';
 import type { ProfileId } from '@chat-hub/domain/profile';
 import type {
+  ArchivedWorkspace,
   Workspace,
   WorkspaceId,
   WorkspaceInvitation,
@@ -160,6 +161,15 @@ export interface WorkspaceRepository {
    */
   readonly listAccessible: () => Effect.Effect<
     readonly Workspace[],
+    WorkspaceRepositoryReadError
+  >;
+
+  /**
+   * Returns archived workspaces still visible to the authenticated member.
+   * Archived projections remain separate from active navigation values.
+   */
+  readonly listArchived: () => Effect.Effect<
+    readonly ArchivedWorkspace[],
     WorkspaceRepositoryReadError
   >;
 

@@ -174,6 +174,15 @@ are not shown against a newer selection. The database remains responsible for
 owner authorization and the immutable archived version. The client does not
 offer restoration or hard deletion.
 
+Archived-workspace discovery is a separate read-only feature with its own
+request lifecycle. It lists the archived projections that existing membership
+RLS still makes visible, orders them by archive time, and renders accessible
+timestamps. Archived values use a distinct domain type and never participate
+in active selection, channel loading, or URL state. Restoration and hard
+deletion remain outside this slice. A successful local archive command reloads
+the independent history so the newly archived workspace appears without a
+page refresh.
+
 Every active member can leave the selected workspace after an explicit inline
 confirmation. Departure has independent state but shares the navigation
 store's serialized workspace-command boundary. Success removes the workspace
