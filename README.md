@@ -123,6 +123,16 @@ The version commands should report Node 24.15.0 or a later Node 24 release and
 pnpm 11.16.0. The install fails on an unsupported Node version because the
 preinstall check enforces the same range declared by `engines.node`.
 
+### Check the local platform
+
+```bash
+pnpm dev:status
+```
+
+This read-only command verifies Node.js, pnpm, the Docker engine, and the local
+Supabase stack. It exits unsuccessfully when a required service is unavailable
+and does not print Supabase's credential-bearing status output.
+
 ### Run the client
 
 ```bash
