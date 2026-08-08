@@ -92,10 +92,13 @@ messages, editing, soft deletion, realtime message updates, pagination, and
 archive restoration. Presence and typing are not currently implemented and
 remain explicit work in this phase.
 
+The implemented baseline and its extension boundaries are recorded in the
+[Collaboration Architecture](../architecture/collaboration-architecture.md).
+
 Implementation scope:
 
 - Audit and document the collaboration architecture as it exists after the
-  current vertical slices.
+  current vertical slices. **Completed:** OMO-ARC-001.
 - Complete presence and typing indicators as separate, conservative vertical
   slices.
 - Add workspace-scoped message search with exact-result navigation.
