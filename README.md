@@ -243,13 +243,11 @@ Seeded users
 
 | Role               | Email                     | Password       |
 | :----------------- | :------------------------ | :------------- |
-| Workspace owner    | `owner@chat-hub.local`    | `Password123!` |
-| Workspace member   | `member@chat-hub.local`   | `Password123!` |
-| Workspace outsider | `outsider@chat-hub.local` | `Password123!` |
+| Workspace owner    | `owner@omoikane.local`    | `Password123!` |
+| Workspace member   | `member@omoikane.local`   | `Password123!` |
+| Workspace outsider | `outsider@omoikane.local` | `Password123!` |
 
-The owner and member belong to the seeded Chat Hub Development workspace. That
-name and the `@chat-hub.local` addresses are transitional local Supabase data
-and remain accurate until the runtime-identity change in Phase 0 / PR 4. The
+The owner and member belong to the seeded Omoikane Development workspace. The
 outsider has an active profile but no workspace membership.
 
 These credentials are explicitly local development credentials. Do not place

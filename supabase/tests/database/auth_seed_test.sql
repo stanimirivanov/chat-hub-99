@@ -11,9 +11,9 @@ SELECT is(
         SELECT count(*)::INTEGER
         FROM auth.users
         WHERE email IN (
-            'owner@chat-hub.local',
-            'member@chat-hub.local',
-            'outsider@chat-hub.local'
+            'owner@omoikane.local',
+            'member@omoikane.local',
+            'outsider@omoikane.local'
         )
     ),
     3,
@@ -25,9 +25,9 @@ SELECT is(
         SELECT count(*)::INTEGER
         FROM auth.users
         WHERE email IN (
-            'owner@chat-hub.local',
-            'member@chat-hub.local',
-            'outsider@chat-hub.local'
+            'owner@omoikane.local',
+            'member@omoikane.local',
+            'outsider@omoikane.local'
         )
           AND (
               confirmation_token IS NULL
@@ -48,9 +48,9 @@ SELECT is(
         SELECT count(*)::INTEGER
         FROM auth.users
         WHERE email IN (
-            'owner@chat-hub.local',
-            'member@chat-hub.local',
-            'outsider@chat-hub.local'
+            'owner@omoikane.local',
+            'member@omoikane.local',
+            'outsider@omoikane.local'
         )
           AND email_confirmed_at IS NOT NULL
     ),
@@ -63,9 +63,9 @@ SELECT is(
         SELECT count(*)::INTEGER
         FROM auth.users
         WHERE email IN (
-            'owner@chat-hub.local',
-            'member@chat-hub.local',
-            'outsider@chat-hub.local'
+            'owner@omoikane.local',
+            'member@omoikane.local',
+            'outsider@omoikane.local'
         )
           AND encrypted_password IS NOT NULL
           AND encrypted_password <> ''

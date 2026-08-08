@@ -15,5 +15,5 @@ SELECT
     reauthentication_token IS NULL
         AS reauthentication_token_is_null
 FROM auth.users
-WHERE email LIKE '%@chat-hub.local'
+WHERE email LIKE '%@omoikane.local'
 ORDER BY email;

@@ -4,9 +4,9 @@ This directory contains the local Supabase configuration, PostgreSQL migrations,
 development seed data, generated database types, and database verification tests
 for Omoikane.
 
-The local Supabase project ID, container names, seeded workspace, and seeded
-email domain still use their legacy values. They remain documented as-is until
-the coordinated runtime-identity migration in Phase 0 / PR 4.
+The local Supabase stack uses an Omoikane-specific project ID, deterministic
+development identities, and seed data. Standard Supabase environment variables
+retain their vendor-owned `SUPABASE_` prefix.
 
 The database is treated as an architectural boundary rather than as passive
 storage. It owns persistence invariants, authorization policies, immutable
@@ -73,8 +73,18 @@ pre-confirmed for ordinary local sign-in.
 The configured project identifier is:
 
 ```text
-chat-hub-99
+omoikane-local
 ```
+
+Supabase derives local container names from this identifier. Changing it can
+leave containers from the previous local project stopped on the developer's
+machine; list active and stopped containers before removing obsolete ones.
+
+The hosted production URL still contains `chat-hub-99` because it identifies an
+existing external Supabase project. Renaming repository-local runtime identity
+does not rename or migrate that hosted resource. Any hosted-project migration
+must be planned separately together with its data, secrets, redirect URLs, and
+deployment configuration.
 
 The seed file is applied automatically through:
 
@@ -396,9 +406,9 @@ The seed creates the following local-only users:
 
 | Role             | Email                     | Password       |
 | ---------------- | ------------------------- | -------------- |
-| Workspace owner  | `owner@chat-hub.local`    | `Password123!` |
-| Workspace member | `member@chat-hub.local`   | `Password123!` |
-| Outsider         | `outsider@chat-hub.local` | `Password123!` |
+| Workspace owner  | `owner@omoikane.local`    | `Password123!` |
+| Workspace member | `member@omoikane.local`   | `Password123!` |
+| Outsider         | `outsider@omoikane.local` | `Password123!` |
 
 These credentials are intended only for the local development stack.
 
@@ -463,32 +473,32 @@ This is not normally an Angular networking failure.
 Inspect the Auth container logs:
 
 ```shell
-docker logs supabase_auth_chat-hub-99 --tail 200
+docker logs supabase_auth_omoikane-local --tail 200
 ```
 
 Follow the logs while reproducing the failure:
 
 ```shell
-docker logs --follow supabase_auth_chat-hub-99
+docker logs --follow supabase_auth_omoikane-local
 ```
 
 List all local project containers when a container name is uncertain:
 
 ```powershell
 docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}" |
-    Select-String "chat-hub-99"
+    Select-String "omoikane-local"
 ```
 
 The PostgreSQL container is normally named with `supabase_db`:
 
 ```shell
-docker logs supabase_db_chat-hub-99 --tail 200
+docker logs supabase_db_omoikane-local --tail 200
 ```
 
 Follow the database logs with:
 
 ```shell
-docker logs --follow supabase_db_chat-hub-99
+docker logs --follow supabase_db_omoikane-local
 ```
 
 ### `converting NULL to string is unsupported`
@@ -516,7 +526,7 @@ SELECT
     phone_change_token,
     reauthentication_token
 FROM auth.users
-WHERE email LIKE '%@chat-hub.local'
+WHERE email LIKE '%@omoikane.local'
 ORDER BY email;
 ```
 
@@ -541,7 +551,7 @@ SET
         COALESCE(phone_change_token, ''),
     reauthentication_token =
         COALESCE(reauthentication_token, '')
-WHERE email LIKE '%@chat-hub.local';
+WHERE email LIKE '%@omoikane.local';
 ```
 
 This update repairs only the currently running local database.
@@ -579,7 +589,7 @@ SELECT
     reauthentication_token IS NULL
         AS reauthentication_token_is_null
 FROM auth.users
-WHERE email LIKE '%@chat-hub.local'
+WHERE email LIKE '%@omoikane.local'
 ORDER BY email;
 ```
 
@@ -653,7 +663,7 @@ SELECT
     email,
     email_confirmed_at
 FROM auth.users
-WHERE email LIKE '%@chat-hub.local'
+WHERE email LIKE '%@omoikane.local'
 ORDER BY email;
 ```
 
@@ -671,15 +681,15 @@ List local containers:
 
 ```powershell
 docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}" |
-    Select-String "chat-hub-99"
+    Select-String "omoikane-local"
 ```
 
 Typical container names include:
 
 ```text
-supabase_auth_chat-hub-99
-supabase_db_chat-hub-99
-supabase_studio_chat-hub-99
+supabase_auth_omoikane-local
+supabase_db_omoikane-local
+supabase_studio_omoikane-local
 ```
 
 Container names may differ when the project identifier changes. Prefer listing

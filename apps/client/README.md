@@ -333,7 +333,7 @@ Workspace and channel selections are reflected in the root route as validated
 slugs:
 
 ```text
-/?workspace=chat-hub-development&channel=general
+/?workspace=omoikane-development&channel=general
 ```
 
 The URL is the browser-history and deep-link source of selection, while the
