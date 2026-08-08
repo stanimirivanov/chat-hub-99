@@ -27,7 +27,14 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v6
         with:
+          # Nx compares HEAD with the defaultBase configured in nx.json.
+          fetch-depth: 0
           persist-credentials: false
+
+      - name: Establish the Nx comparison base
+        run: >-
+          git show-ref --verify --quiet refs/heads/main ||
+          git branch --track main origin/main
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
