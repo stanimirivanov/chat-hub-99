@@ -10,6 +10,19 @@ This is a target strategy. Profiles and artifacts are introduced only at their
 roadmap gates; documenting a future image or cluster does not authorize
 scaffolding it before a vertical slice needs it.
 
+As of 8 August 2026, the repository contains no deployment implementation:
+there are no CI/CD workflows, hosting manifests, Dockerfiles, Compose files,
+published-image definitions, Kubernetes resources, Helm charts, GitOps
+applications, infrastructure-as-code modules, deployment dashboards, or GitHub
+environment configuration. Phase 0 therefore has no deployment resource to
+rename. Each artifact must use the Omoikane identities defined here when the
+roadmap slice that owns it is implemented.
+
+The Git remote and hosted Supabase project are external resource identities.
+Their migration requires an explicit owner decision and coordinated provider
+changes; repository-local naming must not pretend that those resources were
+renamed.
+
 ## 1. Deployment principles
 
 - Keep application architecture independent of hosting platform.
