@@ -1,8 +1,8 @@
-# Chat Hub Angular Client
+# Omoikane Angular Client
 
-The client is the delivery mechanism for Chat Hub. It renders application state,
-translates user interaction into application use-case calls, and composes the
-Effect/Supabase runtime through Angular dependency injection.
+The client is Omoikane's browser delivery mechanism. It renders application
+state, translates user interaction into application use-case calls, and
+composes the Effect/Supabase runtime through Angular dependency injection.
 
 ## Layer responsibilities
 

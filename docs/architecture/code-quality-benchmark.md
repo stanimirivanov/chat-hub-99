@@ -1,6 +1,6 @@
 # Code Quality and Documentation Benchmark
 
-This document defines the review standard for future Chat Hub vertical slices.
+This document defines the review standard for future Omoikane vertical slices.
 It is a decision framework, not a mechanical scorecard: a rule may be departed
 from when the trade-off is explicit, local, and tested.
 
