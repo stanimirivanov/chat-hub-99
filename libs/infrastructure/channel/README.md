@@ -2,14 +2,15 @@
 
 ## Purpose
 
-Implements channel discovery, creation, detail updates, and archiving with
-Supabase while keeping generated database types and provider failures outside
-the application boundary.
+Implements channel discovery, realtime invalidation, creation, detail updates,
+and archiving with Supabase while keeping generated database types and provider
+failures outside the application boundary.
 
 ## Responsibilities and non-responsibilities
 
 - Query active channels in stable order through the RLS-protected
   `current_channels` view.
+- Observe payload-minimal private Broadcast invalidations for one workspace.
 - Execute the transactional `create_channel` RPC.
 - Execute the transactional `update_channel` RPC.
 - Execute the transactional `archive_channel` RPC.
@@ -27,6 +28,7 @@ active-workspace membership and ownership.
 ```text
 commands/    Supabase channel mutations
 queries/     RLS-visible channel reads
+realtime/    private workspace-channel invalidation stream
 mapping/     database-to-domain and command-to-RPC mapping
 errors/      PostgREST-to-application error translation
 testing/     focused Supabase client stubs and fixtures
@@ -55,6 +57,12 @@ Archiving sends only the stable channel identity. The RPC verifies active
 workspace ownership and changes the mutable channel head status without
 deleting the channel, messages, or history. Its `void` success remains a `void`
 repository acknowledgment; no inactive channel projection is manufactured.
+
+Realtime uses one private `workspace-channels:<workspace-id>` Broadcast topic.
+PostgreSQL authorizes receipt from active membership, while the adapter treats
+every event only as an invalidation and reuses the ordinary active-channel
+query. The stream emits once after subscription readiness to close the
+query-before-listen race and removes its Supabase channel when interrupted.
 
 PostgreSQL code `23505` is translated to a slug conflict only when the RPC's
 channel-slug message is also present; unrelated uniqueness failures remain
@@ -87,6 +95,10 @@ archiveChannel use case
   -> SupabaseChannelRepositoryLayer
   -> archive_channel RPC (authenticated session + owner authorization)
   -> void repository acknowledgment
+
+observeWorkspaceChannels stream
+  -> changesByWorkspace private invalidations
+  -> listByWorkspace RLS-protected snapshots
 ```
 
 A Tag is the typed key through which application code requests a capability. A

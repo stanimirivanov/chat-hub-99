@@ -45,8 +45,24 @@ export class ChannelNavigationComponent {
   constructor() {
     effect(() => {
       const workspaceId = this.workspaceId();
+      this.isCreatingChannel.set(false);
+      this.isEditingChannel.set(false);
+      this.isConfirmingChannelArchive.set(false);
+      void this.store.load(workspaceId);
+    });
+
+    effect(() => {
+      const workspaceId = this.workspaceId();
       const channelSlug = this.queryParamMap().get('channel');
-      void this.selectChannelFromRoute(workspaceId, channelSlug);
+      const loadedWorkspaceId = this.store.workspaceId();
+      const loadStatus = this.store.loadStatus();
+      const channels = this.store.channels();
+
+      if (loadedWorkspaceId !== workspaceId || loadStatus !== 'loaded') {
+        return;
+      }
+
+      this.selectChannelFromRoute(channelSlug, channels);
     });
 
     effect(() => {
@@ -166,25 +182,10 @@ export class ChannelNavigationComponent {
     });
   }
 
-  private async selectChannelFromRoute(
-    workspaceId: WorkspaceId,
-    channelSlug: string | null
-  ): Promise<void> {
-    if (this.store.workspaceId() !== workspaceId) {
-      this.isCreatingChannel.set(false);
-      this.isEditingChannel.set(false);
-      this.isConfirmingChannelArchive.set(false);
-    }
-
-    await this.store.load(workspaceId);
-
-    if (
-      this.workspaceId() !== workspaceId ||
-      this.queryParamMap().get('channel') !== channelSlug
-    ) {
-      return;
-    }
-
+  private selectChannelFromRoute(
+    channelSlug: string | null,
+    channels: readonly Channel[]
+  ): void {
     if (this.store.selectedChannel()?.slug !== channelSlug) {
       this.isEditingChannel.set(false);
       this.isConfirmingChannelArchive.set(false);
@@ -195,13 +196,9 @@ export class ChannelNavigationComponent {
       return;
     }
 
-    if (this.store.loadStatus() !== 'loaded') {
-      return;
-    }
-
-    const channel = this.store
-      .channels()
-      .find((candidate) => candidate.slug === channelSlug);
+    const channel = channels.find(
+      (candidate) => candidate.slug === channelSlug
+    );
 
     if (channel !== undefined) {
       this.store.select(channel.id);

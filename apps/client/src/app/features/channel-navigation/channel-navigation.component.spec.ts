@@ -85,6 +85,7 @@ const configureComponent = async ({
     hasChannels: signal(channels.length > 0),
     loadStatus: signal('loaded'),
     error: signal(null),
+    realtimeError: signal(null),
     creationError: signal(null),
     updateError: signal(null),
     archiveError: signal(null),
@@ -97,6 +98,7 @@ const configureComponent = async ({
     clearCreationError: vi.fn(),
     clearUpdateError: vi.fn(),
     clearArchiveError: vi.fn(),
+    retryRealtime: vi.fn(),
   };
 
   TestBed.overrideComponent(ChannelNavigationComponent, {
@@ -184,6 +186,29 @@ describe('ChannelNavigationComponent', () => {
         channel: channel.slug,
       },
       queryParamsHandling: 'merge',
+    });
+  });
+
+  it('clears the route when realtime removes the selected channel', async () => {
+    const { fixture, route, router, store } = await configureComponent({
+      queryParams: {
+        workspace: workspaceSlug,
+        channel: channel.slug,
+      },
+      selectedChannel: channel,
+    });
+    router.navigate.mockClear();
+
+    store.channels.set([]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(store.clearSelection).toHaveBeenCalled();
+    expect(router.navigate).toHaveBeenCalledExactlyOnceWith([], {
+      relativeTo: route,
+      queryParams: { channel: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
     });
   });
 

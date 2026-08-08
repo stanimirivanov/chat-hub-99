@@ -3,6 +3,9 @@ import type { WorkspaceId } from '@chat-hub/domain/workspace';
 
 export type ChannelLoadStatus = 'idle' | 'loading' | 'loaded' | 'failed';
 
+/** Lifecycle of the selected workspace's channel observation. */
+export type ChannelNavigationRealtimeStatus = 'idle' | 'observing' | 'failed';
+
 /**
  * Lifecycle of the single in-flight channel creation operation.
  */
@@ -31,6 +34,8 @@ export interface ChannelNavigationState {
   readonly selectedChannelId: ChannelId | null;
   readonly loadStatus: ChannelLoadStatus;
   readonly error: ChannelNavigationError | null;
+  readonly realtimeStatus: ChannelNavigationRealtimeStatus;
+  readonly realtimeError: ChannelNavigationError | null;
   readonly creationStatus: ChannelCreationStatus;
   readonly creationError: ChannelNavigationError | null;
   readonly updateStatus: ChannelUpdateStatus;
@@ -46,6 +51,8 @@ export const initialChannelNavigationState: ChannelNavigationState = {
   selectedChannelId: null,
   loadStatus: 'idle',
   error: null,
+  realtimeStatus: 'idle',
+  realtimeError: null,
   creationStatus: 'idle',
   creationError: null,
   updateStatus: 'idle',

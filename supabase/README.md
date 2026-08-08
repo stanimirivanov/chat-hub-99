@@ -145,6 +145,8 @@ Contains pgTAP tests for:
 - message read policies;
 - message Realtime publication configuration.
 - workspace-access Broadcast policy, trigger, and payload configuration.
+- workspace-channel Broadcast authorization, trigger, and payload
+  configuration.
 
 Database tests should verify externally observable behavior rather than internal
 implementation details wherever possible.

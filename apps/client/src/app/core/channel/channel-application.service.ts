@@ -1,13 +1,15 @@
 import { Injectable } from '@angular/core';
-import { Effect, Either } from 'effect';
+import { Effect, Either, Fiber, Stream } from 'effect';
 import {
   archiveChannel,
   createChannel,
   listWorkspaceChannels,
+  observeWorkspaceChannels,
   updateChannel,
   type CreateChannelError,
   type CreateChannelInput,
   type ChannelRepositoryReadError,
+  type ObserveWorkspaceChannelsError,
   type ArchiveChannelError,
   type ArchiveChannelInput,
   type UpdatedChannelDetails,
@@ -48,6 +50,36 @@ export class ChannelApplicationService {
     return applicationRuntime.runPromise(
       listWorkspaceChannels(workspaceId).pipe(Effect.either)
     );
+  }
+
+  /**
+   * Starts a private observation of authoritative active-channel snapshots.
+   *
+   * The returned cleanup interrupts the Effect Fiber, which releases the
+   * underlying Supabase Realtime channel.
+   */
+  observeWorkspaceChannels(
+    workspaceId: WorkspaceId,
+    onChannels: (channels: readonly Channel[]) => void,
+    onError: (error: ObserveWorkspaceChannelsError) => void
+  ): () => void {
+    const program = observeWorkspaceChannels({ workspaceId }).pipe(
+      Stream.runForEach((channels) =>
+        Effect.sync(() => {
+          onChannels(channels);
+        })
+      ),
+      Effect.catchAll((error) =>
+        Effect.sync(() => {
+          onError(error);
+        })
+      )
+    );
+    const fiber = applicationRuntime.runFork(program);
+
+    return () => {
+      void applicationRuntime.runPromise(Fiber.interrupt(fiber));
+    };
   }
 
   /**

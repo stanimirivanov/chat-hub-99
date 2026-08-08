@@ -1,4 +1,4 @@
-import { computed, inject } from '@angular/core';
+import { computed, DestroyRef, inject } from '@angular/core';
 import { Either } from 'effect';
 import type {
   ArchiveChannelError,
@@ -42,14 +42,167 @@ export const ChannelNavigationStore = signalStore(
   })),
 
   withMethods(
-    (store, channelApplication = inject(ChannelApplicationService)) => {
+    (
+      store,
+      channelApplication = inject(ChannelApplicationService),
+      destroyRef = inject(DestroyRef)
+    ) => {
       let requestVersion = 0;
       let selectionVersion = 0;
       const archivedChannelIds = new Set<ChannelId>();
+      const locallyIncludedChannels = new Map<ChannelId, Channel>();
+      let stopChannelObservation: (() => void) | null = null;
+      let observationRevision = 0;
       let activeRequest: {
         readonly workspaceId: WorkspaceId;
         readonly promise: Promise<void>;
       } | null = null;
+
+      /**
+       * Preserves one just-completed local mutation against an older snapshot
+       * and retains archive tombstones until the provider confirms absence.
+       */
+      const reconcileChannels = (
+        channels: readonly Channel[]
+      ): readonly Channel[] => {
+        for (const channelId of archivedChannelIds) {
+          if (!channels.some((channel) => channel.id === channelId)) {
+            archivedChannelIds.delete(channelId);
+          }
+        }
+
+        const included = [...locallyIncludedChannels.values()];
+        locallyIncludedChannels.clear();
+
+        const authoritative = channels.filter(
+          (channel) => !archivedChannelIds.has(channel.id)
+        );
+
+        return included.reduce<readonly Channel[]>(
+          (result, channel) => upsertChannel(result, channel),
+          authoritative
+        );
+      };
+
+      const stopRealtime = (updateState: boolean): void => {
+        observationRevision += 1;
+        stopChannelObservation?.();
+        stopChannelObservation = null;
+
+        if (updateState) {
+          patchState(store, {
+            realtimeStatus: 'idle',
+            realtimeError: null,
+          });
+        }
+      };
+
+      const applyWorkspaceChannels = (
+        revision: number,
+        workspaceId: WorkspaceId,
+        channels: readonly Channel[]
+      ): void => {
+        if (
+          revision !== observationRevision ||
+          store.workspaceId() !== workspaceId
+        ) {
+          return;
+        }
+
+        const reconciled = reconcileChannels(channels);
+        const selectedChannelId = store.selectedChannelId();
+        const selectionLost =
+          selectedChannelId !== null &&
+          !reconciled.some((channel) => channel.id === selectedChannelId);
+
+        if (selectionLost) {
+          selectionVersion += 1;
+        }
+
+        patchState(store, {
+          channels: reconciled,
+          ...(selectionLost
+            ? {
+                selectedChannelId: null,
+                updateStatus: 'idle' as const,
+                updateError: null,
+                archiveStatus: 'idle' as const,
+                archivingChannelId: null,
+                archiveError: null,
+              }
+            : {}),
+          realtimeStatus: 'observing',
+          realtimeError: null,
+        });
+      };
+
+      const applyRealtimeError = (
+        revision: number,
+        workspaceId: WorkspaceId
+      ): void => {
+        if (
+          revision !== observationRevision ||
+          store.workspaceId() !== workspaceId
+        ) {
+          return;
+        }
+
+        stopChannelObservation = null;
+        patchState(store, {
+          realtimeStatus: 'failed',
+          realtimeError: {
+            message:
+              'Live channel updates are unavailable. Retry to reconnect.',
+          },
+        });
+      };
+
+      const startRealtime = (workspaceId: WorkspaceId): void => {
+        if (
+          store.workspaceId() !== workspaceId ||
+          store.loadStatus() !== 'loaded'
+        ) {
+          return;
+        }
+
+        if (
+          stopChannelObservation !== null &&
+          store.realtimeStatus() === 'observing'
+        ) {
+          return;
+        }
+
+        stopRealtime(false);
+        const revision = observationRevision;
+        patchState(store, {
+          realtimeStatus: 'observing',
+          realtimeError: null,
+        });
+
+        const cleanup = channelApplication.observeWorkspaceChannels(
+          workspaceId,
+          (channels) => {
+            applyWorkspaceChannels(revision, workspaceId, channels);
+          },
+          () => {
+            applyRealtimeError(revision, workspaceId);
+          }
+        );
+
+        if (
+          revision === observationRevision &&
+          store.workspaceId() === workspaceId &&
+          store.realtimeStatus() === 'observing'
+        ) {
+          stopChannelObservation = cleanup;
+        } else {
+          cleanup();
+        }
+      };
+
+      destroyRef.onDestroy(() => {
+        stopRealtime(false);
+      });
 
       return {
         /**
@@ -75,12 +228,19 @@ export const ChannelNavigationStore = signalStore(
           const workspaceChanged = store.workspaceId() !== workspaceId;
           selectionVersion += 1;
 
+          if (workspaceChanged) {
+            stopRealtime(false);
+            locallyIncludedChannels.clear();
+          }
+
           patchState(store, {
             workspaceId,
             channels: [],
             selectedChannelId: null,
             loadStatus: 'loading',
             error: null,
+            realtimeStatus: 'idle',
+            realtimeError: null,
             ...(workspaceChanged
               ? {
                   creationStatus: 'idle',
@@ -119,13 +279,12 @@ export const ChannelNavigationStore = signalStore(
                 },
                 onRight: (channels) => {
                   patchState(store, {
-                    channels: channels.filter(
-                      (channel) => !archivedChannelIds.has(channel.id)
-                    ),
+                    channels: reconcileChannels(channels),
                     selectedChannelId: null,
                     loadStatus: 'loaded',
                     error: null,
                   });
+                  startRealtime(workspaceId);
                 },
               });
             })
@@ -137,6 +296,15 @@ export const ChannelNavigationStore = signalStore(
 
           activeRequest = { workspaceId, promise };
           return promise;
+        },
+
+        /** Restarts selected-workspace channel observation after failure. */
+        retryRealtime(): void {
+          const workspaceId = store.workspaceId();
+
+          if (workspaceId !== null) {
+            startRealtime(workspaceId);
+          }
         },
 
         /**
@@ -235,6 +403,7 @@ export const ChannelNavigationStore = signalStore(
               return null;
             },
             onRight: (channel) => {
+              locallyIncludedChannels.set(channel.id, channel);
               patchState(store, {
                 channels: upsertChannel(store.channels(), channel),
                 creationStatus: 'idle',
@@ -313,6 +482,8 @@ export const ChannelNavigationStore = signalStore(
                 description: updatedDetails.description,
               };
 
+              locallyIncludedChannels.set(channelId, updatedChannel);
+
               patchState(store, {
                 channels: upsertChannel(store.channels(), updatedChannel),
                 updateStatus: 'idle',
@@ -387,6 +558,7 @@ export const ChannelNavigationStore = signalStore(
           }
 
           archivedChannelIds.add(channelId);
+          locallyIncludedChannels.delete(channelId);
           const targetStillSelected =
             store.workspaceId() === workspaceId &&
             store.selectedChannelId() === channelId;

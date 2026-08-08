@@ -56,11 +56,15 @@ const updatedDetails: UpdatedChannelDetails = {
   description: updatedChannel.description,
 };
 
+const makeObserveWorkspaceChannels = (cleanup = vi.fn()) =>
+  vi.fn<ChannelApplicationService['observeWorkspaceChannels']>(() => cleanup);
+
 const configureStore = (
   listWorkspaceChannels = vi.fn().mockResolvedValue(Either.right([channel])),
   createChannel = vi.fn().mockResolvedValue(Either.right(createdChannel)),
   updateChannel = vi.fn().mockResolvedValue(Either.right(updatedDetails)),
-  archiveChannel = vi.fn().mockResolvedValue(Either.right(undefined))
+  archiveChannel = vi.fn().mockResolvedValue(Either.right(undefined)),
+  observeWorkspaceChannels = makeObserveWorkspaceChannels()
 ) => {
   TestBed.configureTestingModule({
     providers: [
@@ -71,6 +75,7 @@ const configureStore = (
           archiveChannel,
           createChannel,
           listWorkspaceChannels,
+          observeWorkspaceChannels,
           updateChannel,
         },
       },
@@ -82,6 +87,7 @@ const configureStore = (
     createChannel,
     archiveChannel,
     listWorkspaceChannels,
+    observeWorkspaceChannels,
     updateChannel,
   };
 };
@@ -108,6 +114,90 @@ describe('ChannelNavigationStore', () => {
       '00000000-0000-4000-8000-000000000004'
     );
     expect(store.select(unknownChannelId)).toBe(false);
+  });
+
+  it('reconciles realtime create, update, and archive snapshots', async () => {
+    const stop = vi.fn();
+    const observeWorkspaceChannels = makeObserveWorkspaceChannels(stop);
+    const { store } = configureStore(
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      observeWorkspaceChannels
+    );
+    await store.load(workspaceId);
+    store.select(channelId);
+
+    const onChannels = observeWorkspaceChannels.mock.calls[0]?.[1];
+    onChannels?.([createdChannel, updatedChannel]);
+
+    expect(store.channels()).toEqual([createdChannel, updatedChannel]);
+    expect(store.selectedChannel()).toEqual(updatedChannel);
+
+    onChannels?.([createdChannel]);
+
+    expect(store.channels()).toEqual([createdChannel]);
+    expect(store.selectedChannel()).toBeNull();
+    expect(store.realtimeStatus()).toBe('observing');
+    expect(store.realtimeError()).toBeNull();
+  });
+
+  it('releases the old workspace listener and ignores its late snapshot', async () => {
+    const cleanups = [vi.fn(), vi.fn()];
+    const observeWorkspaceChannels = vi
+      .fn()
+      .mockReturnValueOnce(cleanups[0])
+      .mockReturnValueOnce(cleanups[1]);
+    const listWorkspaceChannels = vi
+      .fn()
+      .mockResolvedValueOnce(Either.right([channel]))
+      .mockResolvedValueOnce(Either.right([]));
+    const { store } = configureStore(
+      listWorkspaceChannels,
+      undefined,
+      undefined,
+      undefined,
+      observeWorkspaceChannels
+    );
+    await store.load(workspaceId);
+    const oldSnapshot = observeWorkspaceChannels.mock.calls[0]?.[1];
+
+    await store.load(nextWorkspaceId);
+    oldSnapshot?.([channel]);
+
+    expect(cleanups[0]).toHaveBeenCalledOnce();
+    expect(store.workspaceId()).toBe(nextWorkspaceId);
+    expect(store.channels()).toEqual([]);
+  });
+
+  it('keeps loaded channels visible and retries a failed observation', async () => {
+    const observeWorkspaceChannels = makeObserveWorkspaceChannels();
+    const { store } = configureStore(
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      observeWorkspaceChannels
+    );
+    await store.load(workspaceId);
+
+    const onError = observeWorkspaceChannels.mock.calls[0]?.[2];
+    onError?.(
+      new ChannelRepositoryUnavailableError({
+        cause: new Error('Realtime unavailable'),
+      })
+    );
+
+    expect(store.channels()).toEqual([channel]);
+    expect(store.realtimeStatus()).toBe('failed');
+    expect(store.realtimeError()).toEqual({
+      message: 'Live channel updates are unavailable. Retry to reconnect.',
+    });
+
+    store.retryRealtime();
+    expect(observeWorkspaceChannels).toHaveBeenCalledTimes(2);
+    expect(store.realtimeStatus()).toBe('observing');
   });
 
   it('exposes a safe error and permits retry', async () => {
