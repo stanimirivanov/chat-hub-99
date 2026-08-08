@@ -31,6 +31,7 @@ import { WorkspaceNavigationComponent } from '../workspace-navigation/workspace-
     WorkspaceNavigationComponent,
   ],
   templateUrl: './authentication-shell.component.html',
+  styleUrl: './authentication-shell.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AuthenticationShellComponent {

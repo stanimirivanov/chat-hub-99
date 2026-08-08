@@ -1,3 +1,41 @@
+<header class="application-header">
+  <div class="product-identity">
+    <span class="product-mark" aria-hidden="true">O</span>
+
+    <p class="product-wordmark">
+      <strong>Omoikane</strong>
+      <span>The Collaborative Intelligence Platform</span>
+    </p>
+  </div>
+
+  @if (
+    !store.isInitializing() &&
+    store.isAuthenticated() &&
+    !store.isPasswordRecoveryActive()
+  ) {
+    <div class="account-actions">
+      @if (store.session(); as session) {
+        <app-current-profile
+          [userId]="session.userId"
+          [fallbackEmail]="session.email"
+        />
+      }
+
+      <button
+        type="button"
+        [disabled]="store.isSigningOut()"
+        (click)="store.signOut()"
+      >
+        @if (store.isSigningOut()) {
+          Signing out…
+        } @else {
+          Sign out
+        }
+      </button>
+    </div>
+  }
+</header>
+
 @if (store.isInitializing()) {
   <main>
     <p>Restoring session…</p>
@@ -7,29 +45,6 @@
     <app-password-recovery />
   </main>
 } @else if (store.isAuthenticated()) {
-  <header>
-    <strong>Chat Hub 99</strong>
-
-    @if (store.session(); as session) {
-      <app-current-profile
-        [userId]="session.userId"
-        [fallbackEmail]="session.email"
-      />
-    }
-
-    <button
-      type="button"
-      [disabled]="store.isSigningOut()"
-      (click)="store.signOut()"
-    >
-      @if (store.isSigningOut()) {
-        Signing out…
-      } @else {
-        Sign out
-      }
-    </button>
-  </header>
-
   <main>
     <app-workspace-navigation />
   </main>
