@@ -13,14 +13,14 @@ import {
   mapPostgrestError,
   mapThrownRepositoryError,
 } from '../errors/message-repository-error-mapper';
-import type { ChatHubSupabaseClient } from '../supabase-message-client';
+import type { SupabaseMessageClient } from '../supabase-message-client';
 import { mapCurrentMessage } from '../mapping/map-current-message';
 
 /**
  * Lists current messages using stable `(created_at, message_id)` keyset pagination.
  */
 export const listMessagesByChannel = (
-  client: ChatHubSupabaseClient,
+  client: SupabaseMessageClient,
   query: ListChannelMessagesQuery
 ): Effect.Effect<MessagePage, MessageRepositoryError> =>
   executeListMessagesQuery(client, query).pipe(
@@ -32,7 +32,7 @@ export const listMessagesByChannel = (
   );
 
 const executeListMessagesQuery = (
-  client: ChatHubSupabaseClient,
+  client: SupabaseMessageClient,
   query: ListChannelMessagesQuery
 ) =>
   Effect.tryPromise({

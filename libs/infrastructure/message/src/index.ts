@@ -4,4 +4,4 @@ export {
   SupabaseMessageClientTag,
 } from './lib';
 
-export { type ChatHubSupabaseClient } from './lib/supabase-message-client';
+export { type SupabaseMessageClient } from './lib/supabase-message-client';

@@ -62,8 +62,8 @@ SET LOCAL request.jwt.claim.sub =
 SELECT lives_ok(
     $$
         SELECT public.create_workspace(
-            p_name => 'Chat Hub',
-            p_slug => 'chat-hub',
+            p_name => 'Omoikane',
+            p_slug => 'omoikane',
             p_description => 'Initial description'
         )
     $$,
@@ -133,8 +133,8 @@ SELECT results_eq(
     $$
         VALUES (
             1,
-            'Chat Hub'::TEXT,
-            'chat-hub'::TEXT,
+            'Omoikane'::TEXT,
+            'omoikane'::TEXT,
             'Initial description'::TEXT,
             'active'::TEXT
         )
@@ -224,8 +224,8 @@ SELECT lives_ok(
         $sql$
             SELECT public.update_workspace(
                 p_workspace_id => %L::UUID,
-                p_name => 'Chat Hub Community',
-                p_slug => 'chat-hub-community',
+                p_name => 'Omoikane Community',
+                p_slug => 'omoikane-community',
                 p_description => 'Updated description'
             )
         $sql$,
@@ -268,8 +268,8 @@ SELECT results_eq(
     $$
         VALUES (
             1,
-            'Chat Hub'::TEXT,
-            'chat-hub'::TEXT,
+            'Omoikane'::TEXT,
+            'omoikane'::TEXT,
             'Initial description'::TEXT,
             'active'::TEXT
         )
@@ -295,8 +295,8 @@ SELECT results_eq(
     $$
         VALUES (
             2,
-            'Chat Hub Community'::TEXT,
-            'chat-hub-community'::TEXT,
+            'Omoikane Community'::TEXT,
+            'omoikane-community'::TEXT,
             'Updated description'::TEXT,
             'active'::TEXT
         )
@@ -377,8 +377,8 @@ SELECT results_eq(
     $$
         VALUES (
             3,
-            'Chat Hub Community'::TEXT,
-            'chat-hub-community'::TEXT,
+            'Omoikane Community'::TEXT,
+            'omoikane-community'::TEXT,
             'archived'::TEXT
         )
     $$,

@@ -8,14 +8,14 @@ import {
   mapPostgrestError,
   mapThrownRepositoryError,
 } from '../errors/message-repository-error-mapper';
-import type { ChatHubSupabaseClient } from '../supabase-message-client';
+import type { SupabaseMessageClient } from '../supabase-message-client';
 import { mapCurrentMessage } from '../mapping/map-current-message';
 
 /**
  * Reads one current message projection by its stable identity.
  */
 export const findMessageById = (
-  client: ChatHubSupabaseClient,
+  client: SupabaseMessageClient,
   messageId: MessageId
 ): Effect.Effect<Message, MessageRepositoryError> =>
   Effect.tryPromise({

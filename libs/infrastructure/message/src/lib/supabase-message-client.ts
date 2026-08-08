@@ -2,9 +2,15 @@ import { Context } from 'effect';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@omoikane/shared/database';
 
-export type ChatHubSupabaseClient = SupabaseClient<Database>;
+/**
+ * Generated-database-aware Supabase client used by the message adapter.
+ */
+export type SupabaseMessageClient = SupabaseClient<Database>;
 
+/**
+ * Infrastructure-only key for the configured Supabase message client.
+ */
 export const SupabaseMessageClientTag =
-  Context.GenericTag<ChatHubSupabaseClient>(
-    '@omoikane/infrastructure/message/SupabaseClient'
+  Context.GenericTag<SupabaseMessageClient>(
+    '@omoikane/infrastructure/message/SupabaseMessageClient'
   );

@@ -29,7 +29,7 @@ describe('listPendingWorkspaceInvitations', () => {
     expect(result).toMatchObject([
       {
         invitation: { status: 'pending' },
-        workspace: { name: 'Chat Hub Development' },
+        workspace: { name: 'Omoikane Development' },
       },
     ]);
   });

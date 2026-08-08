@@ -22,15 +22,15 @@ const workspace: Workspace = {
   id: Schema.decodeUnknownSync(WorkspaceIdSchema)(
     '00000000-0000-4000-8000-000000000001'
   ),
-  name: 'Chat Hub Development',
-  slug: 'chat-hub-development',
+  name: 'Omoikane Development',
+  slug: 'omoikane-development',
   description: null,
 };
 
 const updatedWorkspace: Workspace = {
   ...workspace,
-  name: 'Chat Hub Community',
-  slug: 'chat-hub-community',
+  name: 'Omoikane Community',
+  slug: 'omoikane-community',
   description: 'Updated collaboration space',
 };
 
@@ -317,8 +317,8 @@ describe('WorkspaceNavigationComponent', () => {
       fixture.nativeElement.querySelector('#workspace-description');
     const form: HTMLFormElement = fixture.nativeElement.querySelector('form');
 
-    nameInput.value = 'Chat Hub Development';
-    slugInput.value = 'chat-hub-development';
+    nameInput.value = 'Omoikane Development';
+    slugInput.value = 'omoikane-development';
     descriptionInput.value = 'Team collaboration';
     form.dispatchEvent(
       new Event('submit', { bubbles: true, cancelable: true })
@@ -327,8 +327,8 @@ describe('WorkspaceNavigationComponent', () => {
     await fixture.whenStable();
 
     expect(store.createWorkspace).toHaveBeenCalledExactlyOnceWith({
-      name: 'Chat Hub Development',
-      slug: 'chat-hub-development',
+      name: 'Omoikane Development',
+      slug: 'omoikane-development',
       description: 'Team collaboration',
     });
     expect(router.navigate).toHaveBeenCalledExactlyOnceWith([], {

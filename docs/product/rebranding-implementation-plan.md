@@ -148,11 +148,35 @@ pnpm lint
 pnpm test
 pnpm build
 pnpm db:verify
-rg -i "chat[ _-]?hub[ _-]?99|chat hub 99" . --glob '!docs/history/**' --glob '!CHANGELOG.md'
 ```
 
 Run only commands exposed by the repository at the point of each PR; adding a
 missing quality command is scoped to the phase that owns that quality gate.
+
+### 7.1 Approved residual references
+
+The final repository audit intentionally permits only these tracked references:
+
+| Artifact                                                 | Reason                                                                                                                               |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `docs/product/rebranding-implementation-plan.md`         | Preserves the approved transition record, legacy terminology mapping, and verification guidance.                                     |
+| `apps/client/src/environments/environment.production.ts` | Contains the URL of the existing hosted Supabase project; changing it without migrating the external project would break production. |
+| `supabase/README.md`                                     | Explains why the hosted Supabase project URL is intentionally retained.                                                              |
+
+The local Git remote is not a tracked repository artifact. Its provider-side
+repository name remains an explicit owner migration and must not be treated as
+completed merely because local source files use Omoikane naming.
+
+Use the allow-list directly when checking tracked files:
+
+```powershell
+git grep -inE "chat[ _-]?hub([ _-]?99)?|chat-hub\.local" -- . `
+  ":(exclude)docs/product/rebranding-implementation-plan.md" `
+  ":(exclude)apps/client/src/environments/environment.production.ts" `
+  ":(exclude)supabase/README.md"
+```
+
+No output means active tracked artifacts are free of the legacy identity.
 
 ## 8. Risks and rollback
 

@@ -23,7 +23,7 @@ describe('signIn', () => {
 
     const result = await Effect.runPromise(
       signIn({
-        email: '  owner@chat-hub.local  ',
+        email: '  owner@omoikane.local  ',
         password: 'Password123!',
       }).pipe(Effect.provide(serviceLayer))
     );
@@ -31,7 +31,7 @@ describe('signIn', () => {
     expect(result).toEqual(authenticationSession);
 
     expect(signInService).toHaveBeenCalledExactlyOnceWith({
-      email: 'owner@chat-hub.local',
+      email: 'owner@omoikane.local',
       password: 'Password123!',
     });
   });
@@ -47,13 +47,13 @@ describe('signIn', () => {
 
     await Effect.runPromise(
       signIn({
-        email: 'owner@chat-hub.local',
+        email: 'owner@omoikane.local',
         password: '  Password123!  ',
       }).pipe(Effect.provide(layer))
     );
 
     expect(signInService).toHaveBeenCalledExactlyOnceWith({
-      email: 'owner@chat-hub.local',
+      email: 'owner@omoikane.local',
       password: '  Password123!  ',
     });
   });
@@ -71,7 +71,7 @@ describe('signIn', () => {
 
     const result = await Effect.runPromise(
       signIn({
-        email: 'owner@chat-hub.local',
+        email: 'owner@omoikane.local',
         password: 'wrong-password',
       }).pipe(Effect.provide(layer), Effect.either)
     );
@@ -88,7 +88,7 @@ describe('signIn', () => {
 
   it.each([
     { email: '   ', password: 'Password123!', field: 'email' as const },
-    { email: 'owner@chat-hub.local', password: '', field: 'password' as const },
+    { email: 'owner@omoikane.local', password: '', field: 'password' as const },
   ])(
     'rejects an empty $field before requesting the service',
     async ({ email, password, field }) => {
@@ -130,11 +130,11 @@ describe('signIn', () => {
       field: 'email' as const,
     },
     {
-      input: { email: 'owner@chat-hub.local', password: null },
+      input: { email: 'owner@omoikane.local', password: null },
       field: 'password' as const,
     },
     {
-      input: { email: 'owner@chat-hub.local', password: 42 },
+      input: { email: 'owner@omoikane.local', password: 42 },
       field: 'password' as const,
     },
   ])(

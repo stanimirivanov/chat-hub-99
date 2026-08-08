@@ -15,8 +15,8 @@ const workspace: Workspace = {
   id: Schema.decodeUnknownSync(WorkspaceIdSchema)(
     '00000000-0000-4000-8000-000000000001'
   ),
-  name: 'Chat Hub Development',
-  slug: 'chat-hub-development',
+  name: 'Omoikane Development',
+  slug: 'omoikane-development',
   description: null,
 };
 
@@ -126,7 +126,7 @@ describe('WorkspaceInvitationsComponent', () => {
     );
 
     const button = fixture.nativeElement.querySelector(
-      'button[aria-label="Accept invitation to Chat Hub Development"]'
+      'button[aria-label="Accept invitation to Omoikane Development"]'
     ) as HTMLButtonElement;
     button.click();
     await fixture.whenStable();

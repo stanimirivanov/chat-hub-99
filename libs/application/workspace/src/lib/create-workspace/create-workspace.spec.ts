@@ -12,16 +12,16 @@ describe('createWorkspace', () => {
 
     const result = await Effect.runPromise(
       createWorkspace({
-        name: '  Chat Hub Development  ',
-        slug: '  Chat-Hub-Development  ',
+        name: '  Omoikane Development  ',
+        slug: '  Omoikane-Development  ',
         description: '  Team collaboration  ',
       }).pipe(Effect.provide(repositoryLayer))
     );
 
     expect(result).toBe(workspace);
     expect(create).toHaveBeenCalledExactlyOnceWith({
-      name: 'Chat Hub Development',
-      slug: 'chat-hub-development',
+      name: 'Omoikane Development',
+      slug: 'omoikane-development',
       description: 'Team collaboration',
     });
   });
@@ -37,15 +37,15 @@ describe('createWorkspace', () => {
 
     await Effect.runPromise(
       createWorkspace({
-        name: 'Chat Hub Development',
-        slug: 'chat-hub-development',
+        name: 'Omoikane Development',
+        slug: 'omoikane-development',
         ...optionalInput,
       }).pipe(Effect.provide(repositoryLayer))
     );
 
     expect(create).toHaveBeenCalledExactlyOnceWith({
-      name: 'Chat Hub Development',
-      slug: 'chat-hub-development',
+      name: 'Omoikane Development',
+      slug: 'omoikane-development',
       description,
     });
   });
@@ -53,13 +53,13 @@ describe('createWorkspace', () => {
   it.each([
     ['null input', null, 'name'],
     ['undefined input', undefined, 'name'],
-    ['missing name', { slug: 'chat-hub' }, 'name'],
-    ['blank name', { name: '   ', slug: 'chat-hub' }, 'name'],
-    ['missing slug', { name: 'Chat Hub' }, 'slug'],
-    ['invalid slug', { name: 'Chat Hub', slug: 'chat--hub' }, 'slug'],
+    ['missing name', { slug: 'omoikane' }, 'name'],
+    ['blank name', { name: '   ', slug: 'omoikane' }, 'name'],
+    ['missing slug', { name: 'Omoikane' }, 'slug'],
+    ['invalid slug', { name: 'Omoikane', slug: 'omoikane--workspace' }, 'slug'],
     [
       'non-string description',
-      { name: 'Chat Hub', slug: 'chat-hub', description: 42 },
+      { name: 'Omoikane', slug: 'omoikane', description: 42 },
       'description',
     ],
   ])('rejects %s before repository access', async (_label, input, field) => {
@@ -86,7 +86,7 @@ describe('createWorkspace', () => {
 
   it('preserves a slug conflict as a typed failure', async () => {
     const failure = new WorkspaceSlugUnavailableError({
-      slug: 'chat-hub-development',
+      slug: 'omoikane-development',
     });
     const { repositoryLayer } = makeCreateWorkspaceRepository(() =>
       Effect.fail(failure)
@@ -94,8 +94,8 @@ describe('createWorkspace', () => {
 
     const result = await Effect.runPromise(
       createWorkspace({
-        name: 'Chat Hub Development',
-        slug: 'chat-hub-development',
+        name: 'Omoikane Development',
+        slug: 'omoikane-development',
       }).pipe(Effect.provide(repositoryLayer), Effect.either)
     );
 

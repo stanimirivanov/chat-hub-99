@@ -12,14 +12,14 @@ import {
   mapThrownRepositoryError,
 } from '../errors/message-repository-error-mapper';
 import { mapMessageRevision } from '../mapping/map-message-revision';
-import type { ChatHubSupabaseClient } from '../supabase-message-client';
+import type { SupabaseMessageClient } from '../supabase-message-client';
 
 const REVISION_COLUMNS =
   'message_version_id, message_id, version_number, content, created_by, created_at';
 
 /** Lists immutable revisions using the monotonic version number as a cursor. */
 export const listMessageRevisions = (
-  client: ChatHubSupabaseClient,
+  client: SupabaseMessageClient,
   query: ListMessageRevisionsQuery
 ): Effect.Effect<MessageRevisionPage, MessageRepositoryError> =>
   executeQuery(client, query).pipe(
@@ -31,7 +31,7 @@ export const listMessageRevisions = (
   );
 
 const executeQuery = (
-  client: ChatHubSupabaseClient,
+  client: SupabaseMessageClient,
   query: ListMessageRevisionsQuery
 ) =>
   Effect.tryPromise({

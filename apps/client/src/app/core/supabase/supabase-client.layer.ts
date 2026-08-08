@@ -9,7 +9,7 @@ import {
 } from '@omoikane/infrastructure/channel';
 import {
   SupabaseMessageClientTag,
-  type ChatHubSupabaseClient,
+  type SupabaseMessageClient,
 } from '@omoikane/infrastructure/message';
 import {
   SupabaseProfileClientTag,
@@ -39,7 +39,7 @@ export const makeSupabaseClientLayer = (config: SupabaseClientConfig) => {
 
   const messageClientLayer = Layer.succeed(
     SupabaseMessageClientTag,
-    client as ChatHubSupabaseClient
+    client as SupabaseMessageClient
   );
 
   const authenticationClientLayer = Layer.succeed(

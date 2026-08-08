@@ -7,7 +7,7 @@ export const authenticationSession = {
   token_type: 'bearer',
   user: {
     id: '00000000-0000-4000-8000-000000000001',
-    email: 'owner@chat-hub.local',
+    email: 'owner@omoikane.local',
   },
 } as Session;
 

@@ -1,5 +1,5 @@
 import { vi } from 'vitest';
-import type { ChatHubSupabaseClient } from '../supabase-message-client';
+import type { SupabaseMessageClient } from '../supabase-message-client';
 
 interface RpcStubResponse<TData> {
   readonly data: TData;
@@ -21,13 +21,13 @@ interface RpcStubResponse<TData> {
 export const makeRpcClientStub = <TData>(
   response: RpcStubResponse<TData>
 ): {
-  readonly client: ChatHubSupabaseClient;
+  readonly client: SupabaseMessageClient;
   readonly rpc: ReturnType<typeof vi.fn>;
 } => {
   const rpc = vi.fn().mockResolvedValue(response);
 
   return {
-    client: { rpc } as unknown as ChatHubSupabaseClient,
+    client: { rpc } as unknown as SupabaseMessageClient,
     rpc,
   };
 };
@@ -38,10 +38,10 @@ export const makeRpcClientStub = <TData>(
  */
 export const makeThrowingRpcClientStub = (
   cause: unknown
-): ChatHubSupabaseClient => {
+): SupabaseMessageClient => {
   const rpc = vi.fn().mockRejectedValue(cause);
 
   return {
     rpc,
-  } as unknown as ChatHubSupabaseClient;
+  } as unknown as SupabaseMessageClient;
 };

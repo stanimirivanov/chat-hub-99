@@ -8,7 +8,7 @@ import {
 import { MessageIdSchema } from '@omoikane/domain/message';
 import {
   SupabaseMessageClientTag,
-  type ChatHubSupabaseClient,
+  type SupabaseMessageClient,
 } from './supabase-message-client';
 import { SupabaseMessageRepositoryLayer } from './supabase-message-repository.layer';
 import { makeSupabaseMessageRepository } from './supabase-message-repository';
@@ -18,7 +18,7 @@ describe('makeSupabaseMessageRepository', () => {
     const client = {
       from: vi.fn(),
       rpc: vi.fn(),
-    } as unknown as ChatHubSupabaseClient;
+    } as unknown as SupabaseMessageClient;
 
     const repository = makeSupabaseMessageRepository(client);
 
@@ -45,7 +45,7 @@ describe('SupabaseMessageRepositoryLayer', () => {
 
     const client = {
       rpc,
-    } as unknown as ChatHubSupabaseClient;
+    } as unknown as SupabaseMessageClient;
 
     const clientLayer = Layer.succeed(SupabaseMessageClientTag, client);
 

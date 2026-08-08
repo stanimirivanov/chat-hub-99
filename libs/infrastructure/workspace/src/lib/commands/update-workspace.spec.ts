@@ -12,8 +12,8 @@ const command: UpdateWorkspaceCommand = {
   workspaceId: Schema.decodeUnknownSync(WorkspaceIdSchema)(
     updatedWorkspaceRow.workspace_id
   ),
-  name: 'Chat Hub Community',
-  slug: 'chat-hub-community',
+  name: 'Omoikane Community',
+  slug: 'omoikane-community',
   description: 'Updated collaboration space',
 };
 

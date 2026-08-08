@@ -5,7 +5,7 @@ import { findMessageById } from './queries/find-message-by-id';
 import { listMessagesByChannel } from './queries/list-messages-by-channel';
 import { listMessageRevisions } from './queries/list-message-revisions';
 import { makeMessageChangesStream } from './realtime';
-import type { ChatHubSupabaseClient } from './supabase-message-client';
+import type { SupabaseMessageClient } from './supabase-message-client';
 
 /**
  * Assembles the Supabase-backed operations into the application-level message
@@ -15,7 +15,7 @@ import type { ChatHubSupabaseClient } from './supabase-message-client';
  * only composition and introduces no additional runtime behavior.
  */
 export const makeSupabaseMessageRepository = (
-  client: ChatHubSupabaseClient
+  client: SupabaseMessageClient
 ): MessageRepository => ({
   create: (command) => createMessage(client, command),
   edit: (command) => editMessage(client, command),

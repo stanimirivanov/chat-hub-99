@@ -11,8 +11,8 @@ describe('mapCurrentWorkspace', () => {
 
     expect(result).toEqual({
       id: '00000000-0000-4000-8000-000000000001',
-      name: 'Chat Hub Development',
-      slug: 'chat-hub-development',
+      name: 'Omoikane Development',
+      slug: 'omoikane-development',
       description: null,
     });
   });

@@ -15,7 +15,7 @@ const makeSession = (
 describe('mapAuthenticationSession', () => {
   it('maps the application session projection', () => {
     const result = mapAuthenticationSession(
-      makeSession('owner@chat-hub.local'),
+      makeSession('owner@omoikane.local'),
       'restore-session'
     );
 
@@ -26,7 +26,7 @@ describe('mapAuthenticationSession', () => {
       onRight: (session) => {
         expect(session).toEqual({
           userId: '00000000-0000-4000-8000-000000000001',
-          email: 'owner@chat-hub.local',
+          email: 'owner@omoikane.local',
         });
       },
     });
@@ -56,7 +56,7 @@ describe('mapAuthenticationSession', () => {
 
   it('rejects a malformed user identifier', () => {
     const result = mapAuthenticationSession(
-      makeSession('owner@chat-hub.local', 'not-a-uuid'),
+      makeSession('owner@omoikane.local', 'not-a-uuid'),
       'restore-session'
     );
 

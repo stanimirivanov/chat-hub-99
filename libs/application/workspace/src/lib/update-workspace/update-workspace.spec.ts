@@ -11,8 +11,8 @@ describe('updateWorkspace', () => {
   it('normalizes replacement details before repository access', async () => {
     const updatedWorkspace = {
       ...workspace,
-      name: 'Chat Hub Community',
-      slug: 'chat-hub-community',
+      name: 'Omoikane Community',
+      slug: 'omoikane-community',
       description: 'Team collaboration',
     };
     const { update, repositoryLayer } = makeUpdateWorkspaceRepository(() =>
@@ -22,8 +22,8 @@ describe('updateWorkspace', () => {
     const result = await Effect.runPromise(
       updateWorkspace({
         workspaceId: `  ${workspace.id}  `,
-        name: '  Chat Hub Community  ',
-        slug: '  Chat-Hub-Community  ',
+        name: '  Omoikane Community  ',
+        slug: '  Omoikane-Community  ',
         description: '  Team collaboration  ',
       }).pipe(Effect.provide(repositoryLayer))
     );
@@ -31,8 +31,8 @@ describe('updateWorkspace', () => {
     expect(result).toBe(updatedWorkspace);
     expect(update).toHaveBeenCalledExactlyOnceWith({
       workspaceId: workspace.id,
-      name: 'Chat Hub Community',
-      slug: 'chat-hub-community',
+      name: 'Omoikane Community',
+      slug: 'omoikane-community',
       description: 'Team collaboration',
     });
   });
@@ -68,27 +68,31 @@ describe('updateWorkspace', () => {
     ['undefined input', undefined, 'workspaceId'],
     [
       'invalid workspace identity',
-      { workspaceId: 'not-a-workspace', name: 'Chat Hub', slug: 'chat-hub' },
+      { workspaceId: 'not-a-workspace', name: 'Omoikane', slug: 'omoikane' },
       'workspaceId',
     ],
-    ['missing name', { workspaceId: workspace.id, slug: 'chat-hub' }, 'name'],
+    ['missing name', { workspaceId: workspace.id, slug: 'omoikane' }, 'name'],
     [
       'blank name',
-      { workspaceId: workspace.id, name: '   ', slug: 'chat-hub' },
+      { workspaceId: workspace.id, name: '   ', slug: 'omoikane' },
       'name',
     ],
-    ['missing slug', { workspaceId: workspace.id, name: 'Chat Hub' }, 'slug'],
+    ['missing slug', { workspaceId: workspace.id, name: 'Omoikane' }, 'slug'],
     [
       'invalid slug',
-      { workspaceId: workspace.id, name: 'Chat Hub', slug: 'chat--hub' },
+      {
+        workspaceId: workspace.id,
+        name: 'Omoikane',
+        slug: 'omoikane--workspace',
+      },
       'slug',
     ],
     [
       'non-string description',
       {
         workspaceId: workspace.id,
-        name: 'Chat Hub',
-        slug: 'chat-hub',
+        name: 'Omoikane',
+        slug: 'omoikane',
         description: 42,
       },
       'description',
@@ -116,7 +120,7 @@ describe('updateWorkspace', () => {
   });
 
   it.each([
-    new WorkspaceSlugUnavailableError({ slug: 'chat-hub-community' }),
+    new WorkspaceSlugUnavailableError({ slug: 'omoikane-community' }),
     new WorkspaceUpdateNotAllowedError({ workspaceId: workspace.id }),
   ])('preserves the $._tag repository failure', async (failure) => {
     const { repositoryLayer } = makeUpdateWorkspaceRepository(() =>
@@ -126,8 +130,8 @@ describe('updateWorkspace', () => {
     const result = await Effect.runPromise(
       updateWorkspace({
         workspaceId: workspace.id,
-        name: 'Chat Hub Community',
-        slug: 'chat-hub-community',
+        name: 'Omoikane Community',
+        slug: 'omoikane-community',
       }).pipe(Effect.provide(repositoryLayer), Effect.either)
     );
 

@@ -8,13 +8,13 @@ import {
   mapThrownRepositoryError,
 } from '../errors';
 import { toDeleteMessageArgs } from '../mapping';
-import type { ChatHubSupabaseClient } from '../supabase-message-client';
+import type { SupabaseMessageClient } from '../supabase-message-client';
 
 /**
  * Soft-deletes a message while retaining its identity and version history.
  */
 export const deleteMessage = (
-  client: ChatHubSupabaseClient,
+  client: SupabaseMessageClient,
   command: DeleteMessageCommand
 ): Effect.Effect<void, MessageRepositoryDeleteError> =>
   Effect.tryPromise({

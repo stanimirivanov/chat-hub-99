@@ -28,8 +28,8 @@ const inaccessibleWorkspaceId = Schema.decodeUnknownSync(WorkspaceIdSchema)(
 
 const workspace: Workspace = {
   id: workspaceId,
-  name: 'Chat Hub Development',
-  slug: 'chat-hub-development',
+  name: 'Omoikane Development',
+  slug: 'omoikane-development',
   description: null,
 };
 
@@ -44,8 +44,8 @@ const createdWorkspace: Workspace = {
 
 const updatedWorkspace: Workspace = {
   ...workspace,
-  name: 'Chat Hub Community',
-  slug: 'chat-hub-community',
+  name: 'Omoikane Community',
+  slug: 'omoikane-community',
   description: 'Updated collaboration space',
 };
 
@@ -285,8 +285,8 @@ describe('WorkspaceNavigationStore', () => {
     store.select(workspace.id);
 
     const update = store.updateSelectedWorkspace({
-      name: ' Chat Hub Community ',
-      slug: ' Chat-Hub-Community ',
+      name: ' Omoikane Community ',
+      slug: ' Omoikane-Community ',
       description: ' Updated collaboration space ',
     });
 
@@ -294,8 +294,8 @@ describe('WorkspaceNavigationStore', () => {
     await expect(update).resolves.toBe(updatedWorkspace);
     expect(service.updateWorkspace).toHaveBeenCalledExactlyOnceWith({
       workspaceId: workspace.id,
-      name: ' Chat Hub Community ',
-      slug: ' Chat-Hub-Community ',
+      name: ' Omoikane Community ',
+      slug: ' Omoikane-Community ',
       description: ' Updated collaboration space ',
     });
     expect(store.workspaces()).toEqual([updatedWorkspace]);

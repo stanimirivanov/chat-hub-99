@@ -47,7 +47,7 @@ describe('SignInComponent', () => {
 
     const form = fixture.nativeElement.querySelector('form') as HTMLFormElement;
 
-    emailInput.value = 'owner@chat-hub.local';
+    emailInput.value = 'owner@omoikane.local';
 
     passwordInput.value = 'Password123!';
 
@@ -56,7 +56,7 @@ describe('SignInComponent', () => {
     await fixture.whenStable();
 
     expect(store.signIn).toHaveBeenCalledExactlyOnceWith(
-      'owner@chat-hub.local',
+      'owner@omoikane.local',
       'Password123!'
     );
   });
