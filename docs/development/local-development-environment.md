@@ -243,6 +243,13 @@ developer-specific configuration.
    requires it; a check command must prove that they match the schema.
 6. Enable the `vector` extension by migration before creating embedding tables.
 
+The current local seed satisfies the deterministic-data contract with stable
+Auth user IDs and pgTAP assertions over the resulting profiles, workspace,
+memberships, channels, and message authorship. Generated aggregate IDs and
+timestamps are deliberately excluded from the fixture contract. See
+[`supabase/README.md`](../../supabase/README.md#local-development-users) for the
+local identities and scenario.
+
 Individual database commands remain valid building blocks:
 
 ```text

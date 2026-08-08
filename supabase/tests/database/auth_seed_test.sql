@@ -1,6 +1,6 @@
 BEGIN;
 
-SELECT plan(4);
+SELECT plan(5);
 
 -- ============================================================================
 -- Seeded development users
@@ -18,6 +18,31 @@ SELECT is(
     ),
     3,
     'all three local development users are seeded'
+);
+
+SELECT results_eq(
+    $$
+        SELECT id, email
+        FROM auth.users
+        WHERE email LIKE '%@omoikane.local'
+        ORDER BY id
+    $$,
+    $$
+        VALUES
+            (
+                '10000000-0000-4000-8000-000000000001'::UUID,
+                'owner@omoikane.local'::VARCHAR
+            ),
+            (
+                '10000000-0000-4000-8000-000000000002'::UUID,
+                'member@omoikane.local'::VARCHAR
+            ),
+            (
+                '10000000-0000-4000-8000-000000000003'::UUID,
+                'outsider@omoikane.local'::VARCHAR
+            )
+    $$,
+    'seeded email addresses map to stable user identifiers'
 );
 
 SELECT is(
@@ -69,9 +94,13 @@ SELECT is(
         )
           AND encrypted_password IS NOT NULL
           AND encrypted_password <> ''
+          AND encrypted_password = crypt(
+              'Password123!',
+              encrypted_password
+          )
     ),
     3,
-    'all seeded development users have encrypted passwords'
+    'all seeded development users accept the documented local password'
 );
 
 SELECT * FROM finish();

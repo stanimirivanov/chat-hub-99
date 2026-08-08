@@ -282,34 +282,18 @@ Seeded users
 | Workspace member   | `member@omoikane.local`   | `Password123!` |
 | Workspace outsider | `outsider@omoikane.local` | `Password123!` |
 
-The owner and member belong to the seeded Omoikane Development workspace. The
-outsider has an active profile but no workspace membership.
+The owner and member belong to the seeded `Omoikane Development` workspace. It
+contains the `General` and `Engineering` channels and five representative
+messages. The outsider has an active profile but no workspace membership. The
+complete fixture contract, including stable local user IDs, is documented in
+[`supabase/README.md`](supabase/README.md#local-development-users).
 
 These credentials are explicitly local development credentials. Do not place
 equivalent fixed passwords in production seed or migration files.
 
-## Architectural note
-
-Direct insertion into `auth.users` couples your local seed to Supabase Auth's
-internal schema. Supabase describes Auth identities as separate
-authentication-method records associated with users, and that internal
-representation may evolve. :contentReference[oaicite:1]{index=1}
-
-For the current educational project, the explicit SQL seed is acceptable
-because:
-
-- it is local-only;
-- stable UUIDs are important to the deterministic workspace scenario;
-- the required Auth fields are now explicit;
-- a regression check can detect incompatibility after upgrades.
-
-Do not use the same direct insertion approach as the default production
-user-provisioning mechanism. Production users should be created through Supabase
-Auth APIs.
-
-After the seed correction and clean reset, the existing Angular and Effect
-authentication implementation should no longer return
-`AuthenticationUnavailableError` for these credentials.
+The local-only Auth insertion trade-off and its regression requirements are
+documented with the seed in
+[`supabase/README.md`](supabase/README.md#auth-seed-requirements).
 
 ## Documentation standard
 
