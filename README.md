@@ -110,18 +110,22 @@ The `.node-version` file is the authoritative reference-runtime pin. The
 `engines.node` range allows later Node 24 patch releases while rejecting older
 or next-major runtimes during package installation.
 
-### Install
+### Bootstrap a fresh clone
 
 ```bash
 corepack enable
-node --version
-pnpm --version
-pnpm install --frozen-lockfile
+pnpm dev:bootstrap
 ```
 
-The version commands should report Node 24.15.0 or a later Node 24 release and
-pnpm 11.16.0. The install fails on an unsupported Node version because the
-preinstall check enforces the same range declared by `engines.node`.
+The bootstrap command validates Node.js, pnpm, and the Docker engine before
+installing the exact dependency graph from `pnpm-lock.yaml` and starting the
+local Supabase stack. It is safe to run again: dependency installation remains
+lockfile-controlled and existing local Supabase data is preserved.
+
+The Angular client currently keeps its public local Supabase configuration in
+the committed development environment. Bootstrap therefore does not create an
+unused `.env.local`; that file will be introduced when an implemented runtime
+first requires developer-specific configuration.
 
 ### Check the local platform
 
