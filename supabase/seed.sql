@@ -265,7 +265,7 @@ BEGIN
     PERFORM public.create_message(
         p_channel_id => engineering_channel_id,
         p_content =>
-            'The next step is integrating the seeded channels into the UI.'
+            'The seeded workspace is ready for local collaboration.'
     );
 END;
 $$;
