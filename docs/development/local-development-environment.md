@@ -205,10 +205,16 @@ command.
 | `pnpm dev`               | Run the implemented client, server, and worker applications through Nx.                          |
 | `pnpm dev:observability` | Start OpenTelemetry, Prometheus, Grafana, Tempo, and Loki.                                       |
 | `pnpm dev:ai-local`      | Start Ollama and provision the documented local model.                                           |
-| `pnpm dev:status`        | Show Supabase, Compose, and implemented application health.                                      |
+| `pnpm dev:status`        | Show implemented Node.js, pnpm, Docker, and local Supabase health.                               |
 | `pnpm dev:logs`          | Follow infrastructure and implemented runtime logs.                                              |
 | `pnpm dev:down`          | Stop Omoikane infrastructure and Supabase without deleting volumes.                              |
 | `pnpm dev:clean`         | After confirmation, stop the stack and remove disposable local volumes.                          |
+
+`pnpm dev:status` is implemented for the current client-and-Supabase topology.
+It is read-only, suppresses Supabase's credential-bearing status output, and
+returns a non-zero exit code when a required tool or service is unavailable.
+Compose, server, worker, and observability checks are added only with the slice
+that introduces each runtime.
 
 ## 8. Database workflow
 

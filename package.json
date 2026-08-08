@@ -11,13 +11,14 @@
     "preinstall": "node tools/development/verify-node-version.mjs && npx only-allow pnpm",
 
     "start": "nx serve client",
+    "dev:status": "node tools/development/show-status.mjs",
 
     "build": "nx run-many -t build",
     "test": "nx run-many -t test",
     "test:watch": "nx test client --watch",
     "typecheck": "nx run-many -t typecheck",
     "typecheck:test": "nx run-many -t typecheck:test",
-    "lint": "nx run-many -t lint",
+    "lint": "nx run-many -t lint && eslint tools",
 
     "format": "nx format:write",
     "format:check": "nx format:check",
