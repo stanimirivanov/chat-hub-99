@@ -1,10 +1,14 @@
-import { Effect, Layer } from 'effect';
+import { Effect, Layer, Stream } from 'effect';
 import { vi } from 'vitest';
 import { ChannelRepositoryTag, type ChannelRepository } from '../repository';
 
 export const makeChannelRepositoryStub = (
   overrides: Partial<ChannelRepository> = {}
 ): ChannelRepository => ({
+  changesByWorkspace: () =>
+    Stream.die(
+      new Error('Unexpected ChannelRepository.changesByWorkspace call in test')
+    ),
   archive: () =>
     Effect.dieMessage('Unexpected ChannelRepository.archive call in test'),
   listByWorkspace: () =>
@@ -31,6 +35,17 @@ export const makeListByWorkspaceChannelRepository = (
   return {
     listByWorkspace,
     repositoryLayer: makeChannelRepositoryLayer({ listByWorkspace }),
+  };
+};
+
+export const makeChangesByWorkspaceChannelRepository = (
+  implementation: ChannelRepository['changesByWorkspace']
+) => {
+  const changesByWorkspace = vi.fn(implementation);
+
+  return {
+    changesByWorkspace,
+    repositoryLayer: makeChannelRepositoryLayer({ changesByWorkspace }),
   };
 };
 

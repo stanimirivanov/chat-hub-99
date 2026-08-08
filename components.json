@@ -1,0 +1,7 @@
+{
+  "componentsPath": "libs/ui",
+  "importAlias": "@chat-hub/ui",
+  "buildable": true,
+  "generateAs": "entrypoint",
+  "style": "nova"
+}

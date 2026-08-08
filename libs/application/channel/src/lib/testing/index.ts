@@ -7,6 +7,7 @@ export {
   makeChannelRepositoryStub,
   makeArchiveChannelRepository,
   makeChannelRepositoryLayer,
+  makeChangesByWorkspaceChannelRepository,
   makeCreateChannelRepository,
   makeListByWorkspaceChannelRepository,
   makeUpdateChannelRepository,

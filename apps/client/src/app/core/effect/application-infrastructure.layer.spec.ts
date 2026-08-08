@@ -54,6 +54,10 @@ describe('makeApplicationInfrastructureLayer', () => {
 
     expect(repository.channelRepository.listByWorkspace).toBeTypeOf('function');
 
+    expect(repository.channelRepository.changesByWorkspace).toBeTypeOf(
+      'function'
+    );
+
     expect(repository.channelRepository.create).toBeTypeOf('function');
 
     expect(repository.channelRepository.archive).toBeTypeOf('function');

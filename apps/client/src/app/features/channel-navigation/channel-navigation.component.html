@@ -9,6 +9,13 @@
 >
   <h3 id="channel-navigation-heading">Channels</h3>
 
+  @if (store.realtimeError(); as error) {
+    <p role="alert">{{ error.message }}</p>
+    <button type="button" (click)="store.retryRealtime()">
+      Retry live updates
+    </button>
+  }
+
   @if (store.isLoading()) {
     <p>Loading channels&hellip;</p>
   } @else if (store.error(); as error) {

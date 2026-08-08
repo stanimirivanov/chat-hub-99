@@ -8,13 +8,15 @@ and mutating workspace channels.
 ## Responsibilities and non-responsibilities
 
 - `listWorkspaceChannels` orchestrates workspace-scoped discovery.
+- `observeWorkspaceChannels` converts scoped invalidations into authoritative
+  active-channel snapshots through the ordinary repository read.
 - `createChannel` normalizes and validates untrusted creation input.
 - `updateChannel` normalizes and validates mutable channel details while
   excluding the immutable workspace association and slug.
 - `archiveChannel` validates a stable channel identity and acknowledges the
   inactive transition without producing an active projection.
-- `ChannelRepository` defines only the read, create, update, and archive
-  capabilities required by those use cases.
+- `ChannelRepository` defines only the scoped observation, read, create,
+  update, and archive capabilities required by those use cases.
 - Tagged errors distinguish invalid input, unavailable providers, invalid
   external data, slug conflicts, and authorization failures.
 
@@ -30,6 +32,7 @@ create-channel/             creation workflow, input, and errors
 channel-details/            shared mutable-detail decoding
 channel-identity/           shared command identity decoding
 list-workspace-channels/    workspace-scoped discovery workflow
+observe-workspace-channels/ validated realtime snapshot workflow
 repository/                 outbound port and technology-neutral failures
 testing/                    isolated repository Layers and fixtures
 update-channel/             update workflow, input, result, and errors
@@ -41,6 +44,7 @@ update-channel/             update workflow, input, result, and errors
 - `updateChannel` and its input/result/error contracts
 - `archiveChannel` and its input/error contracts
 - `listWorkspaceChannels`
+- `observeWorkspaceChannels` and its input/error contracts
 - `ChannelRepositoryTag`, `ChannelRepository`, and command contracts
 - channel repository read/create/update/archive errors
 
@@ -81,6 +85,10 @@ Angular caller -> updateChannel -> validate identity, name, and description
 Angular caller -> archiveChannel -> validate channel identity
                -> ChannelRepositoryTag -> repository.archive
                -> void acknowledgment
+
+Angular caller -> observeWorkspaceChannels -> validate workspace identity
+               -> repository.changesByWorkspace invalidations
+               -> repository.listByWorkspace authoritative snapshots
 ```
 
 In Effect, a Tag is the typed key used to request the repository. The use cases

@@ -62,7 +62,7 @@ libs/application/message/       Message lifecycle, history queries, and reposito
 libs/application/profile/       Current-profile discovery/update port and use cases
 libs/application/workspace/     Workspace lifecycle, membership, and invitation workflows
 libs/infrastructure/authentication/ Supabase authentication adapter
-libs/infrastructure/channel/    Supabase channel query and command adapter
+libs/infrastructure/channel/    Supabase channel query, command, and realtime adapter
 libs/infrastructure/message/    Supabase implementation of the message repository
 libs/infrastructure/profile/    Supabase current-profile query and command adapter
 libs/infrastructure/workspace/  Supabase workspace/member/invitation and access-realtime adapter

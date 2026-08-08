@@ -1,10 +1,11 @@
-import { Context, type Effect } from 'effect';
+import { Context, type Effect, type Stream } from 'effect';
 import type { Channel, ChannelId } from '@chat-hub/domain/channel';
 import type { WorkspaceId } from '@chat-hub/domain/workspace';
 import type {
   ChannelRepositoryArchiveError,
   ChannelRepositoryCreateError,
   ChannelRepositoryReadError,
+  ChannelRepositoryUnavailableError,
   ChannelRepositoryUpdateError,
 } from './channel-repository-error';
 
@@ -35,6 +36,16 @@ export interface UpdateChannelCommand {
  * provider-authenticated session.
  */
 export interface ChannelRepository {
+  /**
+   * Observes channel-head invalidations scoped to one workspace.
+   *
+   * Every subscription owns one provider listener. Interrupting the stream
+   * must release that listener.
+   */
+  readonly changesByWorkspace: (
+    workspaceId: WorkspaceId
+  ) => Stream.Stream<void, ChannelRepositoryUnavailableError>;
+
   /**
    * Archives one active channel using provider-session authorization.
    */

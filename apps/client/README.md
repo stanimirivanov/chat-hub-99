@@ -235,6 +235,16 @@ pending/error state, inserts the validated result in stable navigation order,
 and then writes its normalized slug to the URL so the existing route effect
 remains the selection authority.
 
+After loading, that store owns one workspace-scoped channel observation. Each
+private Broadcast invalidation is resolved into an authoritative active-channel
+snapshot, so remote creation, detail updates, and archival reconcile without
+reloading unrelated workspace or message state. Switching workspaces or
+destroying the feature interrupts the old Effect Fiber. A failed listener keeps
+the readable collection and exposes an explicit retry. If realtime archival
+removes the selected channel, selection and its URL parameter are cleared;
+destroying the nested message component releases its independently owned
+message listener.
+
 The workspace owner capability already derived by the parent member directory
 is passed into channel navigation as a presentation affordance; this avoids a
 duplicate membership query while Supabase remains the authorization boundary.

@@ -13,6 +13,11 @@ export {
 } from './lib/create-channel';
 export { listWorkspaceChannels } from './lib/list-workspace-channels';
 export {
+  observeWorkspaceChannels,
+  InvalidWorkspaceChannelObservationInputError,
+  type ObserveWorkspaceChannelsError,
+} from './lib/observe-workspace-channels';
+export {
   ChannelArchiveNotAllowedError,
   ChannelCreationNotAllowedError,
   ChannelRepositoryTag,
