@@ -119,7 +119,7 @@ builds, but the UI displays only safe presentation messages.
 For local Supabase HTTP 500 responses, inspect the Auth container:
 
 ```shell
-docker logs supabase_auth_chat-hub-99 --tail 200
+docker logs supabase_auth_omoikane-local --tail 200
 ```
 
 A GoTrue error containing:

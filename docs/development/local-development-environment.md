@@ -141,6 +141,9 @@ Target root metadata:
 
 - Standard Supabase variables retain the `SUPABASE_` prefix.
 - Omoikane-specific runtime variables use `OMOIKANE_`.
+- The Supabase CLI project ID is `omoikane-local`; it distinguishes the local
+  containers from other projects on the same host and is not a hosted project
+  identifier.
 - The service-role key is available only to the server and worker, never to
   Angular.
 - External AI provider keys are optional. Ollama provides a no-cloud local

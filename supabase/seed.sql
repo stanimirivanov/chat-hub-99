@@ -2,7 +2,7 @@
 -- Local development seed data
 -- ============================================================================
 --
--- This seed creates a small but representative Chat Hub scenario:
+-- This seed creates a small but representative Omoikane scenario:
 --
 --   - one workspace owner;
 --   - one ordinary workspace member;
@@ -65,7 +65,7 @@ BEGIN
         '00000000-0000-0000-0000-000000000000',
         'authenticated',
         'authenticated',
-        'owner@chat-hub.local',
+        'owner@omoikane.local',
         crypt(
             'Password123!',
             gen_salt('bf')
@@ -94,7 +94,7 @@ BEGIN
         '00000000-0000-0000-0000-000000000000',
         'authenticated',
         'authenticated',
-        'member@chat-hub.local',
+        'member@omoikane.local',
         crypt(
             'Password123!',
             gen_salt('bf')
@@ -123,7 +123,7 @@ BEGIN
         '00000000-0000-0000-0000-000000000000',
         'authenticated',
         'authenticated',
-        'outsider@chat-hub.local',
+        'outsider@omoikane.local',
         crypt(
             'Password123!',
             gen_salt('bf')
@@ -178,8 +178,8 @@ BEGIN
     );
 
     PERFORM public.create_workspace(
-        p_name => 'Chat Hub Development',
-        p_slug => 'chat-hub-development',
+        p_name => 'Omoikane Development',
+        p_slug => 'omoikane-development',
         p_description =>
             'Local workspace populated by supabase/seed.sql'
     );
@@ -191,7 +191,7 @@ BEGIN
         ON workspace_heads.workspace_id =
             workspaces.workspace_id
     WHERE workspace_heads.current_slug =
-        'chat-hub-development'
+        'omoikane-development'
       AND workspace_heads.workspace_status =
         'active';
 
@@ -231,7 +231,7 @@ BEGIN
     PERFORM public.create_message(
         p_channel_id => general_channel_id,
         p_content =>
-            'Welcome to the local Chat Hub development workspace.'
+            'Welcome to the local Omoikane development workspace.'
     );
 
     PERFORM public.create_message(
