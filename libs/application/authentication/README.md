@@ -1,8 +1,7 @@
 # Authentication Application
 
 `@omoikane/application/authentication` defines the provider-independent
-authentication capability used by Omoikane. The package alias remains unchanged
-until the dedicated namespace migration in Phase 0 / PR 5.
+authentication capability used by Omoikane.
 
 It contains application session contracts, typed authentication failures,
 the outbound authentication service port, and use cases for restoring a

@@ -35,6 +35,12 @@ change through an ADR.
 | OMO-SAD-001 | Software Architecture Document                                                           | Planned; no approved source was supplied for this baseline import |
 | ADR series  | [Architecture Decision Records](architecture/adr/README.md)                              | Later decisions that amend or supersede the baseline              |
 
+## Implemented architecture descriptions
+
+| ID          | Document                                                                 | Purpose                                                                                                                  |
+| ----------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| OMO-ARC-001 | [Collaboration Architecture](architecture/collaboration-architecture.md) | Audited capability, boundary, state, authorization, and realtime architecture for the implemented collaboration baseline |
+
 ## Repository reconciliation
 
 The approved Word documents were imported as reviewable Markdown on
