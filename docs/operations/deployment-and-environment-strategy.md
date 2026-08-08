@@ -10,13 +10,12 @@ This is a target strategy. Profiles and artifacts are introduced only at their
 roadmap gates; documenting a future image or cluster does not authorize
 scaffolding it before a vertical slice needs it.
 
-As of 8 August 2026, the repository contains no deployment implementation:
-there are no CI/CD workflows, hosting manifests, Dockerfiles, Compose files,
-published-image definitions, Kubernetes resources, Helm charts, GitOps
-applications, infrastructure-as-code modules, deployment dashboards, or GitHub
-environment configuration. Phase 0 therefore has no deployment resource to
-rename. Each artifact must use the Omoikane identities defined here when the
-roadmap slice that owns it is implemented.
+As of 8 August 2026, the repository contains a Phase 1 verification workflow but
+no deployment implementation. There are no hosting manifests, Dockerfiles,
+Compose files, published-image definitions, Kubernetes resources, Helm charts,
+GitOps applications, infrastructure-as-code modules, deployment dashboards, or
+GitHub environment configuration. Each artifact must use the Omoikane identities
+defined here when the roadmap slice that owns it is implemented.
 
 The Git remote and hosted Supabase project are external resource identities.
 Their migration requires an explicit owner decision and coordinated provider
@@ -163,6 +162,12 @@ functionality.
 
 Checks apply only after their owned artifacts exist; future-artifact checks are
 not Phase 0 or Phase 1 gates.
+
+The implemented Phase 1 workflow is verification-only. It runs the repository's
+source and local-database commands against an ephemeral Supabase stack and has
+read-only repository permission. Publishing, deployment, hosted-environment
+mutation, vulnerability scanning, and future-artifact validation remain owned
+by their later roadmap slices.
 
 ## 9. Security and observability
 

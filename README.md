@@ -206,6 +206,15 @@ Runs both source verification and database verification.
 This is the recommended command before opening a pull request or merging a major
 refactoring.
 
+### Continuous integration
+
+GitHub Actions runs the same `pnpm verify` and `pnpm db:verify` contracts for
+pull requests, pushes to `main`, and manual workflow dispatches. The workflow
+installs from the frozen lockfile and starts an ephemeral local Supabase stack;
+it does not connect to or mutate a hosted Supabase project.
+
+The workflow is defined in [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+
 Checks are intentionally ordered from cheapest to most expensive:
 
 1. format
