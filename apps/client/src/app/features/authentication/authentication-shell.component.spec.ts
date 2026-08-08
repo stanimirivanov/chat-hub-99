@@ -153,9 +153,11 @@ describe('AuthenticationShellComponent', () => {
       authenticated: false,
     });
 
+    expect(fixture.nativeElement.textContent).toContain('Omoikane');
     expect(fixture.nativeElement.textContent).toContain(
-      'Sign in to Chat Hub 99'
+      'The Collaborative Intelligence Platform'
     );
+    expect(fixture.nativeElement.textContent).toContain('Sign in to Omoikane');
   });
 
   it('switches anonymous users to account registration', async () => {
@@ -171,7 +173,7 @@ describe('AuthenticationShellComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain(
-      'Create your Chat Hub 99 account'
+      'Create your Omoikane account'
     );
     expect(store.clearError).toHaveBeenCalledOnce();
   });

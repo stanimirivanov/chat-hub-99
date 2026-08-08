@@ -3,7 +3,7 @@
     <h1 id="sign-up-heading">Check your email</h1>
 
     <p role="status">
-      Confirm your email address before signing in to Chat Hub 99.
+      Confirm your email address before signing in to Omoikane.
     </p>
 
     @if (store.confirmationEmail(); as email) {
@@ -39,7 +39,7 @@
       Register another email
     </button>
   } @else {
-    <h1 id="sign-up-heading">Create your Chat Hub 99 account</h1>
+    <h1 id="sign-up-heading">Create your Omoikane account</h1>
 
     <form (submit)="$event.preventDefault(); submit(emailInput, passwordInput)">
       <div>
