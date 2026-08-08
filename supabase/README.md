@@ -197,14 +197,30 @@ Run commands from the repository root.
 ### Start the local Supabase stack
 
 ```shell
-pnpm supabase:start
+pnpm dev:up
 ```
+
+`pnpm supabase:start` remains available as the direct Supabase-only equivalent.
 
 ### Stop the local Supabase stack
 
 ```shell
-pnpm supabase:stop
+pnpm dev:down
 ```
+
+The default stop preserves local data. Destructive `--no-backup` cleanup is not
+part of the aggregate development lifecycle.
+
+`pnpm supabase:stop` remains available as the direct Supabase-only equivalent.
+
+### Show safe local platform status
+
+```shell
+pnpm dev:status
+```
+
+This command checks the toolchain, Docker engine, and Supabase stack without
+printing local credentials.
 
 ### Show local service status and credentials
 
@@ -213,7 +229,8 @@ pnpm supabase:status
 ```
 
 This command reports the active API URL, Studio URL, database URL, and local API
-keys.
+keys. Treat its output as sensitive operational data and do not copy it into
+logs, screenshots, or issues.
 
 ### Reset the database
 

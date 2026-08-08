@@ -215,13 +215,22 @@ This allows failures to be detected as early as possible.
 
 ## Local Supabase workflow
 
-Start, inspect, and stop the local stack:
+Start, safely inspect, and stop the currently implemented local infrastructure:
 
 ```bash
-pnpm supabase:start
-pnpm supabase:status
-pnpm supabase:stop
+pnpm dev:up
+pnpm dev:status
+pnpm dev:down
 ```
+
+The current lifecycle owns only the local Supabase stack. `dev:up` preserves an
+existing local database, and `dev:down` stops the containers without deleting
+their data volumes. Use `pnpm db:reset` only when a destructive rebuild from
+migrations and seed data is intended.
+
+The lower-level `pnpm supabase:*` commands remain available for direct Supabase
+operations. Unlike the safe aggregate status command, `pnpm supabase:status`
+prints local API keys and should not be copied into logs or issues.
 
 Create a migration and rebuild the database:
 
