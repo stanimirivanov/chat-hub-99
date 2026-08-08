@@ -50,3 +50,13 @@ export {
   type UpdateChannelError,
   type UpdateChannelInput,
 } from './lib/update-channel';
+export {
+  ChannelTypingServiceTag,
+  ChannelTypingUnavailableError,
+  connectChannelTyping,
+  InvalidChannelTypingInputError,
+  type ChannelTypingConnection,
+  type ChannelTypingEvent,
+  type ChannelTypingService,
+  type ConnectChannelTypingInput,
+} from './lib/channel-typing';

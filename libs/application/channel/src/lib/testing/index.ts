@@ -15,3 +15,7 @@ export {
   makeRestoreChannelRepository,
   makeUpdateChannelRepository,
 } from './channel-repository.stub';
+export {
+  emptyChannelTypingConnection,
+  makeChannelTypingServiceLayer,
+} from './channel-typing-service.stub';

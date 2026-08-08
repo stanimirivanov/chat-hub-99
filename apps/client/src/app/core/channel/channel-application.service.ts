@@ -3,6 +3,7 @@ import { Effect, Either, Fiber, Stream } from 'effect';
 import {
   archiveChannel,
   createChannel,
+  connectChannelTyping,
   listWorkspaceChannels,
   listArchivedWorkspaceChannels,
   observeWorkspaceChannels,
@@ -19,10 +20,24 @@ import {
   type UpdatedChannelDetails,
   type UpdateChannelError,
   type UpdateChannelInput,
+  type ChannelTypingConnection,
+  type ChannelTypingEvent,
+  type ChannelTypingUnavailableError,
+  type InvalidChannelTypingInputError,
 } from '@omoikane/application/channel';
-import type { ArchivedChannel, Channel } from '@omoikane/domain/channel';
+import type {
+  ArchivedChannel,
+  Channel,
+  ChannelId,
+} from '@omoikane/domain/channel';
 import type { WorkspaceId } from '@omoikane/domain/workspace';
 import { applicationRuntime } from '../effect/application-runtime';
+
+/** Imperative Angular handle backed by one scoped Effect typing connection. */
+export interface ChannelTypingController {
+  readonly setTyping: (isTyping: boolean) => Promise<boolean>;
+  readonly close: () => void;
+}
 
 /**
  * Angular execution boundary for channel application programs.
@@ -34,6 +49,71 @@ import { applicationRuntime } from '../effect/application-runtime';
   providedIn: 'root',
 })
 export class ChannelApplicationService {
+  /** Opens one channel typing connection and owns it through an Effect Fiber. */
+  connectChannelTyping(
+    channelId: ChannelId,
+    onConnected: () => void,
+    onEvent: (event: ChannelTypingEvent) => void,
+    onError: (
+      error: InvalidChannelTypingInputError | ChannelTypingUnavailableError
+    ) => void
+  ): ChannelTypingController {
+    let resolveReady:
+      | ((connection: ChannelTypingConnection | null) => void)
+      | undefined;
+    let readySettled = false;
+    const ready = new Promise<ChannelTypingConnection | null>((resolve) => {
+      resolveReady = resolve;
+    });
+    const settleReady = (connection: ChannelTypingConnection | null): void => {
+      if (!readySettled) {
+        readySettled = true;
+        resolveReady?.(connection);
+      }
+    };
+
+    const program = Effect.scoped(
+      Effect.gen(function* () {
+        const connection = yield* connectChannelTyping({ channelId });
+        yield* Effect.sync(() => {
+          settleReady(connection);
+          onConnected();
+        });
+        yield* connection.events.pipe(
+          Stream.runForEach((event) => Effect.sync(() => onEvent(event)))
+        );
+      })
+    ).pipe(
+      Effect.catchAll((error) =>
+        Effect.sync(() => {
+          settleReady(null);
+          onError(error);
+        })
+      )
+    );
+    const fiber = applicationRuntime.runFork(program);
+
+    return {
+      setTyping: async (isTyping) => {
+        const connection = await ready;
+        if (connection === null) return false;
+        const result = await applicationRuntime.runPromise(
+          connection.setTyping(isTyping).pipe(Effect.either)
+        );
+        return Either.match(result, {
+          onLeft: (error) => {
+            onError(error);
+            return false;
+          },
+          onRight: () => true,
+        });
+      },
+      close: () => {
+        settleReady(null);
+        void applicationRuntime.runPromise(Fiber.interrupt(fiber));
+      },
+    };
+  }
   /**
    * Archives one channel using provider-session authorization.
    */

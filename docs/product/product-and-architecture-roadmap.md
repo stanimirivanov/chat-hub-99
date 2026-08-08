@@ -89,8 +89,7 @@ Exit criteria:
 The repository already contains a substantial collaboration baseline, including
 authentication, profiles, workspace and channel lifecycle, members, persisted
 messages, editing, soft deletion, realtime message updates, pagination, and
-archive restoration. Presence and typing are not currently implemented and
-remain explicit work in this phase.
+archive restoration, presence, and typing indicators.
 
 The implemented baseline and its extension boundaries are recorded in the
 [Collaboration Architecture](../architecture/collaboration-architecture.md).
@@ -100,7 +99,7 @@ Implementation scope:
 - Audit and document the collaboration architecture as it exists after the
   current vertical slices. **Completed:** OMO-ARC-001.
 - Complete presence and typing indicators as separate, conservative vertical
-  slices. **Presence completed; typing remains.**
+  slices. **Completed.**
 - Add workspace-scoped message search with exact-result navigation.
 - Add per-member read positions, unread counts, and realtime unread
   reconciliation.

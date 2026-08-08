@@ -8,6 +8,8 @@
     type="text"
     maxlength="4000"
     [disabled]="store.isSending()"
+    (input)="typingActivity.emit()"
+    (blur)="typingStopped.emit()"
   />
 
   <button type="submit" [disabled]="store.isSending()">
