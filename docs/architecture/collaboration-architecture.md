@@ -14,8 +14,8 @@ authentication, persistence, authorization, and realtime platform.
 The implemented collaboration baseline includes authentication, profiles,
 workspace and channel lifecycle, membership and invitations, persisted
 messages, message revision history, archive restoration, keyset pagination,
-and selected realtime reconciliation. Presence, typing, search, and unread
-tracking remain explicit Phase 2 work.
+and selected realtime reconciliation, including advisory workspace presence.
+Typing, search, and unread tracking remain explicit Phase 2 work.
 
 ## Capability map
 
@@ -28,6 +28,7 @@ tracking remain explicit Phase 2 work.
 | Invitations    | Create, list for recipient and owner, accept, decline, and cancel                                                              | `WorkspaceRepository`        | `WorkspaceInvitationsStore`                                                                    |
 | Channels       | Active and archived lists, selection, creation, editing, archive, and restoration                                              | `ChannelRepository`          | `ChannelNavigationStore` plus an independently scoped archived-list store                      |
 | Messages       | Newest-first keyset pagination, create, edit, soft delete, realtime updates, author enrichment, and immutable revision history | `MessageRepository`          | `ChannelMessagesStore`                                                                         |
+| Presence       | Active-workspace private Presence observation and a deduplicated online-member count                                           | `WorkspacePresenceService`   | `WorkspacePresenceStore`                                                                       |
 
 Workspace administration and invitations currently share one application port.
 That reflects their common persistence and authorization boundary; it should be
@@ -90,7 +91,7 @@ component event
   -> feature Signal Store
   -> Angular application service
   -> application use case (Effect)
-  -> repository Tag
+  -> outbound service Tag
   -> Supabase adapter Layer
   -> RLS-protected query or command function
   -> external-data decoder and domain mapping
@@ -117,6 +118,7 @@ component that owns their lifetime:
 AuthenticationStore (root session)
   -> CurrentProfileStore
   -> WorkspaceNavigationStore (accessible workspaces and selected workspace)
+       -> WorkspacePresenceStore
        -> WorkspaceMemberDirectoryStore
        -> WorkspaceInvitationsStore
        -> ArchivedWorkspaceListStore
@@ -166,11 +168,16 @@ Realtime is capability-specific; there is no generic realtime framework.
 | Workspace navigation | Private Broadcast topic for the authenticated profile | Accessible workspace collection | Treat events as invalidations and reload the authoritative RLS-visible list; clear access that was revoked   |
 | Channel navigation   | Private Broadcast topic for one workspace             | Active channel collection       | Treat events as invalidations and reload the authoritative list; clear an archived or inaccessible selection |
 | Channel messages     | Channel-filtered Postgres Changes on message heads    | One selected channel            | Validate the changed stable identity, then reconcile the authoritative current message projection            |
+| Workspace presence   | Private Supabase Presence topic                       | One selected workspace          | Validate and deduplicate profile keys for advisory display; never use them for authorization                 |
 
 Workspace and channel streams emit once when their provider subscription is
 ready. The subsequent authoritative load closes the query-before-subscribe race.
 Every subscription owns its provider listener, and Effect finalizers remove the
 listener when the stream is interrupted.
+
+Workspace Presence is client-reported advisory state. Its private-topic RLS
+proves that publishers are active workspace members, but a reported Presence
+key is not an authorization claim and is never used to derive capabilities.
 
 ## Pagination and enrichment
 
@@ -208,7 +215,6 @@ by RLS; enrichment does not redefine the authorization of the primary record.
 The following capabilities are not implemented and must not be inferred from
 the existing realtime infrastructure:
 
-- presence;
 - typing indicators;
 - workspace-scoped message search and exact-result navigation;
 - per-member read positions, unread counts, and realtime unread reconciliation.
@@ -217,10 +223,9 @@ Reactions, threads, attachments, notification delivery, invitation delivery,
 and avatar uploads are optional product expansions rather than Phase 2 exit
 gates.
 
-The next conservative vertical slice is presence. Its design should begin from
-the user-visible presence behavior and Supabase Realtime lifecycle constraints,
-not from a reusable collaboration-event abstraction. Typing should follow as a
-separate slice after presence ownership and cleanup have been proven.
+The next conservative vertical slice is typing. It should reuse only the
+provider-channel and lifecycle decisions that presence has now proven, while
+retaining its own scope, throttling, expiry, and presentation behavior.
 
 ## Verification references
 

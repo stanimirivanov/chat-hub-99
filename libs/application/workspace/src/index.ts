@@ -70,6 +70,15 @@ export { listAccessibleWorkspaces } from './lib/list-accessible-workspaces';
 export { listArchivedWorkspaces } from './lib/list-archived-workspaces';
 export { observeAccessibleWorkspaces } from './lib/observe-accessible-workspaces';
 export {
+  InvalidWorkspacePresenceInputError,
+  observeWorkspacePresence,
+  WorkspacePresenceServiceTag,
+  WorkspacePresenceUnavailableError,
+  type ObserveWorkspacePresenceInput,
+  type WorkspacePresenceField,
+  type WorkspacePresenceService,
+} from './lib/workspace-presence';
+export {
   listWorkspaceMembers,
   InvalidWorkspaceMemberListInputError,
   type ListWorkspaceMembersError,

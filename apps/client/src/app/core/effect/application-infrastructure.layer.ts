@@ -3,7 +3,10 @@ import { SupabaseAuthenticationServiceLayer } from '@omoikane/infrastructure/aut
 import { SupabaseChannelRepositoryLayer } from '@omoikane/infrastructure/channel';
 import { SupabaseMessageRepositoryLayer } from '@omoikane/infrastructure/message';
 import { SupabaseProfileRepositoryLayer } from '@omoikane/infrastructure/profile';
-import { SupabaseWorkspaceRepositoryLayer } from '@omoikane/infrastructure/workspace';
+import {
+  SupabaseWorkspacePresenceServiceLayer,
+  SupabaseWorkspaceRepositoryLayer,
+} from '@omoikane/infrastructure/workspace';
 import type { SupabaseClientConfig } from '../supabase/supabase-client-config';
 import { makeSupabaseClientLayer } from '../supabase/supabase-client.layer';
 
@@ -30,6 +33,7 @@ export const makeApplicationInfrastructureLayer = (
     SupabaseAuthenticationServiceLayer,
     SupabaseChannelRepositoryLayer,
     SupabaseProfileRepositoryLayer,
+    SupabaseWorkspacePresenceServiceLayer,
     SupabaseWorkspaceRepositoryLayer
   );
 

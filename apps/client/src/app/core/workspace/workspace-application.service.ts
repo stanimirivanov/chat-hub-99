@@ -13,6 +13,7 @@ import {
   listAccessibleWorkspaces,
   listArchivedWorkspaces,
   observeAccessibleWorkspaces,
+  observeWorkspacePresence,
   listWorkspaceMembers,
   leaveWorkspace,
   removeWorkspaceMember,
@@ -50,6 +51,8 @@ import {
   type WorkspaceMemberCursor,
   type WorkspaceMemberPage,
   type WorkspaceRepositoryReadError,
+  type InvalidWorkspacePresenceInputError,
+  type WorkspacePresenceUnavailableError,
   type UpdateWorkspaceError,
   type UpdateWorkspaceInput,
 } from '@omoikane/application/workspace';
@@ -60,6 +63,7 @@ import type {
   WorkspaceInvitation,
   WorkspaceMember,
 } from '@omoikane/domain/workspace';
+import type { ProfileId } from '@omoikane/domain/profile';
 import { applicationRuntime } from '../effect/application-runtime';
 
 /**
@@ -129,6 +133,41 @@ export class WorkspaceApplicationService {
       Stream.runForEach((workspaces) =>
         Effect.sync(() => {
           onWorkspaces(workspaces);
+        })
+      ),
+      Effect.catchAll((error) =>
+        Effect.sync(() => {
+          onError(error);
+        })
+      )
+    );
+    const fiber = applicationRuntime.runFork(program);
+
+    return () => {
+      void applicationRuntime.runPromise(Fiber.interrupt(fiber));
+    };
+  }
+
+  /**
+   * Tracks the authenticated profile and observes advisory online identities
+   * for one selected workspace.
+   *
+   * The cleanup function interrupts the Effect Fiber and releases the private
+   * Supabase Presence channel.
+   */
+  observeWorkspacePresence(
+    workspaceId: WorkspaceId,
+    onPresence: (profileIds: readonly ProfileId[]) => void,
+    onError: (
+      error:
+        | InvalidWorkspacePresenceInputError
+        | WorkspacePresenceUnavailableError
+    ) => void
+  ): () => void {
+    const program = observeWorkspacePresence({ workspaceId }).pipe(
+      Stream.runForEach((profileIds) =>
+        Effect.sync(() => {
+          onPresence(profileIds);
         })
       ),
       Effect.catchAll((error) =>

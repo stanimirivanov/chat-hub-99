@@ -1,4 +1,5 @@
 export { mapCurrentWorkspaceMember } from './map-current-workspace-member';
+export { mapWorkspacePresenceState } from './map-workspace-presence-state';
 export {
   mapPendingWorkspaceInvitation,
   mapPendingWorkspaceInvitationForOwner,

@@ -12,6 +12,7 @@ import { ArchivedWorkspaceListComponent } from '@client/features/archived-worksp
 import { ChannelNavigationComponent } from '@client/features/channel-navigation/channel-navigation.component';
 import { WorkspaceMemberDirectoryComponent } from '@client/features/workspace-member-directory/workspace-member-directory.component';
 import { WorkspaceInvitationsComponent } from '@client/features/workspace-invitations/workspace-invitations.component';
+import { WorkspacePresenceComponent } from '@client/features/workspace-presence/workspace-presence.component';
 import { WorkspaceNavigationStore } from './workspace-navigation.store';
 import type { WorkspaceLoadStatus } from './workspace-navigation.state';
 
@@ -26,6 +27,7 @@ import type { WorkspaceLoadStatus } from './workspace-navigation.state';
     ChannelNavigationComponent,
     WorkspaceInvitationsComponent,
     WorkspaceMemberDirectoryComponent,
+    WorkspacePresenceComponent,
   ],
   providers: [WorkspaceNavigationStore],
   templateUrl: './workspace-navigation.component.html',

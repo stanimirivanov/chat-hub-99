@@ -273,6 +273,13 @@ removes the selected channel, selection and its URL parameter are cleared;
 destroying the nested message component releases its independently owned
 message listener.
 
+The selected workspace also owns an independent `workspace-presence` feature.
+Its feature-scoped Signal Store starts one private Presence subscription,
+renders a deduplicated online-member count, exposes reconnect state, and
+interrupts the old subscription when workspace selection changes or the
+component is destroyed. Presence is intentionally advisory and never changes
+the workspace capabilities passed to child features.
+
 The workspace owner capability already derived by the parent member directory
 is passed into channel navigation as a presentation affordance; this avoids a
 duplicate membership query while Supabase remains the authorization boundary.
