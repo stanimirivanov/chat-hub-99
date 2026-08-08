@@ -13,6 +13,7 @@ export {
   currentWorkspaceRow,
   currentArchivedWorkspaceRow,
   removedWorkspaceMemberRow,
+  restoredWorkspaceRow,
   suspendedWorkspaceMemberRow,
   updatedWorkspaceRow,
 } from './workspace-fixtures';

@@ -29,6 +29,8 @@ export type {
   UpdateWorkspaceResult,
   ArchiveWorkspaceArgs,
   ArchiveWorkspaceResult,
+  RestoreWorkspaceArgs,
+  RestoreWorkspaceResult,
   AddWorkspaceMemberArgs,
   AddWorkspaceMemberResult,
   ChangeWorkspaceMemberRoleArgs,

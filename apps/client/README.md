@@ -171,17 +171,26 @@ command removes its stable identity from the active collection even if the user
 navigated elsewhere while it ran. Selection and the workspace/channel URL are
 cleared only when they still refer to that archived target; obsolete failures
 are not shown against a newer selection. The database remains responsible for
-owner authorization and the immutable archived version. The client does not
-offer restoration or hard deletion.
+owner authorization and the immutable archived version. Hard deletion is not
+offered.
 
-Archived-workspace discovery is a separate read-only feature with its own
-request lifecycle. It lists the archived projections that existing membership
+Archived-workspace discovery is a separate feature with its own read and
+restoration lifecycles. It lists the archived projections that existing membership
 RLS still makes visible, orders them by archive time, and renders accessible
 timestamps. Archived values use a distinct domain type and never participate
-in active selection, channel loading, or URL state. Restoration and hard
-deletion remain outside this slice. A successful local archive command reloads
-the independent history so the newly archived workspace appears without a
-page refresh.
+in active selection, channel loading, or URL state. Restoration requires
+explicit confirmation and is authorized independently by the database using
+the authenticated user's active owner membership. Success removes the archived
+projection, reconciles the returned active workspace through the existing
+navigation method, and selects its canonical slug. Changes to the authoritative
+active-workspace identity set reload the independent history, reconciling both
+local and remote archive or restoration without a second realtime listener.
+Hard deletion remains outside this slice.
+
+Workspace lifecycle transitions broadcast the same private access invalidation
+used by membership reconciliation. Remote members therefore remove an archived
+workspace or regain a restored workspace through the authoritative active-list
+query rather than trusting an event payload.
 
 Every active member can leave the selected workspace after an explicit inline
 confirmation. Departure has independent state but shares the navigation

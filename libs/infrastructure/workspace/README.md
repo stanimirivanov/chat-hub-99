@@ -3,7 +3,8 @@
 `@chat-hub/infrastructure/workspace` implements workspace and active-membership
 discovery with RLS-protected Supabase views, creation with the transactional
 `create_workspace` RPC, detail replacement with `update_workspace`, member
-workspace archiving with `archive_workspace`, member addition/reactivation with
+workspace archiving with `archive_workspace`, restoration with
+`restore_workspace`, member addition/reactivation with
 `add_workspace_member`, role changes with
 `change_workspace_member_role`, member suspension with
 `suspend_workspace_member`, and member removal with `remove_workspace_member`.
@@ -28,6 +29,7 @@ and refresh through the ordinary RLS-protected workspace query.
 - Execute workspace creation without exposing owner identity as an argument.
 - Execute workspace updates without exposing actor identity as an argument.
 - Execute workspace archiving without exposing actor identity as an argument.
+- Execute workspace restoration without exposing actor identity as an argument.
 - Execute member addition or reactivation without exposing actor identity or
   role as arguments.
 - Execute member role changes without exposing actor identity as an argument.
@@ -93,6 +95,12 @@ archiveWorkspace use case
   -> SupabaseWorkspaceRepositoryLayer
   -> archive_workspace RPC
   -> archived-status/identity validation + void acknowledgment
+
+restoreWorkspace use case
+  -> WorkspaceRepositoryTag
+  -> SupabaseWorkspaceRepositoryLayer
+  -> restore_workspace RPC
+  -> active-status/identity checks + WorkspaceSchema decoding
 
 listWorkspaceMembers use case
   -> WorkspaceRepositoryTag
@@ -199,23 +207,24 @@ authorization and slug-conflict outcomes, and exposes only the canonical domain
 workspace.
 
 Workspace archiving appends an immutable archived version and advances the
-workspace head transactionally. Owner authorization, active-workspace status,
-and concurrent head advancement remain database concerns. The adapter validates
-that the RPC acknowledged the requested identity in the archived state, then
-returns `void`: an archived row must not cross the application boundary as an
-active `Workspace`. Restoration and hard deletion are intentionally outside
-this slice.
+workspace head transactionally. Restoration performs the inverse lifecycle
+transition by appending a new active version; it never rewrites the archived
+snapshot. Owner authorization, lifecycle state, stable memberships, and
+concurrent head advancement remain database concerns. The archive adapter
+returns `void` so an archived row cannot cross as an active `Workspace`; the
+restoration adapter validates identity and active status before returning the
+canonical projection. Hard deletion remains outside these slices.
 
-Workspace access observation deliberately uses a database Broadcast trigger
-rather than publishing membership heads through Postgres Changes. Suspension,
-removal, and departure make the updated membership row unreadable to the
-affected user, so that row cannot be the dependable revocation signal under
-its ordinary SELECT policy. The trigger sends only a workspace identity to a
-private topic derived from the affected user identity. Realtime Authorization
-allows a client to join only its own topic, and the adapter treats every event
-as an invalidation rather than trusting its payload. Subscription readiness
-emits the first invalidation, closing the query-before-subscribe gap. Stream
-interruption removes the channel from the shared Supabase client.
+Workspace access observation deliberately uses database Broadcast triggers
+rather than publishing protected rows through Postgres Changes. Membership
+changes invalidate the affected user; workspace archive and restoration
+invalidate every still-active member because lifecycle status changes whether
+the workspace belongs in active navigation. Each trigger sends only a workspace
+identity to a private user topic. Realtime Authorization allows a client to
+join only its own topic, and the adapter treats every event as an invalidation
+rather than trusting its payload. Subscription readiness emits the first
+invalidation, closing the query-before-subscribe gap. Stream interruption
+removes the channel from the shared Supabase client.
 
 ## Public API
 

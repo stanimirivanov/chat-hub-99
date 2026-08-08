@@ -8,5 +8,6 @@ export { declineWorkspaceInvitation } from './decline-workspace-invitation';
 export { inviteWorkspaceMember } from './invite-workspace-member';
 export { leaveWorkspace } from './leave-workspace';
 export { removeWorkspaceMember } from './remove-workspace-member';
+export { restoreWorkspace } from './restore-workspace';
 export { suspendWorkspaceMember } from './suspend-workspace-member';
 export { updateWorkspace } from './update-workspace';

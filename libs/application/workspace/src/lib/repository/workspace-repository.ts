@@ -30,6 +30,7 @@ import type {
   WorkspaceRepositoryCreateError,
   WorkspaceRepositoryArchiveError,
   WorkspaceRepositoryReadError,
+  WorkspaceRepositoryRestoreError,
   WorkspaceRepositoryUnavailableError,
   WorkspaceRepositoryUpdateError,
 } from './workspace-repository-error';
@@ -147,6 +148,11 @@ export interface WorkspaceRepository {
   readonly archive: (
     workspaceId: WorkspaceId
   ) => Effect.Effect<void, WorkspaceRepositoryArchiveError>;
+
+  /** Restores one archived workspace using provider-session authorization. */
+  readonly restore: (
+    workspaceId: WorkspaceId
+  ) => Effect.Effect<Workspace, WorkspaceRepositoryRestoreError>;
 
   /**
    * Adds or reactivates one active profile as a default member using session

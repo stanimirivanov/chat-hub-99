@@ -41,6 +41,11 @@ export type ArchiveWorkspaceArgs = DatabaseFunctionArgs<'archive_workspace'>;
 export type ArchiveWorkspaceResult =
   DatabaseFunctionReturns<'archive_workspace'>;
 
+export type RestoreWorkspaceArgs = DatabaseFunctionArgs<'restore_workspace'>;
+
+export type RestoreWorkspaceResult =
+  DatabaseFunctionReturns<'restore_workspace'>;
+
 /**
  * Workspace-membership commands.
  */

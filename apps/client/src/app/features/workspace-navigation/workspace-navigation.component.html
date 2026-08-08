@@ -359,5 +359,6 @@
   }
   <app-archived-workspace-list
     [refreshVersion]="archivedWorkspaceRefreshVersion()"
+    (workspaceRestored)="handleWorkspaceRestored($event)"
   />
 </section>

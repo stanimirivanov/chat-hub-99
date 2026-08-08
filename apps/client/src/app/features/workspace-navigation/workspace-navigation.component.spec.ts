@@ -73,6 +73,7 @@ class WorkspaceInvitationsStubComponent {
 })
 class ArchivedWorkspaceListStubComponent {
   readonly refreshVersion = input(0);
+  readonly workspaceRestored = output<Workspace>();
 }
 
 const configureComponent = async ({
@@ -252,6 +253,23 @@ describe('WorkspaceNavigationComponent', () => {
     });
   });
 
+  it('refreshes archived history when active workspace identities change', async () => {
+    const { fixture, store } = await configureComponent({
+      queryParams: {},
+    });
+    const archivedList = fixture.debugElement.query(
+      By.directive(ArchivedWorkspaceListStubComponent)
+    ).componentInstance as ArchivedWorkspaceListStubComponent;
+
+    expect(archivedList.refreshVersion()).toBe(0);
+
+    store.workspaces.set([]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(archivedList.refreshVersion()).toBe(1);
+  });
+
   it('renders a recoverable realtime failure and retries on request', async () => {
     const { fixture, store } = await configureComponent({ queryParams: {} });
 
@@ -313,6 +331,30 @@ describe('WorkspaceNavigationComponent', () => {
       slug: 'chat-hub-development',
       description: 'Team collaboration',
     });
+    expect(router.navigate).toHaveBeenCalledExactlyOnceWith([], {
+      relativeTo: route,
+      queryParams: {
+        workspace: workspace.slug,
+        channel: null,
+      },
+      queryParamsHandling: 'merge',
+    });
+  });
+
+  it('adds a restored workspace to active navigation and selects it', async () => {
+    const { fixture, route, router, store } = await configureComponent({
+      queryParams: {},
+      workspaces: [],
+    });
+    const archivedList = fixture.debugElement.query(
+      By.directive(ArchivedWorkspaceListStubComponent)
+    ).componentInstance as ArchivedWorkspaceListStubComponent;
+
+    archivedList.workspaceRestored.emit(workspace);
+
+    expect(store.includeAccessibleWorkspace).toHaveBeenCalledExactlyOnceWith(
+      workspace
+    );
     expect(router.navigate).toHaveBeenCalledExactlyOnceWith([], {
       relativeTo: route,
       queryParams: {

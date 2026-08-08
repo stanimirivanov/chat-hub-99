@@ -1,7 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { Either, Schema } from 'effect';
 import { describe, expect, it, vi } from 'vitest';
-import { WorkspaceRepositoryUnavailableError } from '@chat-hub/application/workspace';
+import {
+  WorkspaceRepositoryUnavailableError,
+  WorkspaceRestoreNotAllowedError,
+} from '@chat-hub/application/workspace';
 import {
   ArchivedWorkspaceSchema,
   type ArchivedWorkspace,
@@ -19,15 +22,26 @@ const workspace: ArchivedWorkspace = Schema.decodeUnknownSync(
   archivedAt: '2026-08-08T09:00:00.000Z',
 });
 
-const configureStore = (result = Either.right([workspace])) => {
+const restoredWorkspace = {
+  id: workspace.id,
+  name: workspace.name,
+  slug: workspace.slug,
+  description: workspace.description,
+};
+
+const configureStore = (
+  result = Either.right([workspace]),
+  restorationResult = Either.right(restoredWorkspace)
+) => {
   const listArchivedWorkspaces = vi.fn().mockResolvedValue(result);
+  const restoreWorkspace = vi.fn().mockResolvedValue(restorationResult);
 
   TestBed.configureTestingModule({
     providers: [
       ArchivedWorkspaceListStore,
       {
         provide: WorkspaceApplicationService,
-        useValue: { listArchivedWorkspaces },
+        useValue: { listArchivedWorkspaces, restoreWorkspace },
       },
     ],
   });
@@ -35,6 +49,7 @@ const configureStore = (result = Either.right([workspace])) => {
   return {
     store: TestBed.inject(ArchivedWorkspaceListStore),
     listArchivedWorkspaces,
+    restoreWorkspace,
   };
 };
 
@@ -77,5 +92,34 @@ describe('ArchivedWorkspaceListStore', () => {
     await store.load(true);
 
     expect(listArchivedWorkspaces).toHaveBeenCalledTimes(2);
+  });
+
+  it('restores and removes one archived projection', async () => {
+    const { store, restoreWorkspace } = configureStore();
+    await store.load();
+
+    const result = await store.restore(workspace.id);
+
+    expect(result).toEqual(restoredWorkspace);
+    expect(store.workspaces()).toEqual([]);
+    expect(store.restorationStatus()).toBe('idle');
+    expect(restoreWorkspace).toHaveBeenCalledExactlyOnceWith({
+      workspaceId: workspace.id,
+    });
+  });
+
+  it('keeps the archived projection after a rejected restoration', async () => {
+    const { store } = configureStore(
+      Either.right([workspace]),
+      Either.left(
+        new WorkspaceRestoreNotAllowedError({ workspaceId: workspace.id })
+      )
+    );
+    await store.load();
+
+    expect(await store.restore(workspace.id)).toBeNull();
+    expect(store.workspaces()).toEqual([workspace]);
+    expect(store.restorationStatus()).toBe('failed');
+    expect(store.restorationError()?.message).toContain('owner access');
   });
 });
