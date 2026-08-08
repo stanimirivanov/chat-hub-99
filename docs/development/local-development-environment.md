@@ -275,11 +275,11 @@ pnpm db:types:check
 
 ### Phase 1 exit gate
 
-The Phase 1 GitHub Actions workflow installs the frozen dependency graph, runs
-`pnpm verify`, starts the repository-owned local Supabase stack, and runs
-`pnpm db:verify`. It uses the same commands as local development and requires no
-hosted Supabase credentials. Deployment, image publication, and checks for
-future runtimes remain outside this workflow.
+The Phase 1 GitHub Actions workflow exercises `pnpm dev:bootstrap` from a clean
+checkout, verifies the running stack with `pnpm dev:status`, and then runs
+`pnpm verify` and `pnpm db:verify`. It uses the same commands as local
+development and requires no hosted Supabase credentials. Deployment, image
+publication, and checks for future runtimes remain outside this workflow.
 
 - A contributor can clone the repository, run the documented bootstrap
   sequence, and open the existing Angular application without editing source.

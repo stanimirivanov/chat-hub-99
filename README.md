@@ -210,8 +210,9 @@ refactoring.
 
 GitHub Actions runs the same `pnpm verify` and `pnpm db:verify` contracts for
 pull requests, pushes to `main`, and manual workflow dispatches. The workflow
-installs from the frozen lockfile and starts an ephemeral local Supabase stack;
-it does not connect to or mutate a hosted Supabase project.
+exercises `pnpm dev:bootstrap` from a clean checkout, asserts the resulting
+platform with `pnpm dev:status`, and never connects to or mutates a hosted
+Supabase project.
 
 The workflow is defined in [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
