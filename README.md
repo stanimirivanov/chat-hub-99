@@ -103,7 +103,9 @@ dependency rule or reusable capability.
 
 - Node.js 24.15.0 for the reference environment; supported installations must
   satisfy `>=24.15.0 <25`
-- Corepack with pnpm 11.16.0, as pinned by `packageManager`
+- pnpm 11.16.0, as pinned by `packageManager` (Corepack is the recommended
+  installer, but does not need to be re-enabled when this pnpm version already
+  works)
 - Docker Desktop using Linux containers for local Supabase
 
 The `.node-version` file is the authoritative reference-runtime pin. The
@@ -113,14 +115,25 @@ or next-major runtimes during package installation.
 ### Bootstrap a fresh clone
 
 ```bash
-corepack enable
+pnpm --version
 pnpm dev:bootstrap
 ```
+
+The version command must print `11.16.0`. If `pnpm` is unavailable, run
+`corepack enable` once and retry. A system-wide Windows Node installation may
+require an elevated PowerShell session to create Corepack shims. If pnpm already
+prints the pinned version, skip `corepack enable`; running it through pnpm does
+not avoid Windows permissions on the Node installation directory.
 
 The bootstrap command validates Node.js, pnpm, and the Docker engine before
 installing the exact dependency graph from `pnpm-lock.yaml` and starting the
 local Supabase stack. It is safe to run again: dependency installation remains
-lockfile-controlled and existing local Supabase data is preserved.
+lockfile-controlled and existing local Supabase data is preserved. When an
+updated clone still has containers from the former `chat-hub-99` Supabase
+project identity, bootstrap stops that exact legacy stack before starting
+`omoikane-local`. Its Docker volumes are preserved. Bootstrap never stops an
+unrelated process that happens to use a configured port; the Supabase error
+identifies that conflict for the developer to resolve explicitly.
 
 The Angular client currently keeps its public local Supabase configuration in
 the committed development environment. Bootstrap therefore does not create an

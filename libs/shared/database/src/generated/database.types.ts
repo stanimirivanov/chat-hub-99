@@ -1524,8 +1524,8 @@ export type Database = {
           channel_slug: string
           content: string
           created_at: string
-          deleted_at: string | null
-          deleted_by: string | null
+          deleted_at: string
+          deleted_by: string
           is_edited: boolean
           message_id: string
           message_status: string

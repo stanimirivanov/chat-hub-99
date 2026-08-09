@@ -229,6 +229,13 @@ so bootstrap does not manufacture an unused `.env.local`. Creation of that file
 belongs to the first server, worker, or Compose slice that consumes
 developer-specific configuration.
 
+Bootstrap also reconciles the repository's former local Supabase identity. If
+Docker still contains containers whose exact project suffix is `chat-hub-99`,
+it stops that legacy stack with Supabase's backup-preserving behavior before
+starting `omoikane-local`. It does not stop arbitrary containers or processes
+that occupy a configured port; those conflicts require an explicit developer
+decision.
+
 ## 8. Database workflow
 
 1. Implement database changes as versioned migrations under
