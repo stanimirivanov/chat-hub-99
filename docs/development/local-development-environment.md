@@ -301,8 +301,9 @@ this workflow.
 
 ### Deferred runtime gates
 
-- **Phase 3:** server readiness verifies its required dependencies, and a client
-  request produces a server trace.
+- **Phase 3:** server readiness verifies the dependencies required by active
+  routes, and a client request produces a server trace, following
+  [OMO-ARC-003](../architecture/modular-server-architecture.md).
 - **Phase 4:** the worker acquires and completes a deterministic test job, and
   server-to-worker trace correlation is visible.
 - **Observability increment:** Grafana, Tempo, Loki, and Prometheus are verified

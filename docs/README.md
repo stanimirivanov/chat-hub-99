@@ -41,6 +41,14 @@ change through an ADR.
 | ----------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
 | OMO-ARC-001 | [Collaboration Architecture](architecture/collaboration-architecture.md)             | Audited capability, boundary, state, authorization, and realtime architecture for the implemented collaboration baseline |
 | OMO-ARC-002 | [Collaboration Phase 2 Exit Audit](architecture/collaboration-phase-2-exit-audit.md) | Phase 2 exit evidence, including the authenticated browser-to-Supabase smoke boundary                                    |
+| OMO-ARC-003 | [Modular Server Architecture](architecture/modular-server-architecture.md)           | Approved Phase 3 runtime, module, API, security, health, telemetry, and implementation boundaries                        |
+
+## Accepted architecture decisions
+
+| ADR                                                                                             | Purpose                                                                             |
+| ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| [ADR 0001](architecture/adr/0001-nestjs-effect-runtime-boundary.md)                             | Defines the NestJS-to-Effect runtime and lifecycle boundary.                        |
+| [ADR 0002](architecture/adr/0002-supabase-server-authentication-and-workspace-authorization.md) | Defines bearer identity validation, workspace authorization, and privileged access. |
 
 ## Repository reconciliation
 

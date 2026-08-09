@@ -48,6 +48,7 @@ multiple deployment profiles.
 | OMO-RMP-001 | [Product and Architecture Roadmap](../product/product-and-architecture-roadmap.md)          | Defines the sequence of product, architecture, AI, and platform milestones.                                                                                            |
 | OMO-SAD-001 | Software Architecture Document                                                              | Planned. It will become the broad architecture reference and be updated as vertical slices become implemented reality. No approved source was included in this import. |
 | ADR series  | [Architecture Decision Records](adr/README.md)                                              | Record later changes that supersede a baseline decision.                                                                                                               |
+| OMO-ARC-003 | [Modular Server Architecture](modular-server-architecture.md)                               | Defines the approved Phase 3 server boundary and ordered implementation slices.                                                                                        |
 
 ## 4. Governance and precedence
 
@@ -95,8 +96,8 @@ the first document it owns.
 2. Create the documented local development platform and verify that a clean
    clone starts with the approved commands.
 3. Stabilize the collaboration MVP and its architectural boundaries.
-4. Introduce the NestJS modular server with a health endpoint, Supabase identity
-   validation, OpenAPI, and an Effect runtime.
+4. Implement OMO-ARC-003 in order: server runtime and liveness, authenticated
+   boundary, then the deterministic Analysis Run vertical slice.
 5. Introduce the AI worker, Analysis Run model, transactional outbox, and
    PostgreSQL-backed durable jobs.
 6. Deliver Decision Forensics as the first server-backed AI vertical slice.
