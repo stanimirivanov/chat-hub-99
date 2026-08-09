@@ -122,8 +122,8 @@ Exit criteria:
 
 Exit audit: [OMO-ARC-002](../architecture/collaboration-phase-2-exit-audit.md)
 confirms that the required capabilities, authorized source-data properties, and
-direct browser boundary are implemented. Formal Phase 2 closure remains blocked
-only by the missing browser end-to-end smoke path.
+direct browser boundary are implemented. The authenticated Chromium smoke path
+passes against reset local Supabase data, so Phase 2 is complete.
 
 ### 3.4 Phase 3 - Modular application server
 

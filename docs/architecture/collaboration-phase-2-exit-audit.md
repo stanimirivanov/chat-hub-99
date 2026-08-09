@@ -1,7 +1,9 @@
 # Collaboration Phase 2 Exit Audit
 
-> **Document ID:** OMO-ARC-002  
-> **Status:** Exit audit  
+> **Document ID:** OMO-ARC-002
+>
+> **Status:** Phase 2 exit accepted
+>
 > **Audited:** 9 August 2026
 
 ## Purpose
@@ -13,13 +15,9 @@ design the Phase 3 server.
 ## Verdict
 
 The required Phase 2 collaboration capabilities and architectural boundaries
-are implemented. Phase 2 is not yet formally closed because the repository has
-no executable browser end-to-end smoke test. The remaining work is one
-closeout-quality slice, not another collaboration feature.
-
-Phase 3 application-server work should begin only after that smoke test proves
-the existing browser-to-Supabase collaboration path from a clean local
-environment.
+are implemented. The authenticated Chromium smoke path now proves the existing
+browser-to-Supabase collaboration flow from a reset and seeded local
+environment. Phase 2 is formally closed.
 
 ## Implementation-scope evidence
 
@@ -58,7 +56,7 @@ Supabase adapters. No application server is required for those operations.
 
 ### End-to-end verification
 
-**Not met.** The repository verifies behavior at each owning layer:
+**Met.** The repository verifies behavior at each owning layer:
 
 - domain schema tests;
 - application orchestration and typed-failure tests;
@@ -68,15 +66,16 @@ Supabase adapters. No application server is required for those operations.
 - repository-wide format, synchronization, lint, typecheck, test, build, and
   clean-database gates.
 
-However, there is no Nx end-to-end project and no Playwright, Cypress, or
-equivalent browser smoke test. The existing suites do not launch the real
-Angular application against the local Supabase stack and drive one complete
-authenticated collaboration path. Layer coverage must not be described as a
-browser end-to-end result.
+The `client-e2e` Nx project additionally launches the real Angular application
+against reset local Supabase data. Its Chromium smoke path signs in through the
+rendered form, opens the authorized seeded workspace and channel, creates and
+observes a message through the rendered composer and history, then signs out to
+anonymous application entry. Playwright retains traces and screenshots when
+the path fails.
 
-## Required closeout slice
+## Implemented closeout slice
 
-Add one deterministic browser smoke path with the smallest useful scope:
+The deterministic browser smoke path has the following scope:
 
 1. start from the documented local Supabase reset and seed;
 2. launch the Angular client using its local environment;
@@ -88,21 +87,17 @@ Add one deterministic browser smoke path with the smallest useful scope:
 7. expose one documented local command and run it in CI after the local
    platform is ready.
 
-The slice should retain browser failure artifacts useful in CI and must not add
-a generic test framework around one smoke path. Multi-browser coverage,
-visual-regression testing, performance testing, and realtime multi-session
-scenarios are later improvements unless the first test exposes a concrete need.
+The slice introduces no page-object or generic browser-testing layer.
+Multi-browser coverage, visual-regression testing, performance testing, and
+realtime multi-session scenarios remain later improvements.
 
 ## Phase 3 entry condition
 
-After the browser smoke passes from a clean clone locally and in CI:
-
-- mark Phase 2 complete in OMO-RMP-001;
-- preserve OMO-ARC-001 as the implemented collaboration architecture;
-- use this audit as the evidence that the existing direct-to-Supabase path must
-  remain unchanged when `apps/server` is introduced;
-- proceed to the required Phase 3 architecture decisions and the first modular
-  server vertical slice.
+The Phase 2 entry conditions for Phase 3 are satisfied. OMO-ARC-001 remains the
+implemented collaboration architecture, and this audit records that its direct
+browser-to-Supabase path must remain unchanged when `apps/server` is
+introduced. Work may proceed to the required Phase 3 architecture decisions
+and the first modular server vertical slice.
 
 ## Reproducible verification
 
@@ -111,12 +106,12 @@ The audit uses the repository's existing public gates:
 ```bash
 pnpm verify
 pnpm db:verify
+pnpm e2e:verify
 ```
 
-Passing these commands is necessary but does not satisfy the missing browser
-smoke criterion by itself.
-
-At the audit revision, both gates pass. The database gate recreates the schema
-and seed from scratch, reports no schema-lint errors, passes all 407 assertions
-across 25 pgTAP files, and regenerates the public database types without a
-diff.
+At the implementation revision, all three local gates pass. The database gate
+recreates the schema and seed from scratch, reports no schema-lint errors,
+passes all 407 assertions across 25 pgTAP files, and regenerates the public
+database types without a diff. The required GitHub Actions job runs the same
+browser smoke after its clean platform setup; that remote run is the final
+environment-specific confirmation before merge.

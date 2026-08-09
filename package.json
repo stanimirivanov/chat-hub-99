@@ -19,6 +19,9 @@
     "build": "nx run-many -t build",
     "test": "nx run-many -t test",
     "test:watch": "nx test client --watch",
+    "e2e": "nx e2e client-e2e",
+    "e2e:install": "playwright install chromium",
+    "e2e:verify": "pnpm db:prepare && pnpm e2e:install && pnpm e2e",
     "typecheck": "nx run-many -t typecheck",
     "typecheck:test": "nx run-many -t typecheck:test",
     "lint": "nx run-many -t lint && eslint tools",
@@ -55,7 +58,7 @@
     "db:lint": "supabase db lint --level error",
     "db:verify": "pnpm db:reset && pnpm db:lint && pnpm db:test && pnpm db:types:check",
 
-    "verify:all": "pnpm verify && pnpm db:verify",
+    "verify:all": "pnpm verify && pnpm db:verify && pnpm e2e:install && pnpm e2e",
 
     "dev": "pnpm db:prepare && nx serve client"
   },
@@ -86,9 +89,11 @@
     "@nx/eslint": "23.1.0",
     "@nx/eslint-plugin": "23.1.0",
     "@nx/js": "23.1.0",
+    "@nx/playwright": "23.1.0",
     "@nx/vite": "23.1.0",
     "@nx/vitest": "23.1.0",
     "@nx/workspace": "23.1.0",
+    "@playwright/test": "^1.62.1",
     "@schematics/angular": "~22.0.4",
     "@swc/helpers": "~0.5.18",
     "@types/node": "^22.0.0",

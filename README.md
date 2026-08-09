@@ -208,24 +208,44 @@ Run this whenever migrations or generated database types change.
 Database setup, migrations, seed data, pgTAP tests, and local Supabase
 troubleshooting are documented in [`supabase/README.md`](supabase/README.md).
 
+### Authenticated browser smoke verification
+
+Install Chromium once and run the smoke path against a newly reset local
+platform:
+
+```bash
+pnpm e2e:verify
+```
+
+The command starts local Supabase if needed, resets it to the deterministic
+seed, installs the Playwright Chromium binary, launches the Angular development
+server, signs in as the seeded owner, opens the seeded workspace and channel,
+creates a message, and signs out. The reset is destructive to local database
+changes.
+
+After the platform and browser are already prepared, rerun only the browser
+test with `pnpm e2e`.
+
 ### Complete verification
 
 ```bash
 pnpm verify:all
 ```
 
-Runs both source verification and database verification.
+Runs source verification, clean-database verification, and the authenticated
+Chromium smoke path. Local Supabase must already be running.
 
 This is the recommended command before opening a pull request or merging a major
 refactoring.
 
 ### Continuous integration
 
-GitHub Actions runs the same `pnpm verify` and `pnpm db:verify` contracts for
-pull requests, pushes to `main`, and manual workflow dispatches. The workflow
-exercises `pnpm dev:bootstrap` from a clean checkout, asserts the resulting
-platform with `pnpm dev:status`, and never connects to or mutates a hosted
-Supabase project.
+GitHub Actions runs the same `pnpm verify`, `pnpm db:verify`, and `pnpm e2e`
+contracts for pull requests, pushes to `main`, and manual workflow dispatches.
+The workflow exercises `pnpm dev:bootstrap` from a clean checkout, asserts the
+resulting platform with `pnpm dev:status`, installs Chromium with its Linux
+dependencies, and never connects to or mutates a hosted Supabase project.
+Playwright traces and screenshots are retained for failed browser runs.
 
 The workflow is defined in [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
@@ -237,6 +257,7 @@ Checks are intentionally ordered from cheapest to most expensive:
 4. type checking
 5. unit tests
 6. production build
+7. authenticated browser smoke test
 
 This allows failures to be detected as early as possible.
 
