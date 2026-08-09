@@ -70,11 +70,14 @@ SELECT public.create_message(
     p_content => 'unrelated conversation'
 );
 
-SELECT has_function_privilege(
-    'authenticated',
-    'public.search_workspace_messages(uuid,text,integer)',
-    'EXECUTE'
-), 'Authenticated users can execute workspace message search';
+SELECT ok(
+    has_function_privilege(
+        'authenticated',
+        'public.search_workspace_messages(uuid,text,integer)',
+        'EXECUTE'
+    ),
+    'Authenticated users can execute workspace message search'
+);
 
 SELECT is(
     (

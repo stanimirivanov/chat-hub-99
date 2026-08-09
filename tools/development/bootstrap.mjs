@@ -24,6 +24,48 @@ const runStep = (description, command, args) => {
   }
 };
 
+/**
+ * Supabase project identities used by this repository before rebranding.
+ *
+ * Their containers may still own the standard local ports after a developer
+ * updates an existing clone. Stopping those exact stacks is recoverable and
+ * preserves their Docker volumes; unrelated containers are never touched.
+ */
+const legacySupabaseProjectIds = ['chat-hub-99'];
+
+const stopLegacySupabaseStacks = () => {
+  const containersResult = runCommand(dockerCommand, [
+    'ps',
+    '--all',
+    '--format',
+    '{{.Names}}',
+  ]);
+
+  if (containersResult.status !== 0) {
+    fail('Inspecting Docker containers', commandFailure(containersResult));
+  }
+
+  const containerNames = (containersResult.stdout ?? '')
+    .split(/\r?\n/u)
+    .map((name) => name.trim())
+    .filter(Boolean);
+
+  for (const projectId of legacySupabaseProjectIds) {
+    const suffix = `_${projectId}`;
+    const ownsContainers = containerNames.some(
+      (name) => name.startsWith('supabase_') && name.endsWith(suffix)
+    );
+
+    if (ownsContainers) {
+      runStep(
+        `Stopping legacy local Supabase project ${projectId}`,
+        pnpmCommand,
+        ['exec', 'supabase', 'stop', '--project-id', projectId]
+      );
+    }
+  }
+};
+
 console.log('Bootstrapping the Omoikane local platform');
 
 const nodeResult = runCommand(process.execPath, [verifyNodeVersionPath]);
@@ -55,6 +97,8 @@ if (dockerResult.status !== 0 || dockerVersion.length === 0) {
   fail('Docker', commandFailure(dockerResult));
 }
 console.log(`[ok] Docker: engine ${dockerVersion}`);
+
+stopLegacySupabaseStacks();
 
 runStep('Installing locked dependencies', pnpmCommand, [
   'install',

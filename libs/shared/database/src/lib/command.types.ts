@@ -151,5 +151,23 @@ export type DeleteMessageResult = DatabaseFunctionReturns<'delete_message'>;
 export type SearchWorkspaceMessagesArgs =
   DatabaseFunctionArgs<'search_workspace_messages'>;
 
-export type SearchWorkspaceMessagesResult =
+type GeneratedSearchWorkspaceMessagesResult =
   DatabaseFunctionReturns<'search_workspace_messages'>;
+
+type GeneratedSearchWorkspaceMessagesRow =
+  GeneratedSearchWorkspaceMessagesResult[number];
+
+/**
+ * Search rows returned by PostgreSQL at runtime.
+ *
+ * PostgreSQL's `RETURNS TABLE` declaration does not expose output-column
+ * nullability to the Supabase type generator. The generated RPC contract
+ * therefore marks these two nullable message columns as required strings.
+ * Keep the generated file untouched and correct that known boundary here.
+ */
+export type SearchWorkspaceMessagesResult = Array<
+  Omit<GeneratedSearchWorkspaceMessagesRow, 'deleted_at' | 'deleted_by'> & {
+    deleted_at: string | null;
+    deleted_by: string | null;
+  }
+>;
