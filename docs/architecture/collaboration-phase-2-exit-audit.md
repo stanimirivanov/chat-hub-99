@@ -96,8 +96,9 @@ realtime multi-session scenarios remain later improvements.
 The Phase 2 entry conditions for Phase 3 are satisfied. OMO-ARC-001 remains the
 implemented collaboration architecture, and this audit records that its direct
 browser-to-Supabase path must remain unchanged when `apps/server` is
-introduced. Work may proceed to the required Phase 3 architecture decisions
-and the first modular server vertical slice.
+introduced. OMO-ARC-003 and ADR-0001 through ADR-0002 now define the Phase 3
+boundary. Work may proceed to the ordered server implementation slices without
+redesigning the collaboration path.
 
 ## Reproducible verification
 

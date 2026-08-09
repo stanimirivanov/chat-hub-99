@@ -4,7 +4,12 @@ Architecture Decision Records capture decisions made after the approved
 Omoikane baseline. They exist to explain consequential choices, not to duplicate
 implementation documentation.
 
-No post-baseline ADR has been accepted yet.
+## Accepted decisions
+
+| ADR                                                                        | Decision                                                                                          |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| [0001](0001-nestjs-effect-runtime-boundary.md)                             | NestJS owns HTTP and process lifecycle; one long-lived Effect runtime owns application execution. |
+| [0002](0002-supabase-server-authentication-and-workspace-authorization.md) | Supabase validates bearer identity; application workflows authorize explicit workspace scope.     |
 
 ## Authority
 

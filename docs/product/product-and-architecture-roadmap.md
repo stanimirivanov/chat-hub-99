@@ -2,7 +2,7 @@
 
 > **Document ID:** OMO-RMP-001  
 > **Version:** 1.0  
-> **Status:** Approved baseline, repository-reconciled 8 August 2026  
+> **Status:** Approved baseline, repository-reconciled 9 August 2026
 > **Date:** 2 August 2026  
 > **Product:** Omoikane - The Collaborative Intelligence Platform
 
@@ -127,16 +127,22 @@ passes against reset local Supabase data, so Phase 2 is complete.
 
 ### 3.4 Phase 3 - Modular application server
 
+Approved design:
+[OMO-ARC-003 Modular Server Architecture](../architecture/modular-server-architecture.md),
+[ADR-0001](../architecture/adr/0001-nestjs-effect-runtime-boundary.md), and
+[ADR-0002](../architecture/adr/0002-supabase-server-authentication-and-workspace-authorization.md).
+
 Implementation scope:
 
-- Add `apps/server` with NestJS, OpenAPI, structured errors, health and readiness
-  endpoints, an Effect runtime, and Fastify-compatible HTTP concerns where they
-  provide concrete value.
-- Validate Supabase access tokens and propagate authenticated user and workspace
-  scope.
-- Create one business endpoint that starts a deterministic Analysis Run without
-  an LLM.
-- Add Server-Sent Events for analysis status or generated-answer streaming.
+- Add `apps/server` with Fastify-backed NestJS, OpenAPI, structured errors, an
+  Effect runtime bridge, graceful shutdown, and liveness as the first runtime
+  prerequisite.
+- Validate Supabase access tokens, establish immutable request identity, and
+  add readiness as the second prerequisite.
+- Create the first product-bearing server endpoint: start and observe one
+  workspace-authorized deterministic Analysis Run without an LLM or worker.
+- Add server telemetry, then Server-Sent Events only if the implemented Analysis
+  Run user experience requires a status stream.
 
 Exit criteria:
 
@@ -285,15 +291,15 @@ Pull-request gates:
 
 ## 6. Documentation backlog
 
-| Required by    | Documents                                                                                                                                                     |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Before Phase 3 | Initial ADRs required by actual decisions, C4 context and container diagrams, server module map, API conventions, and authentication and authorization design |
-| Before Phase 4 | Analysis Run data model, event catalogue, job catalogue, retry and idempotency standard, and worker runbook                                                   |
-| Before Phase 5 | Decision Forensics slice design, AI governance policy, prompt and model versioning standard, and evaluation plan                                              |
-| Before Phase 6 | Requirement domain model, snapshot and lineage design, and pipeline-stage contracts                                                                           |
-| Before Phase 7 | Analytical data model, semantic metric catalogue, and BI authorization and query-safety design                                                                |
-| Before Phase 8 | Privacy impact assessment, communication-signal taxonomy, and calibration and bias-evaluation plan                                                            |
-| Before Phase 9 | Kubernetes security design, Helm operations guide, GitOps model, and mesh threat model and runbook                                                            |
+| Required by    | Documents                                                                                                                                                                                   |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Before Phase 3 | **Completed in OMO-ARC-003 and ADR-0001 through ADR-0002:** C4 context and container views, server module map, API conventions, runtime ownership, authentication, and authorization design |
+| Before Phase 4 | Analysis Run data model, event catalogue, job catalogue, retry and idempotency standard, and worker runbook                                                                                 |
+| Before Phase 5 | Decision Forensics slice design, AI governance policy, prompt and model versioning standard, and evaluation plan                                                                            |
+| Before Phase 6 | Requirement domain model, snapshot and lineage design, and pipeline-stage contracts                                                                                                         |
+| Before Phase 7 | Analytical data model, semantic metric catalogue, and BI authorization and query-safety design                                                                                              |
+| Before Phase 8 | Privacy impact assessment, communication-signal taxonomy, and calibration and bias-evaluation plan                                                                                          |
+| Before Phase 9 | Kubernetes security design, Helm operations guide, GitOps model, and mesh threat model and runbook                                                                                          |
 
 ## 7. Definition of done
 
