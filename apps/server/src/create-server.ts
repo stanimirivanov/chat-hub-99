@@ -1,4 +1,4 @@
-import { RequestMethod } from '@nestjs/common';
+import { RequestMethod, type Type } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import {
   FastifyAdapter,
@@ -29,14 +29,19 @@ const configureOpenApi = (app: NestFastifyApplication): void => {
  * Keeping construction separate from `main.ts` lets integration tests exercise
  * the real Fastify, Nest, OpenAPI, and Effect lifecycle in process.
  */
-export const createServer = async (): Promise<NestFastifyApplication> => {
+export const createServer = async (
+  rootModule: Type = ServerModule
+): Promise<NestFastifyApplication> => {
   const app = await NestFactory.create<NestFastifyApplication>(
-    ServerModule,
+    rootModule,
     new FastifyAdapter()
   );
 
   app.setGlobalPrefix('api/v1', {
-    exclude: [{ path: 'health/live', method: RequestMethod.GET }],
+    exclude: [
+      { path: 'health/live', method: RequestMethod.GET },
+      { path: 'health/ready', method: RequestMethod.GET },
+    ],
   });
   app.enableShutdownHooks();
   configureOpenApi(app);

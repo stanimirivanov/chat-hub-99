@@ -4,7 +4,8 @@
 
 This Nx application is the NestJS composition and HTTP boundary for trusted
 Omoikane capabilities. It uses Fastify for HTTP and owns one long-lived Effect
-runtime. The current bootstrap slice exposes process liveness and OpenAPI only.
+runtime. The current runtime exposes liveness, dependency-aware readiness,
+OpenAPI, and the authenticated entry boundary for future trusted capabilities.
 
 ## Responsibilities
 
@@ -12,10 +13,14 @@ runtime. The current bootstrap slice exposes process liveness and OpenAPI only.
 - own Fastify and NestJS process startup and graceful shutdown;
 - construct, initialize, execute, and dispose the server Effect runtime;
 - expose `/health/live` without consulting downstream dependencies;
+- expose `/health/ready` after a bounded Supabase Auth health check;
+- validate bearer tokens without taking ownership of browser sessions;
+- attach only an immutable, provider-independent user identity to requests;
+- deny access by default and render safe problem-details responses;
 - publish the implemented HTTP contract at `/openapi.json`.
 
-It does not authenticate users, access Supabase, expose readiness, implement an
-Analysis Run, or proxy existing Angular-to-Supabase collaboration operations.
+It does not authorize workspaces, implement an Analysis Run, own refresh
+tokens, or proxy existing Angular-to-Supabase collaboration operations.
 
 ## Dependency rule
 
@@ -33,9 +38,11 @@ src/
   app/
     server.module.ts              composition root
     platform/
+      authentication/             global guard and request identity
       configuration/              environment decoding
       effect-runtime/             Effect execution and lifecycle bridge
-      health/                     liveness transport
+      health/                     liveness and readiness transport
+      http/                       public-route and problem contracts
 ```
 
 ## Runtime flow
@@ -45,30 +52,41 @@ process environment -> runtime schema -> ServerConfig
                                       -> Nest + Fastify
                                       -> Effect runtime initialization
 GET /health/live -> HealthController -> validated build version -> JSON
+GET /health/ready -> Effect runtime -> Supabase Auth health -> JSON/problem
+protected request -> global guard -> token validator -> immutable identity
 application shutdown -> Nest lifecycle -> Effect runtime disposal
 ```
 
-A Managed Runtime is Effect's long-lived executor built from a Layer. The Layer
-is empty in this slice because no application service is required. Future
-capability Layers are composed at this boundary; controllers do not construct
-Layers or call `Effect.runPromise` themselves.
+A Managed Runtime is Effect's long-lived executor built from a Layer. The
+server composes the Supabase client Layer into the access-token-validator Layer
+once, then supplies that application capability to guards and health checks.
+Controllers do not construct Layers or call `Effect.runPromise` themselves.
+
+For readers new to Effect: a Layer is a recipe for constructing dependencies,
+while a Managed Runtime owns the constructed dependency graph and executes
+Effect programs against it. Keeping both in the server composition root lets
+application code describe typed work without knowing how Supabase or Nest is
+configured.
 
 ## Configuration
 
-| Variable                  | Default       | Meaning                        |
-| ------------------------- | ------------- | ------------------------------ |
-| `OMOIKANE_ENV`            | `local`       | Deployment environment label.  |
-| `OMOIKANE_SERVER_HOST`    | `0.0.0.0`     | Network interface to bind.     |
-| `OMOIKANE_SERVER_PORT`    | `3333`        | TCP port from 1 through 65535. |
-| `OMOIKANE_SERVER_VERSION` | `development` | Build version shown by health. |
+| Variable                        | Default               | Meaning                        |
+| ------------------------------- | --------------------- | ------------------------------ |
+| `OMOIKANE_ENV`                  | `local`               | Deployment environment label.  |
+| `OMOIKANE_SERVER_HOST`          | `0.0.0.0`             | Network interface to bind.     |
+| `OMOIKANE_SERVER_PORT`          | `3333`                | TCP port from 1 through 65535. |
+| `OMOIKANE_SERVER_VERSION`       | `development`         | Build version shown by health. |
+| `OMOIKANE_READINESS_TIMEOUT_MS` | `2000`                | Supabase Auth probe deadline.  |
+| `SUPABASE_URL`                  | local CLI URL         | Supabase project API URL.      |
+| `SUPABASE_ANON_KEY`             | local publishable key | Public key for Auth requests.  |
 
 Empty values use local defaults. A malformed non-empty value fails startup
 before the server accepts traffic.
 
 ## Extension guidance
 
-- Add readiness only with the authentication slice that introduces a critical
-  Supabase dependency.
+- Add public routes only by applying `@PublicRoute()` deliberately; ordinary
+  Nest routes inherit the global authentication guard.
 - Add transport DTOs inside the owning server capability folder.
 - Add business rules and ports to domain and application libraries.
 - Add provider queries, mappings, and Layers to infrastructure libraries.
@@ -79,6 +97,8 @@ before the server accepts traffic.
 
 ```bash
 pnpm server:test
+pnpm db:prepare
+pnpm server:auth:verify
 pnpm server:build
 pnpm nx run server:typecheck
 pnpm nx run server:typecheck:test
@@ -89,5 +109,11 @@ Run `pnpm server:dev`, then inspect:
 
 ```text
 http://localhost:3333/health/live
+http://localhost:3333/health/ready
 http://localhost:3333/openapi.json
 ```
+
+The local-Supabase verification signs in the deterministic seeded owner and
+proves that a real token crosses the HTTP boundary as only its canonical user
+ID. It remains separate from unit tests because it requires the local CLI
+stack.

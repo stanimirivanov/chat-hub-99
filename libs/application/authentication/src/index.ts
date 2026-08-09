@@ -5,6 +5,22 @@ export {
 } from './lib/authentication-session';
 
 export {
+  AuthenticatedRequestIdentitySchema,
+  type AuthenticatedRequestIdentity,
+} from './lib/authenticated-request-identity';
+
+export {
+  InvalidAccessTokenError,
+  AccessTokenValidationUnavailableError,
+  type AccessTokenValidationError,
+} from './lib/access-token-validation-error';
+
+export {
+  AccessTokenValidatorTag,
+  type AccessTokenValidator,
+} from './lib/access-token-validator';
+
+export {
   InvalidCredentialsError,
   InvalidSignInInputError,
   InvalidSignUpInputError,
@@ -55,3 +71,7 @@ export {
   updatePassword,
   type UpdatePasswordInput,
 } from './lib/update-password';
+
+export { validateAccessToken } from './lib/validate-access-token';
+
+export { checkAccessTokenValidationAvailability } from './lib/check-access-token-validation-availability';

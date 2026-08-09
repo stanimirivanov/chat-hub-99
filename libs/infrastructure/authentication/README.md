@@ -4,11 +4,16 @@
 authentication port with Supabase Auth.
 
 It translates Supabase sessions, promises, callbacks, and errors into
-provider-independent application contracts.
+provider-independent application contracts. It also contains the stateless,
+server-safe adapter that validates bearer tokens with `auth.getUser(token)`.
 
 ## Responsibilities
 
 - Define the focused Supabase Auth client dependency used by the adapter.
+- Construct a server client with session persistence, automatic refresh, and
+  URL-session detection disabled.
+- Map access-token validation to the minimum canonical request identity.
+- Probe the documented Supabase Auth health endpoint with a bounded timeout.
 - Restore the current Supabase browser session.
 - Sign in with email and password.
 - Register email/password accounts and distinguish immediate sessions from
@@ -35,6 +40,10 @@ application/authentication
 
 The application library never imports Supabase. Raw Supabase sessions, tokens,
 callbacks, and `AuthError` values stop at this infrastructure boundary.
+
+The browser `AuthenticationService` and server `AccessTokenValidator` remain
+separate capabilities. This prevents server-only validation and readiness
+concerns from increasing the coupling of Angular session workflows.
 
 The adapter maps `auth.signUp` responses before crossing that boundary:
 
@@ -107,6 +116,7 @@ The public entry point exports only:
 - `SupabaseAuthenticationClientTag`;
 - `SupabaseAuthenticationClient`;
 - `SupabaseAuthenticationServiceLayer`.
+- the server access-token client Layer factory and validator Layer.
 
 The concrete service factory, mappers, and stream adapter remain internal.
 
