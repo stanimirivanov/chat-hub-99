@@ -16,6 +16,8 @@ import { ChannelNavigationComponent } from '@client/features/channel-navigation/
 import { WorkspaceMemberDirectoryComponent } from '@client/features/workspace-member-directory/workspace-member-directory.component';
 import { WorkspaceInvitationsComponent } from '@client/features/workspace-invitations/workspace-invitations.component';
 import { WorkspacePresenceComponent } from '@client/features/workspace-presence/workspace-presence.component';
+import { WorkspaceMessageSearchComponent } from '@client/features/workspace-message-search/workspace-message-search.component';
+import type { WorkspaceMessageSearchResult } from '@omoikane/application/message';
 import { WorkspaceNavigationComponent } from './workspace-navigation.component';
 import { WorkspaceNavigationStore } from './workspace-navigation.store';
 
@@ -74,6 +76,16 @@ class WorkspaceInvitationsStubComponent {
 })
 class WorkspacePresenceStubComponent {
   readonly workspaceId = input.required<typeof workspace.id>();
+}
+
+@Component({
+  selector: 'app-workspace-message-search',
+  standalone: true,
+  template: '',
+})
+class WorkspaceMessageSearchStubComponent {
+  readonly workspaceId = input.required<typeof workspace.id>();
+  readonly resultSelected = output<WorkspaceMessageSearchResult>();
 }
 
 @Component({
@@ -146,6 +158,7 @@ const configureComponent = async ({
         WorkspaceInvitationsComponent,
         WorkspaceMemberDirectoryComponent,
         WorkspacePresenceComponent,
+        WorkspaceMessageSearchComponent,
       ],
     },
     add: {
@@ -155,6 +168,7 @@ const configureComponent = async ({
         WorkspaceInvitationsStubComponent,
         WorkspaceMemberDirectoryStubComponent,
         WorkspacePresenceStubComponent,
+        WorkspaceMessageSearchStubComponent,
       ],
     },
   });
@@ -212,6 +226,7 @@ describe('WorkspaceNavigationComponent', () => {
       queryParams: {
         workspace: workspace.slug,
         channel: null,
+        message: null,
       },
       queryParamsHandling: 'merge',
     });
@@ -232,6 +247,7 @@ describe('WorkspaceNavigationComponent', () => {
       queryParams: {
         workspace: null,
         channel: null,
+        message: null,
       },
       queryParamsHandling: 'merge',
       replaceUrl: true,
@@ -259,6 +275,7 @@ describe('WorkspaceNavigationComponent', () => {
       queryParams: {
         workspace: null,
         channel: null,
+        message: null,
       },
       queryParamsHandling: 'merge',
       replaceUrl: true,
@@ -348,6 +365,7 @@ describe('WorkspaceNavigationComponent', () => {
       queryParams: {
         workspace: workspace.slug,
         channel: null,
+        message: null,
       },
       queryParamsHandling: 'merge',
     });
@@ -372,6 +390,7 @@ describe('WorkspaceNavigationComponent', () => {
       queryParams: {
         workspace: workspace.slug,
         channel: null,
+        message: null,
       },
       queryParamsHandling: 'merge',
     });
@@ -485,6 +504,7 @@ describe('WorkspaceNavigationComponent', () => {
       queryParams: {
         workspace: null,
         channel: null,
+        message: null,
       },
       queryParamsHandling: 'merge',
       replaceUrl: true,
@@ -528,6 +548,7 @@ describe('WorkspaceNavigationComponent', () => {
       queryParams: {
         workspace: null,
         channel: null,
+        message: null,
       },
       queryParamsHandling: 'merge',
       replaceUrl: true,

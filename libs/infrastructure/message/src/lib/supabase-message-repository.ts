@@ -4,6 +4,7 @@ import { createMessage, deleteMessage, editMessage } from './commands';
 import { findMessageById } from './queries/find-message-by-id';
 import { listMessagesByChannel } from './queries/list-messages-by-channel';
 import { listMessageRevisions } from './queries/list-message-revisions';
+import { searchWorkspaceMessages } from './queries/search-workspace-messages';
 import { makeMessageChangesStream } from './realtime';
 import type { SupabaseMessageClient } from './supabase-message-client';
 
@@ -22,6 +23,7 @@ export const makeSupabaseMessageRepository = (
   delete: (command) => deleteMessage(client, command),
   findById: (messageId) => findMessageById(client, messageId),
   listByChannel: (query) => listMessagesByChannel(client, query),
+  searchWorkspace: (query) => searchWorkspaceMessages(client, query),
   listRevisions: (query) => listMessageRevisions(client, query),
   changesByChannel: (channelId) => makeMessageChangesStream(client, channelId),
 });

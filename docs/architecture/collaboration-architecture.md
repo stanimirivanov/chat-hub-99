@@ -215,20 +215,26 @@ by RLS; enrichment does not redefine the authorization of the primary record.
 
 ## Explicit Phase 2 gaps
 
-The following capabilities are not implemented and must not be inferred from
-the existing realtime infrastructure:
+The following capability is not implemented and must not be inferred from the
+existing realtime infrastructure:
 
-- workspace-scoped message search and exact-result navigation;
 - per-member read positions, unread counts, and realtime unread reconciliation.
 
 Reactions, threads, attachments, notification delivery, invitation delivery,
 and avatar uploads are optional product expansions rather than Phase 2 exit
 gates.
 
-The next conservative vertical slice is workspace-scoped message search with
-exact-result navigation. Search should begin with its concrete authorization,
-ranking, pagination, and navigation behavior rather than a generic search
-framework.
+Workspace message search is an RLS-preserving, fixed-cap message-repository
+query. It returns at most 20 active-message matches from active channels,
+ordered by PostgreSQL full-text relevance with stable recency and identity
+tie-breakers. Results carry channel route identities. Exact-result navigation
+loads the stable message directly in a separate focused projection without
+changing the contiguous recent-history page, so pagination state remains
+truthful.
+
+The next conservative vertical slice is per-member read positions and unread
+counts. It should establish the persisted read-position invariant and initial
+navigation counts before adding realtime reconciliation.
 
 ## Verification references
 

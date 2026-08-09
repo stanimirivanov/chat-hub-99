@@ -1,6 +1,11 @@
 import { Context, type Effect, type Stream } from 'effect';
-import type { ChannelId } from '@omoikane/domain/channel';
-import type { Message, MessageId } from '@omoikane/domain/message';
+import type { Channel, ChannelId } from '@omoikane/domain/channel';
+import type {
+  ActiveMessage,
+  Message,
+  MessageId,
+} from '@omoikane/domain/message';
+import type { WorkspaceId } from '@omoikane/domain/workspace';
 import type {
   CreateMessageCommand,
   DeleteMessageCommand,
@@ -36,6 +41,21 @@ export interface ListMessageRevisionsQuery {
   readonly messageId: MessageId;
   readonly limit: MessageRevisionPageSize;
   readonly before?: MessageRevisionCursor;
+}
+
+/** Normalized workspace search sent to the persistence boundary. */
+export interface SearchWorkspaceMessagesQuery {
+  readonly workspaceId: WorkspaceId;
+  readonly query: string;
+}
+
+/** Active-channel identity required to navigate to one search result. */
+export type MessageSearchChannel = Pick<Channel, 'id' | 'name' | 'slug'>;
+
+/** One authorized current-message match and its navigation target. */
+export interface WorkspaceMessageSearchResult {
+  readonly message: ActiveMessage;
+  readonly channel: MessageSearchChannel;
 }
 
 /**
@@ -89,6 +109,14 @@ export interface MessageRepository {
   readonly listByChannel: (
     query: ListChannelMessagesQuery
   ) => Effect.Effect<MessagePage, MessageRepositoryError>;
+
+  /** Returns at most 20 relevance-ranked current messages in active channels. */
+  readonly searchWorkspace: (
+    query: SearchWorkspaceMessagesQuery
+  ) => Effect.Effect<
+    readonly WorkspaceMessageSearchResult[],
+    MessageRepositoryError
+  >;
 
   /** Returns one newest-first page of immutable revisions for a message. */
   readonly listRevisions: (

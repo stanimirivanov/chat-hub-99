@@ -146,3 +146,10 @@ export type EditMessageResult = DatabaseFunctionReturns<'edit_message'>;
 export type DeleteMessageArgs = DatabaseFunctionArgs<'delete_message'>;
 
 export type DeleteMessageResult = DatabaseFunctionReturns<'delete_message'>;
+
+/** Workspace-scoped current-message search. */
+export type SearchWorkspaceMessagesArgs =
+  DatabaseFunctionArgs<'search_workspace_messages'>;
+
+export type SearchWorkspaceMessagesResult =
+  DatabaseFunctionReturns<'search_workspace_messages'>;

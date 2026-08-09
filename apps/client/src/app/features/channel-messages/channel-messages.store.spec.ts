@@ -1296,4 +1296,84 @@ describe('ChannelMessagesStore realtime synchronization', () => {
     expect(store.revisionHistoryMessageId()).toBe(secondMessageId);
     expect(store.messageRevisions()).toEqual([secondRevision]);
   });
+
+  it('loads an exact deep-linked message without changing the history page', async () => {
+    const focusedMessage: Message = {
+      id: '00000000-0000-4000-8000-000000000070' as MessageId,
+      channelId,
+      authorId,
+      status: 'active',
+      content: 'An older search result' as MessageContent,
+      createdAt: new Date('2026-07-01T08:00:00.000Z'),
+      editedAt: null,
+    };
+    const listChannelMessages = vi.fn().mockResolvedValue(
+      Either.right({
+        messages: [],
+        nextCursor: null,
+      })
+    );
+    const getChannelMessage = vi
+      .fn()
+      .mockResolvedValue(Either.right(focusedMessage));
+    const { store } = configureStore({
+      listChannelMessages,
+      getChannelMessage,
+    });
+
+    await store.selectChannel(channelId);
+    await store.selectFocusedMessage(channelId, focusedMessage.id);
+
+    expect(getChannelMessage).toHaveBeenCalledWith({
+      channelId,
+      messageId: focusedMessage.id,
+    });
+    expect(store.messages()).toEqual([]);
+    expect(store.focusedMessage()).toEqual(focusedMessage);
+    expect(store.focusedMessageStatus()).toBe('loaded');
+  });
+
+  it('ignores an exact-message result after the deep link changes', async () => {
+    const firstMessage: Message = {
+      id: '00000000-0000-4000-8000-000000000071' as MessageId,
+      channelId,
+      authorId,
+      status: 'active',
+      content: 'First result' as MessageContent,
+      createdAt: new Date('2026-07-01T08:00:00.000Z'),
+      editedAt: null,
+    };
+    const secondMessage: Message = {
+      ...firstMessage,
+      id: '00000000-0000-4000-8000-000000000072' as MessageId,
+      content: 'Second result' as MessageContent,
+    };
+    const pendingFirst =
+      makeDeferredPromise<
+        Either.Either<Message, MessageRepositoryUnavailableError>
+      >();
+    const listChannelMessages = vi.fn().mockResolvedValue(
+      Either.right({
+        messages: [],
+        nextCursor: null,
+      })
+    );
+    const getChannelMessage = vi
+      .fn()
+      .mockReturnValueOnce(pendingFirst.promise)
+      .mockResolvedValueOnce(Either.right(secondMessage));
+    const { store } = configureStore({
+      listChannelMessages,
+      getChannelMessage,
+    });
+
+    await store.selectChannel(channelId);
+    const firstRequest = store.selectFocusedMessage(channelId, firstMessage.id);
+    await store.selectFocusedMessage(channelId, secondMessage.id);
+    pendingFirst.resolve(Either.right(firstMessage));
+    await firstRequest;
+
+    expect(store.focusedMessageId()).toBe(secondMessage.id);
+    expect(store.focusedMessage()).toEqual(secondMessage);
+  });
 });

@@ -1,6 +1,7 @@
 export { mapCurrentMessage } from './map-current-message';
 export { mapMessageRevision } from './map-message-revision';
 export { mapMessageHeadChange } from './map-message-head-change';
+export { mapWorkspaceMessageSearchResult } from './map-workspace-message-search-result';
 
 export { toMessage } from './message-row-mapper';
 export {

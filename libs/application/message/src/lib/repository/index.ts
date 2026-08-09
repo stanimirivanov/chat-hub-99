@@ -3,6 +3,9 @@ export {
   MessageRepositoryTag,
   type ListChannelMessagesQuery,
   type ListMessageRevisionsQuery,
+  type SearchWorkspaceMessagesQuery,
+  type MessageSearchChannel,
+  type WorkspaceMessageSearchResult,
   type MessageRepository,
 } from './message-repository';
 

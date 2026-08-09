@@ -11,6 +11,7 @@ import { Schema } from 'effect';
 import { BehaviorSubject } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
 import { ChannelIdSchema, type Channel } from '@omoikane/domain/channel';
+import { MessageIdSchema, type MessageId } from '@omoikane/domain/message';
 import { WorkspaceIdSchema } from '@omoikane/domain/workspace';
 import { ArchivedChannelListComponent } from '@client/features/archived-channel-list/archived-channel-list.component';
 import { ChannelMessagesComponent } from '@client/features/channel-messages/channel-messages.component';
@@ -25,6 +26,9 @@ const nextWorkspaceId = Schema.decodeUnknownSync(WorkspaceIdSchema)(
 );
 const channelId = Schema.decodeUnknownSync(ChannelIdSchema)(
   '00000000-0000-4000-8000-000000000002'
+);
+const messageId = Schema.decodeUnknownSync(MessageIdSchema)(
+  '00000000-0000-4000-8000-000000000004'
 );
 const workspaceSlug = 'omoikane-development';
 const channel: Channel = {
@@ -48,6 +52,7 @@ const updatedChannel: Channel = {
 })
 class ChannelMessagesStubComponent {
   readonly channelId = input.required<typeof channel.id>();
+  readonly focusedMessageId = input<MessageId | null>(null);
   readonly canModerateMessages = input(false);
 }
 
@@ -198,7 +203,7 @@ describe('ChannelNavigationComponent', () => {
     );
     expect(router.navigate).toHaveBeenCalledExactlyOnceWith([], {
       relativeTo: route,
-      queryParams: { channel: updatedChannel.slug },
+      queryParams: { channel: updatedChannel.slug, message: null },
       queryParamsHandling: 'merge',
     });
   });
@@ -221,6 +226,41 @@ describe('ChannelNavigationComponent', () => {
     expect(messages.canModerateMessages()).toBe(true);
   });
 
+  it('forwards a validated exact-message route to channel history', async () => {
+    const { fixture } = await configureComponent({
+      queryParams: {
+        workspace: workspaceSlug,
+        channel: channel.slug,
+        message: messageId,
+      },
+      selectedChannel: channel,
+    });
+
+    const messages = fixture.debugElement.query(
+      By.directive(ChannelMessagesStubComponent)
+    ).componentInstance as ChannelMessagesStubComponent;
+
+    expect(messages.focusedMessageId()).toBe(messageId);
+  });
+
+  it('removes an invalid exact-message identity from the route', async () => {
+    const { route, router } = await configureComponent({
+      queryParams: {
+        workspace: workspaceSlug,
+        channel: channel.slug,
+        message: 'not-a-message-id',
+      },
+      selectedChannel: channel,
+    });
+
+    expect(router.navigate).toHaveBeenCalledExactlyOnceWith([], {
+      relativeTo: route,
+      queryParams: { message: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  });
+
   it('restores route selection and writes user selection to history', async () => {
     const { fixture, route, router, store } = await configureComponent({
       queryParams: {
@@ -241,6 +281,7 @@ describe('ChannelNavigationComponent', () => {
       relativeTo: route,
       queryParams: {
         channel: channel.slug,
+        message: null,
       },
       queryParamsHandling: 'merge',
     });
@@ -263,7 +304,7 @@ describe('ChannelNavigationComponent', () => {
     expect(store.clearSelection).toHaveBeenCalled();
     expect(router.navigate).toHaveBeenCalledExactlyOnceWith([], {
       relativeTo: route,
-      queryParams: { channel: null },
+      queryParams: { channel: null, message: null },
       queryParamsHandling: 'merge',
       replaceUrl: true,
     });
@@ -283,6 +324,7 @@ describe('ChannelNavigationComponent', () => {
       relativeTo: route,
       queryParams: {
         channel: null,
+        message: null,
       },
       queryParamsHandling: 'merge',
       replaceUrl: true,
@@ -333,6 +375,7 @@ describe('ChannelNavigationComponent', () => {
       relativeTo: route,
       queryParams: {
         channel: channel.slug,
+        message: null,
       },
       queryParamsHandling: 'merge',
     });
@@ -416,7 +459,7 @@ describe('ChannelNavigationComponent', () => {
     expect(store.archiveSelectedChannel).toHaveBeenCalledOnce();
     expect(router.navigate).toHaveBeenCalledExactlyOnceWith([], {
       relativeTo: route,
-      queryParams: { channel: null },
+      queryParams: { channel: null, message: null },
       queryParamsHandling: 'merge',
       replaceUrl: true,
     });

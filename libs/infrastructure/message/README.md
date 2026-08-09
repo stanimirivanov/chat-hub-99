@@ -10,6 +10,7 @@ domain values.
 - Hold the typed Supabase client service
 - Execute message command RPCs
 - Query current message projections
+- Execute workspace-scoped current-message full-text search
 - Query immutable message revisions with keyset pagination
 - Subscribe to channel-filtered message-head changes
 - Map PostgREST and thrown failures into application repository errors
@@ -111,6 +112,21 @@ The query does not reproduce authorization rules. Existing database RLS decides
 whether the authenticated caller may see complete history; an RLS-visible empty
 result is a successful empty page. Every visible row is still validated against
 the domain revision schema before it crosses the repository boundary.
+
+## Workspace message search
+
+The search adapter calls one `SECURITY INVOKER` PostgreSQL function. Database
+RLS therefore remains the authorization boundary while the function restricts
+results to active messages in active channels of the requested workspace.
+PostgreSQL's `simple` full-text dictionary ranks matches; creation time and the
+stable message ID provide deterministic tie-breakers. The first slice returns
+at most 20 matches and intentionally has no reusable pagination framework.
+
+Each row carries the active channel name and slug required for navigation. The
+adapter validates both the message projection and channel identity before the
+result crosses into application code. Exact navigation then uses the existing
+RLS-visible current-message lookup instead of loading historical pages until a
+match happens to appear.
 
 ## Testing strategy
 

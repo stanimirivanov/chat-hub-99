@@ -3,7 +3,7 @@ import type {
   MessageRevisionPage,
 } from '@omoikane/application/message';
 import type { ChannelId } from '@omoikane/domain/channel';
-import type { MessageId } from '@omoikane/domain/message';
+import type { Message, MessageId } from '@omoikane/domain/message';
 import type { Profile } from '@omoikane/domain/profile';
 
 /**
@@ -49,6 +49,8 @@ export type DeleteMessageStatus = 'idle' | 'deleting' | 'failed';
  * Lifecycle of the selected channel's long-lived realtime subscription.
  */
 export type ChannelMessagesRealtimeStatus = 'idle' | 'observing' | 'failed';
+
+export type FocusedMessageLoadStatus = 'idle' | 'loading' | 'loaded' | 'failed';
 
 /**
  * Presentation-safe failure information retained by the feature store.
@@ -97,6 +99,17 @@ export interface ChannelMessagesState {
   readonly deleteError: ChannelMessagesError | null;
 
   readonly realtimeError: ChannelMessagesError | null;
+
+  /** Exact message requested by a search-result deep link. */
+  readonly focusedMessageId: MessageId | null;
+
+  readonly focusedMessage: Message | null;
+
+  readonly focusedMessageStatus: FocusedMessageLoadStatus;
+
+  readonly focusedMessageError: ChannelMessagesError | null;
+
+  readonly focusedMessageRequestGeneration: number;
 
   /** Stable message identity whose revision history is currently disclosed. */
   readonly revisionHistoryMessageId: MessageId | null;
@@ -166,6 +179,11 @@ export const initialChannelMessagesState: ChannelMessagesState = {
   editError: null,
   deleteError: null,
   realtimeError: null,
+  focusedMessageId: null,
+  focusedMessage: null,
+  focusedMessageStatus: 'idle',
+  focusedMessageError: null,
+  focusedMessageRequestGeneration: 0,
   revisionHistoryMessageId: null,
   messageRevisions: [],
   revisionNextCursor: null,

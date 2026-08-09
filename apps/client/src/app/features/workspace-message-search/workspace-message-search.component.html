@@ -1,0 +1,44 @@
+<section aria-labelledby="workspace-message-search-heading">
+  <h3 id="workspace-message-search-heading">Search messages</h3>
+
+  <form role="search" (submit)="$event.preventDefault(); submit(queryInput)">
+    <label for="workspace-message-search-query">Search this workspace</label>
+    <input
+      #queryInput
+      id="workspace-message-search-query"
+      type="search"
+      minlength="2"
+      maxlength="200"
+      required
+      [value]="store.query()"
+      [disabled]="store.isSearching()"
+    />
+    <button type="submit" [disabled]="store.isSearching()">
+      @if (store.isSearching()) {
+        Searching&hellip;
+      } @else {
+        Search
+      }
+    </button>
+  </form>
+
+  @if (store.error(); as error) {
+    <p role="alert">{{ error }}</p>
+  } @else if (store.hasSearched()) {
+    @if (store.results().length === 0) {
+      <p>No matching messages were found.</p>
+    } @else {
+      <ol aria-label="Message search results">
+        @for (result of store.results(); track result.message.id) {
+          <li>
+            <button type="button" (click)="resultSelected.emit(result)">
+              <strong>#{{ result.channel.name }}</strong>
+              <span>{{ result.message.content }}</span>
+            </button>
+          </li>
+        }
+      </ol>
+      <p>Showing the 20 most relevant matches at most.</p>
+    }
+  }
+</section>
