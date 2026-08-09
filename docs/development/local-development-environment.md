@@ -6,10 +6,10 @@
 > **Date:** 2 August 2026  
 > **Product:** Omoikane - The Collaborative Intelligence Platform
 
-This document defines the target local development environment. The server
-bootstrap, liveness, and OpenAPI runtime are implemented. Sections that name
-server-to-Supabase access, the worker, Redis, the observability stack, or local
-AI describe future phase capabilities until those artifacts are implemented.
+This document defines the target local development environment. The server,
+server-to-Supabase path, and trace/metric observability profile are implemented.
+Sections that name the worker, Redis, Loki, or local AI describe future phase
+capabilities until those artifacts are implemented.
 
 ## 1. Baseline workstation
 
@@ -67,9 +67,10 @@ flowchart LR
   worker -.-> ollama
 ```
 
-The server process and its liveness endpoint are operational. Its Supabase,
-telemetry, and Redis arrows, along with the worker and its dependencies, remain
-target topology until their designated slices.
+The server process, Supabase access, and telemetry arrows are operational.
+Redis, the worker, and the worker's dependencies remain target topology until
+their designated slices. The initial Phase 4 worker uses the approved
+PostgreSQL-backed queue and does not require Redis.
 
 ## 3. Target repository layout
 
