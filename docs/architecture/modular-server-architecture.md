@@ -2,7 +2,7 @@
 
 > **Document ID:** OMO-ARC-003  
 > **Version:** 1.0  
-> **Status:** Approved Phase 3 design; implementation in progress
+> **Status:** Implemented Phase 3 architecture
 > **Date:** 9 August 2026  
 > **Product:** Omoikane - The Collaborative Intelligence Platform
 
@@ -297,6 +297,12 @@ then exits.
 The first runtime emits structured application logs to standard output. The
 observability increment adds OpenTelemetry without changing use-case contracts.
 
+This increment is implemented with Fastify request hooks owning the server span
+and an Effect/OpenTelemetry bridge owning application and Supabase child spans.
+The server span context is passed explicitly into each Effect workflow; request
+isolation does not depend on ambient async-local context crossing a fiber
+boundary. OTLP/HTTP export is optional and uses a bounded shutdown flush.
+
 Every HTTP request receives or propagates a request ID and trace context. Stable
 log fields are:
 
@@ -336,13 +342,19 @@ Phase 3 proceeds in conservative pull requests:
    **Completed.**
 4. **Server telemetry.** Add OpenTelemetry composition and prove one client
    request produces correlated server and Supabase spans. Add the local
-   telemetry profile only when this slice consumes it.
+   telemetry profile only when this slice consumes it. **Completed:** W3C
+   context/request-ID propagation, structured request logs, HTTP/operation
+   metrics, correlated Effect and Supabase spans, bounded exporter shutdown,
+   and the local Collector/Tempo/Prometheus/Grafana profile.
 5. **Server-Sent Events, if required by the implemented Analysis Run UX.** Add
    one status stream after persisted polling behavior is understood; do not
    introduce a generic streaming abstraction first.
 
 The first product-bearing server vertical slice is item 3. Items 1 and 2 are
 small runtime prerequisites whose boundaries are independently verifiable.
+The current immutable `created` Analysis Run state does not justify a stream;
+explicit refresh remains sufficient, so item 5 is deferred until Phase 4 adds
+real status transitions.
 
 ## 13. Phase 3 acceptance
 

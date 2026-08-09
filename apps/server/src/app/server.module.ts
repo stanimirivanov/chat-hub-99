@@ -5,6 +5,8 @@ import { serverConfigProvider } from './platform/configuration/server-config.pro
 import { ServerEffectRuntime } from './platform/effect-runtime/server-effect-runtime.service';
 import { HealthController } from './platform/health/health.controller';
 import { ProblemDetailsFilter } from './platform/http/problem-details.filter';
+import { ServerTelemetry } from './platform/observability/server-telemetry.service';
+import { serverTelemetrySinksProvider } from './platform/observability/server-telemetry-sinks';
 import { AnalysisRunsController } from './analysis-runs/analysis-runs.controller';
 
 /** Root composition module for the Omoikane modular application server. */
@@ -12,6 +14,8 @@ import { AnalysisRunsController } from './analysis-runs/analysis-runs.controller
   controllers: [HealthController, AnalysisRunsController],
   providers: [
     serverConfigProvider,
+    serverTelemetrySinksProvider,
+    ServerTelemetry,
     ServerEffectRuntime,
     { provide: APP_GUARD, useClass: AccessTokenGuard },
     { provide: APP_FILTER, useClass: ProblemDetailsFilter },

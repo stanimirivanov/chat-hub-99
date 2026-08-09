@@ -51,6 +51,39 @@ describe('Omoikane server runtime', () => {
     });
   });
 
+  it('propagates correlation metadata and emits one structured safe request log', async () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    app = await createServer();
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/health/live',
+      headers: {
+        'x-request-id': 'browser-health-1',
+        traceparent: '00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01',
+      },
+    });
+
+    expect(response.headers['x-request-id']).toBe('browser-health-1');
+    expect(response.headers['traceparent']).toContain(
+      '4bf92f3577b34da6a3ce929d0e0e4736'
+    );
+    const record = log.mock.calls
+      .map(([value]) => String(value))
+      .filter((value) => value.startsWith('{'))
+      .map((value) => JSON.parse(value) as Record<string, unknown>)
+      .find((value) => value['request.id'] === 'browser-health-1');
+    expect(record).toMatchObject({
+      'service.name': 'omoikane-server',
+      'deployment.environment': 'test',
+      'request.id': 'browser-health-1',
+      'trace.id': '4bf92f3577b34da6a3ce929d0e0e4736',
+      'http.request.method': 'GET',
+      'http.route': '/health/live',
+      'http.response.status_code': 200,
+    });
+  });
+
   it('publishes the liveness contract in OpenAPI', async () => {
     app = await createServer();
 
@@ -113,7 +146,11 @@ describe('Omoikane server runtime', () => {
         status: 401,
         code: 'authentication_required',
         instance: '/api/v1/test/protected',
+        requestId: expect.any(String),
       });
+      expect(response.headers['x-request-id']).toBe(
+        response.json<{ readonly requestId: string }>().requestId
+      );
     }
   );
 });

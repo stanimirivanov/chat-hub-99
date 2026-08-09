@@ -145,13 +145,21 @@ Implementation scope:
   **Completed:** immutable created-state record, atomic membership check,
   authenticated HTTP start/read routes, and the minimal Angular path.
 - Add server telemetry, then Server-Sent Events only if the implemented Analysis
-  Run user experience requires a status stream.
+  Run user experience requires a status stream. **Completed:** correlated
+  server/Effect/Supabase traces, structured logs, bounded metrics, and an
+  optional local trace/metric stack. SSE is not required while runs have only
+  the immutable `created` state and remains deferred to a status-transition
+  slice.
 
 Exit criteria:
 
 - The server proves authentication, authorization, Effect dependency injection,
   OpenAPI, readiness, and telemetry.
 - Existing direct client-to-Supabase operations continue unchanged.
+
+Phase 3 exit status: complete. The trusted server now proves authentication,
+workspace authorization, Effect composition, OpenAPI, readiness, and telemetry
+without proxying the collaboration baseline.
 
 ### 3.5 Phase 4 - Asynchronous processing platform
 

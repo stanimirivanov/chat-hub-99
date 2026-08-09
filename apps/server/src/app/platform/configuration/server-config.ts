@@ -34,6 +34,11 @@ const ServerConfigSchema = Schema.Struct({
     Schema.between(100, 30_000)
   ),
   allowedOrigins: Schema.Array(HttpUrlSchema),
+  telemetryEndpoint: Schema.NullOr(HttpUrlSchema),
+  telemetryShutdownTimeoutMilliseconds: Schema.NumberFromString.pipe(
+    Schema.int(),
+    Schema.between(100, 30_000)
+  ),
 });
 
 /** Validated process configuration required by the active server runtime. */
@@ -96,6 +101,12 @@ export const readServerConfig = (
     )
       .split(',')
       .map((origin) => origin.trim()),
+    telemetryEndpoint:
+      environment['OTEL_EXPORTER_OTLP_ENDPOINT']?.trim() || null,
+    telemetryShutdownTimeoutMilliseconds: configuredValue(
+      environment['OMOIKANE_TELEMETRY_SHUTDOWN_TIMEOUT_MS'],
+      '3000'
+    ),
   });
 
   if (Either.isLeft(decoded)) {

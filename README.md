@@ -18,6 +18,7 @@ the [Omoikane documentation](docs/README.md).
 - Supabase for authentication, PostgreSQL, row-level security, realtime, and
   storage
 - NestJS with Fastify for the trusted server HTTP and composition boundary
+- OpenTelemetry, Tempo, Prometheus, and Grafana for optional local server observability
 - Nx for project boundaries, task orchestration, and dependency visualization
 - Vitest for TypeScript unit tests and pgTAP for database tests
 
@@ -242,6 +243,19 @@ Chromium smoke path. Local Supabase must already be running.
 
 This is the recommended command before opening a pull request or merging a major
 refactoring.
+
+### Observe the trusted server locally
+
+The optional observability profile is independent of Supabase readiness:
+
+```bash
+pnpm dev:observability
+```
+
+Set `OTEL_EXPORTER_OTLP_ENDPOINT=http://127.0.0.1:4318` for the server process,
+then open Grafana at `http://localhost:3000`. See
+[`apps/server/README.md`](apps/server/README.md#local-observability) for
+PowerShell, port-conflict, status, and shutdown instructions.
 
 ### Continuous integration
 

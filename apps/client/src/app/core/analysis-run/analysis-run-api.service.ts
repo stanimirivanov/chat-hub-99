@@ -58,7 +58,10 @@ export class AnalysisRunApiService {
         `${environment.server.url}/api/v1/workspaces/${workspaceId}/analysis-runs${suffix}`,
         {
           method,
-          headers: { Authorization: `Bearer ${tokenResult.right}` },
+          headers: {
+            Authorization: `Bearer ${tokenResult.right}`,
+            'X-Request-Id': crypto.randomUUID(),
+          },
         }
       );
     } catch {

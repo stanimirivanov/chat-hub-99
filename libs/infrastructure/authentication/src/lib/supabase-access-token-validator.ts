@@ -51,12 +51,13 @@ export const makeSupabaseAccessTokenValidator = (
             )
           );
         }
-      )
+      ),
+      Effect.withSpan('supabase.auth.get_user', { kind: 'client' })
     ),
 
   checkAvailability: () =>
     Effect.tryPromise({
       try: () => client.checkHealth(),
       catch: (cause) => new AccessTokenValidationUnavailableError({ cause }),
-    }),
+    }).pipe(Effect.withSpan('supabase.auth.health', { kind: 'client' })),
 });

@@ -202,21 +202,23 @@ Scripts are added in the phase that implements their dependencies. Until then,
 their names document the intended operator contract rather than an available
 command.
 
-| Command                  | Contract                                                                                       |
-| ------------------------ | ---------------------------------------------------------------------------------------------- |
-| `pnpm dev:bootstrap`     | Validate current tools, install locked dependencies, and start the implemented infrastructure. |
-| `pnpm dev:up`            | Start currently implemented infrastructure; this is Supabase-only until Compose is introduced. |
-| `pnpm dev`               | Reset local Supabase and run the implemented Angular client and NestJS server through Nx.      |
-| `pnpm server:dev`        | Run the implemented server on port 3333 without starting or resetting Supabase.                |
-| `pnpm server:test`       | Run focused server configuration, HTTP contract, and Effect lifecycle tests.                   |
-| `pnpm server:build`      | Build the production server bundle.                                                            |
-| `pnpm dev:observability` | Start OpenTelemetry, Prometheus, Grafana, Tempo, and Loki.                                     |
-| `pnpm dev:ai-local`      | Start Ollama and provision the documented local model.                                         |
-| `pnpm dev:status`        | Show implemented Node.js, pnpm, Docker, and local Supabase health.                             |
-| `pnpm e2e:verify`        | Reset the local platform and run the authenticated Chromium collaboration smoke path.          |
-| `pnpm dev:logs`          | Follow infrastructure and implemented runtime logs.                                            |
-| `pnpm dev:down`          | Stop currently implemented infrastructure without deleting local Supabase data.                |
-| `pnpm dev:clean`         | After confirmation, stop the stack and remove disposable local volumes.                        |
+| Command                         | Contract                                                                                       |
+| ------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `pnpm dev:bootstrap`            | Validate current tools, install locked dependencies, and start the implemented infrastructure. |
+| `pnpm dev:up`                   | Start currently implemented infrastructure; this is Supabase-only until Compose is introduced. |
+| `pnpm dev`                      | Reset local Supabase and run the implemented Angular client and NestJS server through Nx.      |
+| `pnpm server:dev`               | Run the implemented server on port 3333 without starting or resetting Supabase.                |
+| `pnpm server:test`              | Run focused server configuration, HTTP contract, and Effect lifecycle tests.                   |
+| `pnpm server:build`             | Build the production server bundle.                                                            |
+| `pnpm dev:observability`        | Start the implemented Collector, Prometheus, Grafana, and Tempo trace/metric profile.          |
+| `pnpm dev:observability:status` | Inspect only the repository-owned observability profile.                                       |
+| `pnpm dev:observability:down`   | Stop that profile while preserving its named local volumes.                                    |
+| `pnpm dev:ai-local`             | Start Ollama and provision the documented local model.                                         |
+| `pnpm dev:status`               | Show implemented Node.js, pnpm, Docker, and local Supabase health.                             |
+| `pnpm e2e:verify`               | Reset the local platform and run the authenticated Chromium collaboration smoke path.          |
+| `pnpm dev:logs`                 | Follow infrastructure and implemented runtime logs.                                            |
+| `pnpm dev:down`                 | Stop currently implemented infrastructure without deleting local Supabase data.                |
+| `pnpm dev:clean`                | After confirmation, stop the stack and remove disposable local volumes.                        |
 
 `pnpm dev:status` is implemented for the current tool-and-Supabase
 infrastructure topology.
@@ -289,6 +291,14 @@ pnpm db:types:check
 - AI jobs record provider, model, prompt version, token or compute usage,
   latency, and result status as Analysis Run metadata.
 
+The Phase 3 server profile now implements the trace and metric portion of this
+target. Run `pnpm dev:observability`, set
+`OTEL_EXPORTER_OTLP_ENDPOINT=http://127.0.0.1:4318` in the server process, and
+open Grafana on port 3000. The default Prometheus host port is 9090; set
+`OMOIKANE_PROMETHEUS_PORT` before startup when that port is occupied. Server
+logs remain structured JSON on stdout, so Loki stays deferred until a log
+transport is implemented and consumed.
+
 ## 10. Staged verification
 
 ### Phase 1 exit gate
@@ -316,8 +326,9 @@ this workflow.
   [OMO-ARC-003](../architecture/modular-server-architecture.md).
 - **Phase 4:** the worker acquires and completes a deterministic test job, and
   server-to-worker trace correlation is visible.
-- **Observability increment:** Grafana, Tempo, Loki, and Prometheus are verified
-  when their owning Compose profile is introduced.
+- **Observability increment:** Collector, Grafana, Tempo, and Prometheus are
+  implemented for server traces and metrics. Loki remains gated by a future
+  log-transport increment.
 
 This staging removes the circular requirement to verify runtimes before they
 exist while preserving the final target environment.

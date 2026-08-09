@@ -14,6 +14,8 @@ describe('readServerConfig', () => {
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU',
       readinessTimeoutMilliseconds: 2000,
       allowedOrigins: ['http://localhost:4200'],
+      telemetryEndpoint: null,
+      telemetryShutdownTimeoutMilliseconds: 3000,
     });
   });
 
@@ -30,6 +32,8 @@ describe('readServerConfig', () => {
         OMOIKANE_READINESS_TIMEOUT_MS: ' 500 ',
         OMOIKANE_ALLOWED_ORIGINS:
           ' https://app.omoikane.test, http://localhost:4200 ',
+        OTEL_EXPORTER_OTLP_ENDPOINT: ' http://collector.test:4318 ',
+        OMOIKANE_TELEMETRY_SHUTDOWN_TIMEOUT_MS: ' 750 ',
       })
     ).toEqual({
       environment: 'test',
@@ -41,6 +45,8 @@ describe('readServerConfig', () => {
       supabaseServiceRoleKey: 'service-role-test-key',
       readinessTimeoutMilliseconds: 500,
       allowedOrigins: ['https://app.omoikane.test', 'http://localhost:4200'],
+      telemetryEndpoint: 'http://collector.test:4318',
+      telemetryShutdownTimeoutMilliseconds: 750,
     });
   });
 
@@ -68,6 +74,15 @@ describe('readServerConfig', () => {
       expect(() => readServerConfig({ SUPABASE_URL: url })).toThrow(
         InvalidServerConfigError
       );
+    }
+  );
+
+  it.each(['not-a-url', 'ftp://collector.test'])(
+    'rejects an invalid telemetry endpoint: %s',
+    (url) => {
+      expect(() =>
+        readServerConfig({ OTEL_EXPORTER_OTLP_ENDPOINT: url })
+      ).toThrow(InvalidServerConfigError);
     }
   );
 });
