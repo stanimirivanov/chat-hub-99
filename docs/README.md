@@ -37,9 +37,10 @@ change through an ADR.
 
 ## Implemented architecture descriptions
 
-| ID          | Document                                                                 | Purpose                                                                                                                  |
-| ----------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
-| OMO-ARC-001 | [Collaboration Architecture](architecture/collaboration-architecture.md) | Audited capability, boundary, state, authorization, and realtime architecture for the implemented collaboration baseline |
+| ID          | Document                                                                             | Purpose                                                                                                                  |
+| ----------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| OMO-ARC-001 | [Collaboration Architecture](architecture/collaboration-architecture.md)             | Audited capability, boundary, state, authorization, and realtime architecture for the implemented collaboration baseline |
+| OMO-ARC-002 | [Collaboration Phase 2 Exit Audit](architecture/collaboration-phase-2-exit-audit.md) | Evidence-based Phase 2 exit assessment and the remaining browser-smoke closeout boundary                                 |
 
 ## Repository reconciliation
 
