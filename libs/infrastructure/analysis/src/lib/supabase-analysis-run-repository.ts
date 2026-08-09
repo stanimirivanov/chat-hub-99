@@ -64,11 +64,15 @@ const execute = (
 export const makeSupabaseAnalysisRunRepository = (
   client: SupabaseAnalysisClient
 ): AnalysisRunRepository => ({
-  start: ({ identity, workspaceId }) =>
+  start: ({ identity, workspaceId, traceContext }) =>
     execute('start', () =>
       client.start({
         p_workspace_id: workspaceId,
         p_requested_by: identity.userId,
+        p_traceparent: traceContext.traceparent,
+        ...(traceContext.tracestate === null
+          ? {}
+          : { p_tracestate: traceContext.tracestate }),
       })
     ),
   get: ({ identity, workspaceId, analysisRunId }) =>

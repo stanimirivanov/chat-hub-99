@@ -287,6 +287,23 @@ export class ServerTelemetry {
     return request[REQUEST_TELEMETRY]?.span.spanContext();
   }
 
+  /** Returns the safe W3C carrier persisted for later asynchronous work. */
+  processingTraceContext(
+    request: TelemetryRequest
+  ):
+    | { readonly traceparent: string; readonly tracestate: string | null }
+    | undefined {
+    const context = request[REQUEST_TELEMETRY];
+    if (context === undefined) {
+      return undefined;
+    }
+    const spanContext = context.span.spanContext();
+    return {
+      traceparent: traceparent(spanContext),
+      tracestate: spanContext.traceState?.serialize() || null,
+    };
+  }
+
   /** Returns the stable request identifier used by responses and log records. */
   requestId(request: TelemetryRequest): string | undefined {
     return request[REQUEST_TELEMETRY]?.requestId;

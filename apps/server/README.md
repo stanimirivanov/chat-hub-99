@@ -19,7 +19,8 @@ deterministic Analysis Run.
 - validate bearer tokens without taking ownership of browser sessions;
 - attach only an immutable, provider-independent user identity to requests;
 - deny access by default and render safe problem-details responses;
-- atomically authorize and persist immutable Analysis Run acceptance records;
+- atomically authorize and persist immutable Analysis Run acceptance records,
+  initial lifecycle facts, and requested outbox events;
 - publish the implemented HTTP contract at `/openapi.json`.
 - propagate W3C trace context and stable request IDs;
 - emit safe structured request logs, traces, and bounded-cardinality metrics;
@@ -62,7 +63,8 @@ process environment -> runtime schema -> ServerConfig
 GET /health/live -> HealthController -> validated build version -> JSON
 GET /health/ready -> Effect runtime -> Supabase Auth health -> JSON/problem
 protected request -> global guard -> token validator -> immutable identity
-POST Analysis Run -> application use case -> atomic membership RPC -> created run
+POST Analysis Run -> request trace carrier -> application use case
+                  -> atomic run + lifecycle + outbox RPC -> created run
 HTTP hook -> server span -> explicitly parented Effect and Supabase spans
 application shutdown -> Nest lifecycle -> Effect runtime disposal
                                      -> bounded telemetry flush

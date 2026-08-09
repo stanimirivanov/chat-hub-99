@@ -8,7 +8,7 @@ import {
 } from './analysis-run-repository';
 import {
   decodeAnalysisRunId,
-  decodeStartRequest,
+  decodeScopedRequest,
   readInputProperty,
 } from './decode-analysis-run-request';
 
@@ -23,7 +23,7 @@ export const getAnalysisRun = (
   input: unknown
 ): Effect.Effect<AnalysisRun, AnalysisRunError, AnalysisRunRepository> =>
   Effect.gen(function* () {
-    const request = yield* decodeStartRequest(input);
+    const request = yield* decodeScopedRequest(input);
     const analysisRunId = yield* decodeAnalysisRunId(
       readInputProperty(input, 'analysisRunId')
     );

@@ -16,6 +16,126 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      analysis_run_lifecycle_events: {
+        Row: {
+          analysis_run_id: string
+          analysis_run_lifecycle_event_id: string
+          attempt_id: string | null
+          failure_category: string | null
+          job_id: string | null
+          occurred_at: string
+          sequence_number: number
+          state: string
+        }
+        Insert: {
+          analysis_run_id: string
+          analysis_run_lifecycle_event_id?: string
+          attempt_id?: string | null
+          failure_category?: string | null
+          job_id?: string | null
+          occurred_at?: string
+          sequence_number: number
+          state: string
+        }
+        Update: {
+          analysis_run_id?: string
+          analysis_run_lifecycle_event_id?: string
+          attempt_id?: string | null
+          failure_category?: string | null
+          job_id?: string | null
+          occurred_at?: string
+          sequence_number?: number
+          state?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analysis_run_lifecycle_events_analysis_run_id_fkey"
+            columns: ["analysis_run_id"]
+            isOneToOne: false
+            referencedRelation: "analysis_runs"
+            referencedColumns: ["analysis_run_id"]
+          },
+        ]
+      }
+      analysis_run_outbox_events: {
+        Row: {
+          analysis_run_id: string
+          analysis_run_outbox_event_id: string
+          attempt_count: number
+          available_at: string
+          claim_expires_at: string | null
+          claim_token: string | null
+          claimed_by: string | null
+          created_at: string
+          dead_lettered_at: string | null
+          event_name: string
+          event_version: number
+          last_error_category: string | null
+          published_at: string | null
+          traceparent: string
+          tracestate: string | null
+          workspace_id: string
+        }
+        Insert: {
+          analysis_run_id: string
+          analysis_run_outbox_event_id?: string
+          attempt_count?: number
+          available_at?: string
+          claim_expires_at?: string | null
+          claim_token?: string | null
+          claimed_by?: string | null
+          created_at?: string
+          dead_lettered_at?: string | null
+          event_name?: string
+          event_version?: number
+          last_error_category?: string | null
+          published_at?: string | null
+          traceparent: string
+          tracestate?: string | null
+          workspace_id: string
+        }
+        Update: {
+          analysis_run_id?: string
+          analysis_run_outbox_event_id?: string
+          attempt_count?: number
+          available_at?: string
+          claim_expires_at?: string | null
+          claim_token?: string | null
+          claimed_by?: string | null
+          created_at?: string
+          dead_lettered_at?: string | null
+          event_name?: string
+          event_version?: number
+          last_error_category?: string | null
+          published_at?: string | null
+          traceparent?: string
+          tracestate?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analysis_run_outbox_events_analysis_run_id_fkey"
+            columns: ["analysis_run_id"]
+            isOneToOne: false
+            referencedRelation: "analysis_runs"
+            referencedColumns: ["analysis_run_id"]
+          },
+          {
+            foreignKeyName: "analysis_run_outbox_events_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "current_workspaces"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "analysis_run_outbox_events_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["workspace_id"]
+          },
+        ]
+      }
       analysis_runs: {
         Row: {
           analysis_run_id: string
@@ -1707,7 +1827,12 @@ export type Database = {
         }[]
       }
       start_analysis_run: {
-        Args: { p_requested_by: string; p_workspace_id: string }
+        Args: {
+          p_requested_by: string
+          p_traceparent: string
+          p_tracestate?: string
+          p_workspace_id: string
+        }
         Returns: {
           analysis_run_id: string
           created_at: string

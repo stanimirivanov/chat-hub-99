@@ -424,7 +424,9 @@ Each item is one reviewable vertical slice:
 1. **Atomic Analysis Run request event.** Add the append-only lifecycle ledger
    and capability-specific outbox. Change the existing start command to commit
    the run, `created` event, and `analysis_run.requested` event atomically. No
-   worker or job table yet.
+   worker or job table yet. **Completed:** the server supplies validated W3C
+   correlation, the RPC commits all three records, internal tables deny direct
+   browser/service-role access, and pgTAP proves rollback and immutability.
 2. **Durable Analysis job dispatch.** Add the capability-specific job and
    attempt schema plus one idempotent dispatcher command that converts the
    requested event into a queued job. Exercise it through application and

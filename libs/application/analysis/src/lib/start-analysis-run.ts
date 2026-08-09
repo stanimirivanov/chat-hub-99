@@ -11,6 +11,7 @@ import { decodeStartRequest } from './decode-analysis-run-request';
 export interface StartAnalysisRunInput {
   readonly identity: AuthenticatedRequestIdentity;
   readonly workspaceId: unknown;
+  readonly traceContext: unknown;
 }
 
 /** Validates identity and workspace scope before atomically starting one run. */

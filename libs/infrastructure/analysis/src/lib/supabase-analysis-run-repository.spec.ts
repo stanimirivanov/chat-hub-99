@@ -23,6 +23,10 @@ const client = (
 const command = {
   identity: { userId: row.requested_by },
   workspaceId: row.workspace_id,
+  traceContext: {
+    traceparent: '00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01',
+    tracestate: 'omoikane=test',
+  },
 } as Parameters<
   ReturnType<typeof makeSupabaseAnalysisRunRepository>['start']
 >[0];
@@ -41,6 +45,26 @@ describe('makeSupabaseAnalysisRunRepository', () => {
     expect(start).toHaveBeenCalledExactlyOnceWith({
       p_workspace_id: row.workspace_id,
       p_requested_by: row.requested_by,
+      p_traceparent: command.traceContext.traceparent,
+      p_tracestate: command.traceContext.tracestate,
+    });
+  });
+
+  it('omits absent tracestate so the RPC applies its null default', async () => {
+    const start = vi.fn().mockResolvedValue({ data: [row], error: null });
+    const repository = makeSupabaseAnalysisRunRepository(client({ start }));
+
+    await Effect.runPromise(
+      repository.start({
+        ...command,
+        traceContext: { ...command.traceContext, tracestate: null },
+      })
+    );
+
+    expect(start).toHaveBeenCalledExactlyOnceWith({
+      p_workspace_id: row.workspace_id,
+      p_requested_by: row.requested_by,
+      p_traceparent: command.traceContext.traceparent,
     });
   });
 
