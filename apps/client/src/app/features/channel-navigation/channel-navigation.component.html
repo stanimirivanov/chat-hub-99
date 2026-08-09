@@ -23,6 +23,13 @@
     </button>
   }
 
+  @if (store.unreadRealtimeError(); as error) {
+    <p role="alert">{{ error.message }}</p>
+    <button type="button" (click)="store.retryUnreadRealtime()">
+      Retry live unread updates
+    </button>
+  }
+
   @if (store.isLoading()) {
     <p>Loading channels&hellip;</p>
   } @else if (store.error(); as error) {

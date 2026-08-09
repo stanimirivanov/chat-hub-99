@@ -51,8 +51,9 @@ The approved Word documents were imported as reviewable Markdown on
 - server and worker readiness, Redis connectivity, and distributed trace gates
   are evaluated when those runtimes are introduced in Phases 3 and 4, not in
   Phase 1;
-- presence and typing indicators are planned Phase 2 capabilities and are not
-  described as existing behavior.
+- presence, typing, search, and persisted realtime unread reconciliation were
+  implemented as conservative Phase 2 vertical slices after the source
+  documents were imported.
 
 These clarifications align the approved direction with the repository without
 changing application behavior.

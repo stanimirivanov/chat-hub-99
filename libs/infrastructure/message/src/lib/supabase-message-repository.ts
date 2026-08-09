@@ -11,7 +11,10 @@ import { listMessagesByChannel } from './queries/list-messages-by-channel';
 import { listMessageRevisions } from './queries/list-message-revisions';
 import { searchWorkspaceMessages } from './queries/search-workspace-messages';
 import { listWorkspaceChannelUnreadCounts } from './queries/list-workspace-channel-unread-counts';
-import { makeMessageChangesStream } from './realtime';
+import {
+  makeMessageChangesStream,
+  makeWorkspaceUnreadChangesStream,
+} from './realtime';
 import type { SupabaseMessageClient } from './supabase-message-client';
 
 /**
@@ -33,6 +36,8 @@ export const makeSupabaseMessageRepository = (
   listUnreadByWorkspace: (workspaceId) =>
     listWorkspaceChannelUnreadCounts(client, workspaceId),
   markRead: (command) => markChannelRead(client, command),
+  unreadChangesByWorkspace: (workspaceId) =>
+    makeWorkspaceUnreadChangesStream(client, workspaceId),
   listRevisions: (query) => listMessageRevisions(client, query),
   changesByChannel: (channelId) => makeMessageChangesStream(client, channelId),
 });

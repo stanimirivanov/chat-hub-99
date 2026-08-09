@@ -64,6 +64,11 @@ const updatedDetails: UpdatedChannelDetails = {
 const makeObserveWorkspaceChannels = (cleanup = vi.fn()) =>
   vi.fn<ChannelApplicationService['observeWorkspaceChannels']>(() => cleanup);
 
+const makeObserveWorkspaceUnreadCounts = (cleanup = vi.fn()) =>
+  vi.fn<MessageApplicationService['observeWorkspaceChannelUnreadCounts']>(
+    () => cleanup
+  );
+
 const configureStore = (
   listWorkspaceChannels = vi.fn().mockResolvedValue(Either.right([channel])),
   createChannel = vi.fn().mockResolvedValue(Either.right(createdChannel)),
@@ -73,7 +78,8 @@ const configureStore = (
   listWorkspaceChannelUnreadCounts = vi
     .fn()
     .mockResolvedValue(Either.right([])),
-  markChannelRead = vi.fn().mockResolvedValue(Either.right(undefined))
+  markChannelRead = vi.fn().mockResolvedValue(Either.right(undefined)),
+  observeWorkspaceChannelUnreadCounts = makeObserveWorkspaceUnreadCounts()
 ) => {
   TestBed.configureTestingModule({
     providers: [
@@ -93,6 +99,7 @@ const configureStore = (
         useValue: {
           listWorkspaceChannelUnreadCounts,
           markChannelRead,
+          observeWorkspaceChannelUnreadCounts,
         },
       },
     ],
@@ -107,6 +114,7 @@ const configureStore = (
     updateChannel,
     listWorkspaceChannelUnreadCounts,
     markChannelRead,
+    observeWorkspaceChannelUnreadCounts,
   };
 };
 
@@ -319,6 +327,95 @@ describe('ChannelNavigationStore', () => {
     store.retryRealtime();
     expect(observeWorkspaceChannels).toHaveBeenCalledTimes(2);
     expect(store.realtimeStatus()).toBe('observing');
+  });
+
+  it('reconciles unread snapshots after realtime readiness and changes', async () => {
+    const observeWorkspaceChannelUnreadCounts =
+      makeObserveWorkspaceUnreadCounts();
+    const { store } = configureStore(
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      observeWorkspaceChannelUnreadCounts
+    );
+    await store.load(workspaceId);
+
+    const onCounts = observeWorkspaceChannelUnreadCounts.mock.calls[0]?.[1];
+    onCounts?.([{ channelId, unreadCount: 4 }]);
+
+    expect(store.unreadCountByChannel().get(channelId)).toBe(4);
+    expect(store.unreadStatus()).toBe('loaded');
+    expect(store.unreadRealtimeStatus()).toBe('observing');
+    expect(store.unreadRealtimeError()).toBeNull();
+  });
+
+  it('releases stale unread observation and ignores its late snapshot', async () => {
+    const cleanups = [vi.fn(), vi.fn()];
+    const observeWorkspaceChannelUnreadCounts = vi
+      .fn<MessageApplicationService['observeWorkspaceChannelUnreadCounts']>()
+      .mockReturnValueOnce(cleanups[0])
+      .mockReturnValueOnce(cleanups[1]);
+    const listWorkspaceChannels = vi
+      .fn()
+      .mockResolvedValueOnce(Either.right([channel]))
+      .mockResolvedValueOnce(Either.right([]));
+    const { store } = configureStore(
+      listWorkspaceChannels,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      observeWorkspaceChannelUnreadCounts
+    );
+    await store.load(workspaceId);
+    const oldSnapshot = observeWorkspaceChannelUnreadCounts.mock.calls[0]?.[1];
+
+    await store.load(nextWorkspaceId);
+    oldSnapshot?.([{ channelId, unreadCount: 8 }]);
+
+    expect(cleanups[0]).toHaveBeenCalledOnce();
+    expect(store.workspaceId()).toBe(nextWorkspaceId);
+    expect(store.unreadCounts()).toEqual([]);
+  });
+
+  it('preserves unread counts and retries failed realtime reconciliation', async () => {
+    const observeWorkspaceChannelUnreadCounts =
+      makeObserveWorkspaceUnreadCounts();
+    const { store } = configureStore(
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      vi
+        .fn()
+        .mockResolvedValue(
+          Either.right([{ channelId, unreadCount: 3 }] as const)
+        ),
+      undefined,
+      observeWorkspaceChannelUnreadCounts
+    );
+    await store.load(workspaceId);
+
+    const onError = observeWorkspaceChannelUnreadCounts.mock.calls[0]?.[2];
+    onError?.(new Error('Realtime unavailable') as never);
+
+    expect(store.unreadCountByChannel().get(channelId)).toBe(3);
+    expect(store.unreadRealtimeStatus()).toBe('failed');
+    expect(store.unreadRealtimeError()).toEqual({
+      message: 'Live unread updates are unavailable. Retry to reconnect.',
+    });
+
+    store.retryUnreadRealtime();
+
+    expect(observeWorkspaceChannelUnreadCounts).toHaveBeenCalledTimes(2);
+    expect(store.unreadRealtimeStatus()).toBe('observing');
   });
 
   it('exposes a safe error and permits retry', async () => {

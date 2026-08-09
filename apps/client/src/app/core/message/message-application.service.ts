@@ -10,6 +10,7 @@ import {
   listWorkspaceChannelUnreadCounts,
   markChannelRead,
   observeChannelMessages,
+  observeWorkspaceChannelUnreadCounts,
   searchWorkspaceMessages,
   type CreateMessageError,
   type CreateMessageInput,
@@ -26,6 +27,7 @@ import {
   type MessageRevisionPage,
   type MessageChange,
   type ObserveChannelMessagesError,
+  type ObserveWorkspaceChannelUnreadCountsError,
   type SearchWorkspaceMessagesError,
   type SearchWorkspaceMessagesInput,
   type WorkspaceMessageSearchResult,
@@ -144,6 +146,37 @@ export class MessageApplicationService {
       Stream.runForEach((change) =>
         Effect.sync(() => {
           onChange(change);
+        })
+      ),
+      Effect.catchAll((error) =>
+        Effect.sync(() => {
+          onError(error);
+        })
+      )
+    );
+    const fiber = applicationRuntime.runFork(program);
+
+    return () => {
+      void applicationRuntime.runPromise(Fiber.interrupt(fiber));
+    };
+  }
+
+  /**
+   * Starts authoritative unread-count reconciliation for one workspace.
+   *
+   * The first callback follows provider subscription readiness; later
+   * callbacks follow database invalidations. Cleanup interrupts the Fiber and
+   * releases both underlying private Supabase channels.
+   */
+  observeWorkspaceChannelUnreadCounts(
+    workspaceId: WorkspaceId,
+    onCounts: (counts: readonly ChannelUnreadCount[]) => void,
+    onError: (error: ObserveWorkspaceChannelUnreadCountsError) => void
+  ): () => void {
+    const program = observeWorkspaceChannelUnreadCounts({ workspaceId }).pipe(
+      Stream.runForEach((counts) =>
+        Effect.sync(() => {
+          onCounts(counts);
         })
       ),
       Effect.catchAll((error) =>
