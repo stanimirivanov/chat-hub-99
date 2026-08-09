@@ -54,6 +54,10 @@ class ChannelMessagesStubComponent {
   readonly channelId = input.required<typeof channel.id>();
   readonly focusedMessageId = input<MessageId | null>(null);
   readonly canModerateMessages = input(false);
+  readonly readThrough = output<{
+    readonly channelId: typeof channel.id;
+    readonly messageId: MessageId;
+  }>();
 }
 
 @Component({
@@ -73,12 +77,14 @@ const configureComponent = async ({
   selectedChannel = null,
   canManageChannels = false,
   canModerateMessages = false,
+  unreadCount = 0,
 }: {
   readonly queryParams: Params;
   readonly channels?: readonly Channel[];
   readonly selectedChannel?: Channel | null;
   readonly canManageChannels?: boolean;
   readonly canModerateMessages?: boolean;
+  readonly unreadCount?: number;
 }) => {
   const queryParamMap = new BehaviorSubject(convertToParamMap(queryParams));
   const route = {
@@ -103,6 +109,10 @@ const configureComponent = async ({
     loadStatus: signal('loaded'),
     error: signal(null),
     realtimeError: signal(null),
+    unreadError: signal(null),
+    unreadCountByChannel: signal(
+      new Map(unreadCount > 0 ? [[channelId, unreadCount]] : [])
+    ),
     creationError: signal(null),
     updateError: signal(null),
     archiveError: signal(null),
@@ -117,6 +127,8 @@ const configureComponent = async ({
     clearUpdateError: vi.fn(),
     clearArchiveError: vi.fn(),
     retryRealtime: vi.fn(),
+    retryUnreadCounts: vi.fn(),
+    markChannelRead: vi.fn().mockResolvedValue(undefined),
   };
 
   TestBed.overrideComponent(ChannelNavigationComponent, {
@@ -226,6 +238,26 @@ describe('ChannelNavigationComponent', () => {
     expect(messages.canModerateMessages()).toBe(true);
   });
 
+  it('persists the exact newest message reported by channel history', async () => {
+    const { fixture, store } = await configureComponent({
+      queryParams: {
+        workspace: workspaceSlug,
+        channel: channel.slug,
+      },
+      selectedChannel: channel,
+    });
+    const messages = fixture.debugElement.query(
+      By.directive(ChannelMessagesStubComponent)
+    ).componentInstance as ChannelMessagesStubComponent;
+
+    messages.readThrough.emit({ channelId, messageId });
+
+    expect(store.markChannelRead).toHaveBeenCalledExactlyOnceWith({
+      channelId,
+      messageId,
+    });
+  });
+
   it('forwards a validated exact-message route to channel history', async () => {
     const { fixture } = await configureComponent({
       queryParams: {
@@ -285,6 +317,19 @@ describe('ChannelNavigationComponent', () => {
       },
       queryParamsHandling: 'merge',
     });
+  });
+
+  it('renders an accessible unread count beside its channel', async () => {
+    const { fixture } = await configureComponent({
+      queryParams: {},
+      unreadCount: 3,
+    });
+
+    const badge = fixture.nativeElement.querySelector(
+      '[aria-label="3 unread messages"]'
+    );
+
+    expect(badge?.textContent).toContain('3');
   });
 
   it('clears the route when realtime removes the selected channel', async () => {

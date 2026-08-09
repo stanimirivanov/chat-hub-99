@@ -10,6 +10,7 @@ import type {
   CreateMessageCommand,
   DeleteMessageCommand,
   EditMessageCommand,
+  MarkChannelReadCommand,
 } from './message-repository-command';
 import type {
   MessageRepositoryCreateError,
@@ -56,6 +57,12 @@ export type MessageSearchChannel = Pick<Channel, 'id' | 'name' | 'slug'>;
 export interface WorkspaceMessageSearchResult {
   readonly message: ActiveMessage;
   readonly channel: MessageSearchChannel;
+}
+
+/** Authoritative unread-message count for one active workspace channel. */
+export interface ChannelUnreadCount {
+  readonly channelId: ChannelId;
+  readonly unreadCount: number;
 }
 
 /**
@@ -117,6 +124,16 @@ export interface MessageRepository {
     readonly WorkspaceMessageSearchResult[],
     MessageRepositoryError
   >;
+
+  /** Returns one unread-count snapshot for every active workspace channel. */
+  readonly listUnreadByWorkspace: (
+    workspaceId: WorkspaceId
+  ) => Effect.Effect<readonly ChannelUnreadCount[], MessageRepositoryError>;
+
+  /** Advances the current member through one exact loaded channel message. */
+  readonly markRead: (
+    command: MarkChannelReadCommand
+  ) => Effect.Effect<void, MessageRepositoryError>;
 
   /** Returns one newest-first page of immutable revisions for a message. */
   readonly listRevisions: (

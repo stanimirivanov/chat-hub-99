@@ -7,7 +7,7 @@ external systems.
 ## Responsibilities
 
 - Use cases for creating, editing, deleting, listing, observing, inspecting,
-  and searching channel messages
+  searching, and tracking channel read state
 - Input validation that belongs to a use-case boundary
 - Pagination query and result contracts
 - Typed application and repository failures
@@ -59,6 +59,10 @@ Cross-use-case contracts remain near the package root:
   identities. It deliberately does not define a generic search abstraction.
 - `get-channel-message/` resolves an exact RLS-visible search target and checks
   its selected-channel ownership without iterating message-history pages.
+- `list-workspace-channel-unread-counts/` returns the authenticated member's
+  database-authoritative snapshot for active channels in one workspace.
+- `mark-channel-read/` advances one selected channel through the repository;
+  the database owns monotonicity and the exact message-ordering position.
 - `pagination/` contains pagination value types shared by callers and the
   repository port. Channel pages use the compound creation-time/message-ID
   cursor, while revision pages use the message-local monotonic version number.
@@ -87,6 +91,19 @@ Message creation targets a channel rather than an existing message, so its
 corresponding archived-parent outcome is the separate
 `MessageCreationNotAllowedError`. That error carries the requested channel
 identity and is present only in the create operation's failure contract.
+
+## Read-position ownership
+
+The application exposes only two capability-specific operations: load a
+workspace unread snapshot and mark one channel read. It does not expose the
+storage row or an arbitrary ordering cursor. The presentation supplies the
+stable identity of the newest message it actually loaded; persistence verifies
+channel ownership and guarantees that concurrent commands cannot move a
+member's position backwards.
+
+The initial slice deliberately has snapshot semantics. Realtime unread
+reconciliation remains a separate capability so its subscription scope and
+lifecycle can be designed from concrete UI behavior.
 
 ## Import policy
 

@@ -16,6 +16,13 @@
     </button>
   }
 
+  @if (store.unreadError(); as error) {
+    <p role="alert">{{ error.message }}</p>
+    <button type="button" (click)="store.retryUnreadCounts()">
+      Retry unread state
+    </button>
+  }
+
   @if (store.isLoading()) {
     <p>Loading channels&hellip;</p>
   } @else if (store.error(); as error) {
@@ -122,6 +129,16 @@
                 (click)="navigateToChannel(channel.slug)"
               >
                 {{ channel.name }}
+                @if (
+                  store.unreadCountByChannel().get(channel.id) ?? 0;
+                  as unreadCount
+                ) {
+                  @if (unreadCount > 0) {
+                    <span [attr.aria-label]="unreadCount + ' unread messages'">
+                      ({{ unreadCount }})
+                    </span>
+                  }
+                }
               </button>
             </li>
           }
@@ -243,6 +260,7 @@
             [channelId]="channel.id"
             [focusedMessageId]="focusedMessageId()"
             [canModerateMessages]="canModerateMessages()"
+            (readThrough)="store.markChannelRead($event)"
           />
         </section>
       } @else {

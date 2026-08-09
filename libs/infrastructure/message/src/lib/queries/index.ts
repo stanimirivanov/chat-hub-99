@@ -12,3 +12,4 @@ export {
 } from './list-messages-by-channel';
 
 export { searchWorkspaceMessages } from './search-workspace-messages';
+export { listWorkspaceChannelUnreadCounts } from './list-workspace-channel-unread-counts';

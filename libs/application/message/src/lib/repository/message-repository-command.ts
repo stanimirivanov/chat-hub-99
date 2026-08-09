@@ -23,3 +23,9 @@ export interface EditMessageCommand {
 export interface DeleteMessageCommand {
   readonly messageId: MessageId;
 }
+
+/** Exact loaded message position through which a channel was observed. */
+export interface MarkChannelReadCommand {
+  readonly channelId: ChannelId;
+  readonly messageId: MessageId;
+}

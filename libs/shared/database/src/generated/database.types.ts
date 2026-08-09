@@ -65,6 +65,90 @@ export type Database = {
           },
         ]
       }
+      channel_read_positions: {
+        Row: {
+          channel_id: string
+          last_read_message_created_at: string
+          last_read_message_id: string
+          updated_at: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          channel_id: string
+          last_read_message_created_at: string
+          last_read_message_id: string
+          updated_at?: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          channel_id?: string
+          last_read_message_created_at?: string
+          last_read_message_id?: string
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channel_read_positions_channel_fkey"
+            columns: ["channel_id", "workspace_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["channel_id", "workspace_id"]
+          },
+          {
+            foreignKeyName: "channel_read_positions_channel_fkey"
+            columns: ["channel_id", "workspace_id"]
+            isOneToOne: false
+            referencedRelation: "current_channels"
+            referencedColumns: ["channel_id", "workspace_id"]
+          },
+          {
+            foreignKeyName: "channel_read_positions_membership_fkey"
+            columns: ["workspace_id", "user_id"]
+            isOneToOne: false
+            referencedRelation: "current_workspace_memberships"
+            referencedColumns: ["workspace_id", "user_id"]
+          },
+          {
+            foreignKeyName: "channel_read_positions_membership_fkey"
+            columns: ["workspace_id", "user_id"]
+            isOneToOne: false
+            referencedRelation: "workspace_memberships"
+            referencedColumns: ["workspace_id", "user_id"]
+          },
+          {
+            foreignKeyName: "channel_read_positions_message_channel_fkey"
+            columns: ["last_read_message_id", "channel_id"]
+            isOneToOne: false
+            referencedRelation: "current_messages"
+            referencedColumns: ["message_id", "channel_id"]
+          },
+          {
+            foreignKeyName: "channel_read_positions_message_channel_fkey"
+            columns: ["last_read_message_id", "channel_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["message_id", "channel_id"]
+          },
+          {
+            foreignKeyName: "channel_read_positions_message_workspace_fkey"
+            columns: ["last_read_message_id", "workspace_id"]
+            isOneToOne: false
+            referencedRelation: "current_messages"
+            referencedColumns: ["message_id", "workspace_id"]
+          },
+          {
+            foreignKeyName: "channel_read_positions_message_workspace_fkey"
+            columns: ["last_read_message_id", "workspace_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["message_id", "workspace_id"]
+          },
+        ]
+      }
       channel_versions: {
         Row: {
           channel_id: string
@@ -1448,6 +1532,17 @@ export type Database = {
           workspace_id: string
           workspace_invitation_id: string
         }[]
+      }
+      list_workspace_channel_unread_counts: {
+        Args: { p_workspace_id: string }
+        Returns: {
+          channel_id: string
+          unread_count: number
+        }[]
+      }
+      mark_channel_read: {
+        Args: { p_channel_id: string; p_message_id: string }
+        Returns: string
       }
       remove_workspace_member: {
         Args: { p_reason?: string; p_user_id: string; p_workspace_id: string }

@@ -2,7 +2,7 @@
 
 > **Document ID:** OMO-ARC-001  
 > **Status:** Implemented architecture snapshot  
-> **Last verified:** 8 August 2026
+> **Last verified:** 9 August 2026
 
 ## Purpose and scope
 
@@ -14,22 +14,23 @@ authentication, persistence, authorization, and realtime platform.
 The implemented collaboration baseline includes authentication, profiles,
 workspace and channel lifecycle, membership and invitations, persisted
 messages, message revision history, archive restoration, keyset pagination,
-and selected realtime reconciliation, including advisory workspace presence.
-Search and unread tracking remain explicit Phase 2 work.
+workspace message search, initial per-member unread snapshots, and selected
+realtime reconciliation, including advisory workspace presence. Realtime unread
+reconciliation remains explicit Phase 2 work.
 
 ## Capability map
 
-| Capability     | Implemented behavior                                                                                                           | Primary application boundary | Presentation owner                                                                             |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------ | ---------------------------- | ---------------------------------------------------------------------------------------------- |
-| Authentication | Session restoration and observation, sign-in, sign-up, confirmation resend, password recovery, password update, and sign-out   | `AuthenticationService`      | Root-scoped `AuthenticationStore`                                                              |
-| Profiles       | Current-profile lookup and editing, exact username lookup, and batched profile enrichment                                      | `ProfileRepository`          | Feature-scoped `CurrentProfileStore`; consuming features retain their own enriched projections |
-| Workspaces     | Accessible and archived lists, selection, creation, editing, archive, restoration, and self-service departure                  | `WorkspaceRepository`        | `WorkspaceNavigationStore` plus an independently scoped archived-list store                    |
-| Membership     | Owner-first keyset pagination, add, role change, remove, suspend, leave, and capability-driven UI                              | `WorkspaceRepository`        | `WorkspaceMemberDirectoryStore`                                                                |
-| Invitations    | Create, list for recipient and owner, accept, decline, and cancel                                                              | `WorkspaceRepository`        | `WorkspaceInvitationsStore`                                                                    |
-| Channels       | Active and archived lists, selection, creation, editing, archive, and restoration                                              | `ChannelRepository`          | `ChannelNavigationStore` plus an independently scoped archived-list store                      |
-| Messages       | Newest-first keyset pagination, create, edit, soft delete, realtime updates, author enrichment, and immutable revision history | `MessageRepository`          | `ChannelMessagesStore`                                                                         |
-| Presence       | Active-workspace private Presence observation and a deduplicated online-member count                                           | `WorkspacePresenceService`   | `WorkspacePresenceStore`                                                                       |
-| Typing         | Active-channel start/stop Broadcast events with throttling and expiry                                                          | `ChannelTypingService`       | `ChannelTypingStore`                                                                           |
+| Capability     | Implemented behavior                                                                                                         | Primary application boundary | Presentation owner                                                                             |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------- |
+| Authentication | Session restoration and observation, sign-in, sign-up, confirmation resend, password recovery, password update, and sign-out | `AuthenticationService`      | Root-scoped `AuthenticationStore`                                                              |
+| Profiles       | Current-profile lookup and editing, exact username lookup, and batched profile enrichment                                    | `ProfileRepository`          | Feature-scoped `CurrentProfileStore`; consuming features retain their own enriched projections |
+| Workspaces     | Accessible and archived lists, selection, creation, editing, archive, restoration, and self-service departure                | `WorkspaceRepository`        | `WorkspaceNavigationStore` plus an independently scoped archived-list store                    |
+| Membership     | Owner-first keyset pagination, add, role change, remove, suspend, leave, and capability-driven UI                            | `WorkspaceRepository`        | `WorkspaceMemberDirectoryStore`                                                                |
+| Invitations    | Create, list for recipient and owner, accept, decline, and cancel                                                            | `WorkspaceRepository`        | `WorkspaceInvitationsStore`                                                                    |
+| Channels       | Active and archived lists, selection, creation, editing, archive, and restoration                                            | `ChannelRepository`          | `ChannelNavigationStore` plus an independently scoped archived-list store                      |
+| Messages       | Newest-first keyset pagination, mutations, realtime updates, search, revisions, and persisted per-member read positions      | `MessageRepository`          | `ChannelMessagesStore`; `ChannelNavigationStore` owns unread navigation state                  |
+| Presence       | Active-workspace private Presence observation and a deduplicated online-member count                                         | `WorkspacePresenceService`   | `WorkspacePresenceStore`                                                                       |
+| Typing         | Active-channel start/stop Broadcast events with throttling and expiry                                                        | `ChannelTypingService`       | `ChannelTypingStore`                                                                           |
 
 Workspace administration and invitations currently share one application port.
 That reflects their common persistence and authorization boundary; it should be
@@ -123,7 +124,7 @@ AuthenticationStore (root session)
        -> WorkspaceMemberDirectoryStore
        -> WorkspaceInvitationsStore
        -> ArchivedWorkspaceListStore
-       -> ChannelNavigationStore (selected workspace's channels and selection)
+       -> ChannelNavigationStore (channels, selection, and unread snapshots)
             -> ArchivedChannelListStore
             -> ChannelTypingStore
             -> ChannelMessagesStore (selected channel's messages and history)
@@ -216,9 +217,10 @@ by RLS; enrichment does not redefine the authorization of the primary record.
 ## Explicit Phase 2 gaps
 
 The following capability is not implemented and must not be inferred from the
-existing realtime infrastructure:
+existing message or navigation realtime infrastructure:
 
-- per-member read positions, unread counts, and realtime unread reconciliation.
+- realtime reconciliation of unread counts for messages arriving outside the
+  selected channel.
 
 Reactions, threads, attachments, notification delivery, invitation delivery,
 and avatar uploads are optional product expansions rather than Phase 2 exit
@@ -232,9 +234,14 @@ loads the stable message directly in a separate focused projection without
 changing the contiguous recent-history page, so pagination state remains
 truthful.
 
-The next conservative vertical slice is per-member read positions and unread
-counts. It should establish the persisted read-position invariant and initial
-navigation counts before adding realtime reconciliation.
+Persisted read positions use the immutable `(message created at, message ID)`
+ordering tuple and advance only through a database command derived from the
+authenticated member. Channel navigation loads an authoritative workspace
+snapshot and clears a selected channel only after the message feature reports
+the exact newest message it loaded and the mark-read command succeeds.
+The next conservative vertical slice is realtime unread reconciliation; it must
+preserve this persisted authority and own a workspace-scoped subscription
+lifecycle explicitly.
 
 ## Verification references
 

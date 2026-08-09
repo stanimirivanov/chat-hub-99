@@ -5,6 +5,7 @@ export {
   type ListMessageRevisionsQuery,
   type SearchWorkspaceMessagesQuery,
   type MessageSearchChannel,
+  type ChannelUnreadCount,
   type WorkspaceMessageSearchResult,
   type MessageRepository,
 } from './message-repository';
@@ -13,6 +14,7 @@ export type {
   CreateMessageCommand,
   DeleteMessageCommand,
   EditMessageCommand,
+  MarkChannelReadCommand,
 } from './message-repository-command';
 
 export {

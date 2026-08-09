@@ -1,7 +1,10 @@
 import type { Channel, ChannelId } from '@omoikane/domain/channel';
 import type { WorkspaceId } from '@omoikane/domain/workspace';
+import type { ChannelUnreadCount } from '@omoikane/application/message';
 
 export type ChannelLoadStatus = 'idle' | 'loading' | 'loaded' | 'failed';
+
+export type ChannelUnreadStatus = 'idle' | 'loading' | 'loaded' | 'failed';
 
 /** Lifecycle of the selected workspace's channel observation. */
 export type ChannelNavigationRealtimeStatus = 'idle' | 'observing' | 'failed';
@@ -34,6 +37,9 @@ export interface ChannelNavigationState {
   readonly selectedChannelId: ChannelId | null;
   readonly loadStatus: ChannelLoadStatus;
   readonly error: ChannelNavigationError | null;
+  readonly unreadCounts: readonly ChannelUnreadCount[];
+  readonly unreadStatus: ChannelUnreadStatus;
+  readonly unreadError: ChannelNavigationError | null;
   readonly realtimeStatus: ChannelNavigationRealtimeStatus;
   readonly realtimeError: ChannelNavigationError | null;
   readonly creationStatus: ChannelCreationStatus;
@@ -51,6 +57,9 @@ export const initialChannelNavigationState: ChannelNavigationState = {
   selectedChannelId: null,
   loadStatus: 'idle',
   error: null,
+  unreadCounts: [],
+  unreadStatus: 'idle',
+  unreadError: null,
   realtimeStatus: 'idle',
   realtimeError: null,
   creationStatus: 'idle',

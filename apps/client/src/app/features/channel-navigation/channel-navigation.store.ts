@@ -7,6 +7,10 @@ import type {
   UpdateChannelError,
   UpdateChannelInput,
 } from '@omoikane/application/channel';
+import type {
+  ChannelUnreadCount,
+  MarkChannelReadInput,
+} from '@omoikane/application/message';
 import {
   patchState,
   signalStore,
@@ -17,6 +21,7 @@ import {
 import type { Channel, ChannelId } from '@omoikane/domain/channel';
 import type { WorkspaceId } from '@omoikane/domain/workspace';
 import { ChannelApplicationService } from '@client/core/channel/channel-application.service';
+import { MessageApplicationService } from '@client/core/message/message-application.service';
 import { initialChannelNavigationState } from './channel-navigation.state';
 
 /**
@@ -31,6 +36,14 @@ export const ChannelNavigationStore = signalStore(
     isUpdating: computed(() => store.updateStatus() === 'updating'),
     isArchiving: computed(() => store.archiveStatus() === 'archiving'),
     hasChannels: computed(() => store.channels().length > 0),
+    unreadCountByChannel: computed(
+      () =>
+        new Map(
+          store
+            .unreadCounts()
+            .map((entry) => [entry.channelId, entry.unreadCount] as const)
+        )
+    ),
     selectedChannel: computed(() => {
       const selectedChannelId = store.selectedChannelId();
 
@@ -45,6 +58,7 @@ export const ChannelNavigationStore = signalStore(
     (
       store,
       channelApplication = inject(ChannelApplicationService),
+      messageApplication = inject(MessageApplicationService),
       destroyRef = inject(DestroyRef)
     ) => {
       let requestVersion = 0;
@@ -57,6 +71,51 @@ export const ChannelNavigationStore = signalStore(
         readonly workspaceId: WorkspaceId;
         readonly promise: Promise<void>;
       } | null = null;
+      let failedReadInput: MarkChannelReadInput | null = null;
+
+      const replaceUnreadCount = (
+        counts: readonly ChannelUnreadCount[],
+        channelId: ChannelId,
+        unreadCount: number
+      ): readonly ChannelUnreadCount[] => [
+        ...counts.filter((entry) => entry.channelId !== channelId),
+        { channelId, unreadCount },
+      ];
+
+      const persistReadPosition = async (
+        workspaceId: WorkspaceId,
+        input: MarkChannelReadInput
+      ): Promise<void> => {
+        const result = await messageApplication.markChannelRead(input);
+
+        if (store.workspaceId() !== workspaceId) {
+          return;
+        }
+
+        Either.match(result, {
+          onLeft: () => {
+            failedReadInput = input;
+            patchState(store, {
+              unreadError: {
+                message:
+                  'The channel read position could not be saved. Please try again.',
+              },
+            });
+          },
+          onRight: () => {
+            failedReadInput = null;
+            patchState(store, {
+              unreadCounts: replaceUnreadCount(
+                store.unreadCounts(),
+                input.channelId,
+                0
+              ),
+              unreadError:
+                store.unreadStatus() === 'failed' ? store.unreadError() : null,
+            });
+          },
+        });
+      };
 
       /**
        * Preserves one just-completed local mutation against an older snapshot
@@ -231,6 +290,7 @@ export const ChannelNavigationStore = signalStore(
           if (workspaceChanged) {
             stopRealtime(false);
             locallyIncludedChannels.clear();
+            failedReadInput = null;
           }
 
           patchState(store, {
@@ -239,6 +299,9 @@ export const ChannelNavigationStore = signalStore(
             selectedChannelId: null,
             loadStatus: 'loading',
             error: null,
+            unreadCounts: [],
+            unreadStatus: 'loading',
+            unreadError: null,
             realtimeStatus: 'idle',
             realtimeError: null,
             ...(workspaceChanged
@@ -258,12 +321,34 @@ export const ChannelNavigationStore = signalStore(
               : {}),
           });
 
-          const promise = channelApplication
-            .listWorkspaceChannels(workspaceId)
-            .then((result) => {
+          const promise = Promise.all([
+            channelApplication.listWorkspaceChannels(workspaceId),
+            messageApplication.listWorkspaceChannelUnreadCounts(workspaceId),
+          ])
+            .then(([result, unreadResult]) => {
               if (version !== requestVersion) {
                 return;
               }
+
+              Either.match(unreadResult, {
+                onLeft: () => {
+                  patchState(store, {
+                    unreadCounts: [],
+                    unreadStatus: 'failed',
+                    unreadError: {
+                      message:
+                        'Unread counts are currently unavailable. Please try again.',
+                    },
+                  });
+                },
+                onRight: (unreadCounts) => {
+                  patchState(store, {
+                    unreadCounts,
+                    unreadStatus: 'loaded',
+                    unreadError: null,
+                  });
+                },
+              });
 
               Either.match(result, {
                 onLeft: () => {
@@ -305,6 +390,71 @@ export const ChannelNavigationStore = signalStore(
           if (workspaceId !== null) {
             startRealtime(workspaceId);
           }
+        },
+
+        /** Reloads the selected workspace's unread-count snapshot. */
+        async retryUnreadCounts(): Promise<void> {
+          const workspaceId = store.workspaceId();
+
+          if (workspaceId === null || store.unreadStatus() === 'loading') {
+            return;
+          }
+
+          if (failedReadInput !== null) {
+            await persistReadPosition(workspaceId, failedReadInput);
+            return;
+          }
+
+          const version = requestVersion;
+          patchState(store, {
+            unreadStatus: 'loading',
+            unreadError: null,
+          });
+
+          const result =
+            await messageApplication.listWorkspaceChannelUnreadCounts(
+              workspaceId
+            );
+
+          if (
+            version !== requestVersion ||
+            store.workspaceId() !== workspaceId
+          ) {
+            return;
+          }
+
+          Either.match(result, {
+            onLeft: () => {
+              patchState(store, {
+                unreadStatus: 'failed',
+                unreadError: {
+                  message:
+                    'Unread counts are currently unavailable. Please try again.',
+                },
+              });
+            },
+            onRight: (unreadCounts) => {
+              patchState(store, {
+                unreadCounts,
+                unreadStatus: 'loaded',
+                unreadError: null,
+              });
+            },
+          });
+        },
+
+        /** Persists and reconciles the exact newest message loaded by the UI. */
+        markChannelRead(input: MarkChannelReadInput): Promise<void> {
+          const workspaceId = store.workspaceId();
+
+          if (
+            workspaceId === null ||
+            !store.channels().some((channel) => channel.id === input.channelId)
+          ) {
+            return Promise.resolve();
+          }
+
+          return persistReadPosition(workspaceId, input);
         },
 
         /**

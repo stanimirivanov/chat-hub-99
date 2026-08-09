@@ -66,6 +66,10 @@ export type {
   EditMessageResult,
   DeleteMessageArgs,
   DeleteMessageResult,
+  MarkChannelReadArgs,
+  MarkChannelReadResult,
+  ListWorkspaceChannelUnreadCountsArgs,
+  ListWorkspaceChannelUnreadCountsResult,
   SearchWorkspaceMessagesArgs,
   SearchWorkspaceMessagesResult,
 } from './lib/command.types';
