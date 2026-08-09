@@ -63,6 +63,15 @@ export class ChannelMessageHistoryComponent {
     );
   }
 
+  protected retryFocusedMessage(): void {
+    const channelId = this.store.channelId();
+    const messageId = this.store.focusedMessageId();
+
+    if (channelId !== null && messageId !== null) {
+      void this.store.selectFocusedMessage(channelId, messageId);
+    }
+  }
+
   protected toggleRevisionHistory(messageId: MessageId): void {
     if (this.store.revisionHistoryMessageId() === messageId) {
       this.store.closeRevisionHistory();

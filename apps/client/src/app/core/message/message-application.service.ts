@@ -4,15 +4,18 @@ import {
   createMessage,
   deleteMessage,
   editMessage,
+  getChannelMessage,
   listChannelMessages,
   listMessageRevisions,
   observeChannelMessages,
+  searchWorkspaceMessages,
   type CreateMessageError,
   type CreateMessageInput,
   type DeleteMessageError,
   type DeleteMessageInput,
   type EditMessageError,
   type EditMessageInput,
+  type GetChannelMessageInput,
   type ListChannelMessagesError,
   type ListChannelMessagesInput,
   type ListMessageRevisionsError,
@@ -21,6 +24,10 @@ import {
   type MessageRevisionPage,
   type MessageChange,
   type ObserveChannelMessagesError,
+  type SearchWorkspaceMessagesError,
+  type SearchWorkspaceMessagesInput,
+  type WorkspaceMessageSearchResult,
+  type MessageRepositoryError,
 } from '@omoikane/application/message';
 import type { ChannelId } from '@omoikane/domain/channel';
 import type { Message } from '@omoikane/domain/message';
@@ -38,6 +45,27 @@ import { applicationRuntime } from '../effect/application-runtime';
   providedIn: 'root',
 })
 export class MessageApplicationService {
+  searchWorkspaceMessages(
+    input: SearchWorkspaceMessagesInput
+  ): Promise<
+    Either.Either<
+      readonly WorkspaceMessageSearchResult[],
+      SearchWorkspaceMessagesError
+    >
+  > {
+    return applicationRuntime.runPromise(
+      searchWorkspaceMessages(input).pipe(Effect.either)
+    );
+  }
+
+  getChannelMessage(
+    input: GetChannelMessageInput
+  ): Promise<Either.Either<Message, MessageRepositoryError>> {
+    return applicationRuntime.runPromise(
+      getChannelMessage(input).pipe(Effect.either)
+    );
+  }
+
   listChannelMessages(
     input: ListChannelMessagesInput
   ): Promise<Either.Either<MessagePage, ListChannelMessagesError>> {

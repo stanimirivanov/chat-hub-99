@@ -1,3 +1,31 @@
+@if (store.focusedMessageStatus() === 'loading') {
+  <p aria-live="polite">Loading the selected search result&hellip;</p>
+} @else if (store.focusedMessageError()) {
+  <p role="alert">The selected search result is no longer available.</p>
+  <button type="button" (click)="retryFocusedMessage()">Retry result</button>
+} @else if (store.focusedMessage(); as focusedMessage) {
+  <section
+    [id]="'focused-message-' + focusedMessage.id"
+    aria-labelledby="focused-message-heading"
+    tabindex="-1"
+  >
+    <h4 id="focused-message-heading">Selected search result</h4>
+    <app-profile-avatar
+      [avatarUrl]="authorAvatarUrl(focusedMessage)"
+      [displayName]="authorAvatarName(focusedMessage)"
+    />
+    <strong>{{ authorLabel(focusedMessage) }}</strong>
+    <time [attr.datetime]="focusedMessage.createdAt.toISOString()">
+      {{ focusedMessage.createdAt | date: 'medium' }}
+    </time>
+    @if (focusedMessage.status === 'active') {
+      <p>{{ focusedMessage.content }}</p>
+    } @else {
+      <p><em>Message deleted</em></p>
+    }
+  </section>
+}
+
 @if (store.isLoading()) {
   <p>Loading messages&hellip;</p>
 } @else if (store.error(); as error) {
@@ -8,7 +36,12 @@
 } @else {
   <ul>
     @for (message of store.messages(); track message.id) {
-      <li>
+      <li
+        [id]="'message-' + message.id"
+        [attr.aria-current]="
+          store.focusedMessageId() === message.id ? 'true' : null
+        "
+      >
         <app-profile-avatar
           [avatarUrl]="authorAvatarUrl(message)"
           [displayName]="authorAvatarName(message)"

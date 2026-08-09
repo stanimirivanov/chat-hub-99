@@ -66,6 +66,8 @@ export type {
   EditMessageResult,
   DeleteMessageArgs,
   DeleteMessageResult,
+  SearchWorkspaceMessagesArgs,
+  SearchWorkspaceMessagesResult,
 } from './lib/command.types';
 
 export {

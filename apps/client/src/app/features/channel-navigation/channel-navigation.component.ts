@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   effect,
   inject,
   input,
@@ -8,7 +9,9 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Schema } from 'effect';
 import type { Channel } from '@omoikane/domain/channel';
+import { MessageIdSchema } from '@omoikane/domain/message';
 import type { WorkspaceId } from '@omoikane/domain/workspace';
 import { ArchivedChannelListComponent } from '@client/features/archived-channel-list/archived-channel-list.component';
 import { ChannelMessagesComponent } from '@client/features/channel-messages/channel-messages.component';
@@ -42,8 +45,26 @@ export class ChannelNavigationComponent {
   private readonly queryParamMap = toSignal(this.route.queryParamMap, {
     initialValue: this.route.snapshot.queryParamMap,
   });
+  protected readonly focusedMessageId = computed(() => {
+    const value = this.queryParamMap().get('message');
+
+    return value !== null && Schema.is(MessageIdSchema)(value) ? value : null;
+  });
 
   constructor() {
+    effect(() => {
+      const value = this.queryParamMap().get('message');
+
+      if (value !== null && this.focusedMessageId() === null) {
+        void this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { message: null },
+          queryParamsHandling: 'merge',
+          replaceUrl: true,
+        });
+      }
+    });
+
     effect(() => {
       const workspaceId = this.workspaceId();
       this.isCreatingChannel.set(false);
@@ -82,6 +103,7 @@ export class ChannelNavigationComponent {
       relativeTo: this.route,
       queryParams: {
         channel: channelSlug,
+        message: null,
       },
       queryParamsHandling: 'merge',
     });
@@ -177,7 +199,7 @@ export class ChannelNavigationComponent {
 
     void this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: { channel: null },
+      queryParams: { channel: null, message: null },
       queryParamsHandling: 'merge',
       replaceUrl: true,
     });
@@ -203,6 +225,15 @@ export class ChannelNavigationComponent {
 
     if (channelSlug === null) {
       this.store.clearSelection();
+
+      if (this.queryParamMap().has('message')) {
+        void this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { message: null },
+          queryParamsHandling: 'merge',
+          replaceUrl: true,
+        });
+      }
       return;
     }
 
@@ -221,6 +252,7 @@ export class ChannelNavigationComponent {
       relativeTo: this.route,
       queryParams: {
         channel: null,
+        message: null,
       },
       queryParamsHandling: 'merge',
       replaceUrl: true,

@@ -6,8 +6,8 @@ external systems.
 
 ## Responsibilities
 
-- Use cases for creating, editing, deleting, listing, observing, and inspecting
-  channel messages
+- Use cases for creating, editing, deleting, listing, observing, inspecting,
+  and searching channel messages
 - Input validation that belongs to a use-case boundary
 - Pagination query and result contracts
 - Typed application and repository failures
@@ -54,6 +54,11 @@ Cross-use-case contracts remain near the package root:
   newest-first keyset query through the existing message repository port.
 - `observe-channel-messages/` validates channel identity, consumes repository
   notifications, and loads authoritative current projections.
+- `search-workspace-messages/` normalizes browser text and returns the
+  repository's fixed-cap, relevance-ranked matches with active-channel route
+  identities. It deliberately does not define a generic search abstraction.
+- `get-channel-message/` resolves an exact RLS-visible search target and checks
+  its selected-channel ownership without iterating message-history pages.
 - `pagination/` contains pagination value types shared by callers and the
   repository port. Channel pages use the compound creation-time/message-ID
   cursor, while revision pages use the message-local monotonic version number.

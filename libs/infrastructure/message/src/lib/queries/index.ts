@@ -10,3 +10,5 @@ export {
   toBeforeCursorFilter,
   buildMessagePage,
 } from './list-messages-by-channel';
+
+export { searchWorkspaceMessages } from './search-workspace-messages';

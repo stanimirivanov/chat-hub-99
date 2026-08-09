@@ -137,6 +137,11 @@
 
           <app-workspace-presence [workspaceId]="workspace.id" />
 
+          <app-workspace-message-search
+            [workspaceId]="workspace.id"
+            (resultSelected)="handleMessageSearchResult($event)"
+          />
+
           @if (
             canManageSelectedWorkspace() && !isConfirmingWorkspaceDeparture()
           ) {

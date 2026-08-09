@@ -101,6 +101,7 @@ Implementation scope:
 - Complete presence and typing indicators as separate, conservative vertical
   slices. **Completed.**
 - Add workspace-scoped message search with exact-result navigation.
+  **Completed.**
 - Add per-member read positions, unread counts, and realtime unread
   reconciliation.
 - Preserve RLS, message limits, pagination cursors, archived-entity rules, and

@@ -41,6 +41,20 @@ export {
 } from './lib/observe-channel-messages';
 
 export {
+  getChannelMessage,
+  type GetChannelMessageInput,
+} from './lib/get-channel-message';
+
+export {
+  InvalidMessageSearchQueryError,
+  searchWorkspaceMessages,
+  type MessageSearchChannel,
+  type SearchWorkspaceMessagesError,
+  type SearchWorkspaceMessagesInput,
+  type WorkspaceMessageSearchResult,
+} from './lib/search-workspace-messages';
+
+export {
   MessagePageSizeSchema,
   MessageRevisionPageSizeSchema,
   type MessageCursor,
@@ -62,6 +76,7 @@ export {
   InvalidMessageDataError,
   type ListChannelMessagesQuery,
   type ListMessageRevisionsQuery,
+  type SearchWorkspaceMessagesQuery,
   type CreateMessageCommand,
   type DeleteMessageCommand,
   type EditMessageCommand,

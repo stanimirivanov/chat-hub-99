@@ -1511,6 +1511,33 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      search_workspace_messages: {
+        Args: {
+          p_limit?: number
+          p_search_query: string
+          p_workspace_id: string
+        }
+        Returns: {
+          author_user_id: string
+          channel_id: string
+          channel_name: string
+          channel_slug: string
+          content: string
+          created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
+          is_edited: boolean
+          message_id: string
+          message_status: string
+          message_version_id: string
+          search_rank: number
+          updated_at: string
+          version_created_at: string
+          version_created_by: string
+          version_number: number
+          workspace_id: string
+        }[]
+      }
       suspend_workspace_member: {
         Args: { p_reason?: string; p_user_id: string; p_workspace_id: string }
         Returns: {

@@ -23,6 +23,7 @@ export const makeMessageRepositoryStub = (
   delete: () => unexpectedOperation('delete'),
   findById: () => unexpectedOperation('findById'),
   listByChannel: () => unexpectedOperation('listByChannel'),
+  searchWorkspace: () => unexpectedOperation('searchWorkspace'),
   listRevisions: () => unexpectedOperation('listRevisions'),
   changesByChannel: () => unexpectedStream('changesByChannel'),
   ...overrides,
@@ -54,6 +55,17 @@ export const makeListRevisionsRepository = (
   return {
     listRevisions,
     repositoryLayer: makeMessageRepositoryLayer({ listRevisions }),
+  };
+};
+
+export const makeSearchWorkspaceRepository = (
+  implementation: MessageRepository['searchWorkspace']
+) => {
+  const searchWorkspace = vi.fn(implementation);
+
+  return {
+    searchWorkspace,
+    repositoryLayer: makeMessageRepositoryLayer({ searchWorkspace }),
   };
 };
 

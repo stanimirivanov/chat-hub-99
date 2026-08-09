@@ -7,12 +7,14 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
+import type { WorkspaceMessageSearchResult } from '@omoikane/application/message';
 import type { Workspace } from '@omoikane/domain/workspace';
 import { ArchivedWorkspaceListComponent } from '@client/features/archived-workspace-list/archived-workspace-list.component';
 import { ChannelNavigationComponent } from '@client/features/channel-navigation/channel-navigation.component';
 import { WorkspaceMemberDirectoryComponent } from '@client/features/workspace-member-directory/workspace-member-directory.component';
 import { WorkspaceInvitationsComponent } from '@client/features/workspace-invitations/workspace-invitations.component';
 import { WorkspacePresenceComponent } from '@client/features/workspace-presence/workspace-presence.component';
+import { WorkspaceMessageSearchComponent } from '@client/features/workspace-message-search/workspace-message-search.component';
 import { WorkspaceNavigationStore } from './workspace-navigation.store';
 import type { WorkspaceLoadStatus } from './workspace-navigation.state';
 
@@ -28,6 +30,7 @@ import type { WorkspaceLoadStatus } from './workspace-navigation.state';
     WorkspaceInvitationsComponent,
     WorkspaceMemberDirectoryComponent,
     WorkspacePresenceComponent,
+    WorkspaceMessageSearchComponent,
   ],
   providers: [WorkspaceNavigationStore],
   templateUrl: './workspace-navigation.component.html',
@@ -94,6 +97,7 @@ export class WorkspaceNavigationComponent {
       queryParams: {
         workspace: workspaceSlug,
         channel: null,
+        message: null,
       },
       queryParamsHandling: 'merge',
     });
@@ -254,6 +258,20 @@ export class WorkspaceNavigationComponent {
     this.navigateToWorkspace(workspace.slug);
   }
 
+  /** Navigates directly to the stable message selected from workspace search. */
+  protected handleMessageSearchResult(
+    result: WorkspaceMessageSearchResult
+  ): void {
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        channel: result.channel.slug,
+        message: result.message.id,
+      },
+      queryParamsHandling: 'merge',
+    });
+  }
+
   private selectWorkspaceFromRoute(
     workspaceSlug: string | null,
     loadStatus: WorkspaceLoadStatus,
@@ -291,6 +309,7 @@ export class WorkspaceNavigationComponent {
       queryParams: {
         workspace: null,
         channel: null,
+        message: null,
       },
       queryParamsHandling: 'merge',
       replaceUrl: true,
@@ -317,6 +336,7 @@ export class WorkspaceNavigationComponent {
       queryParams: {
         workspace: null,
         channel: null,
+        message: null,
       },
       queryParamsHandling: 'merge',
       replaceUrl: true,

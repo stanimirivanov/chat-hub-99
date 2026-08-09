@@ -115,6 +115,12 @@ export const withChannelMessagesLoading = () =>
               editError: null,
               deleteError: null,
               realtimeError: null,
+              focusedMessageId: null,
+              focusedMessage: null,
+              focusedMessageStatus: 'idle',
+              focusedMessageError: null,
+              focusedMessageRequestGeneration:
+                store.focusedMessageRequestGeneration() + 1,
               ...clearedMessageRevisionHistoryState(
                 store.revisionRequestGeneration() + 1
               ),
