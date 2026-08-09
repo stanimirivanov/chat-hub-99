@@ -17,6 +17,7 @@ the [Omoikane documentation](docs/README.md).
 - Effect for typed application workflows, dependency injection, and failures
 - Supabase for authentication, PostgreSQL, row-level security, realtime, and
   storage
+- NestJS with Fastify for the trusted server HTTP and composition boundary
 - Nx for project boundaries, task orchestration, and dependency visualization
 - Vitest for TypeScript unit tests and pgTAP for database tests
 
@@ -56,6 +57,7 @@ features.
 
 ```text
 apps/client/                    Angular application and presentation features
+apps/server/                    NestJS, Fastify, OpenAPI, and Effect runtime boundary
 libs/domain/channel/            Channel identity, navigation projection, and invariants
 libs/domain/message/            Message projections, revisions, and invariants
 libs/domain/profile/            Profile identity, current projection, and invariants
@@ -307,16 +309,28 @@ Avoid manual schema changes that cannot be reproduced from a clean reset.
 
 ## Local development data
 
-Prepare a clean local database and start the Angular application:
+Prepare a clean local database and start the Angular application and server:
 
 ```bash
 pnpm dev
 ```
 
 This command starts Supabase, resets the local database, applies all migrations,
-loads supabase/seed.sql, and starts the Angular development server.
+loads supabase/seed.sql, and starts the Angular and NestJS development servers.
 
 The reset is destructive to local database data.
+
+The server can also run independently:
+
+```bash
+pnpm server:dev
+```
+
+Its initial runtime exposes dependency-free liveness at
+`http://localhost:3333/health/live` and OpenAPI JSON at
+`http://localhost:3333/openapi.json`. It does not access Supabase or proxy
+existing collaboration operations yet. See
+[`apps/server/README.md`](apps/server/README.md) for its boundary and commands.
 
 Seeded users
 

@@ -2,7 +2,7 @@
 
 > **Document ID:** OMO-ARC-003  
 > **Version:** 1.0  
-> **Status:** Approved Phase 3 design; implementation pending  
+> **Status:** Approved Phase 3 design; implementation in progress
 > **Date:** 9 August 2026  
 > **Product:** Omoikane - The Collaborative Intelligence Platform
 
@@ -325,6 +325,7 @@ Phase 3 proceeds in conservative pull requests:
    Fastify bootstrap, validated minimum configuration, Effect runtime bridge,
    graceful shutdown, `/health/live`, OpenAPI generation, boundary rules, and
    focused tests. Do not add Supabase authentication or capability modules.
+   **Completed.**
 2. **Authenticated server boundary.** Add bearer-token validation, immutable
    request identity, deny-by-default guard behavior, readiness, uniform problem
    responses, and integration tests against local Supabase.
