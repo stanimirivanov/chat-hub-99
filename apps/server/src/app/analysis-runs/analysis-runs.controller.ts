@@ -9,7 +9,7 @@ import {
   ApiServiceUnavailableResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { Effect, Either } from 'effect';
+import { Either } from 'effect';
 import {
   getAnalysisRun,
   startAnalysisRun,
@@ -27,6 +27,7 @@ import {
   resourceNotFound,
 } from '../platform/http/http-boundary-error';
 import { AnalysisRunResponse } from './analysis-run-response';
+import { ServerTelemetry } from '../platform/observability/server-telemetry.service';
 
 const requireIdentity = (request: RequestWithIdentity) => {
   const identity = getRequestIdentity(request);
@@ -53,7 +54,10 @@ const failHttp = (error: AnalysisRunError): never => {
 @ApiTags('analysis-runs')
 @Controller('workspaces/:workspaceId/analysis-runs')
 export class AnalysisRunsController {
-  constructor(private readonly runtime: ServerEffectRuntime) {}
+  constructor(
+    private readonly runtime: ServerEffectRuntime,
+    private readonly telemetry: ServerTelemetry
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Start a deterministic Analysis Run' })
@@ -66,16 +70,21 @@ export class AnalysisRunsController {
     @Req() request: RequestWithIdentity,
     @Param('workspaceId') workspaceId: string
   ): Promise<AnalysisRunResponse> {
-    const result = await this.runtime.runPromise(
+    const result = await this.runtime.runRequestEither(
+      request,
+      'analysis_run.start',
       startAnalysisRun({
         identity: requireIdentity(request),
         workspaceId,
-      }).pipe(Effect.either)
+      })
     );
 
     return Either.match(result, {
       onLeft: failHttp,
-      onRight: (run) => new AnalysisRunResponse(run),
+      onRight: (run) => {
+        this.telemetry.annotateAnalysisRun(request, run.workspaceId, run.id);
+        return new AnalysisRunResponse(run);
+      },
     });
   }
 
@@ -92,17 +101,22 @@ export class AnalysisRunsController {
     @Param('workspaceId') workspaceId: string,
     @Param('analysisRunId') analysisRunId: string
   ): Promise<AnalysisRunResponse> {
-    const result = await this.runtime.runPromise(
+    const result = await this.runtime.runRequestEither(
+      request,
+      'analysis_run.get',
       getAnalysisRun({
         identity: requireIdentity(request),
         workspaceId,
         analysisRunId,
-      }).pipe(Effect.either)
+      })
     );
 
     return Either.match(result, {
       onLeft: failHttp,
-      onRight: (run) => new AnalysisRunResponse(run),
+      onRight: (run) => {
+        this.telemetry.annotateAnalysisRun(request, run.workspaceId, run.id);
+        return new AnalysisRunResponse(run);
+      },
     });
   }
 }

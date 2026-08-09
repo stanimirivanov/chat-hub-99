@@ -1,17 +1,18 @@
-import { Controller, Get, Inject } from '@nestjs/common';
+import { Controller, Get, Inject, Req } from '@nestjs/common';
 import {
   ApiOkResponse,
   ApiOperation,
   ApiServiceUnavailableResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { Effect, Either } from 'effect';
+import { Either } from 'effect';
 import { checkAccessTokenValidationAvailability } from '@omoikane/application/authentication';
 import { SERVER_CONFIG } from '../configuration/server-config.provider';
 import type { ServerConfig } from '../configuration/server-config';
 import { ServerEffectRuntime } from '../effect-runtime/server-effect-runtime.service';
 import { authenticationUnavailable } from '../http/http-boundary-error';
 import { PublicRoute } from '../http/public-route';
+import type { TelemetryRequest } from '../observability/server-telemetry.service';
 import { LivenessResponse } from './liveness-response';
 import { ReadinessResponse } from './readiness-response';
 
@@ -38,9 +39,13 @@ export class HealthController {
   @ApiServiceUnavailableResponse({
     description: 'Supabase Auth is unavailable.',
   })
-  async readiness(): Promise<ReadinessResponse> {
-    const result = await this.runtime.runPromise(
-      checkAccessTokenValidationAvailability.pipe(Effect.either)
+  async readiness(
+    @Req() request: TelemetryRequest
+  ): Promise<ReadinessResponse> {
+    const result = await this.runtime.runRequestEither(
+      request,
+      'authentication.health',
+      checkAccessTokenValidationAvailability
     );
 
     if (Either.isLeft(result)) {

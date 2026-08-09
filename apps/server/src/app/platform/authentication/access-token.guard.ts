@@ -4,7 +4,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Effect, Either } from 'effect';
+import { Either } from 'effect';
 import {
   validateAccessToken,
   type AccessTokenValidationError,
@@ -63,8 +63,10 @@ export class AccessTokenGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest<RequestWithIdentity>();
     const token = bearerToken(request.headers['authorization']);
-    const result = await this.runtime.runPromise(
-      validateAccessToken(token).pipe(Effect.either)
+    const result = await this.runtime.runRequestEither(
+      request,
+      'authentication.validate',
+      validateAccessToken(token)
     );
 
     const identity = Either.match(result, {

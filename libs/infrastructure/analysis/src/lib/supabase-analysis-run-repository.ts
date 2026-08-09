@@ -55,7 +55,10 @@ const execute = (
     try: () => request(),
     catch: (cause) =>
       new AnalysisRunRepositoryUnavailableError({ operation, cause }),
-  }).pipe(Effect.flatMap((result) => mapResult(result, operation)));
+  }).pipe(
+    Effect.flatMap((result) => mapResult(result, operation)),
+    Effect.withSpan(`supabase.analysis_run.${operation}`, { kind: 'client' })
+  );
 
 /** Constructs the Supabase implementation of the Analysis Run repository. */
 export const makeSupabaseAnalysisRunRepository = (

@@ -9,6 +9,30 @@ import { ServerEffectRuntime } from './app/platform/effect-runtime/server-effect
 import { SERVER_CONFIG } from './app/platform/configuration/server-config.provider';
 import type { ServerConfig } from './app/platform/configuration/server-config';
 import { ServerModule } from './app/server.module';
+import {
+  ServerTelemetry,
+  type TelemetryReply,
+  type TelemetryRequest,
+} from './app/platform/observability/server-telemetry.service';
+
+interface FastifyTelemetryHooks {
+  addHook(
+    name: 'onRequest',
+    hook: (
+      request: TelemetryRequest,
+      reply: TelemetryReply,
+      done: () => void
+    ) => void
+  ): void;
+  addHook(
+    name: 'onResponse',
+    hook: (
+      request: TelemetryRequest,
+      reply: TelemetryReply,
+      done: () => void
+    ) => void
+  ): void;
+}
 
 const configureOpenApi = (app: NestFastifyApplication): void => {
   const openApiConfig = new DocumentBuilder()
@@ -49,7 +73,19 @@ export const createServer = async (
   app.enableCors({
     origin: [...config.allowedOrigins],
     methods: ['GET', 'POST'],
-    allowedHeaders: ['Authorization', 'Content-Type'],
+    allowedHeaders: ['Authorization', 'Content-Type', 'X-Request-Id'],
+    exposedHeaders: ['Traceparent', 'X-Request-Id'],
+  });
+  const telemetry = app.get(ServerTelemetry);
+  const hooks = app.getHttpAdapter().getInstance() as FastifyTelemetryHooks;
+  hooks.addHook('onRequest', (request, reply, done) => {
+    telemetry.beginRequest(request, reply);
+    done();
+  });
+  hooks.addHook('onResponse', (request, reply, done) => {
+    const route = reply.routeOptions?.url ?? reply.request?.routeOptions?.url;
+    telemetry.finishRequest(request, reply.statusCode ?? 500, route);
+    done();
   });
   app.enableShutdownHooks();
   configureOpenApi(app);

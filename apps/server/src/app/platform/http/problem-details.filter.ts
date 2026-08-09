@@ -11,10 +11,13 @@ import {
   HttpBoundaryError,
   type HttpProblemDescriptor,
 } from './http-boundary-error';
+import { ServerTelemetry } from '../observability/server-telemetry.service';
 
 interface HttpRequestProjection {
-  readonly id?: string;
   readonly url?: string;
+  readonly headers: Readonly<
+    Record<string, string | readonly string[] | undefined>
+  >;
 }
 
 interface HttpResponseProjection {
@@ -51,6 +54,8 @@ const fromHttpException = (
 export class ProblemDetailsFilter implements ExceptionFilter {
   private readonly logger = new Logger(ProblemDetailsFilter.name);
 
+  constructor(private readonly telemetry: ServerTelemetry) {}
+
   catch(exception: unknown, host: ArgumentsHost): void {
     const request = host.switchToHttp().getRequest<HttpRequestProjection>();
     const response = host.switchToHttp().getResponse<HttpResponseProjection>();
@@ -73,6 +78,8 @@ export class ProblemDetailsFilter implements ExceptionFilter {
       response.header('WWW-Authenticate', 'Bearer');
     }
 
+    this.telemetry.recordRequestFailure(request, problem.code);
+
     response
       .status(problem.status)
       .type('application/problem+json')
@@ -83,7 +90,7 @@ export class ProblemDetailsFilter implements ExceptionFilter {
         detail: problem.detail,
         instance: requestPath(request.url),
         code: problem.code,
-        requestId: request.id ?? '',
+        requestId: this.telemetry.requestId(request) ?? '',
       });
   }
 }
