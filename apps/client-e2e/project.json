@@ -1,0 +1,16 @@
+{
+  "name": "client-e2e",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/client-e2e/e2e",
+  "tags": ["scope:client", "project:e2e"],
+  "implicitDependencies": ["client"],
+  "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p apps/client-e2e/tsconfig.json"
+      }
+    }
+  }
+}

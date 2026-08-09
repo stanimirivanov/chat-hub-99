@@ -20,6 +20,9 @@
     "sharedGlobals": []
   },
   "targetDefaults": {
+    "e2e": {
+      "cache": false
+    },
     "@nx/esbuild:esbuild": {
       "cache": true,
       "dependsOn": ["^build"],
@@ -44,6 +47,13 @@
         "testTargetName": "test",
         "ciTargetName": "test-ci",
         "testMode": "watch"
+      }
+    },
+    {
+      "plugin": "@nx/playwright/plugin",
+      "options": {
+        "targetName": "e2e",
+        "ciTargetName": false
       }
     }
   ],

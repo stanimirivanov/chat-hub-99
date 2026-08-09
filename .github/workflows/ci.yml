@@ -57,6 +57,21 @@ jobs:
       - name: Verify database
         run: pnpm db:verify
 
+      - name: Install Chromium and system dependencies
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Verify authenticated collaboration in the browser
+        run: pnpm e2e
+
+      - name: Upload browser failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: playwright-client-${{ github.run_attempt }}
+          path: dist/.playwright/apps/client-e2e
+          if-no-files-found: ignore
+          retention-days: 7
+
       - name: Stop local Supabase
         if: always() && steps.platform-bootstrap.outcome == 'success'
         run: pnpm dev:down

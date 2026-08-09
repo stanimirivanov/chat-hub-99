@@ -206,6 +206,7 @@ command.
 | `pnpm dev:observability` | Start OpenTelemetry, Prometheus, Grafana, Tempo, and Loki.                                     |
 | `pnpm dev:ai-local`      | Start Ollama and provision the documented local model.                                         |
 | `pnpm dev:status`        | Show implemented Node.js, pnpm, Docker, and local Supabase health.                             |
+| `pnpm e2e:verify`        | Reset the local platform and run the authenticated Chromium collaboration smoke path.          |
 | `pnpm dev:logs`          | Follow infrastructure and implemented runtime logs.                                            |
 | `pnpm dev:down`          | Stop currently implemented infrastructure without deleting local Supabase data.                |
 | `pnpm dev:clean`         | After confirmation, stop the stack and remove disposable local volumes.                        |
@@ -282,11 +283,13 @@ pnpm db:types:check
 
 ### Phase 1 exit gate
 
-The Phase 1 GitHub Actions workflow exercises `pnpm dev:bootstrap` from a clean
+The GitHub Actions workflow exercises `pnpm dev:bootstrap` from a clean
 checkout, verifies the running stack with `pnpm dev:status`, and then runs
-`pnpm verify` and `pnpm db:verify`. It uses the same commands as local
-development and requires no hosted Supabase credentials. Deployment, image
-publication, and checks for future runtimes remain outside this workflow.
+`pnpm verify`, `pnpm db:verify`, and the authenticated Chromium smoke path. It
+uses the same commands as local development and requires no hosted Supabase
+credentials. Failed browser runs retain Playwright traces and screenshots.
+Deployment, image publication, and checks for future runtimes remain outside
+this workflow.
 
 - A contributor can clone the repository, run the documented bootstrap
   sequence, and open the existing Angular application without editing source.

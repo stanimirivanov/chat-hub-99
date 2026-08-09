@@ -40,7 +40,7 @@ change through an ADR.
 | ID          | Document                                                                             | Purpose                                                                                                                  |
 | ----------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
 | OMO-ARC-001 | [Collaboration Architecture](architecture/collaboration-architecture.md)             | Audited capability, boundary, state, authorization, and realtime architecture for the implemented collaboration baseline |
-| OMO-ARC-002 | [Collaboration Phase 2 Exit Audit](architecture/collaboration-phase-2-exit-audit.md) | Evidence-based Phase 2 exit assessment and the remaining browser-smoke closeout boundary                                 |
+| OMO-ARC-002 | [Collaboration Phase 2 Exit Audit](architecture/collaboration-phase-2-exit-audit.md) | Phase 2 exit evidence, including the authenticated browser-to-Supabase smoke boundary                                    |
 
 ## Repository reconciliation
 

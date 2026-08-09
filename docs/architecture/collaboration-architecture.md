@@ -242,10 +242,10 @@ authenticated member. Channel navigation loads an authoritative workspace
 snapshot and clears a selected channel only after the message feature reports
 the exact newest message it loaded and the mark-read command succeeds.
 The [Phase 2 exit audit](collaboration-phase-2-exit-audit.md) confirms the
-implemented capability boundary and identifies one remaining closeout gate: an
-executable browser smoke path against local Supabase. Phase 3 begins only after
-that test passes locally and in CI. Optional collaboration expansions remain
-separate product decisions.
+implemented capability boundary. Its authenticated Chromium smoke path now
+proves sign-in, authorized workspace and channel navigation, message creation,
+and sign-out against reset local Supabase data. Phase 2 is complete. Optional
+collaboration expansions remain separate product decisions.
 
 ## Verification references
 
