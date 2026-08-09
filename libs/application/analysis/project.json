@@ -1,0 +1,21 @@
+{
+  "name": "analysis-application",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/application/analysis/src",
+  "projectType": "library",
+  "tags": ["scope:analysis", "layer:application"],
+  "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p libs/application/analysis/tsconfig.lib.json"
+      }
+    },
+    "typecheck:test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p libs/application/analysis/tsconfig.spec.json"
+      }
+    }
+  }
+}

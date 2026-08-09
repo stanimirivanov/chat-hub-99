@@ -59,15 +59,18 @@ features.
 apps/client/                    Angular application and presentation features
 apps/server/                    NestJS, Fastify, OpenAPI, and Effect runtime boundary
 libs/domain/channel/            Channel identity, navigation projection, and invariants
+libs/domain/analysis/           Analysis Run identity and accepted-state invariants
 libs/domain/message/            Message projections, revisions, and invariants
 libs/domain/profile/            Profile identity, current projection, and invariants
 libs/domain/workspace/          Workspace, membership, and invitation invariants
 libs/application/authentication/ Provider-independent authentication workflows
+libs/application/analysis/      Workspace-authorized Analysis Run workflows and port
 libs/application/channel/       Workspace-scoped channel lifecycle workflows
 libs/application/message/       Message lifecycle, history queries, and repository port
 libs/application/profile/       Current-profile discovery/update port and use cases
 libs/application/workspace/     Workspace lifecycle, paginated membership, and invitation workflows
 libs/infrastructure/authentication/ Supabase authentication adapter
+libs/infrastructure/analysis/   Trusted Supabase Analysis Run adapter
 libs/infrastructure/channel/    Supabase channel query, command, and realtime adapter
 libs/infrastructure/message/    Supabase implementation of the message repository
 libs/infrastructure/profile/    Supabase current-profile query and command adapter
@@ -326,10 +329,12 @@ The server can also run independently:
 pnpm server:dev
 ```
 
-Its initial runtime exposes dependency-free liveness at
-`http://localhost:3333/health/live` and OpenAPI JSON at
-`http://localhost:3333/openapi.json`. It does not access Supabase or proxy
-existing collaboration operations yet. See
+Its runtime exposes dependency-free liveness at
+`http://localhost:3333/health/live`, readiness at
+`http://localhost:3333/health/ready`, and OpenAPI JSON at
+`http://localhost:3333/openapi.json`. Its first trusted capability accepts and
+observes workspace-authorized Analysis Runs through Supabase without moving
+existing collaboration operations behind the server. See
 [`apps/server/README.md`](apps/server/README.md) for its boundary and commands.
 
 Seeded users

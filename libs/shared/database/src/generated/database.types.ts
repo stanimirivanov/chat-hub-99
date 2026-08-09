@@ -16,6 +16,59 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      analysis_runs: {
+        Row: {
+          analysis_run_id: string
+          created_at: string
+          requested_by: string
+          status: string
+          workspace_id: string
+        }
+        Insert: {
+          analysis_run_id?: string
+          created_at?: string
+          requested_by: string
+          status?: string
+          workspace_id: string
+        }
+        Update: {
+          analysis_run_id?: string
+          created_at?: string
+          requested_by?: string
+          status?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analysis_runs_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "current_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "analysis_runs_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "analysis_runs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "current_workspaces"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "analysis_runs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["workspace_id"]
+          },
+        ]
+      }
       channel_heads: {
         Row: {
           channel_id: string
@@ -1478,6 +1531,26 @@ export type Database = {
         Args: { p_content: string; p_message_id: string }
         Returns: string
       }
+      get_analysis_run: {
+        Args: {
+          p_analysis_run_id: string
+          p_requested_by: string
+          p_workspace_id: string
+        }
+        Returns: {
+          analysis_run_id: string
+          created_at: string
+          requested_by: string
+          status: string
+          workspace_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "analysis_runs"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       invite_workspace_member: {
         Args: { p_user_id: string; p_workspace_id: string }
         Returns: {
@@ -1632,6 +1705,22 @@ export type Database = {
           version_number: number
           workspace_id: string
         }[]
+      }
+      start_analysis_run: {
+        Args: { p_requested_by: string; p_workspace_id: string }
+        Returns: {
+          analysis_run_id: string
+          created_at: string
+          requested_by: string
+          status: string
+          workspace_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "analysis_runs"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       suspend_workspace_member: {
         Args: { p_reason?: string; p_user_id: string; p_workspace_id: string }

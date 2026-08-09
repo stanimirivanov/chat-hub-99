@@ -3,6 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { Effect, Either, Fiber, Stream } from 'effect';
 import {
   observeSessionChanges,
+  getCurrentAccessToken,
   resendConfirmationEmail,
   requestPasswordReset,
   restoreSession,
@@ -35,6 +36,13 @@ export class AuthenticationApplicationService {
 
   private rootCallbackUrl(): string {
     return new URL('/', this.document.location.origin).toString();
+  }
+
+  /** Retrieves a transient token for one trusted API call without storing it. */
+  currentAccessToken(): Promise<Either.Either<string, AuthenticationError>> {
+    return applicationRuntime.runPromise(
+      getCurrentAccessToken.pipe(Effect.either)
+    );
   }
 
   /**

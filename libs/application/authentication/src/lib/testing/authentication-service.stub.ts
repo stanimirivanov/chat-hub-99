@@ -15,6 +15,7 @@ const unexpectedOperation = (
 export const makeAuthenticationServiceStub = (
   overrides: Partial<AuthenticationService> = {}
 ): AuthenticationService => ({
+  getCurrentAccessToken: () => unexpectedOperation('getCurrentAccessToken'),
   getCurrentSession: () => unexpectedOperation('getCurrentSession'),
   signIn: () => unexpectedOperation('signIn'),
   signUp: () => unexpectedOperation('signUp'),

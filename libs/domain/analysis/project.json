@@ -1,0 +1,21 @@
+{
+  "name": "analysis-domain",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/domain/analysis/src",
+  "projectType": "library",
+  "tags": ["scope:analysis", "layer:domain"],
+  "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p libs/domain/analysis/tsconfig.lib.json"
+      }
+    },
+    "typecheck:test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p libs/domain/analysis/tsconfig.spec.json"
+      }
+    }
+  }
+}

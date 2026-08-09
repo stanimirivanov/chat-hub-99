@@ -5,4 +5,8 @@ export const environment = {
     url: 'https://chat-hub-99.supabase.co',
     publishableKey: 'sb_publishable_WuXf1oG0AFwBV6gATzOE6A_D8r9b14e',
   },
+
+  server: {
+    url: '',
+  },
 } as const;

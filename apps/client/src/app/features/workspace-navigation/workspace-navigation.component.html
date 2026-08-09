@@ -353,6 +353,8 @@
             (canManageMembersChange)="handleCanManageMembersChange($event)"
           />
 
+          <app-analysis-runs [workspaceId]="workspace.id" />
+
           <app-channel-navigation
             [workspaceId]="workspace.id"
             [canManageChannels]="canManageSelectedWorkspace()"

@@ -5,10 +5,11 @@ import { serverConfigProvider } from './platform/configuration/server-config.pro
 import { ServerEffectRuntime } from './platform/effect-runtime/server-effect-runtime.service';
 import { HealthController } from './platform/health/health.controller';
 import { ProblemDetailsFilter } from './platform/http/problem-details.filter';
+import { AnalysisRunsController } from './analysis-runs/analysis-runs.controller';
 
 /** Root composition module for the Omoikane modular application server. */
 @Module({
-  controllers: [HealthController],
+  controllers: [HealthController, AnalysisRunsController],
   providers: [
     serverConfigProvider,
     ServerEffectRuntime,

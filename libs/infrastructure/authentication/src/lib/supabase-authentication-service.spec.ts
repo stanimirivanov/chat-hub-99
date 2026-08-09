@@ -13,6 +13,21 @@ import {
 } from './testing';
 
 describe('makeSupabaseAuthenticationService', () => {
+  it('returns the current access token without exposing the provider session', async () => {
+    const service = makeSupabaseAuthenticationService(
+      makeSupabaseAuthenticationClientStub({
+        getSession: vi.fn().mockResolvedValue({
+          data: { session: authenticationSession },
+          error: null,
+        }),
+      })
+    );
+
+    await expect(
+      Effect.runPromise(service.getCurrentAccessToken())
+    ).resolves.toBe(authenticationSession.access_token);
+  });
+
   it('restores no session', async () => {
     const client = makeSupabaseAuthenticationClientStub();
     const service = makeSupabaseAuthenticationService(client);

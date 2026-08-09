@@ -6,6 +6,8 @@ import {
 } from '@nestjs/platform-fastify';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ServerEffectRuntime } from './app/platform/effect-runtime/server-effect-runtime.service';
+import { SERVER_CONFIG } from './app/platform/configuration/server-config.provider';
+import type { ServerConfig } from './app/platform/configuration/server-config';
 import { ServerModule } from './app/server.module';
 
 const configureOpenApi = (app: NestFastifyApplication): void => {
@@ -42,6 +44,12 @@ export const createServer = async (
       { path: 'health/live', method: RequestMethod.GET },
       { path: 'health/ready', method: RequestMethod.GET },
     ],
+  });
+  const config = app.get<ServerConfig>(SERVER_CONFIG);
+  app.enableCors({
+    origin: [...config.allowedOrigins],
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Authorization', 'Content-Type'],
   });
   app.enableShutdownHooks();
   configureOpenApi(app);

@@ -40,6 +40,37 @@ const mapSession = (
 export const makeSupabaseAuthenticationService = (
   client: SupabaseAuthenticationClient
 ): AuthenticationService => ({
+  getCurrentAccessToken: () =>
+    Effect.tryPromise({
+      try: () => client.auth.getSession(),
+      catch: (cause) =>
+        new AuthenticationUnavailableError({
+          operation: 'get-access-token',
+          cause,
+        }),
+    }).pipe(
+      Effect.flatMap(({ data, error }) => {
+        if (error !== null) {
+          return Effect.fail(
+            new AuthenticationUnavailableError({
+              operation: 'get-access-token',
+              cause: error,
+            })
+          );
+        }
+
+        const accessToken = data.session?.access_token?.trim() ?? '';
+        return accessToken
+          ? Effect.succeed(accessToken)
+          : Effect.fail(
+              new AuthenticationUnavailableError({
+                operation: 'get-access-token',
+                cause: new Error('No authenticated browser access token.'),
+              })
+            );
+      })
+    ),
+
   getCurrentSession: () =>
     Effect.tryPromise({
       try: () => client.auth.getSession(),

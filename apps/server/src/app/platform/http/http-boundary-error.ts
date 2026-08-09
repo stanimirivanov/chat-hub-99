@@ -36,3 +36,39 @@ export const authenticationUnavailable = (): HttpBoundaryError =>
       'The request cannot be completed while authentication is unavailable.',
     code: 'dependency_unavailable',
   });
+
+export const invalidRequest = (): HttpBoundaryError =>
+  new HttpBoundaryError({
+    status: 400,
+    type: 'https://omoikane.dev/problems/invalid-request',
+    title: 'The request is invalid',
+    detail: 'One or more request values are invalid.',
+    code: 'invalid_request',
+  });
+
+export const resourceNotFound = (): HttpBoundaryError =>
+  new HttpBoundaryError({
+    status: 404,
+    type: 'https://omoikane.dev/problems/resource-not-found',
+    title: 'The resource is not available',
+    detail: 'The requested resource is not available.',
+    code: 'resource_not_found',
+  });
+
+export const analysisUnavailable = (): HttpBoundaryError =>
+  new HttpBoundaryError({
+    status: 503,
+    type: 'https://omoikane.dev/problems/dependency-unavailable',
+    title: 'A required service is unavailable',
+    detail: 'The Analysis Run cannot be completed right now.',
+    code: 'dependency_unavailable',
+  });
+
+export const invalidServerData = (): HttpBoundaryError =>
+  new HttpBoundaryError({
+    status: 500,
+    type: 'https://omoikane.dev/problems/internal-error',
+    title: 'The server could not complete the request',
+    detail: 'An unexpected server error occurred.',
+    code: 'internal_error',
+  });
