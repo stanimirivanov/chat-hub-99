@@ -163,6 +163,12 @@ without proxying the collaboration baseline.
 
 ### 3.5 Phase 4 - Asynchronous processing platform
 
+The implementation contract is defined in
+[OMO-ARC-004](../architecture/analysis-run-processing-contracts.md). It preserves
+the implemented Analysis Run as an immutable acceptance record and orders the
+work as independently verified lifecycle/outbox, durable-job, worker, retry,
+status-observation, and result-bearing slices.
+
 Implementation scope:
 
 - Add `apps/ai-worker` with graceful shutdown and Effect layer composition.
@@ -172,6 +178,18 @@ Implementation scope:
   backoff, dead-letter state, and idempotency.
 - Implement deterministic fake-model adapters and evaluation fixtures before
   hosted providers.
+
+Immediate implementation order:
+
+1. Atomically add the initial lifecycle and `analysis_run.requested` outbox
+   events to the existing start command.
+2. Dispatch that event idempotently into one PostgreSQL `analysis.execute` job.
+3. Bootstrap the worker and complete that job with a deterministic processor.
+4. Add lease recovery, retry, fencing, and dead-letter behavior.
+5. Expose real lifecycle state through server and Angular read paths; add SSE
+   only if polling proves insufficient.
+6. Define result and finding records with the first product analysis that
+   consumes them.
 
 Exit criteria:
 
@@ -305,7 +323,7 @@ Pull-request gates:
 | Required by    | Documents                                                                                                                                                                                   |
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Before Phase 3 | **Completed in OMO-ARC-003 and ADR-0001 through ADR-0002:** C4 context and container views, server module map, API conventions, runtime ownership, authentication, and authorization design |
-| Before Phase 4 | Analysis Run data model, event catalogue, job catalogue, retry and idempotency standard, and worker runbook                                                                                 |
+| Before Phase 4 | **Completed in OMO-ARC-004:** Analysis Run lifecycle, event and job catalogues, retry/idempotency standard, worker runbook, security boundaries, telemetry, and implementation order        |
 | Before Phase 5 | Decision Forensics slice design, AI governance policy, prompt and model versioning standard, and evaluation plan                                                                            |
 | Before Phase 6 | Requirement domain model, snapshot and lineage design, and pipeline-stage contracts                                                                                                         |
 | Before Phase 7 | Analytical data model, semantic metric catalogue, and BI authorization and query-safety design                                                                                              |

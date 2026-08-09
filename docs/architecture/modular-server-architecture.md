@@ -354,7 +354,8 @@ The first product-bearing server vertical slice is item 3. Items 1 and 2 are
 small runtime prerequisites whose boundaries are independently verifiable.
 The current immutable `created` Analysis Run state does not justify a stream;
 explicit refresh remains sufficient, so item 5 is deferred until Phase 4 adds
-real status transitions.
+real status transitions. Phase 4 processing continues under
+[OMO-ARC-004](analysis-run-processing-contracts.md).
 
 ## 13. Phase 3 acceptance
 
@@ -375,6 +376,7 @@ real status transitions.
 
 - [ADR 0001: NestJS and Effect runtime boundary](adr/0001-nestjs-effect-runtime-boundary.md)
 - [ADR 0002: Supabase server authentication and workspace authorization](adr/0002-supabase-server-authentication-and-workspace-authorization.md)
+- [OMO-ARC-004: Analysis Run processing contracts](analysis-run-processing-contracts.md)
 - [NestJS Fastify adapter](https://docs.nestjs.com/techniques/performance)
 - [NestJS OpenAPI](https://docs.nestjs.com/openapi/introduction)
 - [NestJS authentication guards](https://docs.nestjs.com/security/authentication)

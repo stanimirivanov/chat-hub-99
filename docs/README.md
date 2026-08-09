@@ -37,11 +37,12 @@ change through an ADR.
 
 ## Implemented architecture descriptions
 
-| ID          | Document                                                                             | Purpose                                                                                                                  |
-| ----------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
-| OMO-ARC-001 | [Collaboration Architecture](architecture/collaboration-architecture.md)             | Audited capability, boundary, state, authorization, and realtime architecture for the implemented collaboration baseline |
-| OMO-ARC-002 | [Collaboration Phase 2 Exit Audit](architecture/collaboration-phase-2-exit-audit.md) | Phase 2 exit evidence, including the authenticated browser-to-Supabase smoke boundary                                    |
-| OMO-ARC-003 | [Modular Server Architecture](architecture/modular-server-architecture.md)           | Approved Phase 3 runtime, module, API, security, health, telemetry, and implementation boundaries                        |
+| ID          | Document                                                                               | Purpose                                                                                                                  |
+| ----------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| OMO-ARC-001 | [Collaboration Architecture](architecture/collaboration-architecture.md)               | Audited capability, boundary, state, authorization, and realtime architecture for the implemented collaboration baseline |
+| OMO-ARC-002 | [Collaboration Phase 2 Exit Audit](architecture/collaboration-phase-2-exit-audit.md)   | Phase 2 exit evidence, including the authenticated browser-to-Supabase smoke boundary                                    |
+| OMO-ARC-003 | [Modular Server Architecture](architecture/modular-server-architecture.md)             | Approved Phase 3 runtime, module, API, security, health, telemetry, and implementation boundaries                        |
+| OMO-ARC-004 | [Analysis Run Processing Contracts](architecture/analysis-run-processing-contracts.md) | Approved Phase 4 lifecycle, outbox, durable-job, worker, retry, idempotency, security, and telemetry contracts           |
 
 ## Accepted architecture decisions
 
@@ -57,9 +58,9 @@ The approved Word documents were imported as reviewable Markdown on
 
 - the current database model already uses `channels`, so no legacy `rooms`
   table is retained by the rebrand;
-- server and worker readiness, Redis connectivity, and distributed trace gates
-  are evaluated when those runtimes are introduced in Phases 3 and 4, not in
-  Phase 1;
+- server readiness and trace export were implemented in Phase 3; worker gates
+  belong to Phase 4, while Redis remains deferred until a consuming capability
+  needs it rather than being a Phase 1 prerequisite;
 - presence, typing, search, and persisted realtime unread reconciliation were
   implemented as conservative Phase 2 vertical slices after the source
   documents were imported.
