@@ -1,10 +1,16 @@
 import type { MessageRepository } from '@omoikane/application/message';
 
-import { createMessage, deleteMessage, editMessage } from './commands';
+import {
+  createMessage,
+  deleteMessage,
+  editMessage,
+  markChannelRead,
+} from './commands';
 import { findMessageById } from './queries/find-message-by-id';
 import { listMessagesByChannel } from './queries/list-messages-by-channel';
 import { listMessageRevisions } from './queries/list-message-revisions';
 import { searchWorkspaceMessages } from './queries/search-workspace-messages';
+import { listWorkspaceChannelUnreadCounts } from './queries/list-workspace-channel-unread-counts';
 import { makeMessageChangesStream } from './realtime';
 import type { SupabaseMessageClient } from './supabase-message-client';
 
@@ -24,6 +30,9 @@ export const makeSupabaseMessageRepository = (
   findById: (messageId) => findMessageById(client, messageId),
   listByChannel: (query) => listMessagesByChannel(client, query),
   searchWorkspace: (query) => searchWorkspaceMessages(client, query),
+  listUnreadByWorkspace: (workspaceId) =>
+    listWorkspaceChannelUnreadCounts(client, workspaceId),
+  markRead: (command) => markChannelRead(client, command),
   listRevisions: (query) => listMessageRevisions(client, query),
   changesByChannel: (channelId) => makeMessageChangesStream(client, channelId),
 });

@@ -11,8 +11,10 @@ import {
   type UpdateChannelError,
 } from '@omoikane/application/channel';
 import { ChannelIdSchema, type Channel } from '@omoikane/domain/channel';
+import { MessageIdSchema } from '@omoikane/domain/message';
 import { WorkspaceIdSchema } from '@omoikane/domain/workspace';
 import { ChannelApplicationService } from '@client/core/channel/channel-application.service';
+import { MessageApplicationService } from '@client/core/message/message-application.service';
 import { ChannelNavigationStore } from './channel-navigation.store';
 
 const workspaceId = Schema.decodeUnknownSync(WorkspaceIdSchema)(
@@ -23,6 +25,9 @@ const nextWorkspaceId = Schema.decodeUnknownSync(WorkspaceIdSchema)(
 );
 const channelId = Schema.decodeUnknownSync(ChannelIdSchema)(
   '00000000-0000-4000-8000-000000000003'
+);
+const messageId = Schema.decodeUnknownSync(MessageIdSchema)(
+  '00000000-0000-4000-8000-000000000006'
 );
 
 const channel: Channel = {
@@ -64,7 +69,11 @@ const configureStore = (
   createChannel = vi.fn().mockResolvedValue(Either.right(createdChannel)),
   updateChannel = vi.fn().mockResolvedValue(Either.right(updatedDetails)),
   archiveChannel = vi.fn().mockResolvedValue(Either.right(undefined)),
-  observeWorkspaceChannels = makeObserveWorkspaceChannels()
+  observeWorkspaceChannels = makeObserveWorkspaceChannels(),
+  listWorkspaceChannelUnreadCounts = vi
+    .fn()
+    .mockResolvedValue(Either.right([])),
+  markChannelRead = vi.fn().mockResolvedValue(Either.right(undefined))
 ) => {
   TestBed.configureTestingModule({
     providers: [
@@ -79,6 +88,13 @@ const configureStore = (
           updateChannel,
         },
       },
+      {
+        provide: MessageApplicationService,
+        useValue: {
+          listWorkspaceChannelUnreadCounts,
+          markChannelRead,
+        },
+      },
     ],
   });
 
@@ -89,6 +105,8 @@ const configureStore = (
     listWorkspaceChannels,
     observeWorkspaceChannels,
     updateChannel,
+    listWorkspaceChannelUnreadCounts,
+    markChannelRead,
   };
 };
 
@@ -114,6 +132,83 @@ describe('ChannelNavigationStore', () => {
       '00000000-0000-4000-8000-000000000004'
     );
     expect(store.select(unknownChannelId)).toBe(false);
+  });
+
+  it('loads unread counts and clears a channel after successful selection', async () => {
+    const listWorkspaceChannelUnreadCounts = vi
+      .fn()
+      .mockResolvedValue(
+        Either.right([{ channelId, unreadCount: 3 }] as const)
+      );
+    const markChannelRead = vi.fn().mockResolvedValue(Either.right(undefined));
+    const { store } = configureStore(
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      listWorkspaceChannelUnreadCounts,
+      markChannelRead
+    );
+
+    await store.load(workspaceId);
+
+    expect(store.unreadCountByChannel().get(channelId)).toBe(3);
+    expect(store.select(channelId)).toBe(true);
+    await store.markChannelRead({ channelId, messageId });
+
+    await vi.waitFor(() => {
+      expect(markChannelRead).toHaveBeenCalledWith({ channelId, messageId });
+      expect(store.unreadCountByChannel().get(channelId)).toBe(0);
+    });
+  });
+
+  it('keeps channel navigation available when unread counts fail', async () => {
+    const { store } = configureStore(
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      vi.fn().mockResolvedValue(Either.left(new Error('unavailable')))
+    );
+
+    await store.load(workspaceId);
+
+    expect(store.channels()).toEqual([channel]);
+    expect(store.loadStatus()).toBe('loaded');
+    expect(store.unreadStatus()).toBe('failed');
+    expect(store.unreadError()).not.toBeNull();
+  });
+
+  it('retries a failed exact read-position command', async () => {
+    const markChannelRead = vi
+      .fn()
+      .mockResolvedValueOnce(Either.left(new Error('unavailable')))
+      .mockResolvedValueOnce(Either.right(undefined));
+    const { store } = configureStore(
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      vi
+        .fn()
+        .mockResolvedValue(
+          Either.right([{ channelId, unreadCount: 2 }] as const)
+        ),
+      markChannelRead
+    );
+    await store.load(workspaceId);
+
+    await store.markChannelRead({ channelId, messageId });
+    expect(store.unreadError()).not.toBeNull();
+
+    await store.retryUnreadCounts();
+
+    expect(markChannelRead).toHaveBeenCalledTimes(2);
+    expect(store.unreadError()).toBeNull();
+    expect(store.unreadCountByChannel().get(channelId)).toBe(0);
   });
 
   it('reconciles realtime create, update, and archive snapshots', async () => {

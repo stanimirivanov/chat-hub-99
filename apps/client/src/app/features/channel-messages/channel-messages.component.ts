@@ -4,7 +4,9 @@ import {
   effect,
   inject,
   input,
+  output,
 } from '@angular/core';
+import type { MarkChannelReadInput } from '@omoikane/application/message';
 import type { ChannelId } from '@omoikane/domain/channel';
 import type { MessageId } from '@omoikane/domain/message';
 import { ChannelMessageComposerComponent } from './composer/channel-message-composer.component';
@@ -25,9 +27,11 @@ export class ChannelMessagesComponent {
   readonly channelId = input.required<ChannelId>();
   readonly focusedMessageId = input<MessageId | null>(null);
   readonly canModerateMessages = input(false);
+  readonly readThrough = output<MarkChannelReadInput>();
 
   private readonly store = inject(ChannelMessagesStore);
   protected readonly typingStore = inject(ChannelTypingStore);
+  private lastReadThrough: MarkChannelReadInput | null = null;
 
   constructor() {
     effect(() => {
@@ -40,6 +44,32 @@ export class ChannelMessagesComponent {
         this.channelId(),
         this.focusedMessageId()
       );
+    });
+
+    effect(() => {
+      const channelId = this.channelId();
+      const newestMessage = this.store.messages()[0];
+
+      if (
+        this.store.channelId() !== channelId ||
+        this.store.loadStatus() !== 'loaded' ||
+        newestMessage === undefined
+      ) {
+        return;
+      }
+
+      if (
+        this.lastReadThrough?.channelId === channelId &&
+        this.lastReadThrough.messageId === newestMessage.id
+      ) {
+        return;
+      }
+
+      this.lastReadThrough = {
+        channelId,
+        messageId: newestMessage.id,
+      };
+      this.readThrough.emit(this.lastReadThrough);
     });
   }
 }

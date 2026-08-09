@@ -7,6 +7,8 @@ import {
   getChannelMessage,
   listChannelMessages,
   listMessageRevisions,
+  listWorkspaceChannelUnreadCounts,
+  markChannelRead,
   observeChannelMessages,
   searchWorkspaceMessages,
   type CreateMessageError,
@@ -28,9 +30,12 @@ import {
   type SearchWorkspaceMessagesInput,
   type WorkspaceMessageSearchResult,
   type MessageRepositoryError,
+  type ChannelUnreadCount,
+  type MarkChannelReadInput,
 } from '@omoikane/application/message';
 import type { ChannelId } from '@omoikane/domain/channel';
 import type { Message } from '@omoikane/domain/message';
+import type { WorkspaceId } from '@omoikane/domain/workspace';
 import { applicationRuntime } from '../effect/application-runtime';
 
 /**
@@ -45,6 +50,24 @@ import { applicationRuntime } from '../effect/application-runtime';
   providedIn: 'root',
 })
 export class MessageApplicationService {
+  listWorkspaceChannelUnreadCounts(
+    workspaceId: WorkspaceId
+  ): Promise<
+    Either.Either<readonly ChannelUnreadCount[], MessageRepositoryError>
+  > {
+    return applicationRuntime.runPromise(
+      listWorkspaceChannelUnreadCounts(workspaceId).pipe(Effect.either)
+    );
+  }
+
+  markChannelRead(
+    input: MarkChannelReadInput
+  ): Promise<Either.Either<void, MessageRepositoryError>> {
+    return applicationRuntime.runPromise(
+      markChannelRead(input).pipe(Effect.either)
+    );
+  }
+
   searchWorkspaceMessages(
     input: SearchWorkspaceMessagesInput
   ): Promise<

@@ -16,6 +16,8 @@ describe('makeSupabaseMessageRepository', () => {
       findById: expect.any(Function),
       listByChannel: expect.any(Function),
       searchWorkspace: expect.any(Function),
+      listUnreadByWorkspace: expect.any(Function),
+      markRead: expect.any(Function),
       listRevisions: expect.any(Function),
       changesByChannel: expect.any(Function),
     });

@@ -11,6 +11,7 @@ domain values.
 - Execute message command RPCs
 - Query current message projections
 - Execute workspace-scoped current-message full-text search
+- Execute per-member channel read-position and workspace unread-count RPCs
 - Query immutable message revisions with keyset pagination
 - Subscribe to channel-filtered message-head changes
 - Map PostgREST and thrown failures into application repository errors
@@ -127,6 +128,21 @@ adapter validates both the message projection and channel identity before the
 result crosses into application code. Exact navigation then uses the existing
 RLS-visible current-message lookup instead of loading historical pages until a
 match happens to appear.
+
+## Channel read positions
+
+Unread state uses two `SECURITY DEFINER` RPCs because the authenticated profile
+identity and monotonic update rule must not be supplied or reproduced by the
+browser. The list operation returns one validated non-negative count for every
+active channel in the requested workspace. The mark operation verifies and
+advances through the exact newest message loaded by the presentation; an empty
+channel needs no persisted row.
+
+The underlying table is not available for direct application-role reads or
+writes. Its `(message created at, message ID)` tuple follows the existing stable
+message ordering and prevents a stale concurrent command from moving the
+position backwards. This adapter provides snapshot behavior only; realtime
+invalidation belongs to the next slice.
 
 ## Testing strategy
 

@@ -147,6 +147,17 @@ export type DeleteMessageArgs = DatabaseFunctionArgs<'delete_message'>;
 
 export type DeleteMessageResult = DatabaseFunctionReturns<'delete_message'>;
 
+export type MarkChannelReadArgs = DatabaseFunctionArgs<'mark_channel_read'>;
+
+export type MarkChannelReadResult =
+  DatabaseFunctionReturns<'mark_channel_read'>;
+
+export type ListWorkspaceChannelUnreadCountsArgs =
+  DatabaseFunctionArgs<'list_workspace_channel_unread_counts'>;
+
+export type ListWorkspaceChannelUnreadCountsResult =
+  DatabaseFunctionReturns<'list_workspace_channel_unread_counts'>;
+
 /** Workspace-scoped current-message search. */
 export type SearchWorkspaceMessagesArgs =
   DatabaseFunctionArgs<'search_workspace_messages'>;

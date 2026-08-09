@@ -13,5 +13,6 @@ export {
   makeListByChannelRepository,
   makeListRevisionsRepository,
   makeSearchWorkspaceRepository,
+  makeUnreadRepository,
   makeObserveByChannelRepository,
 } from './message-repository.stub';

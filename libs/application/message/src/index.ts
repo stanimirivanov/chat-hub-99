@@ -54,6 +54,13 @@ export {
   type WorkspaceMessageSearchResult,
 } from './lib/search-workspace-messages';
 
+export { listWorkspaceChannelUnreadCounts } from './lib/list-workspace-channel-unread-counts';
+
+export {
+  markChannelRead,
+  type MarkChannelReadInput,
+} from './lib/mark-channel-read';
+
 export {
   MessagePageSizeSchema,
   MessageRevisionPageSizeSchema,
@@ -75,11 +82,13 @@ export {
   MessageRepositoryUnavailableError,
   InvalidMessageDataError,
   type ListChannelMessagesQuery,
+  type ChannelUnreadCount,
   type ListMessageRevisionsQuery,
   type SearchWorkspaceMessagesQuery,
   type CreateMessageCommand,
   type DeleteMessageCommand,
   type EditMessageCommand,
+  type MarkChannelReadCommand,
   type MessageRepository,
   type MessageRepositoryCreateError,
   type MessageRepositoryDeleteError,
