@@ -333,6 +333,7 @@ Phase 3 proceeds in conservative pull requests:
    application, database, infrastructure, HTTP, and Angular code required to
    start and observe one workspace-authorized Analysis Run without an LLM or
    worker. Preserve all direct collaboration repositories unchanged.
+   **Completed.**
 4. **Server telemetry.** Add OpenTelemetry composition and prove one client
    request produces correlated server and Supabase spans. Add the local
    telemetry profile only when this slice consumes it.

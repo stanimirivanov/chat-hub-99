@@ -1,6 +1,7 @@
 import { Controller, Get, Module, Req } from '@nestjs/common';
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { createClient } from '@supabase/supabase-js';
+import type { Database } from '@omoikane/shared/database';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   getRequestIdentity,
@@ -11,6 +12,24 @@ import { createServer } from './create-server';
 
 const supabaseUrl = 'http://127.0.0.1:54321';
 const supabaseAnonKey = 'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH';
+
+const signIn = async (email: string) => {
+  const client = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  });
+  const { data, error } = await client.auth.signInWithPassword({
+    email,
+    password: 'Password123!',
+  });
+
+  expect(error).toBeNull();
+  expect(data.session?.access_token).toBeTruthy();
+  return { client, token: data.session?.access_token ?? '' };
+};
 
 @Controller('test/authenticated-entry')
 class AuthenticatedEntryTestController {
@@ -42,32 +61,85 @@ describe('authenticated server entry against local Supabase', () => {
   });
 
   it('accepts a local authenticated user and exposes only canonical identity', async () => {
-    const client = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-        detectSessionInUrl: false,
-      },
-    });
-    const { data, error } = await client.auth.signInWithPassword({
-      email: 'owner@omoikane.local',
-      password: 'Password123!',
-    });
-
-    expect(error).toBeNull();
-    expect(data.session?.access_token).toBeTruthy();
+    const { token } = await signIn('owner@omoikane.local');
 
     app = await createServer(AuthenticationIntegrationModule);
     const response = await app.inject({
       method: 'GET',
       url: '/api/v1/test/authenticated-entry',
-      headers: { authorization: `Bearer ${data.session?.access_token ?? ''}` },
+      headers: { authorization: `Bearer ${token}` },
     });
 
     expect(response.statusCode).toBe(200);
     expect(response.headers['cache-control']).toBe('private, no-store');
     expect(response.json()).toEqual({
       userId: '10000000-0000-4000-8000-000000000001',
+    });
+  });
+
+  it('starts and observes one workspace-authorized deterministic Analysis Run', async () => {
+    const { client, token } = await signIn('owner@omoikane.local');
+    const { data: workspaces, error } = await client
+      .from('current_workspaces')
+      .select('workspace_id')
+      .eq('status', 'active')
+      .limit(1);
+    expect(error).toBeNull();
+    const workspaceId = workspaces?.[0]?.workspace_id;
+    expect(workspaceId).toBeTruthy();
+
+    app = await createServer();
+    const started = await app.inject({
+      method: 'POST',
+      url: `/api/v1/workspaces/${workspaceId}/analysis-runs`,
+      headers: { authorization: `Bearer ${token}` },
+    });
+
+    expect(started.statusCode).toBe(201);
+    expect(started.headers['cache-control']).toBe('private, no-store');
+    const run = started.json<{
+      readonly id: string;
+      readonly workspaceId: string;
+      readonly requestedBy: string;
+      readonly status: string;
+    }>();
+    expect(run).toMatchObject({
+      workspaceId,
+      requestedBy: '10000000-0000-4000-8000-000000000001',
+      status: 'created',
+    });
+
+    const observed = await app.inject({
+      method: 'GET',
+      url: `/api/v1/workspaces/${workspaceId}/analysis-runs/${run.id}`,
+      headers: { authorization: `Bearer ${token}` },
+    });
+    expect(observed.statusCode).toBe(200);
+    expect(observed.json()).toEqual(started.json());
+  });
+
+  it('does not reveal an inaccessible workspace to an authenticated outsider', async () => {
+    const owner = await signIn('owner@omoikane.local');
+    const { data: workspaces } = await owner.client
+      .from('current_workspaces')
+      .select('workspace_id')
+      .eq('status', 'active')
+      .limit(1);
+    const workspaceId = workspaces?.[0]?.workspace_id;
+    expect(workspaceId).toBeTruthy();
+    const outsider = await signIn('outsider@omoikane.local');
+
+    app = await createServer();
+    const response = await app.inject({
+      method: 'POST',
+      url: `/api/v1/workspaces/${workspaceId}/analysis-runs`,
+      headers: { authorization: `Bearer ${outsider.token}` },
+    });
+
+    expect(response.statusCode).toBe(404);
+    expect(response.json()).toMatchObject({
+      type: 'https://omoikane.dev/problems/resource-not-found',
+      code: 'resource_not_found',
     });
   });
 

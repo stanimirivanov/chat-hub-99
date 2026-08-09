@@ -142,6 +142,8 @@ Implementation scope:
   add readiness as the second prerequisite.
 - Create the first product-bearing server endpoint: start and observe one
   workspace-authorized deterministic Analysis Run without an LLM or worker.
+  **Completed:** immutable created-state record, atomic membership check,
+  authenticated HTTP start/read routes, and the minimal Angular path.
 - Add server telemetry, then Server-Sent Events only if the implemented Analysis
   Run user experience requires a status stream.
 
@@ -156,7 +158,7 @@ Exit criteria:
 Implementation scope:
 
 - Add `apps/ai-worker` with graceful shutdown and Effect layer composition.
-- Create immutable Analysis Run, model execution, finding, source-reference, and
+- Extend Analysis Runs with model execution, finding, source-reference, and
   human-review records.
 - Implement transactional outbox and PostgreSQL-backed jobs with leasing, retry,
   backoff, dead-letter state, and idempotency.

@@ -28,10 +28,12 @@ const ServerConfigSchema = Schema.Struct({
   version: RequiredTextSchema,
   supabaseUrl: HttpUrlSchema,
   supabaseAnonKey: RequiredTextSchema,
+  supabaseServiceRoleKey: RequiredTextSchema,
   readinessTimeoutMilliseconds: Schema.NumberFromString.pipe(
     Schema.int(),
     Schema.between(100, 30_000)
   ),
+  allowedOrigins: Schema.Array(HttpUrlSchema),
 });
 
 /** Validated process configuration required by the active server runtime. */
@@ -80,10 +82,20 @@ export const readServerConfig = (
       environment['SUPABASE_ANON_KEY'],
       'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH'
     ),
+    supabaseServiceRoleKey: configuredValue(
+      environment['SUPABASE_SERVICE_ROLE_KEY'],
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
+    ),
     readinessTimeoutMilliseconds: configuredValue(
       environment['OMOIKANE_READINESS_TIMEOUT_MS'],
       '2000'
     ),
+    allowedOrigins: configuredValue(
+      environment['OMOIKANE_ALLOWED_ORIGINS'],
+      'http://localhost:4200'
+    )
+      .split(',')
+      .map((origin) => origin.trim()),
   });
 
   if (Either.isLeft(decoded)) {

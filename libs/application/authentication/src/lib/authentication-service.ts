@@ -41,6 +41,15 @@ export interface PasswordResetRequest {
  */
 export interface AuthenticationService {
   /**
+   * Retrieves the browser session's current access token for one trusted API
+   * request. Callers must use it transiently and must not persist it in state.
+   */
+  readonly getCurrentAccessToken: () => Effect.Effect<
+    string,
+    AuthenticationError
+  >;
+
+  /**
    * Builds a program that retrieves the currently persisted session.
    *
    * Success is either the current application session or `null`. Expected

@@ -74,4 +74,6 @@ export {
 
 export { validateAccessToken } from './lib/validate-access-token';
 
+export { getCurrentAccessToken } from './lib/get-current-access-token';
+
 export { checkAccessTokenValidationAvailability } from './lib/check-access-token-validation-availability';

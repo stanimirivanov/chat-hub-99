@@ -1,0 +1,21 @@
+{
+  "name": "analysis-infrastructure",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/infrastructure/analysis/src",
+  "projectType": "library",
+  "tags": ["scope:analysis", "layer:infrastructure"],
+  "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p libs/infrastructure/analysis/tsconfig.lib.json"
+      }
+    },
+    "typecheck:test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p libs/infrastructure/analysis/tsconfig.spec.json"
+      }
+    }
+  }
+}

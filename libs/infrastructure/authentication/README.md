@@ -44,6 +44,8 @@ callbacks, and `AuthError` values stop at this infrastructure boundary.
 The browser `AuthenticationService` and server `AccessTokenValidator` remain
 separate capabilities. This prevents server-only validation and readiness
 concerns from increasing the coupling of Angular session workflows.
+The browser adapter exposes only a transient access-token operation needed by
+the trusted HTTP client; it does not widen the stored session projection.
 
 The adapter maps `auth.signUp` responses before crossing that boundary:
 

@@ -11,6 +11,7 @@
       "@omoikane/domain/message": ["./libs/domain/message/src/index.ts"],
       "@omoikane/domain/profile": ["./libs/domain/profile/src/index.ts"],
       "@omoikane/domain/workspace": ["./libs/domain/workspace/src/index.ts"],
+      "@omoikane/domain/analysis": ["./libs/domain/analysis/src/index.ts"],
       "@omoikane/application/authentication": [
         "./libs/application/authentication/src/index.ts"
       ],
@@ -26,6 +27,9 @@
       "@omoikane/application/workspace": [
         "./libs/application/workspace/src/index.ts"
       ],
+      "@omoikane/application/analysis": [
+        "./libs/application/analysis/src/index.ts"
+      ],
       "@omoikane/infrastructure/message": [
         "./libs/infrastructure/message/src/index.ts"
       ],
@@ -40,6 +44,9 @@
       ],
       "@omoikane/infrastructure/workspace": [
         "./libs/infrastructure/workspace/src/index.ts"
+      ],
+      "@omoikane/infrastructure/analysis": [
+        "./libs/infrastructure/analysis/src/index.ts"
       ]
     },
     "noImplicitOverride": true,

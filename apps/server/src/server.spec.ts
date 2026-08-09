@@ -66,6 +66,9 @@ describe('Omoikane server runtime', () => {
     expect(response.statusCode).toBe(200);
     expect(document.info.title).toBe('Omoikane Server API');
     expect(document.paths).toHaveProperty('/health/live');
+    expect(document.paths).toHaveProperty(
+      '/api/v1/workspaces/{workspaceId}/analysis-runs'
+    );
   });
 
   it('initializes one Effect runtime and disposes it with Nest', async () => {

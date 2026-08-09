@@ -17,6 +17,20 @@ const generatedTypes = execSync(
   }
 );
 
+// Package-manager shims may write status messages to stdout before forwarding
+// the Supabase CLI output. Keep only the generated TypeScript contract and fail
+// explicitly if the CLI's stable opening declaration is absent.
+const generatedContractMarker = 'export type Json =';
+const generatedContractStart = generatedTypes.indexOf(generatedContractMarker);
+
+if (generatedContractStart < 0) {
+  throw new Error(
+    `Supabase type output did not contain ${JSON.stringify(generatedContractMarker)}.`
+  );
+}
+
+const generatedContract = generatedTypes.slice(generatedContractStart);
+
 const header = `/**
  * AUTO-GENERATED FILE.
  *
@@ -29,7 +43,7 @@ const header = `/**
 // Supabase CLI output has varied in line endings and trailing blank lines
 // across operating systems. Normalize only that whitespace boundary so the
 // checked-in generated contract remains byte-identical locally and in CI.
-const normalizedGeneratedTypes = generatedTypes
+const normalizedGeneratedTypes = generatedContract
   .replace(/\r\n?/gu, '\n')
   .trimEnd();
 

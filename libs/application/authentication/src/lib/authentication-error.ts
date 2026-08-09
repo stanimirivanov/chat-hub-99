@@ -14,7 +14,8 @@ export type AuthenticationOperation =
   | 'request-password-reset'
   | 'update-password'
   | 'sign-out'
-  | 'observe-session';
+  | 'observe-session'
+  | 'get-access-token';
 
 /**
  * Indicates that supplied credentials were rejected.

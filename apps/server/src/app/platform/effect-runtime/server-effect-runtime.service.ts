@@ -1,6 +1,11 @@
 import { Inject, Injectable, type OnApplicationShutdown } from '@nestjs/common';
 import { Effect, Layer, ManagedRuntime } from 'effect';
 import type { AccessTokenValidator } from '@omoikane/application/authentication';
+import type { AnalysisRunRepository } from '@omoikane/application/analysis';
+import {
+  makeSupabaseAnalysisClientLayer,
+  SupabaseAnalysisRunRepositoryLayer,
+} from '@omoikane/infrastructure/analysis';
 import {
   makeSupabaseAccessTokenClientLayer,
   SupabaseAccessTokenValidatorLayer,
@@ -19,7 +24,7 @@ import type { ServerConfig } from '../configuration/server-config';
 @Injectable()
 export class ServerEffectRuntime implements OnApplicationShutdown {
   private readonly managedRuntime: ManagedRuntime.ManagedRuntime<
-    AccessTokenValidator,
+    AccessTokenValidator | AnalysisRunRepository,
     never
   >;
   private disposed = false;
@@ -30,9 +35,17 @@ export class ServerEffectRuntime implements OnApplicationShutdown {
       anonKey: config.supabaseAnonKey,
       readinessTimeoutMilliseconds: config.readinessTimeoutMilliseconds,
     });
-    const liveLayer = SupabaseAccessTokenValidatorLayer.pipe(
+    const authenticationLayer = SupabaseAccessTokenValidatorLayer.pipe(
       Layer.provide(clientLayer)
     );
+    const analysisClientLayer = makeSupabaseAnalysisClientLayer({
+      url: config.supabaseUrl,
+      serviceRoleKey: config.supabaseServiceRoleKey,
+    });
+    const analysisLayer = SupabaseAnalysisRunRepositoryLayer.pipe(
+      Layer.provide(analysisClientLayer)
+    );
+    const liveLayer = Layer.merge(authenticationLayer, analysisLayer);
 
     this.managedRuntime = ManagedRuntime.make(liveLayer);
   }
@@ -44,7 +57,7 @@ export class ServerEffectRuntime implements OnApplicationShutdown {
 
   /** Executes an Effect whose requirements are supplied by the server Layer. */
   runPromise<A, E>(
-    program: Effect.Effect<A, E, AccessTokenValidator>
+    program: Effect.Effect<A, E, AccessTokenValidator | AnalysisRunRepository>
   ): Promise<A> {
     return this.managedRuntime.runPromise(program);
   }

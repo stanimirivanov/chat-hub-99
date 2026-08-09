@@ -9,6 +9,8 @@ session, signing in, registering an account, requesting password recovery,
 resending account confirmation, replacing a recovered password, signing out,
 and observing session changes. A separate, focused access-token-validator port
 establishes the minimum request identity required by trusted server workflows.
+The browser may also retrieve a current access token transiently for one trusted
+API request; the token is never part of `AuthenticationSession` or store state.
 
 ## Responsibilities
 

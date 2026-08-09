@@ -17,7 +17,7 @@
     "server:dev": "nx serve server",
     "server:build": "nx build server",
     "server:test": "nx test server",
-    "server:auth:verify": "nx run server:integration",
+    "server:integration:verify": "nx run server:integration",
     "build": "nx run-many -t build",
     "test": "nx run-many -t test",
     "test:watch": "nx test client --watch",
@@ -53,7 +53,7 @@
     "db:test": "supabase test db",
     "db:lint": "supabase db lint --level error",
     "db:verify": "pnpm db:reset && pnpm db:lint && pnpm db:test && pnpm db:types:check",
-    "verify:all": "pnpm verify && pnpm db:verify && pnpm server:auth:verify && pnpm e2e:install && pnpm e2e",
+    "verify:all": "pnpm verify && pnpm db:verify && pnpm server:integration:verify && pnpm e2e:install && pnpm e2e",
     "dev": "pnpm db:prepare && nx run-many -t serve -p client server --parallel=2"
   },
   "private": true,

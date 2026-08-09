@@ -1,0 +1,39 @@
+<section aria-labelledby="analysis-runs-title">
+  <h3 id="analysis-runs-title">Analysis Runs</h3>
+  <p>Start a deterministic trusted workflow for this workspace.</p>
+
+  <button
+    type="button"
+    [disabled]="
+      store.status() === 'starting' || store.status() === 'refreshing'
+    "
+    (click)="store.start()"
+  >
+    @if (store.status() === 'starting') {
+      Starting&hellip;
+    } @else {
+      Start Analysis Run
+    }
+  </button>
+
+  @if (store.run(); as run) {
+    <p>Run {{ run.id }} is {{ run.status }}.</p>
+    <button
+      type="button"
+      [disabled]="
+        store.status() === 'starting' || store.status() === 'refreshing'
+      "
+      (click)="store.refresh()"
+    >
+      @if (store.status() === 'refreshing') {
+        Refreshing&hellip;
+      } @else {
+        Refresh status
+      }
+    </button>
+  }
+
+  @if (store.error(); as error) {
+    <p role="alert">{{ error.message }}</p>
+  }
+</section>

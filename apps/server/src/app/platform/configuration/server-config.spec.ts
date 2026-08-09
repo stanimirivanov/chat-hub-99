@@ -10,7 +10,10 @@ describe('readServerConfig', () => {
       version: 'development',
       supabaseUrl: 'http://127.0.0.1:54321',
       supabaseAnonKey: 'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH',
+      supabaseServiceRoleKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU',
       readinessTimeoutMilliseconds: 2000,
+      allowedOrigins: ['http://localhost:4200'],
     });
   });
 
@@ -23,7 +26,10 @@ describe('readServerConfig', () => {
         OMOIKANE_SERVER_VERSION: ' 0.1.0-test ',
         SUPABASE_URL: ' http://supabase.test ',
         SUPABASE_ANON_KEY: ' publishable-test-key ',
+        SUPABASE_SERVICE_ROLE_KEY: ' service-role-test-key ',
         OMOIKANE_READINESS_TIMEOUT_MS: ' 500 ',
+        OMOIKANE_ALLOWED_ORIGINS:
+          ' https://app.omoikane.test, http://localhost:4200 ',
       })
     ).toEqual({
       environment: 'test',
@@ -32,7 +38,9 @@ describe('readServerConfig', () => {
       version: '0.1.0-test',
       supabaseUrl: 'http://supabase.test',
       supabaseAnonKey: 'publishable-test-key',
+      supabaseServiceRoleKey: 'service-role-test-key',
       readinessTimeoutMilliseconds: 500,
+      allowedOrigins: ['https://app.omoikane.test', 'http://localhost:4200'],
     });
   });
 
