@@ -7,13 +7,16 @@ It contains application session contracts, typed authentication failures,
 the outbound authentication service port, and use cases for restoring a
 session, signing in, registering an account, requesting password recovery,
 resending account confirmation, replacing a recovered password, signing out,
-and observing session changes.
+and observing session changes. A separate, focused access-token-validator port
+establishes the minimum request identity required by trusted server workflows.
 
 ## Responsibilities
 
 - Define the application authentication-session projection.
 - Define technology-independent authentication errors.
 - Define the outbound `AuthenticationService` port.
+- Define the stateless `AccessTokenValidator` server port without widening the
+  browser-session service.
 - Orchestrate session restoration, sign-in, sign-up, confirmation-email
   resend, password recovery, sign-out, and session observation.
 - Runtime-validate and normalize use-case input before requesting a provider.
@@ -45,8 +48,8 @@ Effect.Effect<Success, AuthenticationError, AuthenticationService>
 - `AuthenticationError` describes expected recoverable failures.
 - `AuthenticationService` is the outbound capability required at execution.
 
-Application code does not call `Effect.runPromise`. Tests and the Angular
-composition boundary execute the programs.
+Application code does not call `Effect.runPromise`. Tests and the Angular or
+Nest composition boundary execute the programs.
 
 ## Package structure
 
@@ -81,7 +84,8 @@ The public entry point exports:
 - the runtime-validated session contract and credential contracts;
 - application authentication errors;
 - `AuthenticationServiceTag`;
-- the eight authentication use cases.
+- `AccessTokenValidatorTag` and the immutable request-identity contract;
+- the browser authentication and server token-validation use cases.
 
 Account registration deliberately models both successful provider outcomes:
 an immediately authenticated session and an account that must confirm its

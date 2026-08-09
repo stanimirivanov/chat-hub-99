@@ -1,8 +1,25 @@
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
+import { Controller, Get, Module, Req } from '@nestjs/common';
 import { Effect } from 'effect';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ServerEffectRuntime } from './app/platform/effect-runtime/server-effect-runtime.service';
+import {
+  getRequestIdentity,
+  type RequestWithIdentity,
+} from './app/platform/authentication/request-identity';
+import { ServerModule } from './app/server.module';
 import { createServer } from './create-server';
+
+@Controller('test/protected')
+class ProtectedTestController {
+  @Get()
+  getIdentity(@Req() request: RequestWithIdentity): unknown {
+    return getRequestIdentity(request);
+  }
+}
+
+@Module({ imports: [ServerModule], controllers: [ProtectedTestController] })
+class ProtectedTestServerModule {}
 
 describe('Omoikane server runtime', () => {
   let app: NestFastifyApplication | undefined;
@@ -65,4 +82,35 @@ describe('Omoikane server runtime', () => {
 
     expect(dispose).toHaveBeenCalledOnce();
   });
+
+  it.each([
+    undefined,
+    '',
+    'Basic credentials',
+    'Bearer',
+    'Bearer token with-spaces',
+  ])(
+    'rejects a missing or malformed bearer header uniformly: %j',
+    async (authorization) => {
+      app = await createServer(ProtectedTestServerModule);
+
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/v1/test/protected',
+        ...(authorization === undefined ? {} : { headers: { authorization } }),
+      });
+
+      expect(response.statusCode).toBe(401);
+      expect(response.headers['www-authenticate']).toBe('Bearer');
+      expect(response.headers['content-type']).toContain(
+        'application/problem+json'
+      );
+      expect(response.json()).toMatchObject({
+        type: 'https://omoikane.dev/problems/authentication-required',
+        status: 401,
+        code: 'authentication_required',
+        instance: '/api/v1/test/protected',
+      });
+    }
+  );
 });

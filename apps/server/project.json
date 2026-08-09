@@ -17,6 +17,12 @@
         "command": "tsc --noEmit -p apps/server/tsconfig.spec.json"
       }
     },
+    "integration": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run --config apps/server/vitest.integration.config.mts"
+      }
+    },
     "build": {
       "executor": "nx:run-commands",
       "options": {

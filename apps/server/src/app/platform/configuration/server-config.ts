@@ -7,14 +7,34 @@ const PortSchema = Schema.NumberFromString.pipe(
 
 const RequiredTextSchema = Schema.Trim.pipe(Schema.nonEmptyString());
 
+const HttpUrlSchema = RequiredTextSchema.pipe(
+  Schema.filter(
+    (value) => {
+      try {
+        const url = new URL(value);
+        return url.protocol === 'http:' || url.protocol === 'https:';
+      } catch {
+        return false;
+      }
+    },
+    { message: () => 'Expected an absolute HTTP(S) URL.' }
+  )
+);
+
 const ServerConfigSchema = Schema.Struct({
   environment: RequiredTextSchema,
   host: RequiredTextSchema,
   port: PortSchema,
   version: RequiredTextSchema,
+  supabaseUrl: HttpUrlSchema,
+  supabaseAnonKey: RequiredTextSchema,
+  readinessTimeoutMilliseconds: Schema.NumberFromString.pipe(
+    Schema.int(),
+    Schema.between(100, 30_000)
+  ),
 });
 
-/** Validated process configuration required by the initial server runtime. */
+/** Validated process configuration required by the active server runtime. */
 export type ServerConfig = typeof ServerConfigSchema.Type;
 
 /**
@@ -51,6 +71,18 @@ export const readServerConfig = (
     version: configuredValue(
       environment['OMOIKANE_SERVER_VERSION'],
       'development'
+    ),
+    supabaseUrl: configuredValue(
+      environment['SUPABASE_URL'],
+      'http://127.0.0.1:54321'
+    ),
+    supabaseAnonKey: configuredValue(
+      environment['SUPABASE_ANON_KEY'],
+      'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH'
+    ),
+    readinessTimeoutMilliseconds: configuredValue(
+      environment['OMOIKANE_READINESS_TIMEOUT_MS'],
+      '2000'
     ),
   });
 

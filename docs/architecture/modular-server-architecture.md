@@ -328,7 +328,7 @@ Phase 3 proceeds in conservative pull requests:
    **Completed.**
 2. **Authenticated server boundary.** Add bearer-token validation, immutable
    request identity, deny-by-default guard behavior, readiness, uniform problem
-   responses, and integration tests against local Supabase.
+   responses, and integration tests against local Supabase. **Completed.**
 3. **Deterministic Analysis Run command.** Introduce only the domain,
    application, database, infrastructure, HTTP, and Angular code required to
    start and observe one workspace-authorized Analysis Run without an LLM or

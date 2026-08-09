@@ -3,19 +3,14 @@ import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 
 export default defineConfig({
   root: __dirname,
-  cacheDir: '../../node_modules/.vite/apps/server',
+  cacheDir: '../../node_modules/.vite/apps/server-integration',
   plugins: [nxViteTsPaths()],
   test: {
-    name: 'server',
+    name: 'server-local-supabase',
     watch: false,
     globals: true,
     environment: 'node',
-    include: ['src/**/*.{test,spec}.ts'],
-    exclude: ['src/**/*.integration.spec.ts'],
+    include: ['src/**/*.integration.spec.ts'],
     reporters: ['default'],
-    coverage: {
-      reportsDirectory: '../../coverage/apps/server',
-      provider: 'v8' as const,
-    },
   },
 });
