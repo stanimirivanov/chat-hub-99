@@ -136,7 +136,8 @@ Implementation scope:
 
 - Add `apps/server` with Fastify-backed NestJS, OpenAPI, structured errors, an
   Effect runtime bridge, graceful shutdown, and liveness as the first runtime
-  prerequisite.
+  prerequisite. **Completed:** bootstrap, liveness, OpenAPI, and runtime
+  lifecycle; structured HTTP problems arrive with the authenticated boundary.
 - Validate Supabase access tokens, establish immutable request identity, and
   add readiness as the second prerequisite.
 - Create the first product-bearing server endpoint: start and observe one

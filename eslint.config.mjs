@@ -41,6 +41,16 @@ export default [
               ],
             },
             {
+              sourceTag: 'runtime:server',
+              onlyDependOnLibsWithTags: [
+                'layer:application',
+                'layer:infrastructure',
+                'layer:domain',
+                'layer:database',
+                'layer:util',
+              ],
+            },
+            {
               sourceTag: 'layer:domain',
               onlyDependOnLibsWithTags: ['layer:domain', 'layer:util'],
             },

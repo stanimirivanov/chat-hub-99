@@ -9,13 +9,14 @@
   },
   "scripts": {
     "preinstall": "node tools/development/verify-node-version.mjs && npx only-allow pnpm",
-
     "start": "nx serve client",
     "dev:bootstrap": "node tools/development/bootstrap.mjs",
     "dev:up": "pnpm supabase:start",
     "dev:status": "node tools/development/show-status.mjs",
     "dev:down": "pnpm supabase:stop",
-
+    "server:dev": "nx serve server",
+    "server:build": "nx build server",
+    "server:test": "nx test server",
     "build": "nx run-many -t build",
     "test": "nx run-many -t test",
     "test:watch": "nx test client --watch",
@@ -25,17 +26,13 @@
     "typecheck": "nx run-many -t typecheck",
     "typecheck:test": "nx run-many -t typecheck:test",
     "lint": "nx run-many -t lint && eslint tools",
-
     "format": "nx format:write",
     "format:check": "nx format:check",
     "sync": "nx sync",
     "sync:check": "nx sync:check",
-
     "check": "pnpm format:check && pnpm sync:check && pnpm lint && pnpm typecheck && pnpm typecheck:test",
     "verify": "pnpm check && pnpm test && pnpm build",
-
     "graph": "nx graph",
-
     "affected:build": "nx affected -t build",
     "affected:test": "nx affected -t test",
     "affected:typecheck": "nx affected -t typecheck",
@@ -43,11 +40,9 @@
     "affected:lint": "nx affected -t lint",
     "affected:check": "pnpm format:check && pnpm sync:check && nx affected -t lint typecheck typecheck:test",
     "affected:verify": "pnpm format:check && pnpm sync:check && nx affected -t lint typecheck typecheck:test test build",
-
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",
     "supabase:status": "supabase status",
-
     "db:reset": "supabase db reset",
     "db:prepare": "pnpm dev:up && pnpm db:reset",
     "db:migration:new": "supabase migration new",
@@ -57,10 +52,8 @@
     "db:test": "supabase test db",
     "db:lint": "supabase db lint --level error",
     "db:verify": "pnpm db:reset && pnpm db:lint && pnpm db:test && pnpm db:types:check",
-
     "verify:all": "pnpm verify && pnpm db:verify && pnpm e2e:install && pnpm e2e",
-
-    "dev": "pnpm db:prepare && nx serve client"
+    "dev": "pnpm db:prepare && nx run-many -t serve -p client server --parallel=2"
   },
   "private": true,
   "dependencies": {
@@ -70,9 +63,15 @@
     "@angular/forms": "~22.0.4",
     "@angular/platform-browser": "~22.0.4",
     "@angular/router": "~22.0.4",
+    "@fastify/static": "9.3.0",
+    "@nestjs/common": "11.1.28",
+    "@nestjs/core": "11.1.28",
+    "@nestjs/platform-fastify": "11.1.28",
+    "@nestjs/swagger": "11.4.6",
     "@ngrx/signals": "^21.1.1",
     "@supabase/supabase-js": "^2.110.8",
     "effect": "^3.22.0",
+    "reflect-metadata": "0.2.2",
     "rxjs": "^7.8.0"
   },
   "devDependencies": {
@@ -89,9 +88,12 @@
     "@nx/eslint": "23.1.0",
     "@nx/eslint-plugin": "23.1.0",
     "@nx/js": "23.1.0",
+    "@nx/node": "23.1.0",
     "@nx/playwright": "23.1.0",
     "@nx/vite": "23.1.0",
     "@nx/vitest": "23.1.0",
+    "@nx/web": "23.1.0",
+    "@nx/webpack": "23.1.0",
     "@nx/workspace": "23.1.0",
     "@playwright/test": "^1.62.1",
     "@schematics/angular": "~22.0.4",
@@ -114,7 +116,10 @@
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.58.0",
     "vite": "^8.0.0",
-    "vitest": "~4.1.0"
+    "vitest": "~4.1.0",
+    "webpack": "^5.101.3",
+    "webpack-cli": "^7.0.0",
+    "webpack-dev-server": "^5.2.1"
   },
   "nx": {
     "includedScripts": []

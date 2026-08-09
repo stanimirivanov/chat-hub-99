@@ -6,9 +6,10 @@
 > **Date:** 2 August 2026  
 > **Product:** Omoikane - The Collaborative Intelligence Platform
 
-This document defines the target local development environment. Sections that
-name the server, worker, Redis, observability stack, or local AI describe future
-phase capabilities until those artifacts are implemented.
+This document defines the target local development environment. The server
+bootstrap, liveness, and OpenAPI runtime are implemented. Sections that name
+server-to-Supabase access, the worker, Redis, the observability stack, or local
+AI describe future phase capabilities until those artifacts are implemented.
 
 ## 1. Baseline workstation
 
@@ -66,8 +67,9 @@ flowchart LR
   worker -.-> ollama
 ```
 
-The server, worker, and their dependent arrows describe the target topology and
-become operational only in their designated phases.
+The server process and its liveness endpoint are operational. Its Supabase,
+telemetry, and Redis arrows, along with the worker and its dependencies, remain
+target topology until their designated slices.
 
 ## 3. Target repository layout
 
@@ -158,7 +160,9 @@ Target example, expanded only as the owning runtimes are implemented:
 
 ```dotenv
 OMOIKANE_ENV=local
+OMOIKANE_SERVER_HOST=0.0.0.0
 OMOIKANE_SERVER_PORT=3333
+OMOIKANE_SERVER_VERSION=development
 OMOIKANE_WORKER_HEALTH_PORT=3334
 OMOIKANE_REDIS_URL=redis://localhost:6379
 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
@@ -202,7 +206,10 @@ command.
 | ------------------------ | ---------------------------------------------------------------------------------------------- |
 | `pnpm dev:bootstrap`     | Validate current tools, install locked dependencies, and start the implemented infrastructure. |
 | `pnpm dev:up`            | Start currently implemented infrastructure; this is Supabase-only until Compose is introduced. |
-| `pnpm dev`               | Run the implemented client, server, and worker applications through Nx.                        |
+| `pnpm dev`               | Reset local Supabase and run the implemented Angular client and NestJS server through Nx.      |
+| `pnpm server:dev`        | Run the implemented server on port 3333 without starting or resetting Supabase.                |
+| `pnpm server:test`       | Run focused server configuration, HTTP contract, and Effect lifecycle tests.                   |
+| `pnpm server:build`      | Build the production server bundle.                                                            |
 | `pnpm dev:observability` | Start OpenTelemetry, Prometheus, Grafana, Tempo, and Loki.                                     |
 | `pnpm dev:ai-local`      | Start Ollama and provision the documented local model.                                         |
 | `pnpm dev:status`        | Show implemented Node.js, pnpm, Docker, and local Supabase health.                             |
@@ -211,11 +218,13 @@ command.
 | `pnpm dev:down`          | Stop currently implemented infrastructure without deleting local Supabase data.                |
 | `pnpm dev:clean`         | After confirmation, stop the stack and remove disposable local volumes.                        |
 
-`pnpm dev:status` is implemented for the current client-and-Supabase topology.
+`pnpm dev:status` is implemented for the current tool-and-Supabase
+infrastructure topology.
 It is read-only, suppresses Supabase's credential-bearing status output, and
 returns a non-zero exit code when a required tool or service is unavailable.
-Compose, server, worker, and observability checks are added only with the slice
-that introduces each runtime.
+The server exposes `/health/live` for direct process verification; it joins the
+aggregate status command when runtime orchestration needs that contract. Worker,
+Compose, and observability checks are added only with their owning slices.
 
 `pnpm dev:up` and `pnpm dev:down` are implemented for the same current scope.
 Starting is non-destructive when local data already exists. Stopping uses the
@@ -226,9 +235,10 @@ lifecycle.
 `pnpm dev:bootstrap` validates the supported Node.js range, exact pnpm version,
 and an available Docker engine before running a frozen-lockfile install and
 `dev:up`. The current Angular client uses committed public local configuration,
-so bootstrap does not manufacture an unused `.env.local`. Creation of that file
-belongs to the first server, worker, or Compose slice that consumes
-developer-specific configuration.
+so bootstrap does not manufacture an unused `.env.local`. The server has safe
+local defaults and reads its documented `OMOIKANE_` variables directly from the
+process environment. Creation of an environment file belongs to the first
+runtime slice that needs secrets or developer-specific configuration.
 
 Bootstrap also reconciles the repository's former local Supabase identity. If
 Docker still contains containers whose exact project suffix is `chat-hub-99`,
