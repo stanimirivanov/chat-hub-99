@@ -4,12 +4,22 @@ import type { AnalysisRun, AnalysisRunId } from '@omoikane/domain/analysis';
 import type { WorkspaceId } from '@omoikane/domain/workspace';
 import type { AnalysisRunRepositoryError } from './analysis-run-error';
 
-export interface StartAnalysisRunCommand {
+interface ScopedAnalysisRunRequest {
   readonly identity: AuthenticatedRequestIdentity;
   readonly workspaceId: WorkspaceId;
 }
 
-export interface GetAnalysisRunQuery extends StartAnalysisRunCommand {
+export interface StartAnalysisRunCommand extends ScopedAnalysisRunRequest {
+  readonly traceContext: AnalysisRunProcessingTraceContext;
+}
+
+/** Safe W3C carrier persisted with asynchronous Analysis Run intent. */
+export interface AnalysisRunProcessingTraceContext {
+  readonly traceparent: string;
+  readonly tracestate: string | null;
+}
+
+export interface GetAnalysisRunQuery extends ScopedAnalysisRunRequest {
   readonly analysisRunId: AnalysisRunId;
 }
 

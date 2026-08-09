@@ -167,6 +167,8 @@ Contains pgTAP tests for:
 - channel read policies;
 - message read policies;
 - message Realtime publication configuration;
+- Analysis Run authorization, immutable acceptance records, lifecycle events,
+  atomic requested outbox events, rollback, and internal-table privileges;
 - workspace-access Broadcast policy, trigger, and payload configuration;
 - workspace-channel Broadcast authorization, trigger, and payload
   configuration.

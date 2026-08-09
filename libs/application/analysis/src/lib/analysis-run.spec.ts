@@ -16,6 +16,11 @@ const run = {
   createdAt: new Date('2026-08-09T12:00:00.000Z'),
 } as AnalysisRun;
 
+const traceContext = {
+  traceparent: '00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01',
+  tracestate: 'omoikane=test',
+};
+
 const layer = (repository: AnalysisRunRepository) =>
   Layer.succeed(AnalysisRunRepositoryTag, repository);
 
@@ -32,10 +37,16 @@ describe('Analysis Run use cases', () => {
         startAnalysisRun({
           identity: { userId: run.requestedBy },
           workspaceId: run.workspaceId,
+          traceContext,
         }).pipe(Effect.provide(layer(repository)))
       )
     ).resolves.toBe(run);
     expect(start).toHaveBeenCalledOnce();
+    expect(start).toHaveBeenCalledWith({
+      identity: { userId: run.requestedBy },
+      workspaceId: run.workspaceId,
+      traceContext,
+    });
   });
 
   it('rejects malformed input before repository access', async () => {
@@ -45,15 +56,43 @@ describe('Analysis Run use cases', () => {
       get: () => Effect.die('unexpected get'),
     };
     const result = await Effect.runPromise(
-      startAnalysisRun({ identity: null, workspaceId: '' }).pipe(
-        Effect.provide(layer(repository)),
-        Effect.either
-      )
+      startAnalysisRun({
+        identity: null,
+        workspaceId: '',
+        traceContext: null,
+      }).pipe(Effect.provide(layer(repository)), Effect.either)
     );
 
     expect(result).toMatchObject({
       _tag: 'Left',
       left: { _tag: 'InvalidAnalysisRunInputError' },
+    });
+    expect(start).not.toHaveBeenCalled();
+  });
+
+  it('rejects malformed trace correlation before repository access', async () => {
+    const start = vi.fn(() => Effect.succeed(run));
+    const repository: AnalysisRunRepository = {
+      start,
+      get: () => Effect.die('unexpected get'),
+    };
+    const result = await Effect.runPromise(
+      startAnalysisRun({
+        identity: { userId: run.requestedBy },
+        workspaceId: run.workspaceId,
+        traceContext: {
+          traceparent: 'not-a-traceparent',
+          tracestate: null,
+        },
+      }).pipe(Effect.provide(layer(repository)), Effect.either)
+    );
+
+    expect(result).toMatchObject({
+      _tag: 'Left',
+      left: {
+        _tag: 'InvalidAnalysisRunInputError',
+        field: 'traceContext',
+      },
     });
     expect(start).not.toHaveBeenCalled();
   });

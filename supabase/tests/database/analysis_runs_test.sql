@@ -7,7 +7,7 @@ SELECT has_table('public', 'analysis_runs', 'Analysis Runs are persisted');
 SELECT has_function(
     'public',
     'start_analysis_run',
-    ARRAY['uuid', 'uuid'],
+    ARRAY['uuid', 'uuid', 'text', 'text'],
     'The privileged start command exists'
 );
 
@@ -22,9 +22,11 @@ SET LOCAL ROLE service_role;
 
 SELECT lives_ok(
     format(
-        'SELECT public.start_analysis_run(%L, %L)',
+        'SELECT public.start_analysis_run(%L, %L, %L, %L)',
         :'workspace_workspace_id'::UUID,
-        '10000000-0000-4000-8000-000000000001'::UUID
+        '10000000-0000-4000-8000-000000000001'::UUID,
+        '00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01',
+        'omoikane=test'
     ),
     'An active workspace member can start an Analysis Run'
 );
@@ -65,9 +67,10 @@ SELECT results_eq(
 
 SELECT throws_ok(
     format(
-        'SELECT public.start_analysis_run(%L, %L)',
+        'SELECT public.start_analysis_run(%L, %L, %L, NULL)',
         :'workspace_workspace_id'::UUID,
-        '10000000-0000-4000-8000-000000000003'::UUID
+        '10000000-0000-4000-8000-000000000003'::UUID,
+        '00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01'
     ),
     'P0002',
     'Analysis Run resource is not accessible.',

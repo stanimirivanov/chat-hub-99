@@ -68,6 +68,12 @@ describe('ServerTelemetry', () => {
       if (parent === undefined) {
         throw new Error('Expected an active HTTP request span.');
       }
+      expect(telemetry.processingTraceContext(request)).toMatchObject({
+        traceparent: expect.stringContaining(
+          '4bf92f3577b34da6a3ce929d0e0e4736'
+        ),
+        tracestate: null,
+      });
 
       await Effect.runPromise(
         Effect.succeed('created').pipe(

@@ -9,6 +9,7 @@ export {
 export {
   AnalysisRunRepositoryTag,
   type AnalysisRunRepository,
+  type AnalysisRunProcessingTraceContext,
   type GetAnalysisRunQuery,
   type StartAnalysisRunCommand,
 } from './lib/analysis-run-repository';

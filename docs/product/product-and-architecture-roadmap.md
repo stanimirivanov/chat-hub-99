@@ -182,7 +182,7 @@ Implementation scope:
 Immediate implementation order:
 
 1. Atomically add the initial lifecycle and `analysis_run.requested` outbox
-   events to the existing start command.
+   events to the existing start command. **Completed.**
 2. Dispatch that event idempotently into one PostgreSQL `analysis.execute` job.
 3. Bootstrap the worker and complete that job with a deterministic processor.
 4. Add lease recovery, retry, fencing, and dead-letter behavior.

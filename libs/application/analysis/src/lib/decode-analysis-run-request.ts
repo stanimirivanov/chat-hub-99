@@ -10,10 +10,34 @@ import {
   type WorkspaceId,
 } from '@omoikane/domain/workspace';
 import { InvalidAnalysisRunInputError } from './analysis-run-error';
+import type { AnalysisRunProcessingTraceContext } from './analysis-run-repository';
 
-interface StartRequest {
+const TraceparentSchema = Schema.String.pipe(
+  Schema.pattern(
+    /^00-(?!0{32})[0-9a-f]{32}-(?!0{16})[0-9a-f]{16}-[0-9a-f]{2}$/u
+  )
+);
+
+const TracestateSchema = Schema.NullOr(
+  Schema.String.pipe(
+    Schema.nonEmptyString(),
+    Schema.maxLength(512),
+    Schema.pattern(/^[^\r\n]*$/u)
+  )
+);
+
+const ProcessingTraceContextSchema = Schema.Struct({
+  traceparent: TraceparentSchema,
+  tracestate: TracestateSchema,
+});
+
+interface ScopedRequest {
   readonly identity: AuthenticatedRequestIdentity;
   readonly workspaceId: WorkspaceId;
+}
+
+interface StartRequest extends ScopedRequest {
+  readonly traceContext: AnalysisRunProcessingTraceContext;
 }
 
 export const readInputProperty = (input: unknown, key: string): unknown =>
@@ -24,7 +48,7 @@ export const readInputProperty = (input: unknown, key: string): unknown =>
 const decodeField = <A, I>(
   schema: Schema.Schema<A, I, never>,
   value: unknown,
-  field: 'requestIdentity' | 'workspaceId' | 'analysisRunId'
+  field: 'requestIdentity' | 'workspaceId' | 'analysisRunId' | 'traceContext'
 ): Effect.Effect<A, InvalidAnalysisRunInputError> =>
   Schema.decodeUnknown(schema)(value).pipe(
     Effect.mapError(
@@ -32,9 +56,9 @@ const decodeField = <A, I>(
     )
   );
 
-export const decodeStartRequest = (
+export const decodeScopedRequest = (
   input: unknown
-): Effect.Effect<StartRequest, InvalidAnalysisRunInputError> =>
+): Effect.Effect<ScopedRequest, InvalidAnalysisRunInputError> =>
   Effect.gen(function* () {
     const userId = yield* decodeField(
       ProfileIdSchema,
@@ -46,8 +70,21 @@ export const decodeStartRequest = (
       readInputProperty(input, 'workspaceId'),
       'workspaceId'
     );
-
     return { identity: { userId }, workspaceId };
+  });
+
+export const decodeStartRequest = (
+  input: unknown
+): Effect.Effect<StartRequest, InvalidAnalysisRunInputError> =>
+  Effect.gen(function* () {
+    const request = yield* decodeScopedRequest(input);
+    const traceContext = yield* decodeField(
+      ProcessingTraceContextSchema,
+      readInputProperty(input, 'traceContext'),
+      'traceContext'
+    );
+
+    return { ...request, traceContext };
   });
 
 export const decodeAnalysisRunId = (

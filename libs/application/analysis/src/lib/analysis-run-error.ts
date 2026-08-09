@@ -3,7 +3,8 @@ import { Data } from 'effect';
 export type AnalysisRunInputField =
   | 'requestIdentity'
   | 'workspaceId'
-  | 'analysisRunId';
+  | 'analysisRunId'
+  | 'traceContext';
 
 /** An Analysis Run command received malformed provider-independent input. */
 export class InvalidAnalysisRunInputError extends Data.TaggedError(

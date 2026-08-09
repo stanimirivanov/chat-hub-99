@@ -2,16 +2,19 @@
 
 Implements the Analysis Run application repository with two narrowly privileged
 Supabase RPCs. PostgreSQL atomically checks active workspace membership and
-creates or reads the immutable run. Provider rows and errors are translated
-before crossing into application code.
+creates the immutable run, initial lifecycle fact, and requested outbox event,
+or reads the run. Provider rows and errors are translated before crossing into
+application code.
 
 ```text
 use case -> repository Tag -> Supabase Layer -> service-role RPC
-         -> membership check + command -> decoded AnalysisRun
+         -> membership check + atomic run/event/outbox command
+         -> decoded AnalysisRun
 ```
 
 The service-role key is supplied only by `apps/server`; it never identifies the
-caller and never reaches Angular. Direct table access, jobs, model execution,
-and generic privileged repositories remain outside this package.
+caller and never reaches Angular. Browser and service roles receive no direct
+event-table access. Jobs, dispatch, model execution, and generic privileged
+repositories remain outside this package.
 
 Verify with `pnpm exec nx run-many -t lint typecheck typecheck:test test -p analysis-infrastructure`.

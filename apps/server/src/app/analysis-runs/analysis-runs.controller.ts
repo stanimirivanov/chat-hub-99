@@ -70,12 +70,17 @@ export class AnalysisRunsController {
     @Req() request: RequestWithIdentity,
     @Param('workspaceId') workspaceId: string
   ): Promise<AnalysisRunResponse> {
+    const traceContext = this.telemetry.processingTraceContext(request);
+    if (traceContext === undefined) {
+      throw invalidServerData();
+    }
     const result = await this.runtime.runRequestEither(
       request,
       'analysis_run.start',
       startAnalysisRun({
         identity: requireIdentity(request),
         workspaceId,
+        traceContext,
       })
     );
 
