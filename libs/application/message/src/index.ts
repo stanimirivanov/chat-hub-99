@@ -57,6 +57,12 @@ export {
 export { listWorkspaceChannelUnreadCounts } from './lib/list-workspace-channel-unread-counts';
 
 export {
+  InvalidWorkspaceUnreadObservationInputError,
+  observeWorkspaceChannelUnreadCounts,
+  type ObserveWorkspaceChannelUnreadCountsError,
+} from './lib/observe-workspace-channel-unread-counts';
+
+export {
   markChannelRead,
   type MarkChannelReadInput,
 } from './lib/mark-channel-read';

@@ -103,8 +103,7 @@ Implementation scope:
 - Add workspace-scoped message search with exact-result navigation.
   **Completed.**
 - Add per-member read positions, unread counts, and realtime unread
-  reconciliation. **Persisted positions and initial navigation counts
-  completed; realtime reconciliation remains.**
+  reconciliation. **Completed.**
 - Preserve RLS, message limits, pagination cursors, archived-entity rules, and
   domain boundary checks.
 - Finish intent-focused TSDoc and README coverage for affected domain,

@@ -135,6 +135,16 @@ export interface MessageRepository {
     command: MarkChannelReadCommand
   ) => Effect.Effect<void, MessageRepositoryError>;
 
+  /**
+   * Observes invalidations that can change one workspace's unread snapshot.
+   *
+   * Implementations emit once after all provider subscriptions are ready and
+   * release every listener when the stream is interrupted.
+   */
+  readonly unreadChangesByWorkspace: (
+    workspaceId: WorkspaceId
+  ) => Stream.Stream<void, MessageRepositoryError>;
+
   /** Returns one newest-first page of immutable revisions for a message. */
   readonly listRevisions: (
     query: ListMessageRevisionsQuery

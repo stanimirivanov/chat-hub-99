@@ -6,6 +6,9 @@ export type ChannelLoadStatus = 'idle' | 'loading' | 'loaded' | 'failed';
 
 export type ChannelUnreadStatus = 'idle' | 'loading' | 'loaded' | 'failed';
 
+/** Lifecycle of persisted unread-count reconciliation. */
+export type ChannelUnreadRealtimeStatus = 'idle' | 'observing' | 'failed';
+
 /** Lifecycle of the selected workspace's channel observation. */
 export type ChannelNavigationRealtimeStatus = 'idle' | 'observing' | 'failed';
 
@@ -40,6 +43,8 @@ export interface ChannelNavigationState {
   readonly unreadCounts: readonly ChannelUnreadCount[];
   readonly unreadStatus: ChannelUnreadStatus;
   readonly unreadError: ChannelNavigationError | null;
+  readonly unreadRealtimeStatus: ChannelUnreadRealtimeStatus;
+  readonly unreadRealtimeError: ChannelNavigationError | null;
   readonly realtimeStatus: ChannelNavigationRealtimeStatus;
   readonly realtimeError: ChannelNavigationError | null;
   readonly creationStatus: ChannelCreationStatus;
@@ -60,6 +65,8 @@ export const initialChannelNavigationState: ChannelNavigationState = {
   unreadCounts: [],
   unreadStatus: 'idle',
   unreadError: null,
+  unreadRealtimeStatus: 'idle',
+  unreadRealtimeError: null,
   realtimeStatus: 'idle',
   realtimeError: null,
   creationStatus: 'idle',

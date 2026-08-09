@@ -26,6 +26,7 @@ export const makeMessageRepositoryStub = (
   searchWorkspace: () => unexpectedOperation('searchWorkspace'),
   listUnreadByWorkspace: () => unexpectedOperation('listUnreadByWorkspace'),
   markRead: () => unexpectedOperation('markRead'),
+  unreadChangesByWorkspace: () => unexpectedStream('unreadChangesByWorkspace'),
   listRevisions: () => unexpectedOperation('listRevisions'),
   changesByChannel: () => unexpectedStream('changesByChannel'),
   ...overrides,
@@ -74,7 +75,7 @@ export const makeSearchWorkspaceRepository = (
 export const makeUnreadRepository = (
   overrides: Pick<
     Partial<MessageRepository>,
-    'listUnreadByWorkspace' | 'markRead'
+    'listUnreadByWorkspace' | 'markRead' | 'unreadChangesByWorkspace'
   >
 ) => {
   const listUnreadByWorkspace = vi.fn(
@@ -84,13 +85,19 @@ export const makeUnreadRepository = (
   const markRead = vi.fn(
     overrides.markRead ?? (() => unexpectedOperation('markRead'))
   );
+  const unreadChangesByWorkspace = vi.fn(
+    overrides.unreadChangesByWorkspace ??
+      (() => unexpectedStream('unreadChangesByWorkspace'))
+  );
 
   return {
     listUnreadByWorkspace,
     markRead,
+    unreadChangesByWorkspace,
     repositoryLayer: makeMessageRepositoryLayer({
       listUnreadByWorkspace,
       markRead,
+      unreadChangesByWorkspace,
     }),
   };
 };

@@ -67,6 +67,8 @@ export const ChannelNavigationStore = signalStore(
       const locallyIncludedChannels = new Map<ChannelId, Channel>();
       let stopChannelObservation: (() => void) | null = null;
       let observationRevision = 0;
+      let stopUnreadObservation: (() => void) | null = null;
+      let unreadObservationRevision = 0;
       let activeRequest: {
         readonly workspaceId: WorkspaceId;
         readonly promise: Promise<void>;
@@ -153,6 +155,104 @@ export const ChannelNavigationStore = signalStore(
             realtimeStatus: 'idle',
             realtimeError: null,
           });
+        }
+      };
+
+      const stopUnreadRealtime = (updateState: boolean): void => {
+        unreadObservationRevision += 1;
+        stopUnreadObservation?.();
+        stopUnreadObservation = null;
+
+        if (updateState) {
+          patchState(store, {
+            unreadRealtimeStatus: 'idle',
+            unreadRealtimeError: null,
+          });
+        }
+      };
+
+      const applyUnreadSnapshot = (
+        revision: number,
+        workspaceId: WorkspaceId,
+        counts: readonly ChannelUnreadCount[]
+      ): void => {
+        if (
+          revision !== unreadObservationRevision ||
+          store.workspaceId() !== workspaceId
+        ) {
+          return;
+        }
+
+        failedReadInput = null;
+        patchState(store, {
+          unreadCounts: counts,
+          unreadStatus: 'loaded',
+          unreadError: null,
+          unreadRealtimeStatus: 'observing',
+          unreadRealtimeError: null,
+        });
+      };
+
+      const applyUnreadRealtimeError = (
+        revision: number,
+        workspaceId: WorkspaceId
+      ): void => {
+        if (
+          revision !== unreadObservationRevision ||
+          store.workspaceId() !== workspaceId
+        ) {
+          return;
+        }
+
+        stopUnreadObservation = null;
+        patchState(store, {
+          unreadRealtimeStatus: 'failed',
+          unreadRealtimeError: {
+            message: 'Live unread updates are unavailable. Retry to reconnect.',
+          },
+        });
+      };
+
+      const startUnreadRealtime = (workspaceId: WorkspaceId): void => {
+        if (
+          store.workspaceId() !== workspaceId ||
+          store.loadStatus() !== 'loaded'
+        ) {
+          return;
+        }
+
+        if (
+          stopUnreadObservation !== null &&
+          store.unreadRealtimeStatus() === 'observing'
+        ) {
+          return;
+        }
+
+        stopUnreadRealtime(false);
+        const revision = unreadObservationRevision;
+        patchState(store, {
+          unreadRealtimeStatus: 'observing',
+          unreadRealtimeError: null,
+        });
+
+        const cleanup = messageApplication.observeWorkspaceChannelUnreadCounts(
+          workspaceId,
+          (counts) => {
+            applyUnreadSnapshot(revision, workspaceId, counts);
+          },
+          () => {
+            applyUnreadRealtimeError(revision, workspaceId);
+          }
+        );
+
+        if (
+          revision === unreadObservationRevision &&
+          store.workspaceId() === workspaceId &&
+          store.unreadRealtimeStatus() === 'observing'
+        ) {
+          stopUnreadObservation = cleanup;
+        } else {
+          cleanup();
         }
       };
 
@@ -261,6 +361,7 @@ export const ChannelNavigationStore = signalStore(
 
       destroyRef.onDestroy(() => {
         stopRealtime(false);
+        stopUnreadRealtime(false);
       });
 
       return {
@@ -289,6 +390,7 @@ export const ChannelNavigationStore = signalStore(
 
           if (workspaceChanged) {
             stopRealtime(false);
+            stopUnreadRealtime(false);
             locallyIncludedChannels.clear();
             failedReadInput = null;
           }
@@ -302,6 +404,8 @@ export const ChannelNavigationStore = signalStore(
             unreadCounts: [],
             unreadStatus: 'loading',
             unreadError: null,
+            unreadRealtimeStatus: 'idle',
+            unreadRealtimeError: null,
             realtimeStatus: 'idle',
             realtimeError: null,
             ...(workspaceChanged
@@ -370,6 +474,7 @@ export const ChannelNavigationStore = signalStore(
                     error: null,
                   });
                   startRealtime(workspaceId);
+                  startUnreadRealtime(workspaceId);
                 },
               });
             })
@@ -389,6 +494,15 @@ export const ChannelNavigationStore = signalStore(
 
           if (workspaceId !== null) {
             startRealtime(workspaceId);
+          }
+        },
+
+        /** Restarts persisted unread-count observation after failure. */
+        retryUnreadRealtime(): void {
+          const workspaceId = store.workspaceId();
+
+          if (workspaceId !== null) {
+            startUnreadRealtime(workspaceId);
           }
         },
 

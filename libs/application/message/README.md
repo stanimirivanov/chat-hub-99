@@ -61,6 +61,8 @@ Cross-use-case contracts remain near the package root:
   its selected-channel ownership without iterating message-history pages.
 - `list-workspace-channel-unread-counts/` returns the authenticated member's
   database-authoritative snapshot for active channels in one workspace.
+- `observe-workspace-channel-unread-counts/` consumes repository invalidations
+  and reloads that same authoritative workspace snapshot.
 - `mark-channel-read/` advances one selected channel through the repository;
   the database owns monotonicity and the exact message-ordering position.
 - `pagination/` contains pagination value types shared by callers and the
@@ -94,16 +96,16 @@ identity and is present only in the create operation's failure contract.
 
 ## Read-position ownership
 
-The application exposes only two capability-specific operations: load a
-workspace unread snapshot and mark one channel read. It does not expose the
-storage row or an arbitrary ordering cursor. The presentation supplies the
-stable identity of the newest message it actually loaded; persistence verifies
-channel ownership and guarantees that concurrent commands cannot move a
-member's position backwards.
+The application exposes three capability-specific operations: load a workspace
+unread snapshot, observe snapshot invalidations, and mark one channel read. It
+does not expose the storage row, provider payloads, or an arbitrary ordering
+cursor. The presentation supplies the stable identity of the newest message it
+actually loaded; persistence verifies channel ownership and guarantees that
+concurrent commands cannot move a member's position backwards.
 
-The initial slice deliberately has snapshot semantics. Realtime unread
-reconciliation remains a separate capability so its subscription scope and
-lifecycle can be designed from concrete UI behavior.
+Observation events carry no counts. Each event reloads the existing snapshot,
+so initial and realtime values share one authorization, ordering, validation,
+and failure boundary.
 
 ## Import policy
 

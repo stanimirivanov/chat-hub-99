@@ -141,8 +141,14 @@ channel needs no persisted row.
 The underlying table is not available for direct application-role reads or
 writes. Its `(message created at, message ID)` tuple follows the existing stable
 message ordering and prevents a stale concurrent command from moving the
-position backwards. This adapter provides snapshot behavior only; realtime
-invalidation belongs to the next slice.
+position backwards.
+
+Unread realtime uses two private Broadcast topics. Active workspace membership
+authorizes message and channel lifecycle invalidations; a profile-owned topic
+delivers that member's cross-tab or cross-device read-position changes. The
+adapter waits for both subscriptions before emitting readiness, treats every
+event only as an invalidation, and lets the application reload the existing
+RPC snapshot. Interrupting the Effect Stream removes both provider channels.
 
 ## Testing strategy
 

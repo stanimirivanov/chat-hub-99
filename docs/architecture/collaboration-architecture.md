@@ -14,9 +14,8 @@ authentication, persistence, authorization, and realtime platform.
 The implemented collaboration baseline includes authentication, profiles,
 workspace and channel lifecycle, membership and invitations, persisted
 messages, message revision history, archive restoration, keyset pagination,
-workspace message search, initial per-member unread snapshots, and selected
-realtime reconciliation, including advisory workspace presence. Realtime unread
-reconciliation remains explicit Phase 2 work.
+workspace message search, persisted per-member unread state, and capability-
+specific realtime reconciliation, including advisory workspace presence.
 
 ## Capability map
 
@@ -165,19 +164,22 @@ used as active navigation state.
 
 Realtime is capability-specific; there is no generic realtime framework.
 
-| Owner                | Provider source                                       | Scope                           | Reconciliation policy                                                                                        |
-| -------------------- | ----------------------------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| Authentication       | Supabase Auth session listener                        | Current browser session         | Map provider events into application session changes; observed changes take precedence over stale commands   |
-| Workspace navigation | Private Broadcast topic for the authenticated profile | Accessible workspace collection | Treat events as invalidations and reload the authoritative RLS-visible list; clear access that was revoked   |
-| Channel navigation   | Private Broadcast topic for one workspace             | Active channel collection       | Treat events as invalidations and reload the authoritative list; clear an archived or inaccessible selection |
-| Channel messages     | Channel-filtered Postgres Changes on message heads    | One selected channel            | Validate the changed stable identity, then reconcile the authoritative current message projection            |
-| Workspace presence   | Private Supabase Presence topic                       | One selected workspace          | Validate and deduplicate profile keys for advisory display; never use them for authorization                 |
-| Channel typing       | Private Supabase Broadcast topic                      | One selected channel            | Validate start/stop events; throttle local starts and expire remote state after missed stops                 |
+| Owner                | Provider source                                              | Scope                           | Reconciliation policy                                                                                        |
+| -------------------- | ------------------------------------------------------------ | ------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Authentication       | Supabase Auth session listener                               | Current browser session         | Map provider events into application session changes; observed changes take precedence over stale commands   |
+| Workspace navigation | Private Broadcast topic for the authenticated profile        | Accessible workspace collection | Treat events as invalidations and reload the authoritative RLS-visible list; clear access that was revoked   |
+| Channel navigation   | Private Broadcast topic for one workspace                    | Active channel collection       | Treat events as invalidations and reload the authoritative list; clear an archived or inaccessible selection |
+| Channel messages     | Channel-filtered Postgres Changes on message heads           | One selected channel            | Validate the changed stable identity, then reconcile the authoritative current message projection            |
+| Channel unread state | Private workspace and authenticated-profile Broadcast topics | Active-channel unread counts    | Treat events as invalidations and reload the authoritative RLS-backed count snapshot                         |
+| Workspace presence   | Private Supabase Presence topic                              | One selected workspace          | Validate and deduplicate profile keys for advisory display; never use them for authorization                 |
+| Channel typing       | Private Supabase Broadcast topic                             | One selected channel            | Validate start/stop events; throttle local starts and expire remote state after missed stops                 |
 
-Workspace and channel streams emit once when their provider subscription is
-ready. The subsequent authoritative load closes the query-before-subscribe race.
-Every subscription owns its provider listener, and Effect finalizers remove the
-listener when the stream is interrupted.
+Workspace, channel, and unread streams emit once when their provider
+subscriptions are ready. The subsequent authoritative load closes the
+query-before-subscribe race. Unread observation waits for both its workspace
+and authenticated-profile topics. Every subscription owns its provider
+listener, and Effect finalizers remove the listener when the stream is
+interrupted.
 
 Workspace Presence is client-reported advisory state. Its private-topic RLS
 proves that publishers are active workspace members, but a reported Presence
@@ -214,13 +216,13 @@ by RLS; enrichment does not redefine the authorization of the primary record.
 - Request revisions prevent older asynchronous results from replacing state
   produced by a newer selection, command, or realtime event.
 
-## Explicit Phase 2 gaps
+## Phase 2 completion boundary
 
-The following capability is not implemented and must not be inferred from the
-existing message or navigation realtime infrastructure:
-
-- realtime reconciliation of unread counts for messages arriving outside the
-  selected channel.
+The required collaboration-baseline capabilities are implemented. Persisted
+unread state reconciles message and channel lifecycle changes through a private
+workspace topic and the authenticated member's read-position changes through a
+private profile topic. Events remain payload-minimal invalidations; the count
+RPC is authoritative.
 
 Reactions, threads, attachments, notification delivery, invitation delivery,
 and avatar uploads are optional product expansions rather than Phase 2 exit
@@ -239,9 +241,9 @@ ordering tuple and advance only through a database command derived from the
 authenticated member. Channel navigation loads an authoritative workspace
 snapshot and clears a selected channel only after the message feature reports
 the exact newest message it loaded and the mark-read command succeeds.
-The next conservative vertical slice is realtime unread reconciliation; it must
-preserve this persisted authority and own a workspace-scoped subscription
-lifecycle explicitly.
+The next roadmap step is the Phase 2 exit audit, followed by the first Phase 3
+application-server slice. Optional collaboration expansions remain separate
+product decisions.
 
 ## Verification references
 

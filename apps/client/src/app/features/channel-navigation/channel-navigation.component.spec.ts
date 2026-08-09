@@ -110,6 +110,7 @@ const configureComponent = async ({
     error: signal(null),
     realtimeError: signal(null),
     unreadError: signal(null),
+    unreadRealtimeError: signal(null),
     unreadCountByChannel: signal(
       new Map(unreadCount > 0 ? [[channelId, unreadCount]] : [])
     ),
@@ -128,6 +129,7 @@ const configureComponent = async ({
     clearArchiveError: vi.fn(),
     retryRealtime: vi.fn(),
     retryUnreadCounts: vi.fn(),
+    retryUnreadRealtime: vi.fn(),
     markChannelRead: vi.fn().mockResolvedValue(undefined),
   };
 
