@@ -16,11 +16,16 @@ const row = {
   created_at: '2026-08-09T12:00:00.000Z',
 };
 
+const projectionRow = {
+  ...row,
+  failure_category: null,
+};
+
 const client = (
   overrides: Partial<SupabaseAnalysisClient> = {}
 ): SupabaseAnalysisClient => ({
   start: vi.fn().mockResolvedValue({ data: [row], error: null }),
-  get: vi.fn().mockResolvedValue({ data: [row], error: null }),
+  get: vi.fn().mockResolvedValue({ data: [projectionRow], error: null }),
   claimNextOutboxEvent: vi.fn().mockResolvedValue({ data: [], error: null }),
   dispatchOutboxEvent: vi.fn().mockResolvedValue({ data: [], error: null }),
   checkWorkerReady: vi.fn().mockResolvedValue({ data: true, error: null }),
@@ -90,6 +95,32 @@ describe('makeSupabaseAnalysisRunRepository', () => {
     expect(result).toMatchObject({
       _tag: 'Left',
       left: { _tag: 'AnalysisRunNotAccessibleError' },
+    });
+  });
+
+  it('maps the current lifecycle projection returned by the read command', async () => {
+    const get = vi.fn().mockResolvedValue({
+      data: [
+        {
+          ...projectionRow,
+          status: 'failed',
+          failure_category: 'provider.timeout',
+        },
+      ],
+      error: null,
+    });
+    const repository = makeSupabaseAnalysisRunRepository(client({ get }));
+    const query = {
+      identity: command.identity,
+      workspaceId: command.workspaceId,
+      analysisRunId: row.analysis_run_id,
+    } as Parameters<typeof repository.get>[0];
+
+    await expect(
+      Effect.runPromise(repository.get(query))
+    ).resolves.toMatchObject({
+      status: 'failed',
+      failureCategory: 'provider.timeout',
     });
   });
 

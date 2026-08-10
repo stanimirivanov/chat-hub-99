@@ -8,6 +8,8 @@ type AnalysisOutboxRow =
 type AnalysisJobRow = Database['public']['Tables']['analysis_jobs']['Row'];
 type StartArgs = Database['public']['Functions']['start_analysis_run']['Args'];
 type GetArgs = Database['public']['Functions']['get_analysis_run']['Args'];
+type GetRow =
+  Database['public']['Functions']['get_analysis_run']['Returns'][number];
 type ClaimOutboxArgs =
   Database['public']['Functions']['claim_analysis_run_outbox_event']['Args'];
 type DispatchOutboxArgs =
@@ -25,6 +27,11 @@ type FailJobRow =
 
 export interface SupabaseAnalysisRunResult {
   readonly data: AnalysisRunRow[] | null;
+  readonly error: PostgrestError | null;
+}
+
+export interface SupabaseAnalysisRunProjectionResult {
+  readonly data: GetRow[] | null;
   readonly error: PostgrestError | null;
 }
 
@@ -56,7 +63,9 @@ export interface SupabaseAnalysisWorkerReadyResult {
 /** Focused RPC projection used by the privileged Analysis Run adapter. */
 export interface SupabaseAnalysisClient {
   readonly start: (args: StartArgs) => PromiseLike<SupabaseAnalysisRunResult>;
-  readonly get: (args: GetArgs) => PromiseLike<SupabaseAnalysisRunResult>;
+  readonly get: (
+    args: GetArgs
+  ) => PromiseLike<SupabaseAnalysisRunProjectionResult>;
   readonly claimNextOutboxEvent: (
     args: ClaimOutboxArgs
   ) => PromiseLike<SupabaseAnalysisOutboxResult>;

@@ -4,7 +4,7 @@ import type { WorkspaceId } from '@omoikane/domain/workspace';
 export interface AnalysisRunsState {
   readonly workspaceId: WorkspaceId | null;
   readonly run: AnalysisRun | null;
-  readonly status: 'idle' | 'starting' | 'refreshing' | 'created' | 'failed';
+  readonly status: 'idle' | 'starting' | 'observing' | 'failed';
   readonly error: { readonly message: string } | null;
 }
 

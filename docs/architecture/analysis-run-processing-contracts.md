@@ -13,17 +13,19 @@ Analysis Run acceptance record into durable asynchronous processing. It makes
 the next Phase 4 slices independently testable without scaffolding a generic
 workflow platform or designing AI product features ahead of use.
 
-The repository currently proves only this fact:
+The completed processing foundation now proves this flow:
 
 ```text
 authenticated member request
   -> atomic workspace authorization
-  -> immutable analysis_runs row with status = created
+  -> immutable analysis_runs row and append-only lifecycle
+  -> durable dispatch and lease-fenced worker execution
+  -> authorized current-status projection
 ```
 
-That row remains the immutable record that the trusted server accepted a user
-request. Phase 4 adds lifecycle facts, an outbox, durable jobs, and a worker
-around it; it does not turn the existing row into a mutable job record.
+The run row remains the immutable record that the trusted server accepted a
+user request. Lifecycle facts, the outbox, durable jobs, and the worker surround
+it; they do not turn that row into a mutable job record.
 
 This contract does not yet define findings, source references, prompts, model
 providers, retrieval, embeddings, human review, Server-Sent Events, Redis, or a
@@ -451,7 +453,11 @@ Each item is one reviewable vertical slice:
    uses only bounded labels.
 5. **Analysis Run status observation.** Extend the server/domain read contract
    and Angular state to display the lifecycle projection. Reconsider SSE only
-   after polling real transitions is implemented and measured.
+   after polling real transitions is implemented and measured. **Completed:**
+   the service-role-only read command derives current status from the latest
+   ordered lifecycle event, the server exposes the validated projection, and
+   feature-scoped Angular state polls active runs until success or failure while
+   cancelling observation when its workspace scope is replaced or destroyed.
 6. **First result-bearing analysis.** Define source selection, immutable result
    records, findings, provider metadata, and evaluation fixtures in the product
    slice that consumes them.

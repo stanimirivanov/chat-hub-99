@@ -26,6 +26,7 @@ const run = {
   workspaceId: '20000000-0000-4000-8000-000000000001',
   requestedBy: '10000000-0000-4000-8000-000000000001',
   status: 'created',
+  failureCategory: null,
   createdAt: new Date('2026-08-09T12:00:00.000Z'),
 } as AnalysisRun;
 

@@ -19,6 +19,7 @@ const decodeResponse = (value: unknown) => {
     workspaceId: Reflect.get(record, 'workspaceId'),
     requestedBy: Reflect.get(record, 'requestedBy'),
     status: Reflect.get(record, 'status'),
+    failureCategory: Reflect.get(record, 'failureCategory'),
     createdAt: new Date(String(Reflect.get(record, 'createdAt') ?? '')),
   });
 };

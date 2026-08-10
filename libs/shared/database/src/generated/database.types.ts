@@ -1958,16 +1958,11 @@ export type Database = {
         Returns: {
           analysis_run_id: string
           created_at: string
+          failure_category: string
           requested_by: string
           status: string
           workspace_id: string
         }[]
-        SetofOptions: {
-          from: "*"
-          to: "analysis_runs"
-          isOneToOne: false
-          isSetofReturn: true
-        }
       }
       invite_workspace_member: {
         Args: { p_user_id: string; p_workspace_id: string }

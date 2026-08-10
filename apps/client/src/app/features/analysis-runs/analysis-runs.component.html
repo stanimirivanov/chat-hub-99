@@ -5,7 +5,10 @@
   <button
     type="button"
     [disabled]="
-      store.status() === 'starting' || store.status() === 'refreshing'
+      store.status() === 'starting' ||
+      (store.run() !== null &&
+        store.run()?.status !== 'succeeded' &&
+        store.run()?.status !== 'failed')
     "
     (click)="store.start()"
   >
@@ -17,20 +20,28 @@
   </button>
 
   @if (store.run(); as run) {
-    <p>Run {{ run.id }} is {{ run.status }}.</p>
-    <button
-      type="button"
-      [disabled]="
-        store.status() === 'starting' || store.status() === 'refreshing'
-      "
-      (click)="store.refresh()"
-    >
-      @if (store.status() === 'refreshing') {
-        Refreshing&hellip;
-      } @else {
-        Refresh status
+    <div aria-live="polite" aria-atomic="true">
+      @switch (run.status) {
+        @case ('created') {
+          <p>Run {{ run.id }} was accepted and is waiting to be queued.</p>
+        }
+        @case ('queued') {
+          <p>Run {{ run.id }} is queued for processing.</p>
+        }
+        @case ('running') {
+          <p>Run {{ run.id }} is being processed.</p>
+        }
+        @case ('succeeded') {
+          <p>Run {{ run.id }} completed successfully.</p>
+        }
+        @case ('failed') {
+          <p>
+            Run {{ run.id }} could not be completed. Failure category:
+            {{ run.failureCategory }}.
+          </p>
+        }
       }
-    </button>
+    </div>
   }
 
   @if (store.error(); as error) {
