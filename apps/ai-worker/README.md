@@ -7,9 +7,9 @@ owns one managed Effect runtime and two bounded, single-concurrency polling
 steps: dispatch one requested outbox event, then acquire and execute one
 available job.
 
-The current processor is deliberately deterministic. It reads no message
-content, performs no network model call, and produces only a stable receipt
-from canonical run and job identities.
+The current processor is deliberately deterministic. It reads bounded immutable
+message/revision/author identities but no message content, performs no network
+model call, and produces a stable workspace-message-inventory result.
 
 ## Runtime boundaries
 
@@ -30,9 +30,10 @@ An expired lease may be recovered by another process. A stale process cannot
 commit because completion requires the current job, attempt, and lease-token
 identity. Typed retryable failures and unexpected processor defects use the
 database-owned deterministic retry schedule; terminal or exhausted work is
-dead-lettered atomically with the Analysis Run `failed` fact. Operator replay,
-model providers, findings, and user-facing status projection are not
-implemented here.
+dead-lettered atomically with the Analysis Run `failed` fact. Successful
+completion persists exact evidence references and one proposed finding before
+appending `succeeded`. Operator replay, hosted model providers, and finding
+review are not implemented here.
 
 ## Commands
 

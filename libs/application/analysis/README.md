@@ -8,6 +8,7 @@ safe W3C processing trace carrier before invoking the capability-oriented
 ```text
 HTTP boundary -> start/get use case ------> AnalysisRunRepository Tag
 dispatcher    -> claim/dispatch use case -> infrastructure RPC
+worker        -> load sources/process ----> deterministic result receipt
                                          -> validated AnalysisRun or job
 ```
 
@@ -18,8 +19,10 @@ execution, receipt, and opaque-claim values are application contracts; lease
 ownership and transactional idempotency remain PostgreSQL responsibilities.
 Processor failures cross this boundary only as bounded retryable or terminal
 categories; unexpected defects are classified by the worker runtime. The
-deterministic processor reads no content and has no provider dependency.
-Polling, worker lifecycle, model execution, findings, and streaming remain
+deterministic processor consumes only immutable message/revision/author
+identities, selects at most 100 sources, and produces a versioned proposed
+inventory finding without reading content or calling a model. Polling, worker
+lifecycle, hosted model execution, review workflows, and streaming remain
 outside this package.
 
 Verify with `pnpm exec nx run-many -t lint typecheck typecheck:test test -p analysis-application`.

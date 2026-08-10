@@ -1,4 +1,4 @@
-import { Effect, Layer, Option } from 'effect';
+import { Effect, Layer, Option, Schema } from 'effect';
 import { describe, expect, it, vi } from 'vitest';
 import type { AnalysisRun } from '@omoikane/domain/analysis';
 import {
@@ -10,11 +10,12 @@ import type {
   AnalysisJobExecution,
   AnalysisRunOutboxClaim,
 } from './analysis-job';
+import { AnalysisJobSourceSchema } from './analysis-job';
 import {
   acquireNextAnalysisJob,
   completeAnalysisJobFailure,
   completeAnalysisJobSuccess,
-  DETERMINISTIC_ANALYSIS_PROCESSOR_VERSION,
+  WORKSPACE_MESSAGE_INVENTORY_PROCESSOR_VERSION,
   processAnalysisJob,
 } from './analysis-job-execution';
 import { getAnalysisRun } from './get-analysis-run';
@@ -27,6 +28,7 @@ const run = {
   requestedBy: '10000000-0000-4000-8000-000000000001',
   status: 'created',
   failureCategory: null,
+  result: null,
   createdAt: new Date('2026-08-09T12:00:00.000Z'),
 } as AnalysisRun;
 
@@ -47,6 +49,7 @@ const repository = (
   dispatchOutboxEvent: () => Effect.die('unexpected outbox dispatch'),
   checkWorkerReady: () => Effect.die('unexpected worker readiness'),
   acquireNextJob: () => Effect.die('unexpected job acquisition'),
+  loadJobSources: () => Effect.die('unexpected source load'),
   completeJobSuccess: () => Effect.die('unexpected job completion'),
   completeJobFailure: () => Effect.die('unexpected failed job completion'),
   ...overrides,
@@ -210,7 +213,7 @@ describe('Analysis Run use cases', () => {
       attemptNumber: 1,
       leaseToken: '80000000-0000-4000-8000-000000000001',
       leaseExpiresAt: new Date('2026-08-10T12:01:00.000Z'),
-      processorVersion: DETERMINISTIC_ANALYSIS_PROCESSOR_VERSION,
+      processorVersion: WORKSPACE_MESSAGE_INVENTORY_PROCESSOR_VERSION,
       traceContext,
     } as AnalysisJobExecution;
     const acquireNextJob = vi.fn(() => Effect.succeed(Option.some(execution)));
@@ -224,7 +227,7 @@ describe('Analysis Run use cases', () => {
     ).resolves.toEqual(Option.some(execution));
     expect(acquireNextJob).toHaveBeenCalledExactlyOnceWith({
       workerId: 'worker-1',
-      processorVersion: DETERMINISTIC_ANALYSIS_PROCESSOR_VERSION,
+      processorVersion: WORKSPACE_MESSAGE_INVENTORY_PROCESSOR_VERSION,
       leaseSeconds: 60,
     });
   });
@@ -240,11 +243,25 @@ describe('Analysis Run use cases', () => {
       attemptNumber: 1,
       leaseToken: '80000000-0000-4000-8000-000000000001',
       leaseExpiresAt: new Date('2026-08-10T12:01:00.000Z'),
-      processorVersion: DETERMINISTIC_ANALYSIS_PROCESSOR_VERSION,
+      processorVersion: WORKSPACE_MESSAGE_INVENTORY_PROCESSOR_VERSION,
       traceContext,
     } as AnalysisJobExecution;
-    const firstReceipt = Effect.runSync(processAnalysisJob(execution));
-    const secondReceipt = Effect.runSync(processAnalysisJob(execution));
+    const sources = [
+      Schema.decodeUnknownSync(AnalysisJobSourceSchema)({
+        messageId: '90000000-0000-4000-8000-000000000001',
+        messageRevisionId: '91000000-0000-4000-8000-000000000001',
+        authorUserId: run.requestedBy,
+      }),
+    ];
+    const processorLayer = layer(
+      repository({ loadJobSources: () => Effect.succeed(sources) })
+    );
+    const firstReceipt = await Effect.runPromise(
+      processAnalysisJob(execution).pipe(Effect.provide(processorLayer))
+    );
+    const secondReceipt = await Effect.runPromise(
+      processAnalysisJob(execution).pipe(Effect.provide(processorLayer))
+    );
     const completeJobSuccess = vi.fn(() =>
       Effect.succeed({
         id: execution.jobId,
@@ -267,6 +284,7 @@ describe('Analysis Run use cases', () => {
     expect(completeJobSuccess).toHaveBeenCalledExactlyOnceWith({
       execution,
       resultFingerprint: firstReceipt.resultFingerprint,
+      result: firstReceipt.result,
       durationMilliseconds: 12,
     });
   });
@@ -282,7 +300,7 @@ describe('Analysis Run use cases', () => {
       attemptNumber: 1,
       leaseToken: '80000000-0000-4000-8000-000000000001',
       leaseExpiresAt: new Date('2026-08-10T12:01:00.000Z'),
-      processorVersion: DETERMINISTIC_ANALYSIS_PROCESSOR_VERSION,
+      processorVersion: WORKSPACE_MESSAGE_INVENTORY_PROCESSOR_VERSION,
       traceContext,
     } as AnalysisJobExecution;
     const completeJobFailure = vi.fn(() =>

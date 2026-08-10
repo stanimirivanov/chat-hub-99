@@ -33,6 +33,20 @@
         }
         @case ('succeeded') {
           <p>Run {{ run.id }} completed successfully.</p>
+          @if (run.result; as result) {
+            <article aria-labelledby="analysis-result-title">
+              <h4 id="analysis-result-title">{{ result.finding.title }}</h4>
+              <p>{{ result.finding.summary }}</p>
+              <p>
+                Evidence: {{ result.sourceCount }} immutable message
+                {{ result.sourceCount === 1 ? 'revision' : 'revisions' }}.
+                @if (result.sourceTruncated) {
+                  The inventory was limited to the 100 newest active messages.
+                }
+              </p>
+              <p>Status: proposed</p>
+            </article>
+          }
         }
         @case ('failed') {
           <p>

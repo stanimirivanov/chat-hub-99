@@ -14,12 +14,21 @@ export interface AnalysisRunApiError {
 
 const decodeResponse = (value: unknown) => {
   const record = typeof value === 'object' && value !== null ? value : {};
+  const result = Reflect.get(record, 'result');
+  const decodedResult =
+    typeof result === 'object' && result !== null
+      ? {
+          ...result,
+          createdAt: new Date(String(Reflect.get(result, 'createdAt') ?? '')),
+        }
+      : result;
   return Schema.decodeUnknownEither(AnalysisRunSchema)({
     id: Reflect.get(record, 'id'),
     workspaceId: Reflect.get(record, 'workspaceId'),
     requestedBy: Reflect.get(record, 'requestedBy'),
     status: Reflect.get(record, 'status'),
     failureCategory: Reflect.get(record, 'failureCategory'),
+    result: decodedResult,
     createdAt: new Date(String(Reflect.get(record, 'createdAt') ?? '')),
   });
 };

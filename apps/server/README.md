@@ -7,7 +7,7 @@ Omoikane capabilities. It uses Fastify for HTTP and owns one long-lived Effect
 runtime. The current runtime exposes liveness, dependency-aware readiness,
 OpenAPI, authenticated entry, and OpenTelemetry boundaries for trusted capabilities.
 The first product capability starts and observes a workspace-authorized,
-deterministic Analysis Run.
+deterministic Analysis Run, including its completed immutable result projection.
 
 ## Responsibilities
 
@@ -21,6 +21,8 @@ deterministic Analysis Run.
 - deny access by default and render safe problem-details responses;
 - atomically authorize and persist immutable Analysis Run acceptance records,
   initial lifecycle facts, and requested outbox events;
+- expose authorized lifecycle and completed-result projections without direct
+  browser access to worker-owned tables;
 - publish the implemented HTTP contract at `/openapi.json`.
 - propagate W3C trace context and stable request IDs;
 - emit safe structured request logs, traces, and bounded-cardinality metrics;

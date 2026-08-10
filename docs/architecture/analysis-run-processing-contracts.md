@@ -27,7 +27,8 @@ The run row remains the immutable record that the trusted server accepted a
 user request. Lifecycle facts, the outbox, durable jobs, and the worker surround
 it; they do not turn that row into a mutable job record.
 
-This contract does not yet define findings, source references, prompts, model
+The first result extension defines deterministic inventory findings and exact
+message-revision source references. It does not yet define prompts, hosted model
 providers, retrieval, embeddings, human review, Server-Sent Events, Redis, or a
 general-purpose workflow engine. Those enter only with a consuming vertical
 slice.
@@ -271,8 +272,7 @@ result:
 - one `analysis.execute` job per Analysis Run and job version;
 - one attempt per job and attempt number;
 - one terminal lifecycle event per Analysis Run;
-- one processor result per Analysis Run and processor version once results are
-  introduced.
+- one processor result per Analysis Run and processor version.
 
 Dispatcher and worker commands return the already-committed outcome when the
 same idempotency identity is replayed. They do not treat a unique-constraint
@@ -357,17 +357,19 @@ validated Analysis Run execution context and returns a deterministic receipt
 derived from canonical identities and a fixed processor version. It performs no
 network access and does not read message content.
 
-The receipt is sufficient to prove that:
+The receipt and workspace-message-inventory result are sufficient to prove that:
 
 - the correct run was leased;
 - a restart can recover the job;
 - duplicate delivery cannot commit twice;
 - success advances lifecycle state once;
-- telemetry correlates the server request, outbox dispatch, and job attempt.
+- telemetry correlates the server request, outbox dispatch, and job attempt;
+- bounded source selection records exact immutable message revision evidence;
+- the result and proposed finding commit before the terminal success fact.
 
-The processor port belongs in the analysis application library only when this
-first worker slice consumes it. Hosted model adapters, fake model output,
-findings, and evaluation fixtures remain later Phase 4/5 capabilities.
+The processor port belongs in the analysis application library because the
+worker consumes it. Hosted model adapters, fake model output, prompt contracts,
+and human review remain later Phase 5 capabilities.
 
 ## 11. Security and data boundaries
 
@@ -460,7 +462,12 @@ Each item is one reviewable vertical slice:
    cancelling observation when its workspace scope is replaced or destroyed.
 6. **First result-bearing analysis.** Define source selection, immutable result
    records, findings, provider metadata, and evaluation fixtures in the product
-   slice that consumes them.
+   slice that consumes them. **Completed:** the deterministic workspace message
+   inventory selects at most the 100 newest active immutable revisions, records
+   exact evidence references and bounded processor metadata, and atomically
+   commits one proposed finding with terminal success. Access is rechecked when
+   the lease loads sources; evaluation fixtures cover empty, participant-count,
+   truncation, and deterministic replay cases.
 
 ## 15. Phase 4 exit criteria
 
@@ -470,6 +477,8 @@ Each item is one reviewable vertical slice:
 - Stale workers cannot commit after losing a lease.
 - Retryable failures back off and terminal/exhausted failures dead-letter.
 - A deterministic job commits one terminal Analysis Run outcome exactly once.
+- A completed run exposes one immutable, evidence-linked result and proposed
+  finding through its authorized read projection.
 - Server, dispatcher, and attempt spans share end-to-end trace correlation.
 - Database privileges keep queue internals inaccessible to browser roles.
 - Existing direct Angular-to-Supabase collaboration paths remain unchanged.

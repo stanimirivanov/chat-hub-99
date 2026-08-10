@@ -1,5 +1,10 @@
 import { Schema } from 'effect';
 import { AnalysisRunIdSchema } from '@omoikane/domain/analysis';
+import {
+  AnalysisFindingSchema,
+  AnalysisResultSourceSchema,
+} from '@omoikane/domain/analysis';
+import { ProfileIdSchema } from '@omoikane/domain/profile';
 import { WorkspaceIdSchema } from '@omoikane/domain/workspace';
 
 /** Runtime-validated UUID carrying durable Analysis job identity semantics. */
@@ -79,6 +84,27 @@ export const AnalysisProcessorReceiptSchema = Schema.Struct({
     Schema.nonEmptyString(),
     Schema.maxLength(256)
   ),
+  result: Schema.Struct({
+    kind: Schema.Literal('workspace-message-inventory'),
+    processorVersion: Schema.String.pipe(
+      Schema.nonEmptyString(),
+      Schema.maxLength(128)
+    ),
+    providerKind: Schema.Literal('deterministic'),
+    model: Schema.Null,
+    evaluationVersion: Schema.Literal('workspace-message-inventory.v1'),
+    sourceCount: Schema.Number.pipe(Schema.int(), Schema.between(0, 100)),
+    sourceTruncated: Schema.Boolean,
+    sources: Schema.Array(AnalysisResultSourceSchema),
+    finding: AnalysisFindingSchema,
+    summary: Schema.String.pipe(Schema.nonEmptyString(), Schema.maxLength(500)),
+  }),
+});
+
+export const AnalysisJobSourceSchema = Schema.Struct({
+  messageId: AnalysisResultSourceSchema.fields.messageId,
+  messageRevisionId: AnalysisResultSourceSchema.fields.messageRevisionId,
+  authorUserId: ProfileIdSchema,
 });
 
 export const AnalysisFailureCategorySchema = Schema.String.pipe(
@@ -99,6 +125,7 @@ export type AnalysisRunOutboxClaim = typeof AnalysisRunOutboxClaimSchema.Type;
 export type AnalysisJobExecution = typeof AnalysisJobExecutionSchema.Type;
 export type AnalysisProcessorReceipt =
   typeof AnalysisProcessorReceiptSchema.Type;
+export type AnalysisJobSource = typeof AnalysisJobSourceSchema.Type;
 export type AnalysisFailureCategory = typeof AnalysisFailureCategorySchema.Type;
 export type AnalysisJobFailureCompletion =
   typeof AnalysisJobFailureCompletionSchema.Type;

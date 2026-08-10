@@ -184,12 +184,15 @@ Immediate implementation order:
 1. Atomically add the initial lifecycle and `analysis_run.requested` outbox
    events to the existing start command. **Completed.**
 2. Dispatch that event idempotently into one PostgreSQL `analysis.execute` job.
+   **Completed.**
 3. Bootstrap the worker and complete that job with a deterministic processor.
-4. Add lease recovery, retry, fencing, and dead-letter behavior.
+   **Completed.**
+4. Add lease recovery, retry, fencing, and dead-letter behavior. **Completed.**
 5. Expose real lifecycle state through server and Angular read paths; add SSE
-   only if polling proves insufficient.
+   only if polling proves insufficient. **Completed with bounded polling.**
 6. Define result and finding records with the first product analysis that
-   consumes them.
+   consumes them. **Completed with the deterministic workspace message
+   inventory.**
 
 Exit criteria:
 

@@ -2,7 +2,7 @@ import { Effect, Layer, Option } from 'effect';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   AnalysisRunRepositoryTag,
-  DETERMINISTIC_ANALYSIS_PROCESSOR_VERSION,
+  WORKSPACE_MESSAGE_INVENTORY_PROCESSOR_VERSION,
   RetryableAnalysisProcessorError,
   type AnalysisJob,
   type AnalysisJobExecution,
@@ -38,7 +38,7 @@ const execution = {
   attemptNumber: 1,
   leaseToken: '80000000-0000-4000-8000-000000000001',
   leaseExpiresAt: new Date('2099-01-01T00:01:00.000Z'),
-  processorVersion: DETERMINISTIC_ANALYSIS_PROCESSOR_VERSION,
+  processorVersion: WORKSPACE_MESSAGE_INVENTORY_PROCESSOR_VERSION,
   traceContext: {
     traceparent: '00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01',
     tracestate: null,
@@ -63,6 +63,7 @@ const repository = (
   dispatchOutboxEvent: () => Effect.die('unexpected dispatch'),
   checkWorkerReady: () => Effect.succeed(true),
   acquireNextJob: () => Effect.succeed(Option.none()),
+  loadJobSources: () => Effect.succeed([]),
   completeJobSuccess: () => Effect.die('unexpected completion'),
   completeJobFailure: () => Effect.die('unexpected failed completion'),
   ...overrides,

@@ -3,6 +3,11 @@ BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
 SELECT plan(12);
 
+CREATE FUNCTION pg_temp.test_analysis_result()
+RETURNS JSONB LANGUAGE sql IMMUTABLE AS $$
+    SELECT '{"kind":"workspace-message-inventory","processorVersion":"analysis.deterministic.v1","providerKind":"deterministic","model":null,"evaluationVersion":"workspace-message-inventory.v1","sourceCount":0,"sourceTruncated":false,"sources":[],"summary":"Analyzed 0 active messages from 0 participants.","finding":{"kind":"workspace-message-inventory","status":"proposed","title":"Workspace message inventory","summary":"Analyzed 0 active messages from 0 participants.","confidence":1}}'::JSONB
+$$;
+
 SELECT workspace_id
 FROM public.workspaces
 WHERE created_by = '10000000-0000-4000-8000-000000000001'
@@ -193,7 +198,8 @@ FROM public.complete_analysis_job_success(
     :'success_attempt_analysis_job_attempt_id'::UUID,
     :'success_attempt_lease_token'::UUID,
     'analysis.deterministic.v1/status-success',
-    3
+    3,
+    pg_temp.test_analysis_result()
 )
 \gset success_
 

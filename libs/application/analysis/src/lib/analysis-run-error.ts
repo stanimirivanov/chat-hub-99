@@ -32,6 +32,11 @@ export class AnalysisJobLeaseLostError extends Data.TaggedError(
   'AnalysisJobLeaseLostError'
 ) {}
 
+/** Source access was revoked after the Analysis Run was accepted. */
+export class AnalysisSourceAccessRevokedError extends Data.TaggedError(
+  'AnalysisSourceAccessRevokedError'
+) {}
+
 /** Persistence was unavailable during an Analysis Run operation. */
 export class AnalysisRunRepositoryUnavailableError extends Data.TaggedError(
   'AnalysisRunRepositoryUnavailableError'
@@ -43,6 +48,7 @@ export class AnalysisRunRepositoryUnavailableError extends Data.TaggedError(
     | 'dispatchOutbox'
     | 'healthWorker'
     | 'acquireJob'
+    | 'loadSources'
     | 'completeJob'
     | 'failJob';
   readonly cause: unknown;
@@ -69,5 +75,6 @@ export type AnalysisRunDispatchRepositoryError =
 
 export type AnalysisJobExecutionRepositoryError =
   | AnalysisJobLeaseLostError
+  | AnalysisSourceAccessRevokedError
   | InvalidAnalysisRunDataError
   | AnalysisRunRepositoryUnavailableError;

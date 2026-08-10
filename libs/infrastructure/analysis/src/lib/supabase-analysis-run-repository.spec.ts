@@ -19,6 +19,26 @@ const row = {
 const projectionRow = {
   ...row,
   failure_category: null,
+  result: null,
+};
+
+const resultDraft = {
+  kind: 'workspace-message-inventory' as const,
+  processorVersion: 'analysis.workspace-message-inventory.v1',
+  providerKind: 'deterministic' as const,
+  model: null,
+  evaluationVersion: 'workspace-message-inventory.v1' as const,
+  sourceCount: 0,
+  sourceTruncated: false,
+  sources: [],
+  summary: 'Analyzed 0 active messages from 0 participants.',
+  finding: {
+    kind: 'workspace-message-inventory' as const,
+    status: 'proposed' as const,
+    title: 'Workspace message inventory',
+    summary: 'Analyzed 0 active messages from 0 participants.',
+    confidence: 1,
+  },
 };
 
 const client = (
@@ -30,6 +50,7 @@ const client = (
   dispatchOutboxEvent: vi.fn().mockResolvedValue({ data: [], error: null }),
   checkWorkerReady: vi.fn().mockResolvedValue({ data: true, error: null }),
   acquireNextJob: vi.fn().mockResolvedValue({ data: [], error: null }),
+  loadJobSources: vi.fn().mockResolvedValue({ data: [], error: null }),
   completeJobSuccess: vi.fn().mockResolvedValue({ data: [], error: null }),
   completeJobFailure: vi.fn().mockResolvedValue({ data: [], error: null }),
   ...overrides,
@@ -122,6 +143,65 @@ describe('makeSupabaseAnalysisRunRepository', () => {
       status: 'failed',
       failureCategory: 'provider.timeout',
     });
+  });
+
+  it('maps lease-owned immutable message sources', async () => {
+    const loadJobSources = vi.fn().mockResolvedValue({
+      data: [
+        {
+          message_id: '90000000-0000-4000-8000-000000000001',
+          message_version_id: '91000000-0000-4000-8000-000000000001',
+          author_user_id: row.requested_by,
+        },
+      ],
+      error: null,
+    });
+    const repository = makeSupabaseAnalysisRunRepository(
+      client({ loadJobSources })
+    );
+    const execution = {
+      jobId: '60000000-0000-4000-8000-000000000001',
+      attemptId: '70000000-0000-4000-8000-000000000001',
+      leaseToken: '80000000-0000-4000-8000-000000000001',
+    } as AnalysisJobExecution;
+
+    await expect(
+      Effect.runPromise(repository.loadJobSources({ execution }))
+    ).resolves.toMatchObject([
+      {
+        messageId: '90000000-0000-4000-8000-000000000001',
+        messageRevisionId: '91000000-0000-4000-8000-000000000001',
+        authorUserId: row.requested_by,
+      },
+    ]);
+    expect(loadJobSources).toHaveBeenCalledExactlyOnceWith({
+      p_job_id: execution.jobId,
+      p_attempt_id: execution.attemptId,
+      p_lease_token: execution.leaseToken,
+    });
+  });
+
+  it('maps revoked source access to its typed worker failure', async () => {
+    const error = { code: 'P0004' } as PostgrestError;
+    const repository = makeSupabaseAnalysisRunRepository(
+      client({
+        loadJobSources: vi.fn().mockResolvedValue({ data: null, error }),
+      })
+    );
+
+    await expect(
+      Effect.runPromise(
+        repository
+          .loadJobSources({
+            execution: {
+              jobId: '60000000-0000-4000-8000-000000000001',
+              attemptId: '70000000-0000-4000-8000-000000000001',
+              leaseToken: '80000000-0000-4000-8000-000000000001',
+            } as AnalysisJobExecution,
+          })
+          .pipe(Effect.flip)
+      )
+    ).resolves.toMatchObject({ _tag: 'AnalysisSourceAccessRevokedError' });
   });
 
   it('rejects malformed provider rows', async () => {
@@ -298,6 +378,7 @@ describe('makeSupabaseAnalysisRunRepository', () => {
             traceContext: command.traceContext,
           } as AnalysisJobExecution,
           resultFingerprint: 'analysis.deterministic.v1/run/job',
+          result: resultDraft,
           durationMilliseconds: 1,
         })
         .pipe(Effect.either)
