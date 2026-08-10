@@ -29,6 +29,7 @@ export type Database = {
           outcome: string | null
           processor_version: string
           result_fingerprint: string | null
+          retry_available_at: string | null
           started_at: string
         }
         Insert: {
@@ -43,6 +44,7 @@ export type Database = {
           outcome?: string | null
           processor_version: string
           result_fingerprint?: string | null
+          retry_available_at?: string | null
           started_at?: string
         }
         Update: {
@@ -57,6 +59,7 @@ export type Database = {
           outcome?: string | null
           processor_version?: string
           result_fingerprint?: string | null
+          retry_available_at?: string | null
           started_at?: string
         }
         Relationships: [
@@ -1806,6 +1809,24 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      complete_analysis_job_failure: {
+        Args: {
+          p_attempt_id: string
+          p_duration_milliseconds: number
+          p_failure_category: string
+          p_job_id: string
+          p_lease_token: string
+          p_retryable: boolean
+        }
+        Returns: {
+          analysis_job_id: string
+          analysis_run_id: string
+          attempt_number: number
+          completion_outcome: string
+          failure_category: string
+          next_available_at: string
+        }[]
       }
       complete_analysis_job_success: {
         Args: {

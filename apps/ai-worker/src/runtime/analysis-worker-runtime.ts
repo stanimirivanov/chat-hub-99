@@ -2,10 +2,15 @@ import { Effect, Either, Layer, ManagedRuntime, Option } from 'effect';
 import {
   acquireNextAnalysisJob,
   checkAnalysisWorkerReady,
+  completeAnalysisJobFailure,
   claimNextAnalysisRunRequest,
   completeAnalysisJobSuccess,
   dispatchClaimedAnalysisRunRequest,
   processAnalysisJob,
+  type AnalysisFailureCategory,
+  type AnalysisJobProcessor,
+  type AnalysisProcessorError,
+  type AnalysisProcessorReceipt,
   type AnalysisJobExecution,
   type AnalysisRunRepository,
 } from '@omoikane/application/analysis';
@@ -40,7 +45,8 @@ export class AnalysisWorkerRuntime {
   constructor(
     private readonly config: WorkerConfig,
     private readonly telemetry: WorkerTelemetry,
-    repositoryLayer?: Layer.Layer<AnalysisRunRepository>
+    repositoryLayer?: Layer.Layer<AnalysisRunRepository>,
+    private readonly processor: AnalysisJobProcessor = processAnalysisJob
   ) {
     const clientLayer = makeSupabaseAnalysisClientLayer({
       url: config.supabaseUrl,
@@ -185,7 +191,35 @@ export class AnalysisWorkerRuntime {
 
   private async execute(execution: AnalysisJobExecution): Promise<void> {
     const startedAt = performance.now();
-    const receipt = processAnalysisJob(execution);
+    let processorResult: Either.Either<
+      AnalysisProcessorReceipt,
+      AnalysisProcessorError
+    >;
+    try {
+      processorResult = await this.managedRuntime.runPromise(
+        this.processor(execution).pipe(Effect.either)
+      );
+    } catch {
+      await this.completeFailure(
+        execution,
+        'processor.defect',
+        true,
+        startedAt
+      );
+      return;
+    }
+
+    if (Either.isLeft(processorResult)) {
+      await this.completeFailure(
+        execution,
+        processorResult.left.category,
+        processorResult.left._tag === 'RetryableAnalysisProcessorError',
+        startedAt
+      );
+      return;
+    }
+
+    const receipt = processorResult.right;
     const durationMilliseconds = Math.max(
       0,
       Math.round(performance.now() - startedAt)
@@ -209,7 +243,10 @@ export class AnalysisWorkerRuntime {
       Effect.either
     );
     const result = await this.managedRuntime.runPromise(completion);
-    this.telemetry.recordAttempt(durationMilliseconds, Either.isLeft(result));
+    this.telemetry.recordAttempt(
+      durationMilliseconds,
+      Either.isLeft(result) ? 'completion_failed' : 'succeeded'
+    );
     this.telemetry.log(
       Either.isLeft(result) ? 'error' : 'info',
       Either.isLeft(result)
@@ -222,6 +259,69 @@ export class AnalysisWorkerRuntime {
         ...(Either.isLeft(result)
           ? { 'error.type': safeFailure(result.left) }
           : { outcome: 'succeeded' }),
+      }
+    );
+  }
+
+  private async completeFailure(
+    execution: AnalysisJobExecution,
+    failureCategory: AnalysisFailureCategory,
+    retryable: boolean,
+    startedAt: number
+  ): Promise<void> {
+    const durationMilliseconds = Math.max(
+      0,
+      Math.round(performance.now() - startedAt)
+    );
+    const completion = completeAnalysisJobFailure({
+      execution,
+      failureCategory,
+      retryable,
+      durationMilliseconds,
+    }).pipe(
+      Effect.withSpan('analysis.job.execute', {
+        kind: 'internal',
+        attributes: {
+          'analysis_run.id': execution.analysisRunId,
+          'analysis_job.id': execution.jobId,
+          'job.kind': execution.kind,
+          'job.attempt.number': execution.attemptNumber,
+          'failure.category': failureCategory,
+        },
+      }),
+      (program) =>
+        this.telemetry.continueTrace(program, execution.traceContext),
+      Effect.either
+    );
+    const result = await this.managedRuntime.runPromise(completion);
+
+    if (Either.isLeft(result)) {
+      this.telemetry.recordAttempt(durationMilliseconds, 'completion_failed');
+      this.telemetry.log('error', 'Analysis job failure completion failed.', {
+        'analysis_run.id': execution.analysisRunId,
+        'analysis_job.id': execution.jobId,
+        'job.attempt.number': execution.attemptNumber,
+        'error.type': safeFailure(result.left),
+      });
+      return;
+    }
+
+    this.telemetry.recordAttempt(durationMilliseconds, result.right.outcome);
+    this.telemetry.recordFailureCompletion(
+      result.right.outcome,
+      result.right.failureCategory
+    );
+    this.telemetry.log(
+      result.right.outcome === 'dead_lettered' ? 'error' : 'info',
+      result.right.outcome === 'dead_lettered'
+        ? 'Analysis job dead-lettered.'
+        : 'Analysis job retry scheduled.',
+      {
+        'analysis_run.id': execution.analysisRunId,
+        'analysis_job.id': execution.jobId,
+        'job.attempt.number': execution.attemptNumber,
+        'failure.category': result.right.failureCategory,
+        outcome: result.right.outcome,
       }
     );
   }

@@ -443,7 +443,12 @@ Each item is one reviewable vertical slice:
    and exactly one `succeeded` fact. The processor reads no content.
 4. **Retry and dead-letter behavior.** Add failure classification, leasing
    recovery, deterministic backoff, fencing, and terminal failure proof. Do not
-   add a generic retry framework.
+   add a generic retry framework. **Completed:** typed processor failures and
+   defects flow through one lease-fenced command; PostgreSQL records immutable
+   attempts, schedules deterministic bounded retries, and atomically marks
+   terminal or fifth-attempt failures as a dead-lettered job and failed run.
+   Browser roles cannot invoke the command, and retry/dead-letter telemetry
+   uses only bounded labels.
 5. **Analysis Run status observation.** Extend the server/domain read contract
    and Angular state to display the lifecycle projection. Reconsider SSE only
    after polling real transitions is implemented and measured.

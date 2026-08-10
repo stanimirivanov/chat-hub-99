@@ -26,6 +26,7 @@ const client = (
   checkWorkerReady: vi.fn().mockResolvedValue({ data: true, error: null }),
   acquireNextJob: vi.fn().mockResolvedValue({ data: [], error: null }),
   completeJobSuccess: vi.fn().mockResolvedValue({ data: [], error: null }),
+  completeJobFailure: vi.fn().mockResolvedValue({ data: [], error: null }),
   ...overrides,
 });
 
@@ -274,6 +275,62 @@ describe('makeSupabaseAnalysisRunRepository', () => {
     expect(result).toMatchObject({
       _tag: 'Left',
       left: { _tag: 'AnalysisJobLeaseLostError' },
+    });
+  });
+
+  it('maps a retry scheduling receipt through the failed-completion command', async () => {
+    const completeJobFailure = vi.fn().mockResolvedValue({
+      data: [
+        {
+          analysis_job_id: '60000000-0000-4000-8000-000000000001',
+          analysis_run_id: row.analysis_run_id,
+          attempt_number: 1,
+          completion_outcome: 'retry_scheduled',
+          failure_category: 'provider.timeout',
+          next_available_at: '2026-08-10T12:00:05.000Z',
+        },
+      ],
+      error: null,
+    });
+    const repository = makeSupabaseAnalysisRunRepository(
+      client({ completeJobFailure })
+    );
+    const execution = {
+      jobId: '60000000-0000-4000-8000-000000000001',
+      attemptId: '70000000-0000-4000-8000-000000000001',
+      analysisRunId: row.analysis_run_id,
+      workspaceId: row.workspace_id,
+      kind: 'analysis.execute',
+      version: 1,
+      attemptNumber: 1,
+      leaseToken: '80000000-0000-4000-8000-000000000001',
+      leaseExpiresAt: new Date('2026-08-10T12:01:00.000Z'),
+      processorVersion: 'analysis.deterministic.v1',
+      traceContext: command.traceContext,
+    } as AnalysisJobExecution;
+
+    await expect(
+      Effect.runPromise(
+        repository.completeJobFailure({
+          execution,
+          failureCategory: 'provider.timeout',
+          retryable: true,
+          durationMilliseconds: 12,
+        })
+      )
+    ).resolves.toMatchObject({
+      jobId: execution.jobId,
+      outcome: 'retry_scheduled',
+      failureCategory: 'provider.timeout',
+      nextAvailableAt: new Date('2026-08-10T12:00:05.000Z'),
+    });
+    expect(completeJobFailure).toHaveBeenCalledExactlyOnceWith({
+      p_job_id: execution.jobId,
+      p_attempt_id: execution.attemptId,
+      p_lease_token: execution.leaseToken,
+      p_failure_category: 'provider.timeout',
+      p_retryable: true,
+      p_duration_milliseconds: 12,
     });
   });
 

@@ -13,12 +13,12 @@ use case -> repository Tag -> Supabase Layer -> service-role RPC
          -> decoded AnalysisRun, optional claim, or Analysis job
 ```
 
-The service-role key is supplied only by `apps/server`; it never identifies the
-caller and never reaches Angular. Browser and service roles receive no direct
+The trusted Supabase key is supplied only to the server and worker runtimes; it
+never identifies the caller and never reaches Angular. Browser roles receive no direct
 event, job, or attempt-table access. The adapter exposes focused readiness,
-acquisition, and completion RPCs but never performs polling or decides lease
-validity. Worker lifecycle, deterministic processing, retry/dead-letter
-behavior, model execution, and generic privileged repositories remain outside
-this package.
+acquisition, success, and failed-completion RPCs but never performs polling or
+decides lease validity, retry timing, or exhaustion. Worker lifecycle,
+deterministic processing, model execution, and generic privileged repositories
+remain outside this package.
 
 Verify with `pnpm exec nx run-many -t lint typecheck typecheck:test test -p analysis-infrastructure`.

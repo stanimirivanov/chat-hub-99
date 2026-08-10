@@ -12,6 +12,7 @@ import type {
 } from './analysis-job';
 import {
   acquireNextAnalysisJob,
+  completeAnalysisJobFailure,
   completeAnalysisJobSuccess,
   DETERMINISTIC_ANALYSIS_PROCESSOR_VERSION,
   processAnalysisJob,
@@ -46,6 +47,7 @@ const repository = (
   checkWorkerReady: () => Effect.die('unexpected worker readiness'),
   acquireNextJob: () => Effect.die('unexpected job acquisition'),
   completeJobSuccess: () => Effect.die('unexpected job completion'),
+  completeJobFailure: () => Effect.die('unexpected failed job completion'),
   ...overrides,
 });
 
@@ -240,8 +242,8 @@ describe('Analysis Run use cases', () => {
       processorVersion: DETERMINISTIC_ANALYSIS_PROCESSOR_VERSION,
       traceContext,
     } as AnalysisJobExecution;
-    const firstReceipt = processAnalysisJob(execution);
-    const secondReceipt = processAnalysisJob(execution);
+    const firstReceipt = Effect.runSync(processAnalysisJob(execution));
+    const secondReceipt = Effect.runSync(processAnalysisJob(execution));
     const completeJobSuccess = vi.fn(() =>
       Effect.succeed({
         id: execution.jobId,
@@ -264,6 +266,48 @@ describe('Analysis Run use cases', () => {
     expect(completeJobSuccess).toHaveBeenCalledExactlyOnceWith({
       execution,
       resultFingerprint: firstReceipt.resultFingerprint,
+      durationMilliseconds: 12,
+    });
+  });
+
+  it('commits a classified processor failure through the lease boundary', async () => {
+    const execution = {
+      jobId: '60000000-0000-4000-8000-000000000001',
+      attemptId: '70000000-0000-4000-8000-000000000001',
+      analysisRunId: run.id,
+      workspaceId: run.workspaceId,
+      kind: 'analysis.execute',
+      version: 1,
+      attemptNumber: 1,
+      leaseToken: '80000000-0000-4000-8000-000000000001',
+      leaseExpiresAt: new Date('2026-08-10T12:01:00.000Z'),
+      processorVersion: DETERMINISTIC_ANALYSIS_PROCESSOR_VERSION,
+      traceContext,
+    } as AnalysisJobExecution;
+    const completeJobFailure = vi.fn(() =>
+      Effect.succeed({
+        jobId: execution.jobId,
+        analysisRunId: execution.analysisRunId,
+        attemptNumber: 1,
+        outcome: 'retry_scheduled' as const,
+        failureCategory: 'provider.timeout',
+        nextAvailableAt: new Date('2026-08-10T12:00:05.000Z'),
+      })
+    );
+
+    await Effect.runPromise(
+      completeAnalysisJobFailure({
+        execution,
+        failureCategory: 'provider.timeout',
+        retryable: true,
+        durationMilliseconds: 12,
+      }).pipe(Effect.provide(layer(repository({ completeJobFailure }))))
+    );
+
+    expect(completeJobFailure).toHaveBeenCalledExactlyOnceWith({
+      execution,
+      failureCategory: 'provider.timeout',
+      retryable: true,
       durationMilliseconds: 12,
     });
   });

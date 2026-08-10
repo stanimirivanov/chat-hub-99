@@ -10,6 +10,7 @@ import type {
 import type {
   AnalysisJob,
   AnalysisJobExecution,
+  AnalysisJobFailureCompletion,
   AnalysisRunOutboxClaim,
 } from './analysis-job';
 
@@ -49,6 +50,13 @@ export interface CompleteAnalysisJobCommand {
   readonly durationMilliseconds: number;
 }
 
+export interface FailAnalysisJobCommand {
+  readonly execution: AnalysisJobExecution;
+  readonly failureCategory: string;
+  readonly retryable: boolean;
+  readonly durationMilliseconds: number;
+}
+
 /** Capability-oriented persistence boundary for runs and durable dispatch. */
 export interface AnalysisRunRepository {
   readonly start: (
@@ -79,6 +87,12 @@ export interface AnalysisRunRepository {
   readonly completeJobSuccess: (
     command: CompleteAnalysisJobCommand
   ) => Effect.Effect<AnalysisJob, AnalysisJobExecutionRepositoryError>;
+  readonly completeJobFailure: (
+    command: FailAnalysisJobCommand
+  ) => Effect.Effect<
+    AnalysisJobFailureCompletion,
+    AnalysisJobExecutionRepositoryError
+  >;
 }
 
 /** Effect service key supplied by the server's Analysis infrastructure Layer. */

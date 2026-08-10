@@ -16,7 +16,9 @@ or generated database dependencies. The trace carrier is runtime correlation
 metadata for the asynchronous boundary, not domain state. Operational job,
 execution, receipt, and opaque-claim values are application contracts; lease
 ownership and transactional idempotency remain PostgreSQL responsibilities.
-The deterministic processor reads no content and has no provider dependency.
+Processor failures cross this boundary only as bounded retryable or terminal
+categories; unexpected defects are classified by the worker runtime. The
+deterministic processor reads no content and has no provider dependency.
 Polling, worker lifecycle, model execution, findings, and streaming remain
 outside this package.
 

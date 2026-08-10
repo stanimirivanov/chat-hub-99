@@ -81,8 +81,24 @@ export const AnalysisProcessorReceiptSchema = Schema.Struct({
   ),
 });
 
+export const AnalysisFailureCategorySchema = Schema.String.pipe(
+  Schema.pattern(/^[a-z0-9._-]{1,64}$/u)
+);
+
+export const AnalysisJobFailureCompletionSchema = Schema.Struct({
+  jobId: AnalysisJobIdSchema,
+  analysisRunId: AnalysisRunIdSchema,
+  attemptNumber: Schema.Number.pipe(Schema.int(), Schema.between(1, 5)),
+  outcome: Schema.Literal('retry_scheduled', 'dead_lettered'),
+  failureCategory: AnalysisFailureCategorySchema,
+  nextAvailableAt: Schema.NullOr(Schema.DateFromSelf),
+});
+
 export type AnalysisJob = typeof AnalysisJobSchema.Type;
 export type AnalysisRunOutboxClaim = typeof AnalysisRunOutboxClaimSchema.Type;
 export type AnalysisJobExecution = typeof AnalysisJobExecutionSchema.Type;
 export type AnalysisProcessorReceipt =
   typeof AnalysisProcessorReceiptSchema.Type;
+export type AnalysisFailureCategory = typeof AnalysisFailureCategorySchema.Type;
+export type AnalysisJobFailureCompletion =
+  typeof AnalysisJobFailureCompletionSchema.Type;

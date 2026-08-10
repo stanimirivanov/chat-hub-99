@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   AnalysisRunRepositoryTag,
   DETERMINISTIC_ANALYSIS_PROCESSOR_VERSION,
+  RetryableAnalysisProcessorError,
   type AnalysisJob,
   type AnalysisJobExecution,
   type AnalysisRunRepository,
@@ -63,6 +64,7 @@ const repository = (
   checkWorkerReady: () => Effect.succeed(true),
   acquireNextJob: () => Effect.succeed(Option.none()),
   completeJobSuccess: () => Effect.die('unexpected completion'),
+  completeJobFailure: () => Effect.die('unexpected failed completion'),
   ...overrides,
 });
 
@@ -152,5 +154,108 @@ describe('AnalysisWorkerRuntime', () => {
     releaseCompletion();
     await stopping;
     expect(stopped).toBe(true);
+  });
+
+  it('schedules a retry for a typed retryable processor failure', async () => {
+    vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    let acquired = false;
+    let failed!: () => void;
+    const failedSignal = new Promise<void>((resolve) => {
+      failed = resolve;
+    });
+    const completeJobFailure = vi.fn(() => {
+      failed();
+      return Effect.succeed({
+        jobId: execution.jobId,
+        analysisRunId: execution.analysisRunId,
+        attemptNumber: execution.attemptNumber,
+        outcome: 'retry_scheduled' as const,
+        failureCategory: 'provider.timeout',
+        nextAvailableAt: new Date('2026-08-10T12:00:05.000Z'),
+      });
+    });
+    const testRepository = repository({
+      acquireNextJob: () => {
+        if (acquired) {
+          return Effect.succeed(Option.none());
+        }
+        acquired = true;
+        return Effect.succeed(Option.some(execution));
+      },
+      completeJobFailure,
+    });
+    const processor = () =>
+      Effect.fail(
+        new RetryableAnalysisProcessorError({ category: 'provider.timeout' })
+      );
+    const telemetry = new WorkerTelemetry(config);
+    const runtime = new AnalysisWorkerRuntime(
+      config,
+      telemetry,
+      Layer.succeed(AnalysisRunRepositoryTag, testRepository),
+      processor
+    );
+
+    await runtime.initialize();
+    runtime.start();
+    await failedSignal;
+    await runtime.stop();
+
+    expect(completeJobFailure).toHaveBeenCalledWith(
+      expect.objectContaining({
+        execution,
+        failureCategory: 'provider.timeout',
+        retryable: true,
+      })
+    );
+  });
+
+  it('treats an unexpected processor defect as retryable and bounded', async () => {
+    vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    let acquired = false;
+    let failed!: () => void;
+    const failedSignal = new Promise<void>((resolve) => {
+      failed = resolve;
+    });
+    const completeJobFailure = vi.fn(() => {
+      failed();
+      return Effect.succeed({
+        jobId: execution.jobId,
+        analysisRunId: execution.analysisRunId,
+        attemptNumber: execution.attemptNumber,
+        outcome: 'dead_lettered' as const,
+        failureCategory: 'processor.defect',
+        nextAvailableAt: null,
+      });
+    });
+    const testRepository = repository({
+      acquireNextJob: () => {
+        if (acquired) {
+          return Effect.succeed(Option.none());
+        }
+        acquired = true;
+        return Effect.succeed(Option.some(execution));
+      },
+      completeJobFailure,
+    });
+    const telemetry = new WorkerTelemetry(config);
+    const runtime = new AnalysisWorkerRuntime(
+      config,
+      telemetry,
+      Layer.succeed(AnalysisRunRepositoryTag, testRepository),
+      () => Effect.die('unexpected processor defect')
+    );
+
+    await runtime.initialize();
+    runtime.start();
+    await failedSignal;
+    await runtime.stop();
+
+    expect(completeJobFailure).toHaveBeenCalledWith(
+      expect.objectContaining({
+        failureCategory: 'processor.defect',
+        retryable: true,
+      })
+    );
   });
 });
