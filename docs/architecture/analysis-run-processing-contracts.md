@@ -430,7 +430,10 @@ Each item is one reviewable vertical slice:
 2. **Durable Analysis job dispatch.** Add the capability-specific job and
    attempt schema plus one idempotent dispatcher command that converts the
    requested event into a queued job. Exercise it through application and
-   database tests before adding a process loop.
+   database tests before adding a process loop. **Completed:** PostgreSQL owns
+   bounded outbox leases and fencing tokens; one atomic, replay-safe dispatch
+   creates the versioned job, appends `queued`, publishes the source event, and
+   preserves W3C trace context. Direct job/attempt access remains denied.
 3. **Worker bootstrap and deterministic completion.** Add `apps/ai-worker`, one
    managed Effect runtime, health/lifecycle handling, bounded polling, and the
    deterministic processor. Prove restart recovery and terminal success.

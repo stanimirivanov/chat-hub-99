@@ -48,7 +48,12 @@ export const readInputProperty = (input: unknown, key: string): unknown =>
 const decodeField = <A, I>(
   schema: Schema.Schema<A, I, never>,
   value: unknown,
-  field: 'requestIdentity' | 'workspaceId' | 'analysisRunId' | 'traceContext'
+  field:
+    | 'requestIdentity'
+    | 'workspaceId'
+    | 'analysisRunId'
+    | 'traceContext'
+    | 'dispatcherId'
 ): Effect.Effect<A, InvalidAnalysisRunInputError> =>
   Schema.decodeUnknown(schema)(value).pipe(
     Effect.mapError(
@@ -91,3 +96,13 @@ export const decodeAnalysisRunId = (
   input: unknown
 ): Effect.Effect<AnalysisRunId, InvalidAnalysisRunInputError> =>
   decodeField(AnalysisRunIdSchema, input, 'analysisRunId');
+
+const DispatcherIdSchema = Schema.String.pipe(
+  Schema.maxLength(128),
+  Schema.pattern(/^(?=.*\S)[^\r\n]+$/u)
+);
+
+export const decodeDispatcherId = (
+  input: unknown
+): Effect.Effect<string, InvalidAnalysisRunInputError> =>
+  decodeField(DispatcherIdSchema, input, 'dispatcherId');

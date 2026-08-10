@@ -1,8 +1,12 @@
-import { Context, type Effect } from 'effect';
+import { Context, type Effect, type Option } from 'effect';
 import type { AuthenticatedRequestIdentity } from '@omoikane/application/authentication';
 import type { AnalysisRun, AnalysisRunId } from '@omoikane/domain/analysis';
 import type { WorkspaceId } from '@omoikane/domain/workspace';
-import type { AnalysisRunRepositoryError } from './analysis-run-error';
+import type {
+  AnalysisRunDispatchRepositoryError,
+  AnalysisRunRepositoryError,
+} from './analysis-run-error';
+import type { AnalysisJob, AnalysisRunOutboxClaim } from './analysis-job';
 
 interface ScopedAnalysisRunRequest {
   readonly identity: AuthenticatedRequestIdentity;
@@ -23,7 +27,12 @@ export interface GetAnalysisRunQuery extends ScopedAnalysisRunRequest {
   readonly analysisRunId: AnalysisRunId;
 }
 
-/** Capability-oriented persistence boundary for starting and observing runs. */
+export interface ClaimAnalysisRunOutboxCommand {
+  readonly dispatcherId: string;
+  readonly leaseSeconds: number;
+}
+
+/** Capability-oriented persistence boundary for runs and durable dispatch. */
 export interface AnalysisRunRepository {
   readonly start: (
     command: StartAnalysisRunCommand
@@ -31,6 +40,15 @@ export interface AnalysisRunRepository {
   readonly get: (
     query: GetAnalysisRunQuery
   ) => Effect.Effect<AnalysisRun, AnalysisRunRepositoryError>;
+  readonly claimNextOutboxEvent: (
+    command: ClaimAnalysisRunOutboxCommand
+  ) => Effect.Effect<
+    Option.Option<AnalysisRunOutboxClaim>,
+    AnalysisRunDispatchRepositoryError
+  >;
+  readonly dispatchOutboxEvent: (
+    claim: AnalysisRunOutboxClaim
+  ) => Effect.Effect<AnalysisJob, AnalysisRunDispatchRepositoryError>;
 }
 
 /** Effect service key supplied by the server's Analysis infrastructure Layer. */

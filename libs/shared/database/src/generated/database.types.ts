@@ -16,6 +16,148 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      analysis_job_attempts: {
+        Row: {
+          analysis_job_attempt_id: string
+          analysis_job_id: string
+          attempt_number: number
+          completed_at: string | null
+          failure_category: string | null
+          lease_owner: string
+          lease_token: string
+          outcome: string | null
+          processor_version: string | null
+          started_at: string
+        }
+        Insert: {
+          analysis_job_attempt_id?: string
+          analysis_job_id: string
+          attempt_number: number
+          completed_at?: string | null
+          failure_category?: string | null
+          lease_owner: string
+          lease_token: string
+          outcome?: string | null
+          processor_version?: string | null
+          started_at?: string
+        }
+        Update: {
+          analysis_job_attempt_id?: string
+          analysis_job_id?: string
+          attempt_number?: number
+          completed_at?: string | null
+          failure_category?: string | null
+          lease_owner?: string
+          lease_token?: string
+          outcome?: string | null
+          processor_version?: string | null
+          started_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analysis_job_attempts_analysis_job_id_fkey"
+            columns: ["analysis_job_id"]
+            isOneToOne: false
+            referencedRelation: "analysis_jobs"
+            referencedColumns: ["analysis_job_id"]
+          },
+        ]
+      }
+      analysis_jobs: {
+        Row: {
+          analysis_job_id: string
+          analysis_run_id: string
+          attempt_count: number
+          available_at: string
+          completed_at: string | null
+          created_at: string
+          job_kind: string
+          job_version: number
+          last_failure_category: string | null
+          lease_expires_at: string | null
+          lease_owner: string | null
+          lease_token: string | null
+          max_attempts: number
+          source_outbox_event_id: string
+          terminal_outcome: string | null
+          traceparent: string
+          tracestate: string | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          analysis_job_id?: string
+          analysis_run_id: string
+          attempt_count?: number
+          available_at?: string
+          completed_at?: string | null
+          created_at?: string
+          job_kind?: string
+          job_version?: number
+          last_failure_category?: string | null
+          lease_expires_at?: string | null
+          lease_owner?: string | null
+          lease_token?: string | null
+          max_attempts?: number
+          source_outbox_event_id: string
+          terminal_outcome?: string | null
+          traceparent: string
+          tracestate?: string | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          analysis_job_id?: string
+          analysis_run_id?: string
+          attempt_count?: number
+          available_at?: string
+          completed_at?: string | null
+          created_at?: string
+          job_kind?: string
+          job_version?: number
+          last_failure_category?: string | null
+          lease_expires_at?: string | null
+          lease_owner?: string | null
+          lease_token?: string | null
+          max_attempts?: number
+          source_outbox_event_id?: string
+          terminal_outcome?: string | null
+          traceparent?: string
+          tracestate?: string | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analysis_jobs_analysis_run_id_fkey"
+            columns: ["analysis_run_id"]
+            isOneToOne: false
+            referencedRelation: "analysis_runs"
+            referencedColumns: ["analysis_run_id"]
+          },
+          {
+            foreignKeyName: "analysis_jobs_source_outbox_event_id_fkey"
+            columns: ["source_outbox_event_id"]
+            isOneToOne: true
+            referencedRelation: "analysis_run_outbox_events"
+            referencedColumns: ["analysis_run_outbox_event_id"]
+          },
+          {
+            foreignKeyName: "analysis_jobs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "current_workspaces"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "analysis_jobs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["workspace_id"]
+          },
+        ]
+      }
       analysis_run_lifecycle_events: {
         Row: {
           analysis_run_id: string
@@ -49,11 +191,25 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "analysis_run_lifecycle_attempt_fk"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "analysis_job_attempts"
+            referencedColumns: ["analysis_job_attempt_id"]
+          },
+          {
             foreignKeyName: "analysis_run_lifecycle_events_analysis_run_id_fkey"
             columns: ["analysis_run_id"]
             isOneToOne: false
             referencedRelation: "analysis_runs"
             referencedColumns: ["analysis_run_id"]
+          },
+          {
+            foreignKeyName: "analysis_run_lifecycle_job_fk"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "analysis_jobs"
+            referencedColumns: ["analysis_job_id"]
           },
         ]
       }
@@ -1596,6 +1752,33 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      claim_analysis_run_outbox_event: {
+        Args: { p_claimed_by: string; p_lease_seconds?: number }
+        Returns: {
+          analysis_run_id: string
+          analysis_run_outbox_event_id: string
+          attempt_count: number
+          available_at: string
+          claim_expires_at: string | null
+          claim_token: string | null
+          claimed_by: string | null
+          created_at: string
+          dead_lettered_at: string | null
+          event_name: string
+          event_version: number
+          last_error_category: string | null
+          published_at: string | null
+          traceparent: string
+          tracestate: string | null
+          workspace_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "analysis_run_outbox_events"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       create_channel: {
         Args: {
           p_description?: string
@@ -1647,6 +1830,36 @@ export type Database = {
         }
       }
       delete_message: { Args: { p_message_id: string }; Returns: undefined }
+      dispatch_analysis_run_outbox_event: {
+        Args: { p_claim_token: string; p_event_id: string }
+        Returns: {
+          analysis_job_id: string
+          analysis_run_id: string
+          attempt_count: number
+          available_at: string
+          completed_at: string | null
+          created_at: string
+          job_kind: string
+          job_version: number
+          last_failure_category: string | null
+          lease_expires_at: string | null
+          lease_owner: string | null
+          lease_token: string | null
+          max_attempts: number
+          source_outbox_event_id: string
+          terminal_outcome: string | null
+          traceparent: string
+          tracestate: string | null
+          updated_at: string
+          workspace_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "analysis_jobs"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       edit_message: {
         Args: { p_content: string; p_message_id: string }
         Returns: string
