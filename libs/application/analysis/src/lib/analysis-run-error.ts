@@ -43,7 +43,8 @@ export class AnalysisRunRepositoryUnavailableError extends Data.TaggedError(
     | 'dispatchOutbox'
     | 'healthWorker'
     | 'acquireJob'
-    | 'completeJob';
+    | 'completeJob'
+    | 'failJob';
   readonly cause: unknown;
 }> {}
 

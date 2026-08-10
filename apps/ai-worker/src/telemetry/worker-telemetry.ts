@@ -48,6 +48,8 @@ export class WorkerTelemetry {
   private readonly dispatchCount: Counter;
   private readonly acquisitionCount: Counter;
   private readonly attemptDuration: Histogram;
+  private readonly retryCount: Counter;
+  private readonly deadLetterCount: Counter;
   private shutdownStarted = false;
 
   constructor(private readonly config: WorkerConfig) {
@@ -102,6 +104,10 @@ export class WorkerTelemetry {
       'analysis.job.attempt.duration',
       { unit: 's' }
     );
+    this.retryCount = meter.createCounter('analysis.job.retry.count');
+    this.deadLetterCount = meter.createCounter(
+      'analysis.job.dead_letter.count'
+    );
 
     const tracerLayer = Layer.succeed(EffectOtelTracer.OtelTracer, this.tracer);
     this.effectLayer = EffectOtelTracer.layerWithoutOtelTracer.pipe(
@@ -144,11 +150,33 @@ export class WorkerTelemetry {
     });
   }
 
-  recordAttempt(durationMilliseconds: number, failed: boolean): void {
+  recordAttempt(
+    durationMilliseconds: number,
+    outcome:
+      | 'succeeded'
+      | 'retry_scheduled'
+      | 'dead_lettered'
+      | 'completion_failed'
+  ): void {
     this.attemptDuration.record(durationMilliseconds / 1000, {
       'job.kind': 'analysis.execute',
-      outcome: failed ? 'failed' : 'succeeded',
+      outcome,
     });
+  }
+
+  recordFailureCompletion(
+    outcome: 'retry_scheduled' | 'dead_lettered',
+    failureCategory: string
+  ): void {
+    const attributes = {
+      'job.kind': 'analysis.execute',
+      'failure.category': failureCategory,
+    };
+    if (outcome === 'retry_scheduled') {
+      this.retryCount.add(1, attributes);
+    } else {
+      this.deadLetterCount.add(1, attributes);
+    }
   }
 
   log(

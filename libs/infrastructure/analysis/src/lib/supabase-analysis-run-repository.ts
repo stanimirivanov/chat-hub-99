@@ -5,11 +5,13 @@ import {
   AnalysisRunRepositoryUnavailableError,
   AnalysisJobSchema,
   AnalysisJobExecutionSchema,
+  AnalysisJobFailureCompletionSchema,
   AnalysisJobLeaseLostError,
   AnalysisRunOutboxClaimSchema,
   InvalidAnalysisRunDataError,
   type AnalysisJob,
   type AnalysisJobExecution,
+  type AnalysisJobFailureCompletion,
   type AnalysisJobExecutionRepositoryError,
   type AnalysisRunOutboxClaim,
   type AnalysisRunRepository,
@@ -21,6 +23,7 @@ import type {
   SupabaseAnalysisClient,
   SupabaseAnalysisJobResult,
   SupabaseAnalysisJobAcquisitionResult,
+  SupabaseAnalysisJobFailureResult,
   SupabaseAnalysisOutboxResult,
   SupabaseAnalysisRunResult,
   SupabaseAnalysisWorkerReadyResult,
@@ -240,6 +243,47 @@ const mapCompletedJob = (
   );
 };
 
+const mapFailedJob = (
+  result: SupabaseAnalysisJobFailureResult
+): Effect.Effect<
+  AnalysisJobFailureCompletion,
+  AnalysisJobExecutionRepositoryError
+> => {
+  if (result.error?.code === 'P0003') {
+    return Effect.fail(new AnalysisJobLeaseLostError());
+  }
+  if (result.error !== null) {
+    return Effect.fail(
+      new AnalysisRunRepositoryUnavailableError({
+        operation: 'failJob',
+        cause: result.error,
+      })
+    );
+  }
+
+  const row = result.data?.[0];
+  if (row === undefined) {
+    return Effect.fail(
+      new InvalidAnalysisRunDataError({
+        cause: 'The failed-completion command returned no Analysis job.',
+      })
+    );
+  }
+
+  const nextAvailableAt = row.next_available_at as string | null;
+  return Schema.decodeUnknown(AnalysisJobFailureCompletionSchema)({
+    jobId: row.analysis_job_id,
+    analysisRunId: row.analysis_run_id,
+    attemptNumber: row.attempt_number,
+    outcome: row.completion_outcome,
+    failureCategory: row.failure_category,
+    nextAvailableAt:
+      nextAvailableAt === null ? null : new Date(nextAvailableAt),
+  }).pipe(
+    Effect.mapError((cause) => new InvalidAnalysisRunDataError({ cause }))
+  );
+};
+
 /** Constructs the Supabase implementation of the Analysis Run repository. */
 export const makeSupabaseAnalysisRunRepository = (
   client: SupabaseAnalysisClient
@@ -348,5 +392,30 @@ export const makeSupabaseAnalysisRunRepository = (
     }).pipe(
       Effect.flatMap(mapCompletedJob),
       Effect.withSpan('supabase.analysis_job.complete', { kind: 'client' })
+    ),
+  completeJobFailure: ({
+    execution,
+    failureCategory,
+    retryable,
+    durationMilliseconds,
+  }) =>
+    Effect.tryPromise({
+      try: () =>
+        client.completeJobFailure({
+          p_job_id: execution.jobId,
+          p_attempt_id: execution.attemptId,
+          p_lease_token: execution.leaseToken,
+          p_failure_category: failureCategory,
+          p_retryable: retryable,
+          p_duration_milliseconds: durationMilliseconds,
+        }),
+      catch: (cause) =>
+        new AnalysisRunRepositoryUnavailableError({
+          operation: 'failJob',
+          cause,
+        }),
+    }).pipe(
+      Effect.flatMap(mapFailedJob),
+      Effect.withSpan('supabase.analysis_job.fail', { kind: 'client' })
     ),
 });

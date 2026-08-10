@@ -18,6 +18,10 @@ type AcquireJobRow =
   Database['public']['Functions']['acquire_analysis_job']['Returns'][number];
 type CompleteJobArgs =
   Database['public']['Functions']['complete_analysis_job_success']['Args'];
+type FailJobArgs =
+  Database['public']['Functions']['complete_analysis_job_failure']['Args'];
+type FailJobRow =
+  Database['public']['Functions']['complete_analysis_job_failure']['Returns'][number];
 
 export interface SupabaseAnalysisRunResult {
   readonly data: AnalysisRunRow[] | null;
@@ -36,6 +40,11 @@ export interface SupabaseAnalysisJobResult {
 
 export interface SupabaseAnalysisJobAcquisitionResult {
   readonly data: AcquireJobRow[] | null;
+  readonly error: PostgrestError | null;
+}
+
+export interface SupabaseAnalysisJobFailureResult {
+  readonly data: FailJobRow[] | null;
   readonly error: PostgrestError | null;
 }
 
@@ -61,6 +70,9 @@ export interface SupabaseAnalysisClient {
   readonly completeJobSuccess: (
     args: CompleteJobArgs
   ) => PromiseLike<SupabaseAnalysisJobResult>;
+  readonly completeJobFailure: (
+    args: FailJobArgs
+  ) => PromiseLike<SupabaseAnalysisJobFailureResult>;
 }
 
 export const SupabaseAnalysisClientTag =
@@ -101,6 +113,8 @@ export const makeSupabaseAnalysisClient = (
     acquireNextJob: (args) => client.rpc('acquire_analysis_job', args),
     completeJobSuccess: (args) =>
       client.rpc('complete_analysis_job_success', args),
+    completeJobFailure: (args) =>
+      client.rpc('complete_analysis_job_failure', args),
   };
 };
 

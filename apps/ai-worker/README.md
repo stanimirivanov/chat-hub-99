@@ -28,8 +28,11 @@ poll loop -> Analysis application use cases -> Analysis repository Tag
 
 An expired lease may be recovered by another process. A stale process cannot
 commit because completion requires the current job, attempt, and lease-token
-identity. Retry scheduling, dead-letter behavior, model providers, findings,
-and user-facing status projection are not implemented here.
+identity. Typed retryable failures and unexpected processor defects use the
+database-owned deterministic retry schedule; terminal or exhausted work is
+dead-lettered atomically with the Analysis Run `failed` fact. Operator replay,
+model providers, findings, and user-facing status projection are not
+implemented here.
 
 ## Commands
 
