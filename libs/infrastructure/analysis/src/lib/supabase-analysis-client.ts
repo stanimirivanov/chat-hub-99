@@ -3,18 +3,41 @@ import { Context, Layer } from 'effect';
 import type { Database } from '@omoikane/shared/database';
 
 type AnalysisRunRow = Database['public']['Tables']['analysis_runs']['Row'];
+type AnalysisOutboxRow =
+  Database['public']['Tables']['analysis_run_outbox_events']['Row'];
+type AnalysisJobRow = Database['public']['Tables']['analysis_jobs']['Row'];
 type StartArgs = Database['public']['Functions']['start_analysis_run']['Args'];
 type GetArgs = Database['public']['Functions']['get_analysis_run']['Args'];
+type ClaimOutboxArgs =
+  Database['public']['Functions']['claim_analysis_run_outbox_event']['Args'];
+type DispatchOutboxArgs =
+  Database['public']['Functions']['dispatch_analysis_run_outbox_event']['Args'];
 
-export interface SupabaseAnalysisResult {
+export interface SupabaseAnalysisRunResult {
   readonly data: AnalysisRunRow[] | null;
+  readonly error: PostgrestError | null;
+}
+
+export interface SupabaseAnalysisOutboxResult {
+  readonly data: AnalysisOutboxRow[] | null;
+  readonly error: PostgrestError | null;
+}
+
+export interface SupabaseAnalysisJobResult {
+  readonly data: AnalysisJobRow[] | null;
   readonly error: PostgrestError | null;
 }
 
 /** Focused RPC projection used by the privileged Analysis Run adapter. */
 export interface SupabaseAnalysisClient {
-  readonly start: (args: StartArgs) => PromiseLike<SupabaseAnalysisResult>;
-  readonly get: (args: GetArgs) => PromiseLike<SupabaseAnalysisResult>;
+  readonly start: (args: StartArgs) => PromiseLike<SupabaseAnalysisRunResult>;
+  readonly get: (args: GetArgs) => PromiseLike<SupabaseAnalysisRunResult>;
+  readonly claimNextOutboxEvent: (
+    args: ClaimOutboxArgs
+  ) => PromiseLike<SupabaseAnalysisOutboxResult>;
+  readonly dispatchOutboxEvent: (
+    args: DispatchOutboxArgs
+  ) => PromiseLike<SupabaseAnalysisJobResult>;
 }
 
 export const SupabaseAnalysisClientTag =
@@ -46,6 +69,10 @@ export const makeSupabaseAnalysisClient = (
   return {
     start: (args) => client.rpc('start_analysis_run', args),
     get: (args) => client.rpc('get_analysis_run', args),
+    claimNextOutboxEvent: (args) =>
+      client.rpc('claim_analysis_run_outbox_event', args),
+    dispatchOutboxEvent: (args) =>
+      client.rpc('dispatch_analysis_run_outbox_event', args),
   };
 };
 

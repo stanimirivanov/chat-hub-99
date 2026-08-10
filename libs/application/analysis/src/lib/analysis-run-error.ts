@@ -4,7 +4,8 @@ export type AnalysisRunInputField =
   | 'requestIdentity'
   | 'workspaceId'
   | 'analysisRunId'
-  | 'traceContext';
+  | 'traceContext'
+  | 'dispatcherId';
 
 /** An Analysis Run command received malformed provider-independent input. */
 export class InvalidAnalysisRunInputError extends Data.TaggedError(
@@ -21,11 +22,16 @@ export class InvalidAnalysisRunDataError extends Data.TaggedError(
   'InvalidAnalysisRunDataError'
 )<{ readonly cause: unknown }> {}
 
+/** The dispatch lease was superseded or expired before publication. */
+export class AnalysisRunOutboxClaimLostError extends Data.TaggedError(
+  'AnalysisRunOutboxClaimLostError'
+) {}
+
 /** Persistence was unavailable during an Analysis Run operation. */
 export class AnalysisRunRepositoryUnavailableError extends Data.TaggedError(
   'AnalysisRunRepositoryUnavailableError'
 )<{
-  readonly operation: 'start' | 'get';
+  readonly operation: 'start' | 'get' | 'claimOutbox' | 'dispatchOutbox';
   readonly cause: unknown;
 }> {}
 
@@ -37,3 +43,13 @@ export type AnalysisRunRepositoryError =
 export type AnalysisRunError =
   | InvalidAnalysisRunInputError
   | AnalysisRunRepositoryError;
+
+/** Failures specific to the internal outbox dispatch workflow. */
+export type AnalysisRunDispatchError =
+  | InvalidAnalysisRunInputError
+  | AnalysisRunDispatchRepositoryError;
+
+export type AnalysisRunDispatchRepositoryError =
+  | AnalysisRunOutboxClaimLostError
+  | InvalidAnalysisRunDataError
+  | AnalysisRunRepositoryUnavailableError;
