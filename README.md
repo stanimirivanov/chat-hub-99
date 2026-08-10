@@ -59,6 +59,7 @@ features.
 ```text
 apps/client/                    Angular application and presentation features
 apps/server/                    NestJS, Fastify, OpenAPI, and Effect runtime boundary
+apps/ai-worker/                 Asynchronous Analysis dispatch and execution runtime
 libs/domain/channel/            Channel identity, navigation projection, and invariants
 libs/domain/analysis/           Analysis Run identity and accepted-state invariants
 libs/domain/message/            Message projections, revisions, and invariants
@@ -333,7 +334,7 @@ pnpm dev
 ```
 
 This command starts Supabase, resets the local database, applies all migrations,
-loads supabase/seed.sql, and starts the Angular and NestJS development servers.
+loads supabase/seed.sql, and starts Angular, the NestJS server, and the AI worker.
 
 The reset is destructive to local database data.
 

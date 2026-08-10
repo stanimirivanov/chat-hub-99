@@ -31,6 +31,7 @@ const makeFixture = () => {
       OMOIKANE_ENV: 'test',
       OMOIKANE_SERVER_VERSION: '0.1.0-test',
       OMOIKANE_TELEMETRY_SHUTDOWN_TIMEOUT_MS: '500',
+      SUPABASE_SECRET_KEY: 'telemetry-test-secret',
     }),
     {
       spanProcessors: [new SimpleSpanProcessor(spanExporter)],

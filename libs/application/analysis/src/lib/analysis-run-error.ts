@@ -27,11 +27,23 @@ export class AnalysisRunOutboxClaimLostError extends Data.TaggedError(
   'AnalysisRunOutboxClaimLostError'
 ) {}
 
+/** The job attempt lease expired or was replaced before completion. */
+export class AnalysisJobLeaseLostError extends Data.TaggedError(
+  'AnalysisJobLeaseLostError'
+) {}
+
 /** Persistence was unavailable during an Analysis Run operation. */
 export class AnalysisRunRepositoryUnavailableError extends Data.TaggedError(
   'AnalysisRunRepositoryUnavailableError'
 )<{
-  readonly operation: 'start' | 'get' | 'claimOutbox' | 'dispatchOutbox';
+  readonly operation:
+    | 'start'
+    | 'get'
+    | 'claimOutbox'
+    | 'dispatchOutbox'
+    | 'healthWorker'
+    | 'acquireJob'
+    | 'completeJob';
   readonly cause: unknown;
 }> {}
 
@@ -51,5 +63,10 @@ export type AnalysisRunDispatchError =
 
 export type AnalysisRunDispatchRepositoryError =
   | AnalysisRunOutboxClaimLostError
+  | InvalidAnalysisRunDataError
+  | AnalysisRunRepositoryUnavailableError;
+
+export type AnalysisJobExecutionRepositoryError =
+  | AnalysisJobLeaseLostError
   | InvalidAnalysisRunDataError
   | AnalysisRunRepositoryUnavailableError;

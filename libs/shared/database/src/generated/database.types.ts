@@ -22,11 +22,13 @@ export type Database = {
           analysis_job_id: string
           attempt_number: number
           completed_at: string | null
+          duration_milliseconds: number | null
           failure_category: string | null
           lease_owner: string
           lease_token: string
           outcome: string | null
-          processor_version: string | null
+          processor_version: string
+          result_fingerprint: string | null
           started_at: string
         }
         Insert: {
@@ -34,11 +36,13 @@ export type Database = {
           analysis_job_id: string
           attempt_number: number
           completed_at?: string | null
+          duration_milliseconds?: number | null
           failure_category?: string | null
           lease_owner: string
           lease_token: string
           outcome?: string | null
-          processor_version?: string | null
+          processor_version: string
+          result_fingerprint?: string | null
           started_at?: string
         }
         Update: {
@@ -46,11 +50,13 @@ export type Database = {
           analysis_job_id?: string
           attempt_number?: number
           completed_at?: string | null
+          duration_milliseconds?: number | null
           failure_category?: string | null
           lease_owner?: string
           lease_token?: string
           outcome?: string | null
-          processor_version?: string | null
+          processor_version?: string
+          result_fingerprint?: string | null
           started_at?: string
         }
         Relationships: [
@@ -1680,6 +1686,27 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      acquire_analysis_job: {
+        Args: {
+          p_lease_owner: string
+          p_lease_seconds?: number
+          p_processor_version: string
+        }
+        Returns: {
+          analysis_job_attempt_id: string
+          analysis_job_id: string
+          analysis_run_id: string
+          attempt_number: number
+          job_kind: string
+          job_version: number
+          lease_expires_at: string
+          lease_token: string
+          processor_version: string
+          traceparent: string
+          tracestate: string
+          workspace_id: string
+        }[]
+      }
       add_workspace_member: {
         Args: { p_user_id: string; p_workspace_id: string }
         Returns: {
@@ -1752,6 +1779,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      check_analysis_worker_ready: { Args: never; Returns: boolean }
       claim_analysis_run_outbox_event: {
         Args: { p_claimed_by: string; p_lease_seconds?: number }
         Returns: {
@@ -1775,6 +1803,42 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "analysis_run_outbox_events"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      complete_analysis_job_success: {
+        Args: {
+          p_attempt_id: string
+          p_duration_milliseconds: number
+          p_job_id: string
+          p_lease_token: string
+          p_result_fingerprint: string
+        }
+        Returns: {
+          analysis_job_id: string
+          analysis_run_id: string
+          attempt_count: number
+          available_at: string
+          completed_at: string | null
+          created_at: string
+          job_kind: string
+          job_version: number
+          last_failure_category: string | null
+          lease_expires_at: string | null
+          lease_owner: string | null
+          lease_token: string | null
+          max_attempts: number
+          source_outbox_event_id: string
+          terminal_outcome: string | null
+          traceparent: string
+          tracestate: string | null
+          updated_at: string
+          workspace_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "analysis_jobs"
           isOneToOne: false
           isSetofReturn: true
         }

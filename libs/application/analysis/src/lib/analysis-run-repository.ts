@@ -4,9 +4,14 @@ import type { AnalysisRun, AnalysisRunId } from '@omoikane/domain/analysis';
 import type { WorkspaceId } from '@omoikane/domain/workspace';
 import type {
   AnalysisRunDispatchRepositoryError,
+  AnalysisJobExecutionRepositoryError,
   AnalysisRunRepositoryError,
 } from './analysis-run-error';
-import type { AnalysisJob, AnalysisRunOutboxClaim } from './analysis-job';
+import type {
+  AnalysisJob,
+  AnalysisJobExecution,
+  AnalysisRunOutboxClaim,
+} from './analysis-job';
 
 interface ScopedAnalysisRunRequest {
   readonly identity: AuthenticatedRequestIdentity;
@@ -32,6 +37,18 @@ export interface ClaimAnalysisRunOutboxCommand {
   readonly leaseSeconds: number;
 }
 
+export interface AcquireAnalysisJobCommand {
+  readonly workerId: string;
+  readonly processorVersion: string;
+  readonly leaseSeconds: number;
+}
+
+export interface CompleteAnalysisJobCommand {
+  readonly execution: AnalysisJobExecution;
+  readonly resultFingerprint: string;
+  readonly durationMilliseconds: number;
+}
+
 /** Capability-oriented persistence boundary for runs and durable dispatch. */
 export interface AnalysisRunRepository {
   readonly start: (
@@ -49,6 +66,19 @@ export interface AnalysisRunRepository {
   readonly dispatchOutboxEvent: (
     claim: AnalysisRunOutboxClaim
   ) => Effect.Effect<AnalysisJob, AnalysisRunDispatchRepositoryError>;
+  readonly checkWorkerReady: () => Effect.Effect<
+    boolean,
+    AnalysisJobExecutionRepositoryError
+  >;
+  readonly acquireNextJob: (
+    command: AcquireAnalysisJobCommand
+  ) => Effect.Effect<
+    Option.Option<AnalysisJobExecution>,
+    AnalysisJobExecutionRepositoryError
+  >;
+  readonly completeJobSuccess: (
+    command: CompleteAnalysisJobCommand
+  ) => Effect.Effect<AnalysisJob, AnalysisJobExecutionRepositoryError>;
 }
 
 /** Effect service key supplied by the server's Analysis infrastructure Layer. */

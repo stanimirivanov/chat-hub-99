@@ -1,7 +1,10 @@
 import { Effect, Option } from 'effect';
 import { describe, expect, it, vi } from 'vitest';
 import type { PostgrestError } from '@supabase/supabase-js';
-import type { AnalysisRunOutboxClaim } from '@omoikane/application/analysis';
+import type {
+  AnalysisJobExecution,
+  AnalysisRunOutboxClaim,
+} from '@omoikane/application/analysis';
 import type { SupabaseAnalysisClient } from './supabase-analysis-client';
 import { makeSupabaseAnalysisRunRepository } from './supabase-analysis-run-repository';
 
@@ -20,6 +23,9 @@ const client = (
   get: vi.fn().mockResolvedValue({ data: [row], error: null }),
   claimNextOutboxEvent: vi.fn().mockResolvedValue({ data: [], error: null }),
   dispatchOutboxEvent: vi.fn().mockResolvedValue({ data: [], error: null }),
+  checkWorkerReady: vi.fn().mockResolvedValue({ data: true, error: null }),
+  acquireNextJob: vi.fn().mockResolvedValue({ data: [], error: null }),
+  completeJobSuccess: vi.fn().mockResolvedValue({ data: [], error: null }),
   ...overrides,
 });
 
@@ -109,6 +115,8 @@ describe('makeSupabaseAnalysisRunRepository', () => {
     const outboxRow = {
       analysis_run_outbox_event_id: '40000000-0000-4000-8000-000000000001',
       claim_token: '50000000-0000-4000-8000-000000000001',
+      traceparent: command.traceContext.traceparent,
+      tracestate: command.traceContext.tracestate,
     };
     const jobRow = {
       analysis_job_id: '60000000-0000-4000-8000-000000000001',
@@ -188,5 +196,98 @@ describe('makeSupabaseAnalysisRunRepository', () => {
       _tag: 'Left',
       left: { _tag: 'AnalysisRunOutboxClaimLostError' },
     });
+  });
+
+  it('maps a leased job execution and preserves its trace carrier', async () => {
+    const acquisitionRow = {
+      analysis_job_id: '60000000-0000-4000-8000-000000000001',
+      analysis_job_attempt_id: '70000000-0000-4000-8000-000000000001',
+      analysis_run_id: row.analysis_run_id,
+      workspace_id: row.workspace_id,
+      job_kind: 'analysis.execute',
+      job_version: 1,
+      attempt_number: 1,
+      lease_token: '80000000-0000-4000-8000-000000000001',
+      lease_expires_at: '2026-08-10T12:01:00.000Z',
+      processor_version: 'analysis.deterministic.v1',
+      traceparent: command.traceContext.traceparent,
+      tracestate: command.traceContext.tracestate,
+    };
+    const acquireNextJob = vi
+      .fn()
+      .mockResolvedValue({ data: [acquisitionRow], error: null });
+    const repository = makeSupabaseAnalysisRunRepository(
+      client({ acquireNextJob })
+    );
+
+    await expect(
+      Effect.runPromise(
+        repository.acquireNextJob({
+          workerId: 'worker-1',
+          processorVersion: 'analysis.deterministic.v1',
+          leaseSeconds: 60,
+        })
+      )
+    ).resolves.toMatchObject({
+      value: {
+        jobId: acquisitionRow.analysis_job_id,
+        attemptId: acquisitionRow.analysis_job_attempt_id,
+        traceContext: command.traceContext,
+      },
+    });
+    expect(acquireNextJob).toHaveBeenCalledExactlyOnceWith({
+      p_lease_owner: 'worker-1',
+      p_processor_version: 'analysis.deterministic.v1',
+      p_lease_seconds: 60,
+    });
+  });
+
+  it('maps a stale job completion token to a typed lease-lost failure', async () => {
+    const error = { code: 'P0003' } as PostgrestError;
+    const repository = makeSupabaseAnalysisRunRepository(
+      client({
+        completeJobSuccess: vi.fn().mockResolvedValue({ data: null, error }),
+      })
+    );
+    const result = await Effect.runPromise(
+      repository
+        .completeJobSuccess({
+          execution: {
+            jobId: '60000000-0000-4000-8000-000000000001',
+            attemptId: '70000000-0000-4000-8000-000000000001',
+            analysisRunId: row.analysis_run_id,
+            workspaceId: row.workspace_id,
+            kind: 'analysis.execute',
+            version: 1,
+            attemptNumber: 1,
+            leaseToken: '80000000-0000-4000-8000-000000000001',
+            leaseExpiresAt: new Date('2026-08-10T12:01:00.000Z'),
+            processorVersion: 'analysis.deterministic.v1',
+            traceContext: command.traceContext,
+          } as AnalysisJobExecution,
+          resultFingerprint: 'analysis.deterministic.v1/run/job',
+          durationMilliseconds: 1,
+        })
+        .pipe(Effect.either)
+    );
+
+    expect(result).toMatchObject({
+      _tag: 'Left',
+      left: { _tag: 'AnalysisJobLeaseLostError' },
+    });
+  });
+
+  it('uses the bounded worker readiness command', async () => {
+    const checkWorkerReady = vi
+      .fn()
+      .mockResolvedValue({ data: true, error: null });
+    const repository = makeSupabaseAnalysisRunRepository(
+      client({ checkWorkerReady })
+    );
+
+    await expect(
+      Effect.runPromise(repository.checkWorkerReady())
+    ).resolves.toBe(true);
+    expect(checkWorkerReady).toHaveBeenCalledOnce();
   });
 });

@@ -4,9 +4,13 @@ import {
   AnalysisRunOutboxClaimLostError,
   AnalysisRunRepositoryUnavailableError,
   AnalysisJobSchema,
+  AnalysisJobExecutionSchema,
+  AnalysisJobLeaseLostError,
   AnalysisRunOutboxClaimSchema,
   InvalidAnalysisRunDataError,
   type AnalysisJob,
+  type AnalysisJobExecution,
+  type AnalysisJobExecutionRepositoryError,
   type AnalysisRunOutboxClaim,
   type AnalysisRunRepository,
   type AnalysisRunRepositoryError,
@@ -16,8 +20,10 @@ import { AnalysisRunSchema, type AnalysisRun } from '@omoikane/domain/analysis';
 import type {
   SupabaseAnalysisClient,
   SupabaseAnalysisJobResult,
+  SupabaseAnalysisJobAcquisitionResult,
   SupabaseAnalysisOutboxResult,
   SupabaseAnalysisRunResult,
+  SupabaseAnalysisWorkerReadyResult,
 } from './supabase-analysis-client';
 
 const mapResult = (
@@ -91,6 +97,10 @@ const mapOutboxClaim = (
   return Schema.decodeUnknown(AnalysisRunOutboxClaimSchema)({
     eventId: row.analysis_run_outbox_event_id,
     claimToken: row.claim_token,
+    traceContext: {
+      traceparent: row.traceparent,
+      tracestate: row.tracestate,
+    },
   }).pipe(
     Effect.map(Option.some),
     Effect.mapError((cause) => new InvalidAnalysisRunDataError({ cause }))
@@ -116,6 +126,104 @@ const mapJob = (
     return Effect.fail(
       new InvalidAnalysisRunDataError({
         cause: 'The dispatch command returned no Analysis job.',
+      })
+    );
+  }
+
+  return Schema.decodeUnknown(AnalysisJobSchema)({
+    id: row.analysis_job_id,
+    analysisRunId: row.analysis_run_id,
+    workspaceId: row.workspace_id,
+    kind: row.job_kind,
+    version: row.job_version,
+    availableAt: new Date(row.available_at),
+  }).pipe(
+    Effect.mapError((cause) => new InvalidAnalysisRunDataError({ cause }))
+  );
+};
+
+const mapJobExecution = (
+  result: SupabaseAnalysisJobAcquisitionResult
+): Effect.Effect<
+  Option.Option<AnalysisJobExecution>,
+  AnalysisJobExecutionRepositoryError
+> => {
+  if (result.error !== null) {
+    return Effect.fail(
+      new AnalysisRunRepositoryUnavailableError({
+        operation: 'acquireJob',
+        cause: result.error,
+      })
+    );
+  }
+
+  const row = result.data?.[0];
+  if (row === undefined) {
+    return Effect.succeed(Option.none());
+  }
+
+  return Schema.decodeUnknown(AnalysisJobExecutionSchema)({
+    jobId: row.analysis_job_id,
+    attemptId: row.analysis_job_attempt_id,
+    analysisRunId: row.analysis_run_id,
+    workspaceId: row.workspace_id,
+    kind: row.job_kind,
+    version: row.job_version,
+    attemptNumber: row.attempt_number,
+    leaseToken: row.lease_token,
+    leaseExpiresAt: new Date(row.lease_expires_at),
+    processorVersion: row.processor_version,
+    traceContext: {
+      traceparent: row.traceparent,
+      tracestate: row.tracestate,
+    },
+  }).pipe(
+    Effect.map(Option.some),
+    Effect.mapError((cause) => new InvalidAnalysisRunDataError({ cause }))
+  );
+};
+
+const mapWorkerReady = (
+  result: SupabaseAnalysisWorkerReadyResult
+): Effect.Effect<boolean, AnalysisJobExecutionRepositoryError> => {
+  if (result.error !== null) {
+    return Effect.fail(
+      new AnalysisRunRepositoryUnavailableError({
+        operation: 'healthWorker',
+        cause: result.error,
+      })
+    );
+  }
+
+  return result.data === true
+    ? Effect.succeed(true)
+    : Effect.fail(
+        new InvalidAnalysisRunDataError({
+          cause: 'The Analysis worker readiness command returned false.',
+        })
+      );
+};
+
+const mapCompletedJob = (
+  result: SupabaseAnalysisJobResult
+): Effect.Effect<AnalysisJob, AnalysisJobExecutionRepositoryError> => {
+  if (result.error?.code === 'P0003') {
+    return Effect.fail(new AnalysisJobLeaseLostError());
+  }
+  if (result.error !== null) {
+    return Effect.fail(
+      new AnalysisRunRepositoryUnavailableError({
+        operation: 'completeJob',
+        cause: result.error,
+      })
+    );
+  }
+
+  const row = result.data?.[0];
+  if (row === undefined) {
+    return Effect.fail(
+      new InvalidAnalysisRunDataError({
+        cause: 'The completion command returned no Analysis job.',
       })
     );
   }
@@ -188,5 +296,57 @@ export const makeSupabaseAnalysisRunRepository = (
       Effect.withSpan('supabase.analysis_run_outbox.dispatch', {
         kind: 'client',
       })
+    ),
+  checkWorkerReady: () =>
+    Effect.tryPromise({
+      try: () => client.checkWorkerReady(),
+      catch: (cause) =>
+        new AnalysisRunRepositoryUnavailableError({
+          operation: 'healthWorker',
+          cause,
+        }),
+    }).pipe(
+      Effect.flatMap(mapWorkerReady),
+      Effect.withSpan('supabase.analysis_worker.ready', { kind: 'client' })
+    ),
+  acquireNextJob: ({ workerId, processorVersion, leaseSeconds }) =>
+    Effect.tryPromise({
+      try: () =>
+        client.acquireNextJob({
+          p_lease_owner: workerId,
+          p_processor_version: processorVersion,
+          p_lease_seconds: leaseSeconds,
+        }),
+      catch: (cause) =>
+        new AnalysisRunRepositoryUnavailableError({
+          operation: 'acquireJob',
+          cause,
+        }),
+    }).pipe(
+      Effect.flatMap(mapJobExecution),
+      Effect.withSpan('supabase.analysis_job.acquire', { kind: 'client' })
+    ),
+  completeJobSuccess: ({
+    execution,
+    resultFingerprint,
+    durationMilliseconds,
+  }) =>
+    Effect.tryPromise({
+      try: () =>
+        client.completeJobSuccess({
+          p_job_id: execution.jobId,
+          p_attempt_id: execution.attemptId,
+          p_lease_token: execution.leaseToken,
+          p_result_fingerprint: resultFingerprint,
+          p_duration_milliseconds: durationMilliseconds,
+        }),
+      catch: (cause) =>
+        new AnalysisRunRepositoryUnavailableError({
+          operation: 'completeJob',
+          cause,
+        }),
+    }).pipe(
+      Effect.flatMap(mapCompletedJob),
+      Effect.withSpan('supabase.analysis_job.complete', { kind: 'client' })
     ),
 });
