@@ -12,6 +12,12 @@ type ClaimOutboxArgs =
   Database['public']['Functions']['claim_analysis_run_outbox_event']['Args'];
 type DispatchOutboxArgs =
   Database['public']['Functions']['dispatch_analysis_run_outbox_event']['Args'];
+type AcquireJobArgs =
+  Database['public']['Functions']['acquire_analysis_job']['Args'];
+type AcquireJobRow =
+  Database['public']['Functions']['acquire_analysis_job']['Returns'][number];
+type CompleteJobArgs =
+  Database['public']['Functions']['complete_analysis_job_success']['Args'];
 
 export interface SupabaseAnalysisRunResult {
   readonly data: AnalysisRunRow[] | null;
@@ -28,6 +34,16 @@ export interface SupabaseAnalysisJobResult {
   readonly error: PostgrestError | null;
 }
 
+export interface SupabaseAnalysisJobAcquisitionResult {
+  readonly data: AcquireJobRow[] | null;
+  readonly error: PostgrestError | null;
+}
+
+export interface SupabaseAnalysisWorkerReadyResult {
+  readonly data: boolean | null;
+  readonly error: PostgrestError | null;
+}
+
 /** Focused RPC projection used by the privileged Analysis Run adapter. */
 export interface SupabaseAnalysisClient {
   readonly start: (args: StartArgs) => PromiseLike<SupabaseAnalysisRunResult>;
@@ -38,6 +54,13 @@ export interface SupabaseAnalysisClient {
   readonly dispatchOutboxEvent: (
     args: DispatchOutboxArgs
   ) => PromiseLike<SupabaseAnalysisJobResult>;
+  readonly checkWorkerReady: () => PromiseLike<SupabaseAnalysisWorkerReadyResult>;
+  readonly acquireNextJob: (
+    args: AcquireJobArgs
+  ) => PromiseLike<SupabaseAnalysisJobAcquisitionResult>;
+  readonly completeJobSuccess: (
+    args: CompleteJobArgs
+  ) => PromiseLike<SupabaseAnalysisJobResult>;
 }
 
 export const SupabaseAnalysisClientTag =
@@ -47,7 +70,8 @@ export const SupabaseAnalysisClientTag =
 
 export interface SupabaseAnalysisClientConfig {
   readonly url: string;
-  readonly serviceRoleKey: string;
+  /** Trusted server key; never expose this credential to a browser runtime. */
+  readonly secretKey: string;
 }
 
 /**
@@ -58,7 +82,7 @@ export interface SupabaseAnalysisClientConfig {
 export const makeSupabaseAnalysisClient = (
   config: SupabaseAnalysisClientConfig
 ): SupabaseAnalysisClient => {
-  const client = createClient<Database>(config.url, config.serviceRoleKey, {
+  const client = createClient<Database>(config.url, config.secretKey, {
     auth: {
       persistSession: false,
       autoRefreshToken: false,
@@ -73,6 +97,10 @@ export const makeSupabaseAnalysisClient = (
       client.rpc('claim_analysis_run_outbox_event', args),
     dispatchOutboxEvent: (args) =>
       client.rpc('dispatch_analysis_run_outbox_event', args),
+    checkWorkerReady: () => client.rpc('check_analysis_worker_ready'),
+    acquireNextJob: (args) => client.rpc('acquire_analysis_job', args),
+    completeJobSuccess: (args) =>
+      client.rpc('complete_analysis_job_success', args),
   };
 };
 

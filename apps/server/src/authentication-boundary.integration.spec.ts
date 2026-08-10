@@ -50,6 +50,7 @@ describe('authenticated server entry against local Supabase', () => {
 
   beforeEach(() => {
     vi.stubEnv('OMOIKANE_ENV', 'integration');
+    vi.stubEnv('SUPABASE_SECRET_KEY', 'integration-test-secret');
     vi.stubEnv('SUPABASE_URL', supabaseUrl);
     vi.stubEnv('SUPABASE_ANON_KEY', supabaseAnonKey);
   });

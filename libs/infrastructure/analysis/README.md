@@ -15,9 +15,10 @@ use case -> repository Tag -> Supabase Layer -> service-role RPC
 
 The service-role key is supplied only by `apps/server`; it never identifies the
 caller and never reaches Angular. Browser and service roles receive no direct
-event, job, or attempt-table access. The adapter never performs polling or owns
-lease decisions. Worker runtime, job execution, retry/dead-letter behavior,
-model execution, and generic privileged repositories remain outside this
-package.
+event, job, or attempt-table access. The adapter exposes focused readiness,
+acquisition, and completion RPCs but never performs polling or decides lease
+validity. Worker lifecycle, deterministic processing, retry/dead-letter
+behavior, model execution, and generic privileged repositories remain outside
+this package.
 
 Verify with `pnpm exec nx run-many -t lint typecheck typecheck:test test -p analysis-infrastructure`.

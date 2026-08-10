@@ -83,19 +83,20 @@ configured.
 
 ## Configuration
 
-| Variable                                 | Default               | Meaning                          |
-| ---------------------------------------- | --------------------- | -------------------------------- |
-| `OMOIKANE_ENV`                           | `local`               | Deployment environment label.    |
-| `OMOIKANE_SERVER_HOST`                   | `0.0.0.0`             | Network interface to bind.       |
-| `OMOIKANE_SERVER_PORT`                   | `3333`                | TCP port from 1 through 65535.   |
-| `OMOIKANE_SERVER_VERSION`                | `development`         | Build version shown by health.   |
-| `OMOIKANE_READINESS_TIMEOUT_MS`          | `2000`                | Supabase Auth probe deadline.    |
-| `SUPABASE_URL`                           | local CLI URL         | Supabase project API URL.        |
-| `SUPABASE_ANON_KEY`                      | local publishable key | Public key for Auth requests.    |
-| `SUPABASE_SERVICE_ROLE_KEY`              | local CLI key         | Server-only Analysis RPC key.    |
-| `OMOIKANE_ALLOWED_ORIGINS`               | Angular local origin  | Comma-separated browser origins. |
-| `OTEL_EXPORTER_OTLP_ENDPOINT`            | unset                 | Optional OTLP/HTTP base URL.     |
-| `OMOIKANE_TELEMETRY_SHUTDOWN_TIMEOUT_MS` | `3000`                | Bounded exporter shutdown.       |
+| Variable                                 | Default               | Meaning                            |
+| ---------------------------------------- | --------------------- | ---------------------------------- |
+| `OMOIKANE_ENV`                           | `local`               | Deployment environment label.      |
+| `OMOIKANE_SERVER_HOST`                   | `0.0.0.0`             | Network interface to bind.         |
+| `OMOIKANE_SERVER_PORT`                   | `3333`                | TCP port from 1 through 65535.     |
+| `OMOIKANE_SERVER_VERSION`                | `development`         | Build version shown by health.     |
+| `OMOIKANE_READINESS_TIMEOUT_MS`          | `2000`                | Supabase Auth probe deadline.      |
+| `SUPABASE_URL`                           | local CLI URL         | Supabase project API URL.          |
+| `SUPABASE_ANON_KEY`                      | local publishable key | Public key for Auth requests.      |
+| `SUPABASE_SECRET_KEY`                    | required              | Server-only Analysis RPC key.      |
+| `SUPABASE_SERVICE_ROLE_KEY`              | empty                 | Legacy-key compatibility fallback. |
+| `OMOIKANE_ALLOWED_ORIGINS`               | Angular local origin  | Comma-separated browser origins.   |
+| `OTEL_EXPORTER_OTLP_ENDPOINT`            | unset                 | Optional OTLP/HTTP base URL.       |
+| `OMOIKANE_TELEMETRY_SHUTDOWN_TIMEOUT_MS` | `3000`                | Bounded exporter shutdown.         |
 
 Empty values use local defaults. A malformed non-empty value fails startup
 before the server accepts traffic.

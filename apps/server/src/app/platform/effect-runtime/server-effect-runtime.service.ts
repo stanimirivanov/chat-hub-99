@@ -49,7 +49,7 @@ export class ServerEffectRuntime implements OnApplicationShutdown {
     );
     const analysisClientLayer = makeSupabaseAnalysisClientLayer({
       url: config.supabaseUrl,
-      serviceRoleKey: config.supabaseServiceRoleKey,
+      secretKey: config.supabaseSecretKey,
     });
     const analysisLayer = SupabaseAnalysisRunRepositoryLayer.pipe(
       Layer.provide(analysisClientLayer)

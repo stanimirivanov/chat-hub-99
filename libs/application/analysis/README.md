@@ -13,10 +13,11 @@ dispatcher    -> claim/dispatch use case -> infrastructure RPC
 
 The application library has no NestJS, Supabase, HTTP, browser, OpenTelemetry,
 or generated database dependencies. The trace carrier is runtime correlation
-metadata for the asynchronous boundary, not domain state. The operational job
-projection and opaque claim are application contracts; lease ownership and
-transactional idempotency remain PostgreSQL responsibilities. Polling, worker
-runtime, model execution, findings, and streaming are not part of this package
-yet.
+metadata for the asynchronous boundary, not domain state. Operational job,
+execution, receipt, and opaque-claim values are application contracts; lease
+ownership and transactional idempotency remain PostgreSQL responsibilities.
+The deterministic processor reads no content and has no provider dependency.
+Polling, worker lifecycle, model execution, findings, and streaming remain
+outside this package.
 
 Verify with `pnpm exec nx run-many -t lint typecheck typecheck:test test -p analysis-application`.

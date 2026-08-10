@@ -27,6 +27,7 @@ describe('Omoikane server runtime', () => {
   beforeEach(() => {
     vi.stubEnv('OMOIKANE_ENV', 'test');
     vi.stubEnv('OMOIKANE_SERVER_VERSION', '0.1.0-test');
+    vi.stubEnv('SUPABASE_SECRET_KEY', 'server-test-secret');
   });
 
   afterEach(async () => {

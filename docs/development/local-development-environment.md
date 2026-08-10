@@ -7,9 +7,9 @@
 > **Product:** Omoikane - The Collaborative Intelligence Platform
 
 This document defines the target local development environment. The server,
-server-to-Supabase path, and trace/metric observability profile are implemented.
-Sections that name the worker, Redis, Loki, or local AI describe future phase
-capabilities until those artifacts are implemented.
+worker, Supabase paths, and trace/metric observability profile are implemented.
+Sections that name Redis, Loki, or local AI remain future capability guidance
+until those artifacts have an implemented consumer.
 
 ## 1. Baseline workstation
 
@@ -67,9 +67,9 @@ flowchart LR
   worker -.-> ollama
 ```
 
-The server process, Supabase access, and telemetry arrows are operational.
-Redis, the worker, and the worker's dependencies remain target topology until
-their designated slices. The initial Phase 4 worker uses the approved
+The server process, worker, Supabase access, and telemetry arrows are
+operational. Redis and Ollama remain target topology until consuming
+capabilities justify them. The initial Phase 4 worker uses the approved
 PostgreSQL-backed queue and does not require Redis.
 
 ## 3. Target repository layout
@@ -170,7 +170,7 @@ OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
 
 SUPABASE_URL=http://127.0.0.1:54321
 SUPABASE_ANON_KEY=<from-supabase-status>
-SUPABASE_SERVICE_ROLE_KEY=<local-only-service-role-key>
+SUPABASE_SECRET_KEY=<SECRET_KEY-from-pnpm-supabase-status>
 SUPABASE_DB_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
 
 OPENAI_API_KEY=

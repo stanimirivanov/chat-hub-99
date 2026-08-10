@@ -437,6 +437,10 @@ Each item is one reviewable vertical slice:
 3. **Worker bootstrap and deterministic completion.** Add `apps/ai-worker`, one
    managed Effect runtime, health/lifecycle handling, bounded polling, and the
    deterministic processor. Prove restart recovery and terminal success.
+   **Completed:** the worker dispatches and executes at concurrency one,
+   exposes liveness/readiness, drains active work during shutdown, continues
+   persisted W3C context, and uses lease-fenced commands to append `running`
+   and exactly one `succeeded` fact. The processor reads no content.
 4. **Retry and dead-letter behavior.** Add failure classification, leasing
    recovery, deterministic backoff, fencing, and terminal failure proof. Do not
    add a generic retry framework.

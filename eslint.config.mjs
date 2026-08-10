@@ -51,6 +51,16 @@ export default [
               ],
             },
             {
+              sourceTag: 'runtime:worker',
+              onlyDependOnLibsWithTags: [
+                'layer:application',
+                'layer:infrastructure',
+                'layer:domain',
+                'layer:database',
+                'layer:util',
+              ],
+            },
+            {
               sourceTag: 'layer:domain',
               onlyDependOnLibsWithTags: ['layer:domain', 'layer:util'],
             },

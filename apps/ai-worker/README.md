@@ -1,0 +1,49 @@
+# Omoikane AI worker
+
+## Purpose
+
+This Nx application is the asynchronous process boundary for Analysis jobs. It
+owns one managed Effect runtime and two bounded, single-concurrency polling
+steps: dispatch one requested outbox event, then acquire and execute one
+available job.
+
+The current processor is deliberately deterministic. It reads no message
+content, performs no network model call, and produces only a stable receipt
+from canonical run and job identities.
+
+## Runtime boundaries
+
+```text
+poll loop -> Analysis application use cases -> Analysis repository Tag
+          -> Supabase RPCs -> PostgreSQL lease and lifecycle transaction
+```
+
+- PostgreSQL owns row locking, leases, opaque fencing tokens, attempts, and
+  lifecycle ordering.
+- The worker owns polling, concurrency one, process signals, bounded draining,
+  trace continuation, health transport, and telemetry disposal.
+- Browser and service roles have no direct access to queue tables.
+- `/health/live` is dependency-free; `/health/ready` executes the bounded,
+  non-mutating worker readiness command.
+
+An expired lease may be recovered by another process. A stale process cannot
+commit because completion requires the current job, attempt, and lease-token
+identity. Retry scheduling, dead-letter behavior, model providers, findings,
+and user-facing status projection are not implemented here.
+
+## Commands
+
+```bash
+pnpm worker:dev
+pnpm worker:test
+pnpm worker:build
+```
+
+Local health endpoints default to:
+
+- `http://localhost:3334/health/live`
+- `http://localhost:3334/health/ready`
+
+Configuration is documented in `.env.example`. The Supabase secret key (or the
+legacy service-role compatibility key) belongs only to trusted server and
+worker runtimes, must be supplied explicitly, and must never reach Angular.

@@ -28,7 +28,7 @@ const ServerConfigSchema = Schema.Struct({
   version: RequiredTextSchema,
   supabaseUrl: HttpUrlSchema,
   supabaseAnonKey: RequiredTextSchema,
-  supabaseServiceRoleKey: RequiredTextSchema,
+  supabaseSecretKey: RequiredTextSchema,
   readinessTimeoutMilliseconds: Schema.NumberFromString.pipe(
     Schema.int(),
     Schema.between(100, 30_000)
@@ -61,12 +61,19 @@ export class InvalidServerConfigError extends Error {
 const configuredValue = (value: string | undefined, fallback: string): string =>
   value?.trim() || fallback;
 
+const configuredSupabaseSecretKey = (
+  environment: NodeJS.ProcessEnv
+): string | undefined =>
+  environment['SUPABASE_SECRET_KEY']?.trim() ||
+  environment['SUPABASE_SERVICE_ROLE_KEY']?.trim() ||
+  undefined;
+
 /**
  * Decodes the server-owned subset of the process environment.
  *
- * Unknown variables are ignored. Defaults make local startup deterministic;
- * explicitly supplied empty values are treated as absent, while malformed
- * non-empty values fail startup.
+ * Unknown variables are ignored. Non-secret defaults make local startup
+ * deterministic; a trusted Supabase key must be supplied explicitly. Empty
+ * values are treated as absent, while malformed non-empty values fail startup.
  */
 export const readServerConfig = (
   environment: NodeJS.ProcessEnv
@@ -87,10 +94,7 @@ export const readServerConfig = (
       environment['SUPABASE_ANON_KEY'],
       'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH'
     ),
-    supabaseServiceRoleKey: configuredValue(
-      environment['SUPABASE_SERVICE_ROLE_KEY'],
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
-    ),
+    supabaseSecretKey: configuredSupabaseSecretKey(environment),
     readinessTimeoutMilliseconds: configuredValue(
       environment['OMOIKANE_READINESS_TIMEOUT_MS'],
       '2000'

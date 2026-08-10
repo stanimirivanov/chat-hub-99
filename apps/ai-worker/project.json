@@ -1,0 +1,48 @@
+{
+  "name": "ai-worker",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/ai-worker/src",
+  "projectType": "application",
+  "tags": ["project:app", "runtime:worker"],
+  "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p apps/ai-worker/tsconfig.app.json"
+      }
+    },
+    "typecheck:test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p apps/ai-worker/tsconfig.spec.json"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "webpack-cli build",
+        "env": { "NODE_ENV": "production" },
+        "cwd": "apps/ai-worker"
+      },
+      "configurations": {
+        "development": {
+          "env": { "NODE_ENV": "development" }
+        }
+      }
+    },
+    "serve": {
+      "continuous": true,
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "dependsOn": ["build"],
+      "options": {
+        "buildTarget": "ai-worker:build",
+        "runBuildTargetDependencies": false
+      },
+      "configurations": {
+        "development": { "buildTarget": "ai-worker:build:development" },
+        "production": { "buildTarget": "ai-worker:build:production" }
+      }
+    }
+  }
+}

@@ -5,7 +5,17 @@ import {
   AnalysisRunRepositoryTag,
   type AnalysisRunRepository,
 } from './analysis-run-repository';
-import type { AnalysisJob, AnalysisRunOutboxClaim } from './analysis-job';
+import type {
+  AnalysisJob,
+  AnalysisJobExecution,
+  AnalysisRunOutboxClaim,
+} from './analysis-job';
+import {
+  acquireNextAnalysisJob,
+  completeAnalysisJobSuccess,
+  DETERMINISTIC_ANALYSIS_PROCESSOR_VERSION,
+  processAnalysisJob,
+} from './analysis-job-execution';
 import { getAnalysisRun } from './get-analysis-run';
 import { startAnalysisRun } from './start-analysis-run';
 import { dispatchNextAnalysisRun } from './dispatch-next-analysis-run';
@@ -33,6 +43,9 @@ const repository = (
   get: () => Effect.die('unexpected get'),
   claimNextOutboxEvent: () => Effect.die('unexpected outbox claim'),
   dispatchOutboxEvent: () => Effect.die('unexpected outbox dispatch'),
+  checkWorkerReady: () => Effect.die('unexpected worker readiness'),
+  acquireNextJob: () => Effect.die('unexpected job acquisition'),
+  completeJobSuccess: () => Effect.die('unexpected job completion'),
   ...overrides,
 });
 
@@ -181,5 +194,77 @@ describe('Analysis Run use cases', () => {
       left: { _tag: 'InvalidAnalysisRunInputError', field: 'dispatcherId' },
     });
     expect(claimNextOutboxEvent).not.toHaveBeenCalled();
+  });
+
+  it('acquires work with the fixed deterministic processor contract', async () => {
+    const execution = {
+      jobId: '60000000-0000-4000-8000-000000000001',
+      attemptId: '70000000-0000-4000-8000-000000000001',
+      analysisRunId: run.id,
+      workspaceId: run.workspaceId,
+      kind: 'analysis.execute',
+      version: 1,
+      attemptNumber: 1,
+      leaseToken: '80000000-0000-4000-8000-000000000001',
+      leaseExpiresAt: new Date('2026-08-10T12:01:00.000Z'),
+      processorVersion: DETERMINISTIC_ANALYSIS_PROCESSOR_VERSION,
+      traceContext,
+    } as AnalysisJobExecution;
+    const acquireNextJob = vi.fn(() => Effect.succeed(Option.some(execution)));
+
+    await expect(
+      Effect.runPromise(
+        acquireNextAnalysisJob({ workerId: 'worker-1', leaseSeconds: 60 }).pipe(
+          Effect.provide(layer(repository({ acquireNextJob })))
+        )
+      )
+    ).resolves.toEqual(Option.some(execution));
+    expect(acquireNextJob).toHaveBeenCalledExactlyOnceWith({
+      workerId: 'worker-1',
+      processorVersion: DETERMINISTIC_ANALYSIS_PROCESSOR_VERSION,
+      leaseSeconds: 60,
+    });
+  });
+
+  it('produces the same receipt and commits it through the lease boundary', async () => {
+    const execution = {
+      jobId: '60000000-0000-4000-8000-000000000001',
+      attemptId: '70000000-0000-4000-8000-000000000001',
+      analysisRunId: run.id,
+      workspaceId: run.workspaceId,
+      kind: 'analysis.execute',
+      version: 1,
+      attemptNumber: 1,
+      leaseToken: '80000000-0000-4000-8000-000000000001',
+      leaseExpiresAt: new Date('2026-08-10T12:01:00.000Z'),
+      processorVersion: DETERMINISTIC_ANALYSIS_PROCESSOR_VERSION,
+      traceContext,
+    } as AnalysisJobExecution;
+    const firstReceipt = processAnalysisJob(execution);
+    const secondReceipt = processAnalysisJob(execution);
+    const completeJobSuccess = vi.fn(() =>
+      Effect.succeed({
+        id: execution.jobId,
+        analysisRunId: execution.analysisRunId,
+        workspaceId: execution.workspaceId,
+        kind: execution.kind,
+        version: execution.version,
+        availableAt: new Date('2026-08-10T12:00:00.000Z'),
+      } as AnalysisJob)
+    );
+
+    expect(firstReceipt).toEqual(secondReceipt);
+    await Effect.runPromise(
+      completeAnalysisJobSuccess({
+        execution,
+        receipt: firstReceipt,
+        durationMilliseconds: 12,
+      }).pipe(Effect.provide(layer(repository({ completeJobSuccess }))))
+    );
+    expect(completeJobSuccess).toHaveBeenCalledExactlyOnceWith({
+      execution,
+      resultFingerprint: firstReceipt.resultFingerprint,
+      durationMilliseconds: 12,
+    });
   });
 });
