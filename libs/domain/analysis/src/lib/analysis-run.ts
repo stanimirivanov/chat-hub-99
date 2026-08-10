@@ -3,16 +3,38 @@ import { ProfileIdSchema } from '@omoikane/domain/profile';
 import { WorkspaceIdSchema } from '@omoikane/domain/workspace';
 import { AnalysisRunIdSchema } from './analysis-run-id';
 
-/**
- * Immutable acceptance record for the first deterministic trusted workflow.
- * Execution lifecycle and model output deliberately remain outside this slice.
- */
+export const AnalysisRunStatusSchema = Schema.Literal(
+  'created',
+  'queued',
+  'running',
+  'succeeded',
+  'failed'
+);
+
+export const AnalysisRunFailureCategorySchema = Schema.String.pipe(
+  Schema.pattern(/^[a-z0-9._-]{1,64}$/u)
+);
+
+/** Immutable acceptance identity enriched with its latest lifecycle fact. */
 export const AnalysisRunSchema = Schema.Struct({
   id: AnalysisRunIdSchema,
   workspaceId: WorkspaceIdSchema,
   requestedBy: ProfileIdSchema,
-  status: Schema.Literal('created'),
+  status: AnalysisRunStatusSchema,
+  failureCategory: Schema.NullOr(AnalysisRunFailureCategorySchema),
   createdAt: Schema.DateFromSelf,
-});
+}).pipe(
+  Schema.filter(
+    (run) =>
+      run.status === 'failed'
+        ? run.failureCategory !== null
+        : run.failureCategory === null,
+    {
+      message: () =>
+        'Only a failed Analysis Run may expose a failure category.',
+    }
+  )
+);
 
 export type AnalysisRun = typeof AnalysisRunSchema.Type;
+export type AnalysisRunStatus = typeof AnalysisRunStatusSchema.Type;

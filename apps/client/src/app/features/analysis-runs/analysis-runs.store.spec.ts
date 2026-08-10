@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { Either, Schema } from 'effect';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AnalysisRunSchema, type AnalysisRun } from '@omoikane/domain/analysis';
 import { WorkspaceIdSchema } from '@omoikane/domain/workspace';
 import { AnalysisRunApiService } from '@client/core/analysis-run/analysis-run-api.service';
@@ -14,8 +14,14 @@ const run: AnalysisRun = Schema.decodeUnknownSync(AnalysisRunSchema)({
   workspaceId,
   requestedBy: '10000000-0000-4000-8000-000000000001',
   status: 'created',
+  failureCategory: null,
   createdAt: new Date('2026-08-09T12:00:00.000Z'),
 });
+
+const withStatus = (
+  status: AnalysisRun['status'],
+  failureCategory: string | null = null
+): AnalysisRun => ({ ...run, status, failureCategory });
 
 const configureStore = () => {
   const start = vi.fn().mockResolvedValue(Either.right(run));
@@ -30,6 +36,11 @@ const configureStore = () => {
 };
 
 describe('AnalysisRunsStore', () => {
+  afterEach(() => {
+    TestBed.resetTestingModule();
+    vi.useRealTimers();
+  });
+
   it('starts and retains the canonical run for the selected workspace', async () => {
     const { store, start } = configureStore();
     store.selectWorkspace(workspaceId);
@@ -38,7 +49,80 @@ describe('AnalysisRunsStore', () => {
 
     expect(start).toHaveBeenCalledExactlyOnceWith(workspaceId);
     expect(store.run()).toEqual(run);
-    expect(store.status()).toBe('created');
+    expect(store.status()).toBe('observing');
+  });
+
+  it('observes lifecycle transitions until the run succeeds', async () => {
+    vi.useFakeTimers();
+    const { store, get } = configureStore();
+    get
+      .mockResolvedValueOnce(Either.right(withStatus('queued')))
+      .mockResolvedValueOnce(Either.right(withStatus('running')))
+      .mockResolvedValueOnce(Either.right(withStatus('succeeded')));
+    store.selectWorkspace(workspaceId);
+    await store.start();
+
+    await vi.advanceTimersByTimeAsync(3_000);
+
+    expect(get).toHaveBeenCalledTimes(3);
+    expect(store.run()?.status).toBe('succeeded');
+    expect(store.status()).toBe('idle');
+
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(get).toHaveBeenCalledTimes(3);
+  });
+
+  it('stops observing when workspace selection changes', async () => {
+    vi.useFakeTimers();
+    const { store, get } = configureStore();
+    store.selectWorkspace(workspaceId);
+    await store.start();
+
+    store.selectWorkspace(
+      Schema.decodeUnknownSync(WorkspaceIdSchema)(
+        '20000000-0000-4000-8000-000000000002'
+      )
+    );
+    await vi.advanceTimersByTimeAsync(1_000);
+
+    expect(get).not.toHaveBeenCalled();
+    expect(store.run()).toBeNull();
+  });
+
+  it('lets a new workspace observe while an old request is still pending', async () => {
+    const { store, start, get } = configureStore();
+    let completeOldObservation:
+      | ((value: Either.Either<AnalysisRun, never>) => void)
+      | null = null;
+    get.mockReturnValueOnce(
+      new Promise((resolve) => {
+        completeOldObservation = resolve;
+      })
+    );
+    store.selectWorkspace(workspaceId);
+    await store.start();
+    const oldObservation = store.refresh();
+
+    const nextWorkspaceId = Schema.decodeUnknownSync(WorkspaceIdSchema)(
+      '20000000-0000-4000-8000-000000000002'
+    );
+    const nextRun = { ...run, workspaceId: nextWorkspaceId };
+    store.selectWorkspace(nextWorkspaceId);
+    start.mockResolvedValueOnce(Either.right(nextRun));
+    await store.start();
+    get.mockResolvedValueOnce(
+      Either.right({ ...nextRun, status: 'succeeded' as const })
+    );
+
+    await expect(store.refresh()).resolves.toBe(true);
+    expect(get).toHaveBeenLastCalledWith(nextWorkspaceId, nextRun.id);
+
+    if (completeOldObservation === null) {
+      throw new Error('Expected the old observation request to be pending.');
+    }
+    completeOldObservation(Either.right(run));
+    await expect(oldObservation).resolves.toBe(false);
+    expect(store.workspaceId()).toBe(nextWorkspaceId);
   });
 
   it('refreshes the retained run through the observe endpoint', async () => {

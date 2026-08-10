@@ -26,11 +26,12 @@ import type {
   SupabaseAnalysisJobFailureResult,
   SupabaseAnalysisOutboxResult,
   SupabaseAnalysisRunResult,
+  SupabaseAnalysisRunProjectionResult,
   SupabaseAnalysisWorkerReadyResult,
 } from './supabase-analysis-client';
 
 const mapResult = (
-  result: SupabaseAnalysisRunResult,
+  result: SupabaseAnalysisRunResult | SupabaseAnalysisRunProjectionResult,
   operation: 'start' | 'get'
 ): Effect.Effect<AnalysisRun, AnalysisRunRepositoryError> => {
   if (result.error !== null) {
@@ -58,6 +59,10 @@ const mapResult = (
     workspaceId: row.workspace_id,
     requestedBy: row.requested_by,
     status: row.status,
+    failureCategory:
+      'failure_category' in row
+        ? (row.failure_category as string | null)
+        : null,
     createdAt: new Date(row.created_at),
   }).pipe(
     Effect.mapError((cause) => new InvalidAnalysisRunDataError({ cause }))
@@ -66,7 +71,9 @@ const mapResult = (
 
 const execute = (
   operation: 'start' | 'get',
-  request: () => PromiseLike<SupabaseAnalysisRunResult>
+  request: () => PromiseLike<
+    SupabaseAnalysisRunResult | SupabaseAnalysisRunProjectionResult
+  >
 ): Effect.Effect<AnalysisRun, AnalysisRunRepositoryError> =>
   Effect.tryPromise({
     try: () => request(),
