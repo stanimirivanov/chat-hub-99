@@ -1,6 +1,7 @@
 import { Schema } from 'effect';
 import { ProfileIdSchema } from '@omoikane/domain/profile';
 import { WorkspaceIdSchema } from '@omoikane/domain/workspace';
+import { AnalysisResultSchema } from './analysis-result';
 import { AnalysisRunIdSchema } from './analysis-run-id';
 
 export const AnalysisRunStatusSchema = Schema.Literal(
@@ -22,6 +23,7 @@ export const AnalysisRunSchema = Schema.Struct({
   requestedBy: ProfileIdSchema,
   status: AnalysisRunStatusSchema,
   failureCategory: Schema.NullOr(AnalysisRunFailureCategorySchema),
+  result: Schema.NullOr(AnalysisResultSchema),
   createdAt: Schema.DateFromSelf,
 }).pipe(
   Schema.filter(
@@ -32,6 +34,16 @@ export const AnalysisRunSchema = Schema.Struct({
     {
       message: () =>
         'Only a failed Analysis Run may expose a failure category.',
+    }
+  ),
+  Schema.filter(
+    (run) =>
+      run.status === 'succeeded'
+        ? run.result !== null && run.result.analysisRunId === run.id
+        : run.result === null,
+    {
+      message: () =>
+        'Exactly succeeded Analysis Runs must carry their immutable result.',
     }
   )
 );

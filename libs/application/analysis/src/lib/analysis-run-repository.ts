@@ -10,7 +10,9 @@ import type {
 import type {
   AnalysisJob,
   AnalysisJobExecution,
+  AnalysisJobSource,
   AnalysisJobFailureCompletion,
+  AnalysisProcessorReceipt,
   AnalysisRunOutboxClaim,
 } from './analysis-job';
 
@@ -47,7 +49,12 @@ export interface AcquireAnalysisJobCommand {
 export interface CompleteAnalysisJobCommand {
   readonly execution: AnalysisJobExecution;
   readonly resultFingerprint: string;
+  readonly result: AnalysisProcessorReceipt['result'];
   readonly durationMilliseconds: number;
+}
+
+export interface LoadAnalysisJobSourcesCommand {
+  readonly execution: AnalysisJobExecution;
 }
 
 export interface FailAnalysisJobCommand {
@@ -82,6 +89,12 @@ export interface AnalysisRunRepository {
     command: AcquireAnalysisJobCommand
   ) => Effect.Effect<
     Option.Option<AnalysisJobExecution>,
+    AnalysisJobExecutionRepositoryError
+  >;
+  readonly loadJobSources: (
+    command: LoadAnalysisJobSourcesCommand
+  ) => Effect.Effect<
+    ReadonlyArray<AnalysisJobSource>,
     AnalysisJobExecutionRepositoryError
   >;
   readonly completeJobSuccess: (

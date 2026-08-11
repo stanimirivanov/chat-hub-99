@@ -16,6 +16,47 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      analysis_findings: {
+        Row: {
+          analysis_finding_id: string
+          analysis_result_id: string
+          confidence: number
+          created_at: string
+          finding_kind: string
+          finding_status: string
+          summary: string
+          title: string
+        }
+        Insert: {
+          analysis_finding_id?: string
+          analysis_result_id: string
+          confidence: number
+          created_at?: string
+          finding_kind: string
+          finding_status: string
+          summary: string
+          title: string
+        }
+        Update: {
+          analysis_finding_id?: string
+          analysis_result_id?: string
+          confidence?: number
+          created_at?: string
+          finding_kind?: string
+          finding_status?: string
+          summary?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analysis_findings_analysis_result_id_fkey"
+            columns: ["analysis_result_id"]
+            isOneToOne: true
+            referencedRelation: "analysis_results"
+            referencedColumns: ["analysis_result_id"]
+          },
+        ]
+      }
       analysis_job_attempts: {
         Row: {
           analysis_job_attempt_id: string
@@ -164,6 +205,95 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "workspaces"
             referencedColumns: ["workspace_id"]
+          },
+        ]
+      }
+      analysis_result_sources: {
+        Row: {
+          analysis_result_id: string
+          message_id: string
+          message_version_id: string
+          ordinal: number
+        }
+        Insert: {
+          analysis_result_id: string
+          message_id: string
+          message_version_id: string
+          ordinal: number
+        }
+        Update: {
+          analysis_result_id?: string
+          message_id?: string
+          message_version_id?: string
+          ordinal?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analysis_result_sources_analysis_result_id_fkey"
+            columns: ["analysis_result_id"]
+            isOneToOne: false
+            referencedRelation: "analysis_results"
+            referencedColumns: ["analysis_result_id"]
+          },
+          {
+            foreignKeyName: "analysis_result_sources_message_id_message_version_id_fkey"
+            columns: ["message_id", "message_version_id"]
+            isOneToOne: false
+            referencedRelation: "message_versions"
+            referencedColumns: ["message_id", "message_version_id"]
+          },
+        ]
+      }
+      analysis_results: {
+        Row: {
+          analysis_result_id: string
+          analysis_run_id: string
+          created_at: string
+          evaluation_version: string
+          model: string | null
+          processor_version: string
+          provider_kind: string
+          result_fingerprint: string
+          result_kind: string
+          source_count: number
+          source_truncated: boolean
+          summary: string
+        }
+        Insert: {
+          analysis_result_id?: string
+          analysis_run_id: string
+          created_at?: string
+          evaluation_version: string
+          model?: string | null
+          processor_version: string
+          provider_kind: string
+          result_fingerprint: string
+          result_kind: string
+          source_count: number
+          source_truncated: boolean
+          summary: string
+        }
+        Update: {
+          analysis_result_id?: string
+          analysis_run_id?: string
+          created_at?: string
+          evaluation_version?: string
+          model?: string | null
+          processor_version?: string
+          provider_kind?: string
+          result_fingerprint?: string
+          result_kind?: string
+          source_count?: number
+          source_truncated?: boolean
+          summary?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analysis_results_analysis_run_id_fkey"
+            columns: ["analysis_run_id"]
+            isOneToOne: true
+            referencedRelation: "analysis_runs"
+            referencedColumns: ["analysis_run_id"]
           },
         ]
       }
@@ -1834,6 +1964,7 @@ export type Database = {
           p_duration_milliseconds: number
           p_job_id: string
           p_lease_token: string
+          p_result: Json
           p_result_fingerprint: string
         }
         Returns: {
@@ -1960,6 +2091,7 @@ export type Database = {
           created_at: string
           failure_category: string
           requested_by: string
+          result: Json
           status: string
           workspace_id: string
         }[]
@@ -2024,6 +2156,14 @@ export type Database = {
         Returns: {
           channel_id: string
           unread_count: number
+        }[]
+      }
+      load_analysis_job_sources: {
+        Args: { p_attempt_id: string; p_job_id: string; p_lease_token: string }
+        Returns: {
+          author_user_id: string
+          message_id: string
+          message_version_id: string
         }[]
       }
       mark_channel_read: {

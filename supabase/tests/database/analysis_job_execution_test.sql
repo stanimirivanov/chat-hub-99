@@ -3,6 +3,11 @@ BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
 SELECT plan(29);
 
+CREATE FUNCTION pg_temp.test_analysis_result()
+RETURNS JSONB LANGUAGE sql IMMUTABLE AS $$
+    SELECT '{"kind":"workspace-message-inventory","processorVersion":"analysis.deterministic.v1","providerKind":"deterministic","model":null,"evaluationVersion":"workspace-message-inventory.v1","sourceCount":0,"sourceTruncated":false,"sources":[],"summary":"Analyzed 0 active messages from 0 participants.","finding":{"kind":"workspace-message-inventory","status":"proposed","title":"Workspace message inventory","summary":"Analyzed 0 active messages from 0 participants.","confidence":1}}'::JSONB
+$$;
+
 SELECT has_function(
     'public',
     'acquire_analysis_job',
@@ -12,7 +17,7 @@ SELECT has_function(
 SELECT has_function(
     'public',
     'complete_analysis_job_success',
-    ARRAY['uuid', 'uuid', 'uuid', 'text', 'integer'],
+    ARRAY['uuid', 'uuid', 'uuid', 'text', 'integer', 'jsonb'],
     'Analysis attempts have a lease-fenced success command'
 );
 SELECT has_function(
@@ -110,7 +115,7 @@ SET LOCAL ROLE service_role;
 
 SELECT throws_ok(
     format(
-        'SELECT public.complete_analysis_job_success(%L, %L, %L, %L, 1)',
+        'SELECT public.complete_analysis_job_success(%L, %L, %L, %L, 1, pg_temp.test_analysis_result())',
         :'attempt_analysis_job_id'::UUID,
         :'attempt_analysis_job_attempt_id'::UUID,
         '90000000-0000-4000-8000-000000000001'::UUID,
@@ -141,7 +146,8 @@ FROM public.complete_analysis_job_success(
     :'attempt_analysis_job_attempt_id'::UUID,
     :'attempt_lease_token'::UUID,
     'analysis.deterministic.v1/run/job',
-    2
+    2,
+    pg_temp.test_analysis_result()
 )
 \gset completed_
 
@@ -187,7 +193,8 @@ SELECT is(
             :'attempt_analysis_job_attempt_id'::UUID,
             :'attempt_lease_token'::UUID,
             'analysis.deterministic.v1/run/job',
-            2
+            2,
+            pg_temp.test_analysis_result()
         )
     ),
     :'attempt_analysis_job_id'::UUID,
@@ -284,7 +291,7 @@ SELECT isnt(
 );
 SELECT throws_ok(
     format(
-        'SELECT public.complete_analysis_job_success(%L, %L, %L, %L, 1)',
+        'SELECT public.complete_analysis_job_success(%L, %L, %L, %L, 1, pg_temp.test_analysis_result())',
         :'abandoned_analysis_job_id'::UUID,
         :'abandoned_analysis_job_attempt_id'::UUID,
         :'abandoned_lease_token'::UUID,
@@ -297,7 +304,7 @@ SELECT throws_ok(
 
 SELECT lives_ok(
     format(
-        'SELECT public.complete_analysis_job_success(%L, %L, %L, %L, 1)',
+        'SELECT public.complete_analysis_job_success(%L, %L, %L, %L, 1, pg_temp.test_analysis_result())',
         :'recovered_analysis_job_id'::UUID,
         :'recovered_analysis_job_attempt_id'::UUID,
         :'recovered_lease_token'::UUID,

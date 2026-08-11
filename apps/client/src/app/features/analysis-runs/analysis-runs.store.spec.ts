@@ -15,6 +15,7 @@ const run: AnalysisRun = Schema.decodeUnknownSync(AnalysisRunSchema)({
   requestedBy: '10000000-0000-4000-8000-000000000001',
   status: 'created',
   failureCategory: null,
+  result: null,
   createdAt: new Date('2026-08-09T12:00:00.000Z'),
 });
 

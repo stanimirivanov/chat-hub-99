@@ -5,12 +5,15 @@ import {
   AnalysisRunRepositoryUnavailableError,
   AnalysisJobSchema,
   AnalysisJobExecutionSchema,
+  AnalysisJobSourceSchema,
   AnalysisJobFailureCompletionSchema,
   AnalysisJobLeaseLostError,
+  AnalysisSourceAccessRevokedError,
   AnalysisRunOutboxClaimSchema,
   InvalidAnalysisRunDataError,
   type AnalysisJob,
   type AnalysisJobExecution,
+  type AnalysisJobSource,
   type AnalysisJobFailureCompletion,
   type AnalysisJobExecutionRepositoryError,
   type AnalysisRunOutboxClaim,
@@ -24,11 +27,23 @@ import type {
   SupabaseAnalysisJobResult,
   SupabaseAnalysisJobAcquisitionResult,
   SupabaseAnalysisJobFailureResult,
+  SupabaseAnalysisJobSourcesResult,
   SupabaseAnalysisOutboxResult,
   SupabaseAnalysisRunResult,
   SupabaseAnalysisRunProjectionResult,
   SupabaseAnalysisWorkerReadyResult,
 } from './supabase-analysis-client';
+
+const mapAnalysisResult = (value: unknown): unknown => {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    return value;
+  }
+
+  return {
+    ...value,
+    createdAt: new Date(String(Reflect.get(value, 'createdAt'))),
+  };
+};
 
 const mapResult = (
   result: SupabaseAnalysisRunResult | SupabaseAnalysisRunProjectionResult,
@@ -63,6 +78,7 @@ const mapResult = (
       'failure_category' in row
         ? (row.failure_category as string | null)
         : null,
+    result: 'result' in row ? mapAnalysisResult(row.result) : null,
     createdAt: new Date(row.created_at),
   }).pipe(
     Effect.mapError((cause) => new InvalidAnalysisRunDataError({ cause }))
@@ -212,6 +228,38 @@ const mapWorkerReady = (
           cause: 'The Analysis worker readiness command returned false.',
         })
       );
+};
+
+const mapJobSources = (
+  result: SupabaseAnalysisJobSourcesResult
+): Effect.Effect<
+  ReadonlyArray<AnalysisJobSource>,
+  AnalysisJobExecutionRepositoryError
+> => {
+  if (result.error?.code === 'P0003') {
+    return Effect.fail(new AnalysisJobLeaseLostError());
+  }
+  if (result.error?.code === 'P0004') {
+    return Effect.fail(new AnalysisSourceAccessRevokedError());
+  }
+  if (result.error !== null) {
+    return Effect.fail(
+      new AnalysisRunRepositoryUnavailableError({
+        operation: 'loadSources',
+        cause: result.error,
+      })
+    );
+  }
+
+  return Effect.forEach(result.data ?? [], (row) =>
+    Schema.decodeUnknown(AnalysisJobSourceSchema)({
+      messageId: row.message_id,
+      messageRevisionId: row.message_version_id,
+      authorUserId: row.author_user_id,
+    }).pipe(
+      Effect.mapError((cause) => new InvalidAnalysisRunDataError({ cause }))
+    )
+  );
 };
 
 const mapCompletedJob = (
@@ -377,9 +425,27 @@ export const makeSupabaseAnalysisRunRepository = (
       Effect.flatMap(mapJobExecution),
       Effect.withSpan('supabase.analysis_job.acquire', { kind: 'client' })
     ),
+  loadJobSources: ({ execution }) =>
+    Effect.tryPromise({
+      try: () =>
+        client.loadJobSources({
+          p_job_id: execution.jobId,
+          p_attempt_id: execution.attemptId,
+          p_lease_token: execution.leaseToken,
+        }),
+      catch: (cause) =>
+        new AnalysisRunRepositoryUnavailableError({
+          operation: 'loadSources',
+          cause,
+        }),
+    }).pipe(
+      Effect.flatMap(mapJobSources),
+      Effect.withSpan('supabase.analysis_job.load_sources', { kind: 'client' })
+    ),
   completeJobSuccess: ({
     execution,
     resultFingerprint,
+    result,
     durationMilliseconds,
   }) =>
     Effect.tryPromise({
@@ -390,6 +456,21 @@ export const makeSupabaseAnalysisRunRepository = (
           p_lease_token: execution.leaseToken,
           p_result_fingerprint: resultFingerprint,
           p_duration_milliseconds: durationMilliseconds,
+          p_result: {
+            kind: result.kind,
+            processorVersion: result.processorVersion,
+            providerKind: result.providerKind,
+            model: result.model,
+            evaluationVersion: result.evaluationVersion,
+            sourceCount: result.sourceCount,
+            sourceTruncated: result.sourceTruncated,
+            sources: result.sources.map((source) => ({
+              messageId: source.messageId,
+              messageRevisionId: source.messageRevisionId,
+            })),
+            summary: result.summary,
+            finding: { ...result.finding },
+          },
         }),
       catch: (cause) =>
         new AnalysisRunRepositoryUnavailableError({
