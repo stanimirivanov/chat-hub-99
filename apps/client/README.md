@@ -1,5 +1,7 @@
 # Omoikane Angular Client
 
+> TODO: This readme contains different concerns and has to be split in multiple documents.
+
 The client is Omoikane's browser delivery mechanism. It renders application
 state, translates user interaction into application use-case calls, and
 composes the Effect/Supabase runtime through Angular dependency injection.

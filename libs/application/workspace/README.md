@@ -2,20 +2,20 @@
 
 `@omoikane/application/workspace` owns provider-independent workflows for
 discovering active and archived workspaces and active members, creating and
-editing workspaces, archiving and restoring workspaces, adding active profiles as members, changing
-active member roles, suspending and reactivating members, removing active
-members, leaving a workspace, and consent-based invitations for existing users.
-It also owns the provider-independent stream that refreshes accessible
-workspace snapshots when membership or workspace lifecycle changes affect
-active navigation. Ephemeral workspace presence is exposed through a separate
-provider-independent service because it is not repository persistence.
+editing workspaces, archiving and restoring workspaces, adding active profiles
+as members, changing active member roles, suspending and reactivating members,
+removing active members, leaving a workspace, and consent-based invitations for
+existing users. It also owns the provider-independent stream that refreshes
+accessible workspace snapshots when membership or workspace lifecycle changes
+affect active navigation. Ephemeral workspace presence is exposed through a
+separate provider-independent service because it is not repository persistence.
 
 ## Responsibilities
 
 - Define the `WorkspaceRepository` outbound port.
 - Define the advisory `WorkspacePresenceService` outbound port.
-- Define typed read, creation, update, archive, restoration, member-addition, role-change,
-  removal, suspension, invitation, and expected command failures.
+- Define typed read, creation, update, archive, restoration, member-addition,
+  role-change, removal, suspension, invitation, and expected command failures.
 - List active, accessible workspaces through an Effect use case.
 - List archived workspaces still visible through existing membership RLS as
   distinct archived domain projections.
@@ -26,14 +26,14 @@ provider-independent service because it is not repository persistence.
 - List active, RLS-visible members in fixed-size owner-first keyset pages.
 - Normalize and validate workspace creation input before repository access.
 - Create a workspace without accepting client-supplied owner identity.
-- Normalize and validate complete workspace replacement details through the
-  same private decoder used by creation.
+- Normalize and validate complete workspace replacement details through the same
+  private decoder used by creation.
 - Update a workspace without accepting client-supplied actor identity.
 - Normalize and validate the workspace identity before archiving.
 - Archive a workspace without accepting client-supplied actor identity or
   representing the archived version as an active domain workspace.
-- Restore an archived workspace without accepting client-supplied actor
-  identity and return only the validated active projection.
+- Restore an archived workspace without accepting client-supplied actor identity
+  and return only the validated active projection.
 - Resolve an exact active username through the profile port and add that stable
   profile identity with the default member role, reactivating its preserved
   left, removed, or suspended history when present.
@@ -201,11 +201,11 @@ other application libraries.
 - `WorkspacePresenceServiceTag` and `WorkspacePresenceService`
 - workspace repository error types
 
-The observation use case uses `Stream.unwrap` to obtain the repository from
-the Effect environment once per subscription. `Stream.mapEffect` then performs
-the repository read sequentially for every invalidation, preserving the typed
-failure channel and preventing provider event payloads from becoming
-application data.
+The observation use case uses `Stream.unwrap` to obtain the repository from the
+Effect environment once per subscription. `Stream.mapEffect` then performs the
+repository read sequentially for every invalidation, preserving the typed
+failure channel and preventing provider event payloads from becoming application
+data.
 
 ## Verification
 
