@@ -1,6 +1,8 @@
 # Message Domain
 
-`@omoikane/domain/message` contains the technology-independent message model. It expresses what a valid message is, not how messages are stored, fetched, rendered, or synchronized.
+`@omoikane/domain/message` contains the technology-independent message model. It
+expresses what a valid message is, not how messages are stored, fetched,
+rendered, or synchronized.
 
 ## Responsibilities
 
@@ -16,8 +18,8 @@
 
 This library may depend on the channel domain for channel identity, the profile
 domain for stable author identity, and general-purpose modeling tools such as
-Effect Schema. It must not depend on Angular, NgRx, Supabase, generated
-database types, browser APIs, or application services.
+Effect Schema. It must not depend on Angular, NgRx, Supabase, generated database
+types, browser APIs, or application services.
 
 ```text
 application/message ──depends on──> domain/message
@@ -27,13 +29,18 @@ client presentation ───────────────> domain/messag
 
 ## Modeling approach
 
-Database rows are not domain entities. Infrastructure validates an untrusted database projection with the schemas in this library before application code receives it. Branded identifiers prevent accidental interchange of UUID-shaped values belonging to different concepts.
+Database rows are not domain entities. Infrastructure validates an untrusted
+database projection with the schemas in this library before application code
+receives it. Branded identifiers prevent accidental interchange of UUID-shaped
+values belonging to different concepts.
 
-Deleted messages are modeled explicitly rather than represented as partially nullable active messages. This makes consumers handle the state transition deliberately.
+Deleted messages are modeled explicitly rather than represented as partially
+nullable active messages. This makes consumers handle the state transition
+deliberately.
 
-Both active and deleted projections retain `authorId`. Authorship belongs to
-the stable message identity and does not change when message content is edited
-or soft-deleted.
+Both active and deleted projections retain `authorId`. Authorship belongs to the
+stable message identity and does not change when message content is edited or
+soft-deleted.
 
 ## Internal modules
 
@@ -45,7 +52,9 @@ or soft-deleted.
 
 ## Extension guideline
 
-Add a domain abstraction only when it captures a business invariant or vocabulary shared by multiple use cases. Presentation-only state, Supabase payloads, and RPC result types do not belong here.
+Add a domain abstraction only when it captures a business invariant or
+vocabulary shared by multiple use cases. Presentation-only state, Supabase
+payloads, and RPC result types do not belong here.
 
 ## Verification
 

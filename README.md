@@ -18,7 +18,8 @@ the [Omoikane documentation](docs/README.md).
 - Supabase for authentication, PostgreSQL, row-level security, realtime, and
   storage
 - NestJS with Fastify for the trusted server HTTP and composition boundary
-- OpenTelemetry, Tempo, Prometheus, and Grafana for optional local server observability
+- OpenTelemetry, Tempo, Prometheus, and Grafana for optional local server
+  observability
 - Nx for project boundaries, task orchestration, and dependency visualization
 - Vitest for TypeScript unit tests and pgTAP for database tests
 
@@ -84,25 +85,6 @@ tools/database/                 Database type-generation tooling
 
 Each library README documents its responsibilities, dependency rules, internal
 package structure, and extension guidelines.
-
-## SOLID in this codebase
-
-SOLID is applied pragmatically rather than mechanically:
-
-- **Single responsibility:** database operations, mapping, composition, use
-  cases, and presentation state are separate modules.
-- **Open/closed:** application code depends on repository ports, allowing
-  another adapter without modifying use cases.
-- **Liskov substitution:** repository implementations must preserve the port’s
-  success and failure semantics.
-- **Interface segregation:** ports expose operations required by the message
-  application; UI components do not depend on Supabase APIs.
-- **Dependency inversion:** Effect service tags connect application policy to
-  infrastructure implementations at the runtime composition root.
-
-A separate Nx library is not created for every class or function. A package
-boundary is justified only when it provides an independently enforceable
-dependency rule or reusable capability.
 
 ## Getting started
 
@@ -230,8 +212,8 @@ server, signs in as the seeded owner, opens the seeded workspace and channel,
 creates a message, and signs out. The reset is destructive to local database
 changes.
 
-After the platform and browser are already prepared, rerun only the browser
-test with `pnpm e2e`.
+After the platform and browser are already prepared, rerun only the browser test
+with `pnpm e2e`.
 
 ### Complete verification
 
@@ -267,7 +249,8 @@ resulting platform with `pnpm dev:status`, installs Chromium with its Linux
 dependencies, and never connects to or mutates a hosted Supabase project.
 Playwright traces and screenshots are retained for failed browser runs.
 
-The workflow is defined in [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+The workflow is defined in [
+`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
 Checks are intentionally ordered from cheapest to most expensive:
 
@@ -334,7 +317,8 @@ pnpm dev
 ```
 
 This command starts Supabase, resets the local database, applies all migrations,
-loads supabase/seed.sql, and starts Angular, the NestJS server, and the AI worker.
+loads supabase/seed.sql, and starts Angular, the NestJS server, and the AI
+worker.
 
 The reset is destructive to local database data.
 
@@ -355,7 +339,7 @@ existing collaboration operations behind the server. See
 Seeded users
 
 | Role               | Email                     | Password       |
-| :----------------- | :------------------------ | :------------- |
+|:-------------------|:--------------------------|:---------------|
 | Workspace owner    | `owner@omoikane.local`    | `Password123!` |
 | Workspace member   | `member@omoikane.local`   | `Password123!` |
 | Workspace outsider | `outsider@omoikane.local` | `Password123!` |

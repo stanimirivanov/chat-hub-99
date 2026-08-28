@@ -198,7 +198,26 @@ same dependency rules. More projects are not automatically a more SOLID design.
 Nx tags and `@nx/enforce-module-boundaries` rules must encode the intended layer
 direction. A README statement without executable enforcement is insufficient.
 
-## 9. Target runtime discipline
+## 9. SOLID in this codebase
+
+SOLID is applied pragmatically rather than mechanically:
+
+- **Single responsibility:** database operations, mapping, composition, use
+  cases, and presentation state are separate modules.
+- **Open/closed:** application code depends on repository ports, allowing
+  another adapter without modifying use cases.
+- **Liskov substitution:** repository implementations must preserve the port’s
+  success and failure semantics.
+- **Interface segregation:** ports expose operations required by the message
+  application; UI components do not depend on Supabase APIs.
+- **Dependency inversion:** Effect service tags connect application policy to
+  infrastructure implementations at the runtime composition root.
+
+A separate Nx library is not created for every class or function. A package
+boundary is justified only when it provides an independently enforceable
+dependency rule or reusable capability.
+
+## 10. Target runtime discipline
 
 Production tsconfigs should expose only globals provided by their declared
 runtime.
@@ -213,7 +232,7 @@ runtime.
 Review both source imports and compiler ambient types; accidental globals can
 create hidden runtime coupling even when imports look clean.
 
-## 10. Project targets and verification
+## 11. Project targets and verification
 
 Every library should provide correctly scoped targets for production and test
 typechecking. Target commands must reference that library’s own tsconfig.
@@ -235,7 +254,7 @@ failures.
 Whenever a project is copied or refactored, inspect `project.json` commands for
 stale paths; a green command that checks another project is a false signal.
 
-## 11. File-size and extraction review
+## 12. File-size and extraction review
 
 File size is a diagnostic signal, not a rule. Review a large file for unrelated
 reasons to change.
@@ -251,7 +270,7 @@ Extraction is usually justified when a file contains several of:
 Do not extract a one-line abstraction merely to reduce line count. Extraction
 should improve ownership, test isolation, reuse, or dependency visibility.
 
-## 12. TSDoc standard
+## 13. TSDoc standard
 
 Add TSDoc to exported policy-bearing code and non-obvious internal algorithms.
 Good documentation answers:
@@ -287,7 +306,7 @@ Document service tags and Layers in reader-friendly terms:
 Avoid comments that merely restate names, syntax, or one obvious expression.
 Generated code does not require hand-written documentation.
 
-## 13. README standard
+## 14. README standard
 
 Every library README should contain:
 
@@ -313,7 +332,7 @@ caller → use case → service tag → repository implementation
 Keep import-policy documentation synchronized with actual practice. Do not
 prescribe a private alias that the codebase intentionally does not use.
 
-## 14. Testing standard
+## 15. Testing standard
 
 Test at the narrowest owning layer:
 
@@ -344,7 +363,7 @@ focused typed stubs whenever practical.
 Tests should not duplicate lower-layer validation in every outer layer, nor
 should a production API be widened solely for tests.
 
-## 15. Review checklist
+## 16. Review checklist
 
 Before merging a slice, verify:
 
